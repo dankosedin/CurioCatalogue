@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in the mod does not work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Put a ledger in the off-hand
+        2. Shift + right-click a chest with an empty hand
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      placeholder: "1.22.7"
+    validations:
+      required: true
+  - type: input
+    id: mod-version
+    attributes:
+      label: Mod version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Singleplayer
+        - Multiplayer, I host
+        - Multiplayer, dedicated server
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other mods
+      description: Especially storage, inventory and handbook mods.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        From `VintagestoryData/Logs/`: the lines around the problem in `server-main.log` and `client-main.log`,
+        or the whole `client-crash.log` after a crash.
+      render: text

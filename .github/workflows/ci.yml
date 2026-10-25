@@ -1,0 +1,51 @@
+# Builds the solution and runs both test projects (docs/development.md, Branches, PRs and releases).
+name: CI
+
+on:
+  push:
+    branches: [main, release, "feature/**"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # The projects take the game DLLs from here; nothing of the game is committed.
+      VINTAGE_STORY: ${{ github.workspace }}/game
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Game version from modinfo.json
+        id: game
+        run: echo "version=$(jq -r '.dependencies.game' curiocatalogue/modinfo.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the game
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: game
+          key: vs-server-linux-${{ steps.game.outputs.version }}
+
+      # The dedicated server archive has every DLL we reference (VintagestoryAPI, VSSurvivalMod, VSEssentials,
+      # Lib/protobuf-net, Lib/Newtonsoft.Json) and needs no account. URL and md5 come from the game's release index.
+      - name: Download the game
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          VERSION: ${{ steps.game.outputs.version }}
+        run: |
+          entry=$(curl -sSfL https://api.vintagestory.at/stable.json | jq -e --arg v "$VERSION" '.[$v].linuxserver')
+          curl -sSfL -o server.tar.gz "$(jq -r '.urls.cdn' <<< "$entry")"
+          echo "$(jq -r '.md5' <<< "$entry")  server.tar.gz" | md5sum -c -
+          mkdir -p game
+          tar -xzf server.tar.gz -C game
+          rm server.tar.gz
+
+      - name: Build
+        run: dotnet build curiocatalogue.sln
+
+      - name: Test
+        run: dotnet test curiocatalogue.sln --no-build

@@ -1,0 +1,321 @@
+[
+	{
+		ingredientPattern: "N_,BQ,N_",
+		ingredients: {
+			"B": { type: "item", code: "game:book-{cover}" },
+			"Q": { type: "item", code: "game:inkandquill", isTool: true, toolDurabilityCost: 0 },
+			"N": { type: "item", code: "game:metalnailsandstrips-{metal}", quantity: 1 }
+		},
+		allowedVariants: {
+			metal: ["iron", "meteoriciron", "steel"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 3,
+		name: "ledger-fallback",
+		recipeGroup: 1,
+		output: { type: "item", code: "curiocatalogue:book-ledger-{cover}" }
+	},
+	{
+		ingredientPattern: "BJQ",
+		ingredients: {
+			"B": { type: "block", code: "game:clutter", attributes: { type: "bookshelves/large-book-closed" } },
+			"J": { type: "block", code: "game:jug-*-fired", recipeAttributes: { requiresContent: { type: "item", code: "game:limewaterportion" }, requiresLitres: 1 } },
+			"Q": { type: "item", code: "game:inkandquill", isTool: true, toolDurabilityCost: 0 }
+		},
+		width: 3,
+		height: 1,
+		shapeless: true,
+		name: "ledger-restore",
+		recipeGroup: 1,
+		output: { type: "item", code: "curiocatalogue:book-ledger-normal-darkgreen" }
+	},
+	{
+		ingredientPattern: "BJQ",
+		ingredients: {
+			"B": { type: "block", code: "game:clutter", attributes: { type: "bookshelves/large-book-open" } },
+			"J": { type: "block", code: "game:jug-*-fired", recipeAttributes: { requiresContent: { type: "item", code: "game:limewaterportion" }, requiresLitres: 1 } },
+			"Q": { type: "item", code: "game:inkandquill", isTool: true, toolDurabilityCost: 0 }
+		},
+		width: 3,
+		height: 1,
+		shapeless: true,
+		name: "ledger-restore",
+		recipeGroup: 1,
+		output: { type: "item", code: "curiocatalogue:book-ledger-normal-darkgreen" }
+	},
+	{
+		ingredientPattern: "L",
+		ingredients: { "L": { type: "item", code: "curiocatalogue:book-ledger-{cover}" } },
+		allowedVariants: { cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"] },
+		width: 1,
+		height: 1,
+		name: "ledger-switchmode",
+		recipeGroup: 2,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:book-materials-{cover}" }
+	},
+	{
+		ingredientPattern: "L",
+		ingredients: { "L": { type: "item", code: "curiocatalogue:book-materials-{cover}" } },
+		allowedVariants: { cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"] },
+		width: 1,
+		height: 1,
+		name: "ledger-switchmode",
+		recipeGroup: 2,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:book-ledger-{cover}" }
+	},
+	{
+		ingredientPattern: "LP",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"P": { type: "item", code: "game:paper-parchment", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recharge",
+		recipeGroup: 3,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-{cover}" }
+	},
+	{
+		ingredientPattern: "LT",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:book-{kind}-{cover}" },
+			"T": { type: "block", code: "game:tapestry-*", isTool: true, toolDurabilityCost: 0 }
+		},
+		allowedVariants: {
+			kind: ["ledger", "materials"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-album",
+		recipeGroup: 4,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:book-album-{cover}" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-plain", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-orangebrown" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-orange", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-orange" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-black", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-darkgray" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-red", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-cherryred" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-blue", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-teal" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-purple", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-purple" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-pink", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-purpleorange" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-white", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-darkbeige" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-yellow", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-olive" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-gray", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-gray" }
+	},
+	{
+		ingredientPattern: "LS",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-{cover}" },
+			"S": { type: "item", code: "game:leather-normal-green", quantity: 1 }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			cover: ["normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray", "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal", "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray", "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-recolor",
+		recipeGroup: 5,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-normal-darkgreen" }
+	},
+	{
+		ingredientPattern: "LJ",
+		ingredients: {
+			"L": { type: "item", code: "curiocatalogue:{book}-normal-{color}" },
+			"J": { type: "block", code: "game:jug-*-fired", recipeAttributes: { requiresContent: { type: "item", code: "game:acid-full-sulfuric" }, requiresLitres: 1 } }
+		},
+		allowedVariants: {
+			book: ["book-ledger", "book-materials", "book-album"],
+			color: ["brickred", "cherryred", "darkbeige", "darkgray", "darkgreen", "darkolive", "gray", "olive", "orange", "orangebrown", "purpleorange"]
+		},
+		width: 2,
+		height: 1,
+		shapeless: true,
+		name: "ledger-age",
+		recipeGroup: 6,
+		copyAttributesFrom: "L",
+		output: { type: "item", code: "curiocatalogue:{book}-aged-{color}" }
+	}
+]

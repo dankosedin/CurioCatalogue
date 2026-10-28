@@ -177,6 +177,12 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 
 - **Partial stacks first** (10-26, author chose this over plain slot order): whole stacks stay in the chest.
 - **Real stacks move**, with their wear and temperature, not copies of samples.
+- **The plan follows the game's merge rule; what the game did not move is never recorded** (10-28, code review, author: the hybrid).
+  `Transfer` sees merge classes (`SourceSlot.Stack`) besides keys. If the game still moves less than planned (a bug), an invoice,
+  being all or nothing, puts every touched slot back from copies taken before and refuses (`movefailed`); a want list and an album,
+  which take what fits anyway, cross off only what really moved. Alternatives: record what moved for the invoice too (that is the
+  ROADMAP's partial posting, a feature with its own questions: the rest of the lines, the sheet); trust the plan (the old way: the book
+  and the album could record items left in the chest). When invoices post partially, they move to the want list's path.
 - **Per-player loot chests are unsupported** for making and posting: their slots show the total, not the player's share.
 - **Bags on the ground are writable** through a wrapper inventory (the fallback "read-only for bags" was not needed).
 - **Album in the off-hand is ignored when posting an ordinary invoice** (10-26). Alternatives: take the sheet back but keep entries;

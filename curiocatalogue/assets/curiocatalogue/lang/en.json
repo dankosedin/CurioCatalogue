@@ -120,5 +120,6 @@
   "curiocatalogue:ingameerror-allcollected": "The collection is complete, nothing to put on a list",
   "curiocatalogue:ingameerror-nothingnew": "Nothing new for the collection in this container",
   "curiocatalogue:ingameerror-notshown": "The item in your hand is no longer the one in the window",
-  "curiocatalogue:ingameerror-newerversion": "This was written by a newer version of Curio Catalogue; update the mod to change it"
+  "curiocatalogue:ingameerror-newerversion": "This was written by a newer version of Curio Catalogue; update the mod to change it",
+  "curiocatalogue:ingameerror-movefailed": "The game would not take some of the items; nothing was changed. Please report this as a bug"
 }

@@ -8,7 +8,7 @@ using CurioCatalogue.Core;
 
 namespace CurioCatalogue.Adapters;
 
-public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList }
+public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList, MoveFailed }
 
 /// <summary>What became of the invoice after posting (domain.md, Posting an invoice).</summary>
 public enum InvoiceFate
@@ -56,8 +56,9 @@ public abstract record CollectResult
 /// <summary>
 /// Posts an invoice into a container (domain.md, Posting an invoice): moves its items from the container into the player's
 /// inventory, updates the ledger in the off-hand and handles the sheet. Runs on the server. All or nothing:
-/// the whole transaction is planned and checked first (<see cref="Transfer"/>), and only then carried out.
-/// A want list and an album (<see cref="Collect"/>) take as much as fits instead, line by line.
+/// the whole transaction is planned and checked first (<see cref="Transfer"/>), by the game's merge rule, and only then
+/// carried out; if the game still moves less, every touched slot is put back. A want list and an album (<see cref="Collect"/>)
+/// take as much as fits instead, line by line, and record only what really moved.
 /// </summary>
 public sealed class InvoicePoster
 {
@@ -96,9 +97,10 @@ public sealed class InvoicePoster
 
         var container = reader.Open(be)!;
         var invoice = store.ReadInvoice(invoiceSlot.Itemstack!, kind);
-        var (sources, samples) = Sources(container);
+        var merge = new MergeClasses();
+        var (sources, samples) = Sources(container, merge);
         if (kind == InvoiceKind.WantList)
-            return PostWantList(player, invoiceSlot, invoice, container, sources, samples, playerSlots);
+            return PostWantList(player, invoiceSlot, invoice, container, sources, samples, playerSlots, merge);
 
         // What will become of the ledger and the invoice: decides whether the invoice's slot counts as free.
         var lim = limits();
@@ -110,8 +112,9 @@ public sealed class InvoicePoster
         var fate = consumeSheets() ? InvoiceFate.Consumed : withSheet != null ? InvoiceFate.SheetReturned : InvoiceFate.Parchment;
         bool invoiceSlotFrees = fate is InvoiceFate.SheetReturned or InvoiceFate.Consumed;
 
-        var targets = Targets(playerSlots, invoiceSlot, invoiceSlotFrees);
-        int Capacity(int target, ItemKey key) => CapacityOf(playerSlots[target], samples[key], slot => slot == invoiceSlot && invoiceSlotFrees);
+        var targets = Targets(playerSlots, invoiceSlot, invoiceSlotFrees, merge);
+        int Capacity(int target, SourceSlot source) =>
+            CapacityOf(playerSlots[target], container.Slots[source.Index].Itemstack!, slot => slot == invoiceSlot && invoiceSlotFrees);
         int MaxStack(ItemKey key) => Math.Max(1, samples[key].Collectible.MaxStackSize);
 
         var plan = Transfer.Plan(invoice.Entries, sources, targets, Capacity, MaxStack);
@@ -123,9 +126,18 @@ public sealed class InvoicePoster
                 return new PostInvoiceResult.Refused(PostRefusal.NoRoom, SlotsShort: noRoom.SlotsShort);
         }
 
-        // Carry it out. The invoice leaves its slot first when that slot is planned to take items.
+        // Carry it out. The invoice leaves its slot first when that slot is planned to take items. If the game moves less
+        // than planned (a bug in the plan), every touched slot goes back as it was: an invoice posts whole or not at all.
+        var moves = ((TransferPlan.Ready)plan).Moves;
+        var before = Snapshot(moves, container, playerSlots, invoiceSlot);
         if (invoiceSlotFrees) invoiceSlot.Itemstack = null;
-        int items = Carry(player, ((TransferPlan.Ready)plan).Moves, container, playerSlots);
+        var moved = Carry(player, moves, container, playerSlots);
+        if (!moved.SequenceEqual(moves))
+        {
+            Restore(before, container);
+            return new PostInvoiceResult.Refused(PostRefusal.MoveFailed);
+        }
+        int items = moved.Sum(m => m.Amount);
 
         if (ledgerStack != null && posted != null)
         {
@@ -144,23 +156,26 @@ public sealed class InvoicePoster
     /// (domain.md, Albums and collections). It touches no ledger and becomes parchment once its list is done.
     /// </summary>
     private PostInvoiceResult PostWantList(IPlayer player, ItemSlot invoiceSlot, Invoice invoice, ContainerSlots container,
-        List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples, IReadOnlyList<ItemSlot> playerSlots)
+        List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples, IReadOnlyList<ItemSlot> playerSlots, MergeClasses merge)
     {
         var (lines, _) = invoice.SplitBy(samples.Keys.ToHashSet());
         if (lines.IsEmpty) return new PostInvoiceResult.Refused(PostRefusal.NothingFromList);
 
-        var plan = PlanWhatFits(lines, sources, samples, playerSlots, invoiceSlot);
+        var plan = PlanWhatFits(lines, sources, container, playerSlots, invoiceSlot, merge);
         if (plan.Taken.Count == 0)
-            return new PostInvoiceResult.Refused(PostRefusal.NoRoom, SlotsShort: SlotsShort(lines, sources, samples, playerSlots, invoiceSlot));
+            return new PostInvoiceResult.Refused(PostRefusal.NoRoom, SlotsShort: SlotsShort(lines, sources, samples, container, playerSlots, invoiceSlot, merge));
 
-        int items = Carry(player, plan.Moves, container, playerSlots);
-        var listLeft = invoice.CrossOff(plan.Taken.Select(e => e.Key));
+        // A want list takes as much as fits anyway: what the game did not move just stays on the list.
+        var moved = Carry(player, plan.Moves, container, playerSlots);
+        var taken = FullyMoved(plan.Taken, moved, sources);
+        var listLeft = invoice.CrossOff(taken.Select(e => e.Key));
         var fate = listLeft.Entries.IsEmpty ? InvoiceFate.Parchment : InvoiceFate.Kept;
         if (fate == InvoiceFate.Kept) store.WriteInvoice(invoiceSlot.Itemstack!, listLeft);
         else invoiceSlot.Itemstack = Parchment();
         invoiceSlot.MarkDirty();
 
-        return new PostInvoiceResult.Posted(plan.Taken.Count, items, fate, null, null, false, listLeft.Entries.Length, plan.Left.Count);
+        return new PostInvoiceResult.Posted(taken.Count, moved.Sum(m => m.Amount), fate, null, null, false, listLeft.Entries.Length,
+            plan.Left.Count + plan.Taken.Count - taken.Count);
     }
 
     /// <summary>
@@ -178,21 +193,24 @@ public sealed class InvoicePoster
         if (!access.CanUse(player, pos)) return new CollectResult.Refused(CollectRefusal.NoAccess);
 
         var container = reader.Open(be)!;
-        var (sources, samples) = Sources(container);
+        var merge = new MergeClasses();
+        var (sources, samples) = Sources(container, merge);
         var album = store.ReadLedger(albumSlot.Itemstack!, LedgerMode.Album);
         var wanted = album.Entries.Values.Where(e => samples.ContainsKey(e.Key)).Select(e => e.WithCount(1));
         var lines = (store.CollectionOf(album)?.InOrder(wanted) ?? wanted.OrderBy(e => e.Key.ToString(), StringComparer.Ordinal)).ToList();
         if (lines.Count == 0) return new CollectResult.Refused(CollectRefusal.NothingNew);
 
-        var plan = PlanWhatFits(lines, sources, samples, playerSlots, handSlot);
+        var plan = PlanWhatFits(lines, sources, container, playerSlots, handSlot, merge);
         if (plan.Taken.Count == 0)
-            return new CollectResult.Refused(CollectRefusal.NoRoom, SlotsShort(lines, sources, samples, playerSlots, handSlot));
+            return new CollectResult.Refused(CollectRefusal.NoRoom, SlotsShort(lines, sources, samples, container, playerSlots, handSlot, merge));
 
-        int items = Carry(player, plan.Moves, container, playerSlots);
-        var after = album.CrossOff(plan.Taken.Select(e => e.Key));
+        // Only what really moved is crossed off: an item left in the container is still missing.
+        var moved = Carry(player, plan.Moves, container, playerSlots);
+        var taken = FullyMoved(plan.Taken, moved, sources);
+        var after = album.CrossOff(taken.Select(e => e.Key));
         store.WriteLedger(albumSlot.Itemstack!, after);
         albumSlot.MarkDirty();
-        return new CollectResult.Collected(items, plan.Left.Count, after.Entries.Count);
+        return new CollectResult.Collected(moved.Sum(m => m.Amount), plan.Left.Count + plan.Taken.Count - taken.Count, after.Entries.Count);
     }
 
     /// <summary>
@@ -218,7 +236,7 @@ public sealed class InvoicePoster
     }
 
     /// <summary>The container's side, on game-independent copies, and a sample stack of each item.</summary>
-    private (List<SourceSlot> Sources, Dictionary<ItemKey, ItemStack> Samples) Sources(ContainerSlots container)
+    private (List<SourceSlot> Sources, Dictionary<ItemKey, ItemStack> Samples) Sources(ContainerSlots container, MergeClasses merge)
     {
         var sources = new List<SourceSlot>();
         var samples = new Dictionary<ItemKey, ItemStack>();
@@ -226,7 +244,7 @@ public sealed class InvoicePoster
         {
             if (container.Slots[i].Itemstack is not { StackSize: > 0 } stack) continue;
             var key = keys.KeyOf(stack);
-            sources.Add(new SourceSlot(i, key, stack.StackSize));
+            sources.Add(new SourceSlot(i, key, stack.StackSize, merge.Of(stack)));
             samples.TryAdd(key, stack);
         }
         return (sources, samples);
@@ -236,68 +254,133 @@ public sealed class InvoicePoster
     /// The player's side. <paramref name="last"/> (the main hand) comes last, so the hand stays empty when there is
     /// room elsewhere; with <paramref name="lastFrees"/> it counts as empty (the invoice in it is going away).
     /// </summary>
-    private List<TargetSlot> Targets(IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last, bool lastFrees) =>
+    private List<TargetSlot> Targets(IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last, bool lastFrees, MergeClasses merge) =>
         playerSlots.Select((slot, i) =>
                 slot.Itemstack == null || (slot == last && lastFrees)
                     ? new TargetSlot(i, null, 0)
-                    : new TargetSlot(i, keys.KeyOf(slot.Itemstack), slot.Itemstack.StackSize))
+                    : new TargetSlot(i, keys.KeyOf(slot.Itemstack), slot.Itemstack.StackSize, merge.Of(slot.Itemstack)))
             .OrderBy(t => playerSlots[t.Index] == last)
             .ToList();
 
     /// <summary>As much of the list as fits; no player slot is freed.</summary>
-    private PartialPlan PlanWhatFits(IEnumerable<Entry> lines, List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples,
-        IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last) =>
-        Transfer.PlanWhatFits(lines, sources, Targets(playerSlots, last, lastFrees: false),
-            (target, key) => CapacityOf(playerSlots[target], samples[key], _ => false));
+    private PartialPlan PlanWhatFits(IEnumerable<Entry> lines, List<SourceSlot> sources, ContainerSlots container,
+        IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last, MergeClasses merge) =>
+        Transfer.PlanWhatFits(lines, sources, Targets(playerSlots, last, lastFrees: false, merge),
+            (target, source) => CapacityOf(playerSlots[target], container.Slots[source.Index].Itemstack!, _ => false));
 
     /// <summary>How many more free slots would take the whole list: for the message when nothing fits.</summary>
     private int SlotsShort(IEnumerable<Entry> lines, List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples,
-        IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last) =>
-        Transfer.Plan(lines, sources, Targets(playerSlots, last, lastFrees: false),
-            (target, key) => CapacityOf(playerSlots[target], samples[key], _ => false),
+        ContainerSlots container, IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last, MergeClasses merge) =>
+        Transfer.Plan(lines, sources, Targets(playerSlots, last, lastFrees: false, merge),
+            (target, source) => CapacityOf(playerSlots[target], container.Slots[source.Index].Itemstack!, _ => false),
             key => Math.Max(1, samples[key].Collectible.MaxStackSize)) is TransferPlan.NoRoom noRoom ? noRoom.SlotsShort : 1;
 
-    /// <summary>Carries out the planned moves; returns how many items moved.</summary>
-    private int Carry(IPlayer player, IReadOnlyList<Move> moves, ContainerSlots container, IReadOnlyList<ItemSlot> playerSlots)
+    /// <summary>Carries out the planned moves; returns what really moved, move by move (a move that moved nothing is left out).</summary>
+    private List<Move> Carry(IPlayer player, IReadOnlyList<Move> moves, ContainerSlots container, IReadOnlyList<ItemSlot> playerSlots)
     {
-        int items = 0;
+        var moved = new List<Move>();
         foreach (var move in moves)
         {
             var from = container.Slots[move.Source];
             var to = playerSlots[move.Target];
+            string name = from.Itemstack?.Collectible?.Code?.ToString() ?? "an item"; // the code: names need Lang, absent in tests
             var op = new ItemStackMoveOperation(world, EnumMouseButton.Left, 0, EnumMergePriority.DirectMerge, move.Amount)
             {
                 ActingPlayer = player,
             };
-            int moved = from.TryPutInto(to, ref op);
-            items += moved;
-            if (moved != move.Amount)
+            int amount = from.TryPutInto(to, ref op);
+            if (amount > 0) moved.Add(move with { Amount = amount });
+            if (amount != move.Amount)
             {
-                // The plan follows the game's own checks, so this should not happen. Nothing is lost: what did not
-                // move stays in the container. Always logged, it is a bug worth knowing about.
-                world.Logger.Error("[CurioCatalogue] Planned to move {0} of {1}, moved {2}", move.Amount, from.Itemstack?.GetName() ?? "an item", moved);
+                // The plan follows the game's own checks, so this should not happen; the caller decides what to do.
+                // Always logged, it is a bug worth knowing about.
+                world.Logger.Error("[CurioCatalogue] Planned to move {0} of {1}, moved {2}", move.Amount, name, amount);
             }
             container.Save(from);
             to.MarkDirty();
         }
-        return items;
+        return moved;
+    }
+
+    /// <summary>The planned lines whose items all moved.</summary>
+    private static List<Entry> FullyMoved(IEnumerable<Entry> planned, IEnumerable<Move> moved, List<SourceSlot> sources)
+    {
+        var keyOf = sources.ToDictionary(s => s.Index, s => s.Key);
+        var amounts = moved.GroupBy(m => keyOf[m.Source]).ToDictionary(g => g.Key, g => g.Sum(m => m.Amount));
+        return planned.Where(line => amounts.GetValueOrDefault(line.Key) >= line.Count).ToList();
+    }
+
+    /// <summary>Copies of every slot the moves touch, and of <paramref name="extra"/>, to put back with <see cref="Restore"/>.</summary>
+    private static List<(ItemSlot Slot, ItemStack? Stack, bool InContainer)> Snapshot(IReadOnlyList<Move> moves, ContainerSlots container,
+        IReadOnlyList<ItemSlot> playerSlots, ItemSlot extra)
+    {
+        var slots = moves.Select(m => (container.Slots[m.Source], true))
+            .Concat(moves.Select(m => (playerSlots[m.Target], false)))
+            .Append((extra, false))
+            .DistinctBy(s => s.Item1);
+        return slots.Select(s => (s.Item1, s.Item1.Itemstack?.Clone(), s.Item2)).ToList();
+    }
+
+    /// <summary>
+    /// Puts the slots back as they were. Safe on the server: posting runs within one tick, so nothing else touched them,
+    /// and the moves change only their own two slots (vsapi ItemSlot.cs#TryPutInto).
+    /// </summary>
+    private static void Restore(List<(ItemSlot Slot, ItemStack? Stack, bool InContainer)> snapshot, ContainerSlots container)
+    {
+        foreach (var (slot, stack, inContainer) in snapshot)
+        {
+            slot.Itemstack = stack;
+            if (inContainer) container.Save(slot);
+            else slot.MarkDirty();
+        }
     }
 
     private ItemStack Parchment() =>
         new(world.GetItem(ParchmentCode) ?? throw new InvalidOperationException($"No item {ParchmentCode}"));
 
     /// <summary>
-    /// How many of the sample's item the player slot can hold, following the game's own rules: CanHold (storage
+    /// How many of the source's item the player slot can hold, following the game's own rules: CanHold (storage
     /// flags of bags), the slot's own stack limit, and for an occupied slot whether the game would merge at all
-    /// (vsapi ItemSlot.cs:137#CanHold, ItemSlot.cs:110#CanTakeFrom, Collectible.cs:2558#Equals for merging).
+    /// (vsapi ItemSlot.cs:137#CanHold, ItemSlot.cs:110#CanTakeFrom; <see cref="MergeClasses.Merges"/>).
     /// </summary>
-    private static int CapacityOf(ItemSlot slot, ItemStack sample, System.Func<ItemSlot, bool> treatAsEmpty)
+    private static int CapacityOf(ItemSlot slot, ItemStack source, System.Func<ItemSlot, bool> treatAsEmpty)
     {
-        var probe = new DummySlot(sample);
+        var probe = new DummySlot(source);
         if (!slot.CanHold(probe)) return 0;
 
-        int stackLimit = Math.Min(sample.Collectible.MaxStackSize, slot.MaxSlotStackSize);
+        int stackLimit = Math.Min(source.Collectible.MaxStackSize, slot.MaxSlotStackSize);
         if (slot.Itemstack == null || treatAsEmpty(slot)) return stackLimit;
-        return sample.Collectible.Equals(slot.Itemstack, sample, GlobalConstants.IgnoredStackAttributes) ? stackLimit : 0;
+        return MergeClasses.Merges(slot.Itemstack, source) ? stackLimit : 0;
+    }
+
+    /// <summary>
+    /// Numbers stacks by what the game would merge (<see cref="SourceSlot.Stack"/>): our keys ignore attributes the
+    /// game does not (the config's ignored attributes), so two stacks of one key may still not go into one slot.
+    /// Assumption: the game's rule is an equivalence, so comparing with one stack of each class is enough; vanilla's is
+    /// Equals with GlobalConstants.IgnoredStackAttributes; behaviors and some items may change it (vssurvivalmod ItemEgg.cs:12).
+    /// </summary>
+    private sealed class MergeClasses
+    {
+        private readonly List<ItemStack> firsts = [];
+
+        public int Of(ItemStack stack)
+        {
+            int i = firsts.FindIndex(first => Merges(first, stack));
+            if (i >= 0) return i + 1;
+            firsts.Add(stack);
+            return firsts.Count;
+        }
+
+        /// <summary>
+        /// Would the game put <paramref name="source"/> onto a stack of <paramref name="sink"/>'s item, given room? Asked of
+        /// a single item, so that a full stack still answers (vsapi Collectible.cs:2558#GetMergableQuantity). An item that
+        /// does not stack (MaxStackSize 1) merges with nothing, which is right too.
+        /// </summary>
+        public static bool Merges(ItemStack sink, ItemStack source)
+        {
+            var one = sink.Clone();
+            one.StackSize = 1;
+            return one.Collectible.GetMergableQuantity(one, source, EnumMergePriority.DirectMerge) > 0;
+        }
     }
 }

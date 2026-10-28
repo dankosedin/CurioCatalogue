@@ -120,5 +120,6 @@
   "curiocatalogue:ingameerror-allcollected": "Колекцію зібрано, немає чого вносити в список",
   "curiocatalogue:ingameerror-nothingnew": "У цьому контейнері нічого нового для колекції",
   "curiocatalogue:ingameerror-notshown": "Предмет у руці вже не той, що у вікні",
-  "curiocatalogue:ingameerror-newerversion": "Це записано новішою версією «Каталогу дивовиж»; оновіть мод, щоб це змінити"
+  "curiocatalogue:ingameerror-newerversion": "Це записано новішою версією «Каталогу дивовиж»; оновіть мод, щоб це змінити",
+  "curiocatalogue:ingameerror-movefailed": "Гра не прийняла частину предметів; нічого не змінено. Повідомте, будь ласка, про цю помилку"
 }

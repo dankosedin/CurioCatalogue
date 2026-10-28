@@ -35,7 +35,7 @@ public class InvoicePosterTests
 
     public InvoicePosterTests()
     {
-        playerInventory = new InventoryGeneric(6, "testplayer-1", game.Api);
+        playerInventory = new InventoryGeneric(6, "testplayer-1", game.Api, (i, inv) => i == 1 ? new RefusingSlot(inv) : new ItemSlotSurvival(inv));
         offhand = new InventoryGeneric(1, "testoffhand-1", game.Api)[0];
         keys = new StackKeys(game.World, ["durability"]);
         store = new LedgerStore(keys, _ => collection);
@@ -191,6 +191,25 @@ public class InvoicePosterTests
         Assert.IsType<PostInvoiceResult.Posted>(Post());
         Assert.Equal(64, playerInventory[3]!.StackSize);
         Assert.Equal(6, PlayerSlots.Where(s => s.Itemstack?.Collectible == ingot).Sum(s => s.StackSize) - 64);
+    }
+
+    [Fact]
+    public void Stacks_of_one_key_the_game_would_not_merge_need_a_slot_each()
+    {
+        // Two ingot stacks: one key (durability ignored by the config), but the game does not merge them (code review 28.10.2026:
+        // the plan put both into the one free slot, and the second move did nothing).
+        var worn = new ItemStack(ingot, 3);
+        worn.Attributes.SetInt("durability", 5);
+        var chest = new TestChest(game.Api, worn, new ItemStack(ingot, 3));
+        game.Place(pos, chest);
+        for (int i = 2; i < 6; i++) playerInventory[i].Itemstack = new ItemStack(parchment, 1); // only slot 1 is free
+        HoldInvoice(new ItemStack(ingot, 6));
+
+        var refused = Assert.IsType<PostInvoiceResult.Refused>(Post());
+
+        Assert.Equal((PostRefusal.NoRoom, 1), (refused.Reason, refused.SlotsShort));
+        Assert.Equal(6, chest.Inventory.Where(s => s.Itemstack != null).Sum(s => s.StackSize));
+        Assert.Empty(PlayerItems());
     }
 
     // --- All or nothing ---
@@ -544,5 +563,77 @@ public class InvoicePosterTests
         Assert.Null(bagSlot!.Itemstack);
         bag.Received().Store(bagStack, bagSlot);
         Assert.Equal([(TapestryKey("ambush1"), 2)], PlayerItems());
+    }
+
+    // --- When the game moves less than planned (code review 28.10.2026) ---
+
+    /// <summary>
+    /// Player slot 1, an ordinary slot until <see cref="Refuses"/>: then the plan still sees it as free (CanHold) but it takes
+    /// nothing (CanTakeFrom, vsapi ItemSlot.cs:222#TryPutInto). Stands for a bug in the plan: the game moving less than planned.
+    /// </summary>
+    private sealed class RefusingSlot(InventoryBase inventory) : ItemSlotSurvival(inventory)
+    {
+        public bool Refuses;
+
+        public override bool CanTakeFrom(ItemSlot sourceSlot, EnumMergePriority priority = EnumMergePriority.AutoMerge) =>
+            !Refuses && base.CanTakeFrom(sourceSlot, priority);
+    }
+
+    /// <summary>Slot 1 takes nothing, slot 2 is free, the rest of the backpack is full.</summary>
+    private void OnlySlot2TakesItems()
+    {
+        ((RefusingSlot)playerInventory[1]).Refuses = true;
+        for (int i = 3; i < 6; i++) playerInventory[i].Itemstack = new ItemStack(parchment, 1);
+    }
+
+    [Fact]
+    public void Invoice_the_game_does_not_fully_move_changes_nothing()
+    {
+        var chest = new TestChest(game.Api, new ItemStack(ingot, 3));
+        game.Place(pos, chest);
+        ((RefusingSlot)playerInventory[1]).Refuses = true;
+        for (int i = 2; i < 6; i++) playerInventory[i].Itemstack = new ItemStack(parchment, 1);
+        HoldInvoice(new ItemStack(ingot, 3));
+        HoldLedger(5, new ItemStack(ingot, 3));
+        var invoiceBefore = InvoiceSlot.Itemstack!.ToBytes();
+
+        var refused = Assert.IsType<PostInvoiceResult.Refused>(Post());
+
+        Assert.Equal(PostRefusal.MoveFailed, refused.Reason);
+        Assert.Equal(3, chest.Inventory[0].StackSize);
+        Assert.Equal(invoiceBefore, InvoiceSlot.Itemstack!.ToBytes()); // the invoice is back in the hand, unchanged
+        Assert.Equal((5, 1), (OffhandLedger.Sheets, OffhandLedger.Entries.Count));
+        Assert.Empty(PlayerItems());
+    }
+
+    [Fact]
+    public void Want_list_crosses_off_only_what_the_game_moved()
+    {
+        var chest = new TestChest(game.Api, Tapestry("a"), Tapestry("b"));
+        game.Place(pos, chest);
+        OnlySlot2TakesItems(); // the plan puts a into slot 1, b into slot 2
+        HoldWantList("a", "b");
+
+        var posted = Assert.IsType<PostInvoiceResult.Posted>(PostWantList());
+
+        Assert.Equal((1, InvoiceFate.Kept, 1), (posted.Lines, posted.Fate, posted.NotFitted));
+        Assert.Equal([TapestryKey("a")], store.ReadInvoice(InvoiceSlot.Itemstack!, InvoiceKind.WantList).Entries.Select(e => e.Key.ToString()));
+        Assert.Equal([(TapestryKey("b"), 1)], PlayerItems());
+        Assert.Equal([TapestryKey("a")], chest.Inventory.Where(s => s.Itemstack != null).Select(s => keys.KeyOf(s.Itemstack!).ToString()));
+    }
+
+    [Fact]
+    public void Album_crosses_off_only_what_the_game_moved()
+    {
+        var chest = new TestChest(game.Api, Tapestry("a"), Tapestry("b"));
+        game.Place(pos, chest);
+        OnlySlot2TakesItems();
+        var albumSlot = HoldAlbum(offhand, "a", "b");
+
+        var collected = Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
+
+        Assert.Equal((1, 1, 1), (collected.Taken, collected.NotFitted, collected.MissingLeft));
+        Assert.Equal([TapestryKey("a")], Missing(albumSlot)); // a stayed in the chest, so it is still missing
+        Assert.Equal([(TapestryKey("b"), 1)], PlayerItems());
     }
 }

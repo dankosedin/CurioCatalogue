@@ -10,11 +10,14 @@ public class TransferTests
     private static TargetSlot Empty(int index) => new(index, null, 0);
     private static TargetSlot T(int index, string name, int count) => new(index, K(name), count);
 
-    private static int Holds64(int target, ItemKey key) => 64;
+    private static SourceSlot S(int index, string name, int count, int stack) => new(index, K(name), count, stack);
+    private static TargetSlot T(int index, string name, int count, int stack) => new(index, K(name), count, stack);
+
+    private static int Holds64(int target, SourceSlot source) => 64;
     private static int Stack64(ItemKey key) => 64;
 
     private static TransferPlan Plan(Entry[] lines, SourceSlot[] sources, TargetSlot[] targets,
-        Func<int, ItemKey, int>? capacity = null, Func<ItemKey, int>? maxStack = null) =>
+        Func<int, SourceSlot, int>? capacity = null, Func<ItemKey, int>? maxStack = null) =>
         Transfer.Plan(lines, sources, targets, capacity ?? Holds64, maxStack ?? Stack64);
 
     private static Move[] Moves(TransferPlan plan) => Assert.IsType<TransferPlan.Ready>(plan).Moves.ToArray();
@@ -59,7 +62,7 @@ public class TransferTests
     public void Slots_that_may_not_hold_the_item_are_skipped()
     {
         // E.g. a seed bag slot: only seeds go there.
-        int onlySlot2(int target, ItemKey key) => target == 2 ? 64 : 0;
+        int onlySlot2(int target, SourceSlot source) => target == 2 ? 64 : 0;
         var moves = Moves(Plan([Line("a", 1)], [S(0, "a", 1)], [Empty(1), Empty(2)], capacity: onlySlot2));
         Assert.Equal([new Move(0, 2, 1)], moves);
     }
@@ -68,7 +71,7 @@ public class TransferTests
     public void Slot_capacity_can_differ_per_slot()
     {
         // E.g. a slot with its own smaller limit, like the bag slots of the backpack inventory.
-        int small1(int target, ItemKey key) => target == 1 ? 1 : 64;
+        int small1(int target, SourceSlot source) => target == 1 ? 1 : 64;
         var moves = Moves(Plan([Line("a", 3)], [S(0, "a", 3)], [Empty(1), Empty(2)], capacity: small1));
         Assert.Equal([new Move(0, 1, 1), new Move(0, 2, 2)], moves);
     }
@@ -77,7 +80,7 @@ public class TransferTests
     public void Stack_the_game_would_not_merge_with_is_not_topped_up()
     {
         // Same key (durability is ignored by us) but the game does not merge them: capacity 0 for that slot.
-        int notSlot1(int target, ItemKey key) => target == 1 ? 0 : 64;
+        int notSlot1(int target, SourceSlot source) => target == 1 ? 0 : 64;
         var moves = Moves(Plan([Line("a", 1)], [S(0, "a", 1)], [T(1, "a", 1), Empty(2)], capacity: notSlot1));
         Assert.Equal([new Move(0, 2, 1)], moves);
     }
@@ -121,7 +124,7 @@ public class TransferTests
 
     // --- As much as fits (domain.md, Albums and collections) ---
 
-    private static PartialPlan WhatFits(Entry[] lines, SourceSlot[] sources, TargetSlot[] targets, Func<int, ItemKey, int>? capacity = null) =>
+    private static PartialPlan WhatFits(Entry[] lines, SourceSlot[] sources, TargetSlot[] targets, Func<int, SourceSlot, int>? capacity = null) =>
         Transfer.PlanWhatFits(lines, sources, targets, capacity ?? Holds64);
 
     [Fact]
@@ -162,5 +165,38 @@ public class TransferTests
 
         Assert.Equal([K("b")], plan.Taken.Select(e => e.Key));
         Assert.Equal([K("a")], plan.Left.Select(e => e.Key));
+    }
+
+    // --- The game's merge rule (code review 28.10.2026) ---
+    // Stacks with the same key may still not merge in the game (an attribute the config ignores, e.g. durability):
+    // they get different Stack numbers, and the plan never puts them into one slot.
+
+    [Fact]
+    public void Stacks_the_game_would_not_merge_go_into_separate_slots()
+    {
+        var moves = Moves(Plan([Line("a", 6)], [S(0, "a", 3, stack: 1), S(1, "a", 3, stack: 2)], [Empty(7), Empty(8)]));
+        Assert.Equal([new Move(0, 7, 3), new Move(1, 8, 3)], moves);
+    }
+
+    [Fact]
+    public void One_free_slot_is_not_room_for_two_stacks_the_game_would_not_merge()
+    {
+        var plan = Plan([Line("a", 6)], [S(0, "a", 3, stack: 1), S(1, "a", 3, stack: 2)], [Empty(7)]);
+        Assert.Equal(1, Assert.IsType<TransferPlan.NoRoom>(plan).SlotsShort);
+    }
+
+    [Fact]
+    public void Only_a_stack_the_game_would_merge_is_topped_up()
+    {
+        var moves = Moves(Plan([Line("a", 3)], [S(0, "a", 3, stack: 1)], [T(6, "a", 10, stack: 2), T(7, "a", 10, stack: 1)]));
+        Assert.Equal([new Move(0, 7, 3)], moves);
+    }
+
+    [Fact]
+    public void What_fits_follows_the_merge_rule_too()
+    {
+        var plan = WhatFits([Line("a", 2), Line("b", 1)], [S(0, "a", 1, stack: 1), S(1, "a", 1, stack: 2), S(2, "b", 1)], [Empty(7), Empty(8)]);
+        Assert.Equal([K("a")], plan.Taken.Select(e => e.Key));
+        Assert.Equal([new Move(0, 7, 1), new Move(1, 8, 1)], plan.Moves);
     }
 }

@@ -83,6 +83,11 @@ In this order:
 - Vanilla's ignored-attribute check in nested trees passes the parent's path (a vanilla bug); `AttrCanonical` uses full paths on purpose.
 - **A stack read from bytes** knows only its numeric id until it is resolved, so the same item can key as `game:tapestry-north` or by id.
   `StackKeys` resolves stacks through the world first.
+- **Our key is not the game's merge rule.** The game stacks a source onto a sink by `sink.Collectible.GetMergableQuantity(sink,
+  source, priority)` (vsapi `Collectible.cs:2558`, called from `ItemSlot.CanTakeFrom`, `ItemSlot.cs:110`): `Equals` with
+  `IgnoredStackAttributes`, but behaviors and items may override it (vssurvivalmod `ItemEgg.cs:12` ignores "chick"). It knows
+  nothing of our config, so a worn and a fresh ingot share our key (durability ignored) and still need two slots. Plan moves by
+  merge classes (`InvoicePoster.MergeClasses`), not by keys.
 - `new ItemStack()` has stack size 0, and our storage code drops it as empty: set the size in tests.
 - **Numbers from JSON** (recipe output, `/giveitem`) land in item attributes as longs: read them with `GetAsInt`, not `GetInt`.
 

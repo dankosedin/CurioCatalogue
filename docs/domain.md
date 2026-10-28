@@ -76,7 +76,9 @@ All or nothing, on the server:
 - **Where from:** smallest partial stacks first, then in slot order, so whole stacks stay in the chest.
 - **What moves:** the container's real stacks (with their wear, temperature…), not copies of the invoice's samples.
 - **Where to:** hotbar (not the off-hand) and backpack, respecting bag restrictions; partial stacks fill first. The invoice's own
-  slot counts as free only when the invoice disappears.
+  slot counts as free only when the invoice disappears. Stacks the game would not put together (a worn and a fresh ingot are one
+  item for the book) need a slot each.
+- If the game still moves less than planned (a bug), everything goes back as it was and the player is asked to report it.
 - Any invoice can be posted with any book mode: a ledger takes the types, a bill of materials the counts.
 
 The book in the off-hand:

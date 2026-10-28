@@ -54,3 +54,79 @@ jobs:
 
       - name: Test
         run: dotnet test curiocatalogue.sln --no-build
+
+  # A push to `release` publishes the version in modinfo.json: the zip, the tag and a GitHub Release whose notes are that
+  # version's section of CHANGELOG.md (docs/development.md, Branches, PRs and releases).
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VINTAGE_STORY: ${{ github.workspace }}/game
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Version from modinfo.json
+        id: mod
+        run: |
+          {
+            echo "version=$(jq -r '.version' curiocatalogue/modinfo.json)"
+            echo "name=$(jq -r '.name' curiocatalogue/modinfo.json)"
+            echo "modid=$(jq -r '.modid' curiocatalogue/modinfo.json)"
+            echo "game=$(jq -r '.dependencies.game' curiocatalogue/modinfo.json)"
+          } >> "$GITHUB_OUTPUT"
+
+      # Checked before the build, so a forgotten version bump or changelog fails in seconds.
+      - name: The tag is new
+        env:
+          VERSION: ${{ steps.mod.outputs.version }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::Tag v$VERSION exists: bump the version in modinfo.json"
+            exit 1
+          fi
+
+      # The section starts at "## X.Y.Z (date)" and ends before the next "## ". Its heading must carry the date.
+      - name: Release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ steps.mod.outputs.version }}
+        run: |
+          heading=$(grep -m1 -E "^## ${VERSION//./\\.}( |$)" CHANGELOG.md) || {
+            echo "::error::CHANGELOG.md has no section \"## $VERSION\""
+            exit 1
+          }
+          case "$heading" in
+            *unreleased*) echo "::error::CHANGELOG.md: \"$heading\" is not dated"; exit 1 ;;
+          esac
+          awk -v h="$heading" 'f && /^## / { exit } f { print } $0 == h { f = 1 }' CHANGELOG.md | sed '/./,$!d' > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md: the section \"$heading\" is empty"
+            exit 1
+          fi
+
+      # The build job of this run has just filled or used this cache.
+      - name: Restore the game
+        uses: actions/cache/restore@v6
+        with:
+          path: game
+          key: vs-server-linux-${{ steps.mod.outputs.game }}
+          fail-on-cache-miss: true
+
+      - name: Release zip (CakeBuild)
+        run: dotnet run --project CakeBuild/CakeBuild.csproj
+
+      - name: Tag and GitHub Release
+        env:
+          VERSION: ${{ steps.mod.outputs.version }}
+          NAME: ${{ steps.mod.outputs.name }}
+          MODID: ${{ steps.mod.outputs.modid }}
+        run: |
+          gh release create "v$VERSION" "Releases/${MODID}_$VERSION.zip" \
+            --target "$GITHUB_SHA" --title "$NAME $VERSION" --notes-file notes.md

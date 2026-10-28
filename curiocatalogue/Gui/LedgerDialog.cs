@@ -18,17 +18,15 @@ public class LedgerDialog : GridDialog
     private enum SortBy { Name, Mod, Count }
 
     private readonly CurioCatalogueModSystem mod;
-    private readonly bool offHand;
     private SortBy sort = SortBy.Name;
     private string search = "";
     private Ledger ledger = null!;
 
     private static LedgerDialog? open;
 
-    private LedgerDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot, bool offHand) : base(capi, slot)
+    private LedgerDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot, bool offHand) : base(capi, slot, offHand)
     {
         this.mod = mod;
-        this.offHand = offHand;
         Refresh();
     }
 
@@ -43,8 +41,6 @@ public class LedgerDialog : GridDialog
     private LedgerMode Mode => ((ItemLedger)Slot.Itemstack!.Collectible).LedgerMode;
 
     protected override bool StillShows(ItemStack? stack) => stack?.Collectible is ItemLedger;
-
-    protected override int DataOf(ItemStack stack) => HashOf(stack.Attributes.GetTreeAttribute(LedgerStore.RootKey));
 
     protected override void Refresh()
     {
@@ -184,21 +180,22 @@ public class LedgerDialog : GridDialog
     private bool OnSave()
     {
         string name = SingleComposer.GetTextInput("name").GetText() ?? "";
-        capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new RenameLedgerRequest { Name = name, OffHand = offHand });
+        capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new RenameLedgerRequest { Name = name, Book = Shown() });
         return true;
     }
 
     private bool OnWantList()
     {
-        capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new MakeWantListRequest { OffHand = offHand });
+        capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new MakeWantListRequest { Book = Shown() });
         return true;
     }
 
     private bool OnClear()
     {
+        var shown = Shown();
         new GuiDialogConfirm(capi, Mode == LedgerMode.Album ? T("confirm-restart") : T("confirm-clear", ledger.Entries.Count), ok =>
         {
-            if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new ClearLedgerRequest { OffHand = offHand });
+            if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new ClearLedgerRequest { Book = shown });
         }).TryOpen();
         return true;
     }

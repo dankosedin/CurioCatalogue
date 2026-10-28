@@ -1,9 +1,14 @@
+using NSubstitute;
 using Vintagestory.API.Common;
+using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
 
 namespace CurioCatalogue.Tests;
 
-/// <summary>The refusal "missing" travels as stacks, so that the client names them in its own language.</summary>
+/// <summary>
+/// The refusal "missing" travels as stacks, so that the client names them in its own language. Window requests name the
+/// item they are about, and the server acts only on that item.
+/// </summary>
 public class ModNetworkTests
 {
     private readonly GameWorld game = new();
@@ -40,5 +45,81 @@ public class ModNetworkTests
         Assert.Same(tapestry, back.Collectible);
         Assert.Equal("ambush1", back.Attributes.GetString("type"));
         Assert.Equal(0, refusal.More);
+    }
+
+    // --- Window requests act only on the item the window shows (code review 28.10.2026) ---
+
+    private ItemStack Book(string name)
+    {
+        var stack = new ItemStack(game.Item("curiocatalogue:book-materials-normal-teal", new ItemLedger()));
+        stack.Attributes.GetOrAddTreeAttribute(LedgerStore.RootKey).SetString("name", name);
+        return stack;
+    }
+
+    private static ItemSlot SlotWith(ItemStack? stack)
+    {
+        var slot = new InventoryGeneric(1, "testslot-1", Substitute.For<ICoreAPI>())[0];
+        slot.Itemstack = stack;
+        return slot;
+    }
+
+    private static ShownItem Shown(ItemStack stack, int hotbarSlot = 2, bool offHand = false) =>
+        new() { OffHand = offHand, HotbarSlot = hotbarSlot, Fingerprint = LedgerStore.Fingerprint(stack) };
+
+    private static ItemSlot? Target(ShownItem shown, ItemSlot active, int activeIndex = 2, ItemSlot? offhand = null) =>
+        ModNetwork.ShownSlot(shown, offhand, active, activeIndex, c => c is ItemLedger);
+
+    [Fact]
+    public void The_book_the_window_shows_is_the_target()
+    {
+        var book = Book("tools");
+        var hand = SlotWith(book);
+
+        Assert.Same(hand, Target(Shown(book), hand));
+    }
+
+    [Fact]
+    public void Another_hotbar_slot_is_refused_even_with_the_same_book()
+    {
+        // The hotbar keys and the wheel switch the active slot while a window is open (decompiled HudHotbar, OnKeySlot).
+        var book = Book("tools");
+
+        Assert.Null(Target(Shown(book, hotbarSlot: 2), SlotWith(book.Clone()), activeIndex: 3));
+    }
+
+    [Fact]
+    public void Another_book_in_the_same_slot_is_refused()
+    {
+        var shown = Shown(Book("tools"));
+
+        Assert.Null(Target(shown, SlotWith(Book("ores"))));
+    }
+
+    [Fact]
+    public void A_hand_without_the_item_kind_is_refused()
+    {
+        var book = Book("tools");
+
+        Assert.Null(Target(Shown(book), SlotWith(null)));
+        Assert.Null(Target(Shown(book), SlotWith(new ItemStack(game.Item("ingot-iron")))));
+        Assert.Null(ModNetwork.ShownSlot(null, null, SlotWith(book), 2, c => c is ItemLedger));
+    }
+
+    [Fact]
+    public void The_off_hand_ignores_the_hotbar_slot()
+    {
+        var book = Book("tools");
+        var offhand = SlotWith(book);
+
+        Assert.Same(offhand, Target(Shown(book, hotbarSlot: 2, offHand: true), SlotWith(null), activeIndex: 7, offhand));
+    }
+
+    [Fact]
+    public void A_fresh_book_without_data_has_a_fingerprint_too()
+    {
+        var book = new ItemStack(game.Item("curiocatalogue:book-materials-normal-teal", new ItemLedger()));
+        var hand = SlotWith(book);
+
+        Assert.Same(hand, Target(Shown(book), hand));
     }
 }

@@ -177,8 +177,10 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 ## Windows
 
 - **Open:** RMB into the air with the item in the main hand, or with an empty main hand and a book in the off-hand.
-- Read-only slot grids; data comes from the item's attributes and the window refreshes if the item changes while open. Actions that
-  change state (rename, Clear, Start over, Cancel, Make a want list) go to the server, which checks the item is still in the same hand.
+- Read-only slot grids; data comes from the item's attributes and the window refreshes if the item changes while open, and closes
+  if it leaves the hand or the main hand switches to another hotbar slot. Actions that change state (rename, Clear, Start over,
+  Cancel, Make a want list) go to the server and name the item as the window shows it (hand, hotbar slot, data); if the hand no
+  longer holds exactly that item, the server refuses with a message ("no longer the one in the window").
   Irreversible ones ask for confirmation.
 - **Book window:** name (editable, Save), mode, sheets (e.g. 27/32), entries and the limit; search by name in the player's language;
   sort by name, by mod, by count (bill of materials only); "Clear". Album: progress line, the grid under "Missing:", "Start over", "Make a want list".

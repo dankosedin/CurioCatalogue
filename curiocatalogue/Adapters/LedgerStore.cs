@@ -50,6 +50,22 @@ public sealed class LedgerStore
     public static string ReadCollectionId(ItemStack book) =>
         book.Attributes.GetTreeAttribute(RootKey)?.GetTreeAttribute("album")?.GetString("id", "") ?? "";
 
+    /// <summary>
+    /// A cheap hash of the book's or invoice's data, the same on client and server: the client gets the attributes as the
+    /// server's bytes, and a tree keeps its keys in insertion order (vsapi TreeAttribute.cs:97, ConcurrentSmallDictionary).
+    /// Windows use it to notice changes and to name the item a request is about.
+    /// </summary>
+    public static int Fingerprint(ItemStack stack)
+    {
+        if (stack.Attributes.GetTreeAttribute(RootKey) is not TreeAttribute tree) return 0;
+        unchecked
+        {
+            int hash = (int)2166136261;
+            foreach (byte b in tree.ToBytes()) hash = (hash ^ b) * 16777619;
+            return hash;
+        }
+    }
+
     public Ledger ReadLedger(ItemStack book, LedgerMode mode)
     {
         var root = book.Attributes.GetTreeAttribute(RootKey);

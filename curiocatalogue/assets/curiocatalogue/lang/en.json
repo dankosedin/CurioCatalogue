@@ -118,5 +118,6 @@
   "curiocatalogue:ingameerror-noroom": "Not enough room in your inventory. Slots still needed: {0}",
   "curiocatalogue:ingameerror-nothingfromlist": "This container has nothing from the list",
   "curiocatalogue:ingameerror-allcollected": "The collection is complete, nothing to put on a list",
-  "curiocatalogue:ingameerror-nothingnew": "Nothing new for the collection in this container"
+  "curiocatalogue:ingameerror-nothingnew": "Nothing new for the collection in this container",
+  "curiocatalogue:ingameerror-notshown": "The item in your hand is no longer the one in the window"
 }

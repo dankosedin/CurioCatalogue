@@ -118,5 +118,6 @@
   "curiocatalogue:ingameerror-noroom": "Не вистачає місця в інвентарі (бракує слотів: {0})",
   "curiocatalogue:ingameerror-nothingfromlist": "У цьому контейнері нічого зі списку",
   "curiocatalogue:ingameerror-allcollected": "Колекцію зібрано, немає чого вносити в список",
-  "curiocatalogue:ingameerror-nothingnew": "У цьому контейнері нічого нового для колекції"
+  "curiocatalogue:ingameerror-nothingnew": "У цьому контейнері нічого нового для колекції",
+  "curiocatalogue:ingameerror-notshown": "Предмет у руці вже не той, що у вікні"
 }

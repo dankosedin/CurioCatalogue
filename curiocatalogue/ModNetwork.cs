@@ -22,33 +22,46 @@ public class MakeInvoiceRequest
     [ProtoMember(4)] public bool Outgoing;
 }
 
-/// <summary>Client → server, from the ledger window: give the ledger in this hand a new name (empty for none).</summary>
+/// <summary>
+/// The item a window request is about, as the window shows it: the hand, the hotbar slot it was opened from (main
+/// hand only) and its data. The hotbar can switch while a window is open, so "the book in this hand" is not enough.
+/// </summary>
+[ProtoContract]
+public class ShownItem
+{
+    [ProtoMember(1)] public bool OffHand;
+    [ProtoMember(2)] public int HotbarSlot;
+    /// <summary><see cref="LedgerStore.Fingerprint"/> of the shown data.</summary>
+    [ProtoMember(3)] public int Fingerprint;
+}
+
+/// <summary>Client → server, from the ledger window: give the shown ledger a new name (empty for none).</summary>
 [ProtoContract]
 public class RenameLedgerRequest
 {
     [ProtoMember(1)] public string Name = "";
-    [ProtoMember(2)] public bool OffHand;
+    [ProtoMember(2)] public ShownItem? Book;
 }
 
-/// <summary>Client → server, from the ledger window: clear the entries of the ledger in this hand.</summary>
+/// <summary>Client → server, from the ledger window: clear the entries of the shown ledger.</summary>
 [ProtoContract]
 public class ClearLedgerRequest
 {
-    [ProtoMember(1)] public bool OffHand;
+    [ProtoMember(1)] public ShownItem? Book;
 }
 
-/// <summary>Client → server, from the invoice window: cancel the invoice in the main hand.</summary>
+/// <summary>Client → server, from the invoice window: cancel the shown invoice (main hand).</summary>
 [ProtoContract]
 public class CancelInvoiceRequest
 {
-    [ProtoMember(1)] public bool Confirmed = true; // protobuf needs a member; also documents the confirm dialog
+    [ProtoMember(1)] public ShownItem? Invoice;
 }
 
-/// <summary>Client → server, from the album window: make a want list from the album in this hand.</summary>
+/// <summary>Client → server, from the album window: make a want list from the shown album.</summary>
 [ProtoContract]
 public class MakeWantListRequest
 {
-    [ProtoMember(1)] public bool OffHand;
+    [ProtoMember(1)] public ShownItem? Book;
 }
 
 /// <summary>
@@ -131,19 +144,41 @@ internal static class ModNetwork
         channel.SetMessageHandler<MakeInvoiceRequest>((player, request) => EmptyHandGesture.OnRequest(sapi, player, request));
         channel.SetMessageHandler<RenameLedgerRequest>((player, request) => Rename(sapi, mod, player, request));
         channel.SetMessageHandler<ClearLedgerRequest>((player, request) => Clear(sapi, mod, player, request));
-        channel.SetMessageHandler<CancelInvoiceRequest>((player, request) => Cancel(sapi, mod, player));
+        channel.SetMessageHandler<CancelInvoiceRequest>((player, request) => Cancel(sapi, mod, player, request));
         channel.SetMessageHandler<MakeWantListRequest>((player, request) => MakeWantList(sapi, mod, player, request));
     }
 
-    private static ItemSlot? LedgerSlot(IServerPlayer player, bool offHand)
+    /// <summary>
+    /// The slot that still holds the item the window showed: the off-hand, or the active hotbar slot if the window was
+    /// opened from it; of the right kind and with the same data. Null if anything differs.
+    /// </summary>
+    internal static ItemSlot? ShownSlot(ShownItem? shown, ItemSlot? offhand, ItemSlot? active, int activeIndex, System.Func<CollectibleObject, bool> isKind)
     {
-        var slot = offHand ? player.Entity?.LeftHandItemSlot : player.InventoryManager.ActiveHotbarSlot;
-        return slot?.Itemstack?.Collectible is ItemLedger ? slot : null;
+        if (shown == null) return null;
+        var slot = shown.OffHand ? offhand : shown.HotbarSlot == activeIndex ? active : null;
+        if (slot?.Itemstack is not { } stack || !isKind(stack.Collectible)) return null;
+        return LedgerStore.Fingerprint(stack) == shown.Fingerprint ? slot : null;
     }
+
+    /// <summary>The shown item's slot on the server; if it is gone, the player is told and the result is null.</summary>
+    private static ItemSlot? Target(ICoreServerAPI sapi, IServerPlayer player, ShownItem? shown, System.Func<CollectibleObject, bool> isKind, string action)
+    {
+        var inventory = player.InventoryManager;
+        var slot = ShownSlot(shown, player.Entity?.LeftHandItemSlot, inventory.ActiveHotbarSlot, inventory.ActiveHotbarSlotNumber, isKind);
+        if (slot == null)
+        {
+            PlayerMessages.Refuse(player, "notshown");
+            ModLog.Debug(sapi, $"{player.PlayerName}: {action} refused: the hand no longer holds the item shown");
+        }
+        return slot;
+    }
+
+    private static ItemSlot? LedgerSlot(ICoreServerAPI sapi, IServerPlayer player, ShownItem? shown, string action) =>
+        Target(sapi, player, shown, c => c is ItemLedger, action);
 
     private static void Rename(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, RenameLedgerRequest request)
     {
-        if (LedgerSlot(player, request.OffHand) is not { } slot) { ModLog.Debug(sapi, $"{player.PlayerName}: rename ignored: no ledger in that hand"); return; }
+        if (LedgerSlot(sapi, player, request.Book, "rename") is not { } slot) return;
 
         string name = (request.Name ?? "").Trim();
         if (name.Length > MaxNameLength) name = name[..MaxNameLength];
@@ -156,7 +191,7 @@ internal static class ModNetwork
 
     private static void Clear(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, ClearLedgerRequest request)
     {
-        if (LedgerSlot(player, request.OffHand) is not { } slot) { ModLog.Debug(sapi, $"{player.PlayerName}: clear ignored: no ledger in that hand"); return; }
+        if (LedgerSlot(sapi, player, request.Book, "clear") is not { } slot) return;
 
         var item = (ItemLedger)slot.Itemstack!.Collectible;
         var ledger = mod.Store.ReadLedger(slot.Itemstack, item.LedgerMode);
@@ -181,13 +216,9 @@ internal static class ModNetwork
     /// <summary>A want list from the album in that hand (domain.md, Albums and collections); into the empty main hand if it can.</summary>
     private static void MakeWantList(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, MakeWantListRequest request)
     {
-        if (LedgerSlot(player, request.OffHand) is not { } slot || !((ItemLedger)slot.Itemstack!.Collectible).IsAlbum)
-        {
-            ModLog.Debug(sapi, $"{player.PlayerName}: want list ignored: no album in that hand");
-            return;
-        }
+        if (Target(sapi, player, request.Book, c => c is ItemLedger { IsAlbum: true }, "want list") is not { } slot) return;
 
-        var result = mod.InvoiceMaker.MakeWantList(slot.Itemstack, player.Entity.Pos.AsBlockPos);
+        var result = mod.InvoiceMaker.MakeWantList(slot.Itemstack!, player.Entity.Pos.AsBlockPos);
         ModLog.Debug(sapi, $"{player.PlayerName}: make want list: {result}");
         switch (result)
         {
@@ -199,7 +230,7 @@ internal static class ModNetwork
             case MakeInvoiceResult.Made made:
                 slot.MarkDirty();
                 var hand = player.InventoryManager.ActiveHotbarSlot;
-                if (request.OffHand && hand.Empty)
+                if (hand.Empty)
                 {
                     hand.Itemstack = made.InvoiceStack;
                     hand.MarkDirty();
@@ -213,10 +244,11 @@ internal static class ModNetwork
         }
     }
 
-    private static void Cancel(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player)
+    private static void Cancel(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, CancelInvoiceRequest request)
     {
-        var hand = player.InventoryManager.ActiveHotbarSlot;
-        if (hand?.Itemstack?.Collectible is not ItemInvoice) { ModLog.Debug(sapi, $"{player.PlayerName}: cancel ignored: no invoice in the main hand"); return; }
+        // The invoice window opens only for the main hand.
+        var shown = request.Invoice is { OffHand: false } ? request.Invoice : null;
+        if (Target(sapi, player, shown, c => c is ItemInvoice, "cancel") is not { } hand) return;
 
         var offhand = player.Entity?.LeftHandItemSlot;
         bool toAlbum = offhand?.Itemstack?.Collectible is ItemLedger { IsAlbum: true };

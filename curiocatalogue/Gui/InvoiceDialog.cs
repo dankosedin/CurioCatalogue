@@ -18,7 +18,7 @@ public class InvoiceDialog : GridDialog
 
     private static InvoiceDialog? open;
 
-    private InvoiceDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot) : base(capi, slot)
+    private InvoiceDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot) : base(capi, slot, offHand: false)
     {
         this.mod = mod;
         Refresh();
@@ -32,8 +32,6 @@ public class InvoiceDialog : GridDialog
     }
 
     protected override bool StillShows(ItemStack? stack) => stack?.Collectible is ItemInvoice;
-
-    protected override int DataOf(ItemStack stack) => HashOf(stack.Attributes.GetTreeAttribute(LedgerStore.RootKey));
 
     private static string T(string key, params object[] args) => Lang.Get("curiocatalogue:" + key, args);
 
@@ -86,10 +84,11 @@ public class InvoiceDialog : GridDialog
 
     private bool OnCancel()
     {
+        var shown = Shown();
         var wantList = Slot.Itemstack?.Collectible is ItemInvoice { InvoiceKind: InvoiceKind.WantList };
         new GuiDialogConfirm(capi, T(wantList ? "confirm-cancel-wantlist" : "confirm-cancel"), ok =>
         {
-            if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new CancelInvoiceRequest());
+            if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new CancelInvoiceRequest { Invoice = shown });
         }).TryOpen();
         return true;
     }

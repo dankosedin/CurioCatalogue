@@ -129,6 +129,9 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 
 - Work on `feature/<name>`. `main` changes only through a pull request: squash merge only, linear history, the branch must be
   up to date with `main`, CI must pass. No force pushes, no deletion.
+- The squash commit on `main` takes the PR's title (plus ` (#N)`) and description, so write them as a commit message. Its author
+  is whoever merges, under their GitHub profile name. GitHub itself appends the `Co-authored-by` lines of the branch's commits:
+  keep such trailers in the commits, not in the PR description, or they appear twice.
 - Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
   person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
 - CI (GitHub Actions) builds and runs both test projects on `feature/*`, `main`, `release` and on every PR (on the merge result).

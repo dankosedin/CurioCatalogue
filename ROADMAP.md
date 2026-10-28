@@ -70,6 +70,13 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 - **All player messages built by the client,** in its language and with its key bindings: the server sends a code, numbers and
   stacks (as `ModNetwork.MissingItemsRefusal` does). Today the server translates our texts itself (`docs/architecture.md`,
   principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway.
+- **Exhaustive `switch` over record hierarchies** (28.10.2026). Outcomes are closed record hierarchies (`TransferPlan`:
+  `Ready | Missing | NoRoom`; `CreateInvoiceResult`), but unlike Scala's sealed traits C# does not warn when a `switch` misses a
+  case. A Roslyn analyzer (e.g. `ExhaustiveMatching.Analyzer`) makes it a compile error. Cheap; check it with CI and the IDE.
+- **Books as a sum type** (28.10.2026): `LedgerBook | MaterialsBook | Album` instead of one `Ledger` with a `Mode` and an `AlbumInfo`
+  that only an album has. An album then cannot be asked for an invoice at all, and the `InvalidOperationException`s in `Ledger`
+  go. A deep change of the core and of how books are stored: do it together with template entries (Next, 4), which change the
+  data model anyway (README warns that the model may change).
 - **A page of commands for testing** (the author, 28.10.2026), e.g. `docs/testing.md`: vanilla commands with their exact syntax
   (`/giveblock tapestry-north 1 s[] {"type":"ambush1"}`, from the engine's `CmdGive`), our `/curio` commands from `dev-commands`,
   and what `docs/development.md` now scatters (`/op`, whitelist, `/land claim …`, padlocks).

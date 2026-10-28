@@ -65,6 +65,7 @@ public class ItemInvoice : ItemRollable
         if ((byEntity as EntityPlayer)?.Player is not IServerPlayer player || slot.Itemstack == null) return;
 
         var offhand = player.InventoryManager.OffhandHotbarSlot;
+        if (PlayerMessages.RefuseNewer(player, slot.Itemstack, offhand?.Itemstack)) return;
         var result = Mod.InvoicePoster.Post(player, slot, InvoiceKind, blockSel!.Position, PlayerSlots(player), offhand);
         ModLog.Debug(api, $"{player.PlayerName}: post {InvoiceKind} invoice into {api.World.BlockAccessor.GetBlockEntity(Mod.Containers.MainPos(blockSel.Position))?.GetType().Name} at {blockSel.Position}, off-hand={(offhand?.Itemstack?.Collectible is ItemLedger l ? (l.IsAlbum ? "album" : "ledger") : "-")}: {Describe(result)}");
         Tell(player, result);

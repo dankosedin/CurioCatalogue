@@ -261,13 +261,13 @@ public class LedgerTests
     [Fact]
     public void Clear_keeps_sheets_name_and_album()
     {
-        var ledger = LedgerOf(LedgerMode.Types, 7, E("a", 1)) with { Name = "Tapestries", Album = new AlbumInfo("tapestries", 88) };
+        var ledger = LedgerOf(LedgerMode.Types, 7, E("a", 1)) with { Name = "Tapestries", Album = new AlbumInfo("tapestries") };
         var cleared = ledger.Clear();
 
         Assert.True(cleared.IsEmpty);
         Assert.Equal(7, cleared.Sheets);
         Assert.Equal("Tapestries", cleared.Name);
-        Assert.Equal(new AlbumInfo("tapestries", 88), cleared.Album);
+        Assert.Equal(new AlbumInfo("tapestries"), cleared.Album);
     }
 
     [Fact]

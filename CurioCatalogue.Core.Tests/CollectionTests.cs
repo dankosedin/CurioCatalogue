@@ -27,7 +27,7 @@ public class CollectionTests
         Assert.Equal(LedgerMode.Album, album.Mode);
         Assert.Equal(4, album.Entries.Count);
         Assert.All(album.Entries.Values, e => Assert.Equal(1, e.Count));
-        Assert.Equal(("tapestries", 4), (album.Album!.CollectionId, album.Album.InitialSize));
+        Assert.Equal("tapestries", album.Album!.CollectionId);
         Assert.Equal(4, album.Album.Members!.Count);
         Assert.Equal((5, "Album: tapestries"), (album.Sheets, album.Name));
     }
@@ -66,7 +66,7 @@ public class CollectionTests
         var refreshed = Of("a1", "a2", "c1").Refresh(album);
 
         Assert.Equal([K("a2"), K("c1")], refreshed.Entries.Keys.OrderBy(k => k.Attributes)); // a1 stays collected
-        Assert.Equal((7, "Mine", 3), (refreshed.Sheets, refreshed.Name, refreshed.Album!.InitialSize));
+        Assert.Equal((7, "Mine", 3), (refreshed.Sheets, refreshed.Name, refreshed.Album!.Members!.Count));
         Assert.Equal(new CollectionProgress(1, 3, 0, 2), Of("a1", "a2", "c1").Progress(refreshed.Entries.Keys)); // groups a (a2 missing), c
     }
 
@@ -98,7 +98,7 @@ public class CollectionTests
     [Fact]
     public void Album_without_a_snapshot_counts_as_made_from_the_current_collection()
     {
-        var old = Ledger.FromStored(LedgerMode.Album, 3, [E("a2", 1)], "", new AlbumInfo("tapestries", 2));
+        var old = Ledger.FromStored(LedgerMode.Album, 3, [E("a2", 1)], "", new AlbumInfo("tapestries"));
         Assert.Equal([K("a2")], Of("a1", "a2").Refresh(old).Entries.Keys);
     }
 

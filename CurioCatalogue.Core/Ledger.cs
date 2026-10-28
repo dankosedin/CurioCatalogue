@@ -24,10 +24,14 @@ public enum LedgerMode
 /// <summary>Settings that bound a ledger; they come from the config and are not stored in the book.</summary>
 public sealed record LedgerLimits(int MaxSheets, int SoftEntryLimit);
 
-/// <summary>An album remembers which collection it was made from and how big the collection was then.</summary>
-/// <param name="Members">The collection's members (their keys as text) when the album was made or last refreshed;
-/// what was collected is these minus the entries. Null for an album made before this was kept.</param>
-public sealed record AlbumInfo(string CollectionId, int InitialSize, IReadOnlyList<string>? Members = null);
+/// <summary>One member of an album's snapshot: its key and a sample to store it by (the game's ItemStack; the core never reads it).</summary>
+public sealed record SnapshotMember(ItemKey Key, object Sample);
+
+/// <summary>An album remembers which collection it was made from and that collection's members then.</summary>
+/// <param name="Members">The collection's members when the album was made or last refreshed; what was collected is these
+/// minus the entries. Stored as samples and re-keyed on read, like the entries, so the two always agree. Null for an
+/// album without a snapshot (made before it was kept as samples).</param>
+public sealed record AlbumInfo(string CollectionId, IReadOnlyList<SnapshotMember>? Members = null);
 
 public enum InvoiceRefusal
 {

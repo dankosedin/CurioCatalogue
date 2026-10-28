@@ -123,6 +123,14 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   load. `Entry.Sample` in the core is therefore an opaque `object`.
 - **Keys recomputed on read, not stored** (10-26): a change of ignored attributes in the config applies to existing books; an item
   from a removed mod is kept. The same book always serializes to the same bytes (entries sorted).
+- **The album's snapshot as sample stacks** (10-28, code review): re-keyed on read like the entries, so the two always agree. Kept as
+  key strings, any change of a key's text (our format, the config's ignored attributes, a new attribute on the item) reset every
+  album to nothing collected, silently. Strings plus a migration per version would cover only our own format changes. The cost: an
+  album's data about doubles (88 small stacks for tapestries). The unread `album.size` was dropped with it.
+- **Format version `v` at the root of every book and invoice** (10-28, code review): missing means 1. Data of a newer version (after
+  a downgrade of the mod) is read as well as we can and never written: every server action on it, and our recipes, refuse
+  (`LedgerStore.IsNewer`, `PlayerMessages.RefuseNewer`). Alternative: read and write as is, which silently drops what the older
+  build does not know.
 - **modid renamed before the release** (`warehouseledger` → `curiocatalogue`, 10-26, author): after a release a modid cannot change
   without breaking worlds.
 

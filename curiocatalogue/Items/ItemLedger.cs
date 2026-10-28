@@ -104,7 +104,7 @@ public class ItemLedger : Item
     /// <param name="intoSlot">The empty main hand, for the new invoice; null for the ledger in the main hand.</param>
     internal void UseOnContainer(IServerPlayer player, ItemSlot ledgerSlot, InvoiceKind kind, BlockPos pos, ItemSlot? intoSlot)
     {
-        if (ledgerSlot.Itemstack == null) return;
+        if (ledgerSlot.Itemstack == null || PlayerMessages.RefuseNewer(player, ledgerSlot.Itemstack)) return;
         if (IsAlbum)
         {
             Collect(player, ledgerSlot, pos, handSlot: intoSlot ?? ledgerSlot);
@@ -199,6 +199,8 @@ public class ItemLedger : Item
     public override bool MatchesForCrafting(ItemStack inputStack, IRecipeBase recipe, IRecipeIngredient ingredient)
     {
         if (!base.MatchesForCrafting(inputStack, recipe, ingredient)) return false;
+        // Data from a newer build of the mod: our recipes would rewrite it without what this build does not know.
+        if (Adapters.LedgerStore.IsNewer(inputStack)) return false;
         if (Is(recipe, SwitchModeRecipe)) return Read(inputStack) is { IsEmpty: true, Album: null };
         if (Is(recipe, RechargeRecipe)) return Read(inputStack).Sheets < Mod.Config.MaxSheets;
         // An album is made from an empty ledger (domain.md, Recipes).

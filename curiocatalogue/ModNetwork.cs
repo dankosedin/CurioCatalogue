@@ -160,7 +160,10 @@ internal static class ModNetwork
         return LedgerStore.Fingerprint(stack) == shown.Fingerprint ? slot : null;
     }
 
-    /// <summary>The shown item's slot on the server; if it is gone, the player is told and the result is null.</summary>
+    /// <summary>
+    /// The shown item's slot on the server; null, with the player told, if it is gone or its data is from a newer
+    /// build of the mod.
+    /// </summary>
     private static ItemSlot? Target(ICoreServerAPI sapi, IServerPlayer player, ShownItem? shown, System.Func<CollectibleObject, bool> isKind, string action)
     {
         var inventory = player.InventoryManager;
@@ -169,8 +172,9 @@ internal static class ModNetwork
         {
             PlayerMessages.Refuse(player, "notshown");
             ModLog.Debug(sapi, $"{player.PlayerName}: {action} refused: the hand no longer holds the item shown");
+            return null;
         }
-        return slot;
+        return PlayerMessages.RefuseNewer(player, slot.Itemstack) ? null : slot;
     }
 
     private static ItemSlot? LedgerSlot(ICoreServerAPI sapi, IServerPlayer player, ShownItem? shown, string action) =>
@@ -251,6 +255,7 @@ internal static class ModNetwork
         if (Target(sapi, player, shown, c => c is ItemInvoice, "cancel") is not { } hand) return;
 
         var offhand = player.Entity?.LeftHandItemSlot;
+        if (PlayerMessages.RefuseNewer(player, offhand?.Itemstack)) return; // the sheet would go back into it
         bool toAlbum = offhand?.Itemstack?.Collectible is ItemLedger { IsAlbum: true };
         var fate = mod.InvoicePoster.Cancel(hand, offhand);
         PlayerMessages.Tell(player, fate switch

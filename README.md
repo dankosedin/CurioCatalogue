@@ -74,6 +74,9 @@ Plain right click and Ctrl + right click open containers as usual.
 - `TapestryExclude`, `TapestryAdd`: leave tapestry pieces out of the collection, or add pieces of other mods.
 - `Diagnostics` (false): write details to the game log, for finding problems.
 
+The server and each client read their own copy of this file, and the game does not sync them. On a server with changed settings,
+give players the same file: otherwise the album and the tooltips show the client's values, while the server acts on its own.
+
 ## Compatibility and known limitations
 
 - Needs Vintage Story 1.22.7. Install it on the server and on every client.

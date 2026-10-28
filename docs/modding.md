@@ -34,7 +34,8 @@ In this order:
 - Shift+RMB is ours only on blocks with an inventory (`ContainerReader.Classify` ≠ `None`), on both sides; elsewhere the game handles it.
 - Consequence: the vanilla crate inserts the held item on Shift+RMB (`BECrate.cs`), so our items can never be put into a crate by hand.
 - **Held right button with an empty hand:** `Input.InWorldAction` repeats `InWorldRightMouseDown` every 250 ms while held and never
-  reports the release. Swallow repeats of our own press by time (`EmptyHandGesture`), before any check of the hands. Item
+  reports the release. Swallow repeats of our own press by time (`EmptyHandGesture`), before any check of the hands: an event less
+  than 500 ms after the previous one is a repeat, and each repeat extends the window, so holding gives one request. Item
   interactions do not need this: they get `firstEvent`.
 - While any dialog is open, the mouse is free and world clicks do nothing.
 
@@ -204,7 +205,7 @@ In this order:
   item-atlas UVs corrupt the chunk mesh; only `… threw Exception again!` means a cube placeholder. It places items with plain RMB, so
   our items fit in, but draws our invoices dark and books back side out. Not supported yet.
 - **Carry On 2.0.0-rc.1** cannot lift two-cell trunks even alone. It uses Shift+RMB with empty hands; no conflict with our off-hand
-  gesture, though `EmptyHandGesture` swallows RMB for 250 ms after ours.
+  gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
 
 ## C#

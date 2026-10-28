@@ -12,7 +12,7 @@ using CurioCatalogue.Core;
 namespace CurioCatalogue;
 
 /// <summary>
-/// An invoice. Shift + right-click on a container posts it; right-click into the air shows it (stage 6).
+/// An invoice. Shift + right-click on a container posts it; right-click into the air shows it (domain.md, Posting an invoice; Windows).
 /// Rollable like vanilla parchment: on the ground and on a scroll rack it shows its "rolledShape" as a scroll
 /// (vssurvivalmod ItemRollable, IContainedMeshSource).
 /// </summary>

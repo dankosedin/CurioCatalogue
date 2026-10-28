@@ -19,8 +19,9 @@ docs/                      documentation; docs/plans/ holds the implementation p
 
 ## Build and test
 
-- Build: `dotnet build curiocatalogue.sln`. Output: `curiocatalogue\bin\Debug\Mods\mod`. The `NU190x` warnings come from the
-  template's CakeBuild project and are harmless.
+- Build: `dotnet build curiocatalogue.sln`. Output: `curiocatalogue\bin\Debug\Mods\mod`. CakeBuild pins
+  `System.Security.Cryptography.Pkcs` over the version Cake brings (`NU1903`); drop the pin when Cake brings a fixed one
+  (`dotnet list CakeBuild package --vulnerable --include-transitive`).
 - The projects reference the game from `$(VINTAGE_STORY)`: `VintagestoryAPI.dll`, `Mods/VSSurvivalMod.dll`, `Mods/VSEssentials.dll`
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
@@ -134,10 +135,11 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   keep such trailers in the commits, not in the PR description, or they appear twice.
 - Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
   person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
-- CI (GitHub Actions) builds and runs both test projects on `feature/*`, `main`, `release` and on every PR (on the merge result).
+- CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs both test
+  projects; on `feature/*`, `main`, `release` and on every PR (on the merge result).
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
   ModDB by hand (it has no release API).
-- Release zip by hand: `build.ps1` (CakeBuild) → `Releases\`.
+- Release zip by hand: `build.ps1` (CakeBuild) → `Releases\` (it replaces only its own folder and zip there).

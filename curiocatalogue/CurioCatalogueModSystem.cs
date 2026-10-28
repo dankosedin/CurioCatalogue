@@ -83,7 +83,6 @@ public class CurioCatalogueModSystem : ModSystem
         api.Event.LevelFinalize += () =>
         {
             HandbookIndexFix.Apply(api);
-            HandbookDiagnostics.Log(api);
         };
     }
 

@@ -60,13 +60,11 @@ public class LedgerDialog : GridDialog
         var byName = StringComparer.CurrentCultureIgnoreCase;
         return (sort switch
         {
-            SortBy.Mod => stacks.OrderBy(s => s.Collectible?.Code?.Domain ?? "").ThenBy(NameOf, byName),
-            SortBy.Count => stacks.OrderByDescending(s => s.StackSize).ThenBy(NameOf, byName),
-            _ => stacks.OrderBy(NameOf, byName),
+            SortBy.Mod => stacks.OrderBy(s => s.Collectible?.Code?.Domain ?? "").ThenBy(ItemInvoice.NameOf, byName),
+            SortBy.Count => stacks.OrderByDescending(s => s.StackSize).ThenBy(ItemInvoice.NameOf, byName),
+            _ => stacks.OrderBy(ItemInvoice.NameOf, byName),
         }).ToList();
     }
-
-    private static string NameOf(ItemStack stack) => stack.Collectible == null ? "" : stack.GetName();
 
     private static string T(string key, params object[] args) => Lang.Get("curiocatalogue:" + key, args);
 
@@ -136,6 +134,7 @@ public class LedgerDialog : GridDialog
         }
 
         SetComposer(composer.EndChildElements());
+        SingleComposer.GetTextInput("name").SetMaxLength(ModNetwork.MaxNameLength); // the server cuts longer names anyway
         SingleComposer.GetTextInput("name").SetValue(ledger.Name);
         SingleComposer.GetTextInput("search").SetValue(search);
         ApplySearch();

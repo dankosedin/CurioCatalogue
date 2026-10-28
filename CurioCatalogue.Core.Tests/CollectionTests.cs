@@ -203,7 +203,18 @@ public class CollectionTests
     [InlineData("symptoms11", "symptoms12", false)]
     public void Exclusion_patterns_use_a_star(string pattern, string name, bool matches)
     {
-        Assert.Equal(matches, Collection.Matches(pattern, name));
+        Assert.Equal(matches, Collection.Matcher([pattern])(name));
+    }
+
+    [Fact]
+    public void Any_of_several_patterns_matches_and_none_matches_nothing()
+    {
+        var excluded = Collection.Matcher(["aid-*", "GLIDER*"]);
+
+        Assert.True(excluded("aid-leg2"));
+        Assert.True(excluded("glider1")); // case ignored
+        Assert.False(excluded("ambush1"));
+        Assert.False(Collection.Matcher([])("ambush1"));
     }
 
     [Fact]

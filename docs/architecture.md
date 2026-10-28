@@ -79,7 +79,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language).
-- `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix` / `HandbookDiagnostics`.
+- `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.
 
 ### Main flows
 
@@ -100,7 +100,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 #### Code
 
 - **A separate core project without game references** (10-26). Like a separate Gradle/sbt module: the compiler stops the core from
-  depending on the game. The core tests build anywhere, also in CI without game DLLs.
+  depending on the game. The core tests build anywhere; CI runs them first, before it downloads the game.
 - **Our own attribute model and canonical identity** (10-26). Alternative: compare with the game's `ItemStack.Equals(world, …)`;
   it needs an `IWorldAccessor` and cannot be tested without the engine. Details: numeric types stay distinct as in the game
   (int 5 ≠ long 5); an empty tree equals no attributes; unknown attribute types (other mods) go in through their JSON form; a stack

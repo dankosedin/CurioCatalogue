@@ -93,6 +93,7 @@ public class ContainerReaderTests
     {
         var bagStack = new ItemStack(backpack);
         var ground = GroundWith(bagStack);
+        // An empty bag slot comes back as null (vsessentialsmod CollectibleBehaviorHeldBag.cs:56-76#GetContents: "contents.Add(cstack)").
         bag.GetContents(bagStack, game.World).Returns([new ItemStack(ingot, 2), null!, new ItemStack(ingot, 7)]);
 
         Assert.Equal(ContainerKind.Supported, reader.Classify(ground));

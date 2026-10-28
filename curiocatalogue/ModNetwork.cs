@@ -11,7 +11,7 @@ using CurioCatalogue.Core;
 
 namespace CurioCatalogue;
 
-/// <summary>Client → server: "make an invoice from this container with the ledger in my off-hand" (stage 5a).</summary>
+/// <summary>Client → server: "make an invoice from this container with the ledger in my off-hand" (<see cref="EmptyHandGesture"/>).</summary>
 [ProtoContract]
 public class MakeInvoiceRequest
 {
@@ -87,6 +87,15 @@ internal static class ModNetwork
     public const string Channel = CurioCatalogueModSystem.ModId;
 
     public const int MaxNameLength = 40;
+
+    /// <summary>A book name as stored: trimmed, at most <see cref="MaxNameLength"/> chars, never ending in half a surrogate pair.</summary>
+    internal static string LimitName(string? name)
+    {
+        name = (name ?? "").Trim();
+        if (name.Length <= MaxNameLength) return name;
+        int length = char.IsHighSurrogate(name[MaxNameLength - 1]) ? MaxNameLength - 1 : MaxNameLength;
+        return name[..length].TrimEnd();
+    }
 
     /// <summary>Both sides, in the same order: the channel and its message types must match.</summary>
     public static void Register(ICoreAPI api) =>
@@ -184,8 +193,7 @@ internal static class ModNetwork
     {
         if (LedgerSlot(sapi, player, request.Book, "rename") is not { } slot) return;
 
-        string name = (request.Name ?? "").Trim();
-        if (name.Length > MaxNameLength) name = name[..MaxNameLength];
+        string name = LimitName(request.Name);
         var item = (ItemLedger)slot.Itemstack!.Collectible;
         var ledger = mod.Store.ReadLedger(slot.Itemstack, item.LedgerMode);
         mod.Store.WriteLedger(slot.Itemstack, ledger with { Name = name });

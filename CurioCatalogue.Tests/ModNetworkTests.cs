@@ -122,4 +122,26 @@ public class ModNetworkTests
 
         Assert.Same(hand, Target(Shown(book), hand));
     }
+
+    // --- Book names ---
+
+    [Fact]
+    public void A_long_name_is_cut_to_the_limit_and_trimmed()
+    {
+        Assert.Equal(new string('a', ModNetwork.MaxNameLength), ModNetwork.LimitName("  " + new string('a', 60) + "  "));
+        Assert.Equal("Tools", ModNetwork.LimitName(" Tools "));
+        Assert.Equal("", ModNetwork.LimitName(null));
+    }
+
+    [Fact]
+    public void Cutting_a_name_does_not_split_an_emoji()
+    {
+        // A character outside the basic plane is two UTF-16 chars (a surrogate pair); half of one is not text.
+        string name = new string('a', ModNetwork.MaxNameLength - 1) + "📦";
+
+        string cut = ModNetwork.LimitName(name);
+
+        Assert.Equal(new string('a', ModNetwork.MaxNameLength - 1), cut);
+        Assert.False(char.IsHighSurrogate(cut[^1]));
+    }
 }

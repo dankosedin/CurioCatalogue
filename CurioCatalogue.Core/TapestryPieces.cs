@@ -14,9 +14,6 @@ public sealed record TapestryPiece(string Piece, string Picture);
 /// </summary>
 public static class TapestryPieces
 {
-    public static List<string> FromSizes(IEnumerable<KeyValuePair<string, string>> sizes) =>
-        WithPictures(sizes).Select(p => p.Piece).ToList();
-
     public static List<TapestryPiece> WithPictures(IEnumerable<KeyValuePair<string, string>> sizes)
     {
         var pieces = new List<TapestryPiece>();

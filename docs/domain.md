@@ -103,10 +103,10 @@ to a book **or album** in the off-hand; without one the invoice becomes parchmen
 ## Sheets
 
 A sheet is vanilla parchment; there is no separate blank item.
-- a book spends a sheet on each invoice (and an album on each want list);
-- an invoice posted or cancelled with a book in the off-hand returns its sheet; without one it becomes parchment
-  (dropped on the ground if the inventory is full);
-- parchment recharges a book up to 32 (also when invoices got lost).
+- a book spends a sheet on each invoice (and an album on each want list); the new invoice goes into the inventory, or is dropped
+  on the ground when the inventory is full;
+- an invoice posted or cancelled with a book in the off-hand returns its sheet; without one it becomes parchment in the same slot;
+- parchment recharges a book up to the limit, 32 by default (also when invoices got lost).
 
 ## Albums and collections
 
@@ -191,7 +191,8 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
   sort by name, by mod, by count (bill of materials only); "Clear". Album: progress line, the grid under "Missing:", "Start over", "Make a want list".
 - **Invoice window:** type, origin (day and coordinates), lines and items, the grid with counts, "Cancel".
 - **Tooltips:** book: mode, sheets, entries (album: sheets and progress); invoice: type and the first few items.
-- **Hints:** at the bottom of the screen only "RMB: open"; the Shift gestures are hinted over a container while a book is held.
+- **Hints:** at the bottom of the screen the book's own "RMB: open" and the game's "Shift + RMB: place" (from GroundStorable, the
+  book can be put down); the Shift gestures are hinted over a container while a book is held.
 
 ## Config
 

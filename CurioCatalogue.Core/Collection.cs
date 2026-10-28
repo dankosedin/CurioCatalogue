@@ -92,7 +92,15 @@ public sealed class Collection
         return new CollectionProgress(collected, Members.Count, complete, groups.Count);
     }
 
-    /// <summary>Does a name match a pattern with <c>*</c> for any text (config exclusions like "aid-*")?</summary>
-    public static bool Matches(string pattern, string name) =>
-        Regex.IsMatch(name, "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$", RegexOptions.IgnoreCase);
+    /// <summary>
+    /// A test for names that match any of the patterns, with <c>*</c> for any text (config exclusions like "aid-*"). Built
+    /// once; case is ignored the same way in every culture (no Turkish dotless i).
+    /// </summary>
+    public static Func<string, bool> Matcher(IEnumerable<string> patterns)
+    {
+        var alternatives = patterns.Select(p => Regex.Escape(p).Replace("\\*", ".*")).ToList();
+        if (alternatives.Count == 0) return _ => false;
+        var regex = new Regex("^(?:" + string.Join("|", alternatives) + ")$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return regex.IsMatch;
+    }
 }

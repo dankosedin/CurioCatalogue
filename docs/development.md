@@ -142,6 +142,11 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
   ModDB by hand (it has no release API). This is the job `release` in `ci.yml`, after `build`.
+- **ModDB** (https://mods.vintagestory.at/curiocatalogue) takes HTML, not Markdown: paste it in the editor's source code mode
+  (`<>`). The description is `README.md` with `README.uk.md` inside a spoiler
+  (`<div class="spoiler"><div class="spoiler-toggle">Caption </div><div class="spoiler-text">…</div></div>`), images from raw
+  GitHub at the release tag, relative links made absolute. The release's changelog is the `CHANGELOG.md` section. Uploaded
+  screenshots: at most 1920×1080 and 2 MB; the logo is one of them, 480×480 or 480×320.
 - **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
   release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
   the date in `CHANGELOG.md` and the version in both READMEs' early-development warning.

@@ -191,9 +191,14 @@ public sealed record Ledger(
         return (this with { Sheets = Sheets + used }, used);
     }
 
-    /// <summary>Clears all entries; sheets, name and album info stay.</summary>
     /// <summary>An album with these items crossed off as collected (domain.md, Albums and collections). Items it does not list are ignored.</summary>
     public Ledger CrossOff(IEnumerable<ItemKey> collected) => this with { Entries = Entries.RemoveRange(collected) };
 
-    public Ledger Clear() => this with { Entries = ImmutableDictionary<ItemKey, Entry>.Empty };
+    /// <summary>
+    /// Clears all entries; sheets and name stay. Not for an album: with no entries it would read as "all collected"; it
+    /// starts over instead (<see cref="Collection.NewAlbum"/>, domain.md, Albums and collections).
+    /// </summary>
+    public Ledger Clear() => Mode == LedgerMode.Album
+        ? throw new InvalidOperationException("An album starts over instead of clearing (Collection.NewAlbum)")
+        : this with { Entries = ImmutableDictionary<ItemKey, Entry>.Empty };
 }

@@ -10,22 +10,6 @@ namespace CurioCatalogue.Adapters;
 
 public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList, MoveFailed }
 
-/// <summary>What became of the invoice after posting (domain.md, Posting an invoice).</summary>
-public enum InvoiceFate
-{
-    /// <summary>The ledger in the off-hand took its sheet back; the invoice is gone.</summary>
-    SheetReturned,
-
-    /// <summary>No ledger in the off-hand, or it is full of sheets: the invoice is now parchment.</summary>
-    Parchment,
-
-    /// <summary>Hardcore option ConsumeSheets: the invoice is gone, no sheet comes back.</summary>
-    Consumed,
-
-    /// <summary>A want list with lines still left: it stays in the hand, shorter (domain.md, Albums and collections).</summary>
-    Kept,
-}
-
 public abstract record PostInvoiceResult
 {
     /// <param name="LedgerBefore">Entries in the off-hand ledger before and after; null without a ledger.</param>
@@ -111,8 +95,7 @@ public sealed class InvoicePoster
         var ledger = ledgerStack != null ? store.ReadLedger(ledgerStack, ledgerItem!.LedgerMode) : null;
         var posted = ledgerItem is { IsAlbum: false } ? ledger!.Post(invoice, lim) : null;
         var after = posted?.Ledger ?? ledger;
-        var withSheet = after != null && !consumeSheets() ? after.ReturnSheet(lim) : null;
-        var fate = consumeSheets() ? InvoiceFate.Consumed : withSheet != null ? InvoiceFate.SheetReturned : InvoiceFate.Parchment;
+        var (fate, withSheet) = InvoiceFates.Ended(after, lim, consumeSheets());
         bool invoiceSlotFrees = fate is InvoiceFate.SheetReturned or InvoiceFate.Consumed;
 
         var targets = Targets(playerSlots, invoiceSlot, invoiceSlotFrees, merge);
@@ -156,7 +139,7 @@ public sealed class InvoicePoster
 
     /// <summary>
     /// A want list takes what the container has of its list, as much as fits, and keeps the rest
-    /// (domain.md, Albums and collections). It touches no ledger and becomes parchment once its list is done.
+    /// (domain.md, Albums and collections). It touches no ledger; once its list is done it ends by <see cref="InvoiceFates.WantListPosted"/>.
     /// </summary>
     private PostInvoiceResult PostWantList(IPlayer player, ItemSlot invoiceSlot, Invoice invoice, ContainerSlots container,
         List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples, IReadOnlyList<ItemSlot> playerSlots, MergeClasses merge)
@@ -172,8 +155,7 @@ public sealed class InvoicePoster
         var moved = Carry(player, plan.Moves, container, playerSlots);
         var taken = FullyMoved(plan.Taken, moved, sources);
         var listLeft = invoice.CrossOff(taken.Select(e => e.Key));
-        // A finished list: parchment, or nothing with ConsumeSheets, as any invoice; it never goes back into a book.
-        var fate = !listLeft.Entries.IsEmpty ? InvoiceFate.Kept : consumeSheets() ? InvoiceFate.Consumed : InvoiceFate.Parchment;
+        var fate = InvoiceFates.WantListPosted(done: listLeft.Entries.IsEmpty, consumeSheets());
         if (fate == InvoiceFate.Kept) store.WriteInvoice(invoiceSlot.Itemstack!, listLeft);
         else invoiceSlot.Itemstack = fate == InvoiceFate.Parchment ? Parchment() : null;
         invoiceSlot.MarkDirty();
@@ -223,12 +205,9 @@ public sealed class InvoicePoster
     /// </summary>
     public InvoiceFate Cancel(ItemSlot invoiceSlot, ItemSlot? offhandSlot)
     {
-        var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger ledgerItem ? offhandSlot.Itemstack : null;
-        Ledger? withSheet = null;
-        if (ledgerStack != null && !consumeSheets())
-            withSheet = store.ReadLedger(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode).ReturnSheet(limits());
-
-        var fate = consumeSheets() ? InvoiceFate.Consumed : withSheet != null ? InvoiceFate.SheetReturned : InvoiceFate.Parchment;
+        var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger ? offhandSlot.Itemstack : null;
+        var book = ledgerStack != null ? store.ReadLedger(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode) : null;
+        var (fate, withSheet) = InvoiceFates.Ended(book, limits(), consumeSheets());
         if (withSheet != null)
         {
             store.WriteLedger(ledgerStack!, withSheet);

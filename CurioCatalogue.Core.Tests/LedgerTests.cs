@@ -259,15 +259,21 @@ public class LedgerTests
     }
 
     [Fact]
-    public void Clear_keeps_sheets_name_and_album()
+    public void Clear_keeps_sheets_and_name()
     {
-        var ledger = LedgerOf(LedgerMode.Types, 7, E("a", 1)) with { Name = "Tapestries", Album = new AlbumInfo("tapestries") };
+        var ledger = LedgerOf(LedgerMode.Types, 7, E("a", 1)) with { Name = "Tools" };
         var cleared = ledger.Clear();
 
         Assert.True(cleared.IsEmpty);
-        Assert.Equal(7, cleared.Sheets);
-        Assert.Equal("Tapestries", cleared.Name);
-        Assert.Equal(new AlbumInfo("tapestries"), cleared.Album);
+        Assert.Equal((7, "Tools"), (cleared.Sheets, cleared.Name));
+    }
+
+    [Fact]
+    public void Clear_refuses_an_album()
+    {
+        // An album with no entries reads as "all collected"; it starts over instead (Collection.NewAlbum).
+        var album = LedgerOf(LedgerMode.Album, 7, E("a", 1)) with { Album = new AlbumInfo("tapestries") };
+        Assert.Throws<InvalidOperationException>(() => album.Clear());
     }
 
     [Fact]

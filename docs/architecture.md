@@ -50,10 +50,13 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   locale-independent, key-sorted string of attributes minus the ignored ones), `ItemKey` (kind + code + canonical attributes), `ItemIdentity`.
 - **Books:** `Entry` (key, count, opaque sample, kind `Exact`; `Pattern` reserved), `Ledger` (mode, entries, sheets, name, album
   info) with `CreateInvoice`, `Post`, `ReturnSheet`, `AddSheets`, `Clear`, `FromStored`; `Invoice`; `Multiset`.
-  All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`), not exceptions.
+  All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`), not exceptions;
+  a call the caller must never make (`Clear` on an album, `Post` into an album) throws.
   Limits (`LedgerLimits`) come from the config, not from the book.
 - **Moving items:** `Transfer.Plan` (all or nothing: `Ready | Missing | NoRoom`) and `Transfer.PlanWhatFits` (partial, in a given order),
-  over plain `SourceSlot` / `TargetSlot` descriptions.
+  over plain `SourceSlot` / `TargetSlot` descriptions, with merge classes (`Stack`) besides keys.
+- **How an invoice ends:** `InvoiceFates` (`Ended`, `WantListPosted`): the one table of sheet returned / parchment / consumed / kept,
+  for posting and cancelling alike.
 - **Collections:** `Collection` (members, groups, snapshot, progress, `Refresh` / `RefreshIfStale`), `TapestryPieces` (pieces from `sizes`).
 
 #### Adapters (`curiocatalogue/Adapters`)

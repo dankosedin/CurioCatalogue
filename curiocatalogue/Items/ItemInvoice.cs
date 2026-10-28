@@ -115,7 +115,12 @@ public class ItemInvoice : ItemRollable
                 if (posted.Fate == InvoiceFate.SheetReturned)
                     text += " " + PlayerMessages.Text(player, book is { IsAlbum: true } ? "invoice-posted-sheet-album" : "invoice-posted-sheet");
                 if (posted.Fate == InvoiceFate.Parchment)
-                    text += " " + PlayerMessages.Text(player, book != null ? "invoice-posted-parchment-full" : "invoice-posted-parchment", Mod.Config.MaxSheets);
+                    text += " " + PlayerMessages.Text(player, book switch
+                    {
+                        { IsAlbum: true } => "invoice-posted-parchment-full-album",
+                        not null => "invoice-posted-parchment-full",
+                        null => "invoice-posted-parchment",
+                    }, Mod.Config.MaxSheets);
                 PlayerMessages.TellText(player, text);
                 if (posted.OverLimit)
                     PlayerMessages.Tell(player, "ledger-overlimit", posted.LedgerAfter!, Mod.Config.SoftEntryLimit);

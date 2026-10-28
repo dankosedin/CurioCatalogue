@@ -72,6 +72,7 @@
   "curiocatalogue:invoice-posted-sheet-album": "Its sheet is back in the album.",
   "curiocatalogue:invoice-posted-parchment": "The invoice is now parchment: no book in your off-hand.",
   "curiocatalogue:invoice-posted-parchment-full": "The book already has {0} sheets, so the invoice is now parchment.",
+  "curiocatalogue:invoice-posted-parchment-full-album": "The album already has {0} sheets, so the invoice is now parchment.",
   "curiocatalogue:ledger-overlimit": "The book has {0} entries, its limit is {1}. It cannot make incoming invoices until some entries are removed.",
   "curiocatalogue:ledger-cleared": "The book is cleared. Entries removed: {0}.",
   "curiocatalogue:album-restarted": "The album starts over. Still to collect: {0}.",

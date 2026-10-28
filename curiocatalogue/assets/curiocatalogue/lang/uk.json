@@ -72,6 +72,7 @@
   "curiocatalogue:invoice-posted-sheet-album": "Аркуш повернувся в альбом.",
   "curiocatalogue:invoice-posted-parchment": "Накладна стала пергаментом: книги в другій руці немає.",
   "curiocatalogue:invoice-posted-parchment-full": "Аркушів у книзі вже {0}, тож накладна стала пергаментом.",
+  "curiocatalogue:invoice-posted-parchment-full-album": "Аркушів в альбомі вже {0}, тож накладна стала пергаментом.",
   "curiocatalogue:ledger-overlimit": "Записів у книзі: {0}, ліміт {1}. Прибуткових накладних не буде, доки не приберете частину записів.",
   "curiocatalogue:ledger-cleared": "Книгу очищено: прибрано записів — {0}.",
   "curiocatalogue:album-restarted": "Альбом розпочато заново. Лишилося зібрати: {0}.",

@@ -22,7 +22,9 @@ those that outlive their feature. Dates are 2026.
    items in the server's language). Server-side translation (`Lang.GetL(player.LanguageCode, …)`) is a shortcut allowed only for our
    own texts and our own item names; anything the game names goes to the client (`MissingItemsRefusal`). Learned on a dedicated server, 10-27.
 3. **The mod gives no more access than hands do.** Claims, padlocks and reinforcement are checked by us (the item takes the click before the block).
-4. **Logic lives in a pure core.** Set and multiset operations, identity and transfer planning know nothing about the game and are unit-tested.
+4. **Logic lives in a pure core, written in a functional style.** Set and multiset operations, identity and transfer planning know
+   nothing about the game and are unit-tested. Values are immutable, operations return new values, outcomes are values. The style
+   holds as long as it keeps the code readable and the tests simple; the game glue stays imperative (the game's API is).
 5. **Thin game glue.** Adapters translate between game types and the core; game classes that cannot be mocked go behind small interfaces.
 6. **Harmony is the last resort.** Use the API's own extension points first, even when that means a workaround. Runtime patches of
    the game (like aspects woven into a JVM program) conflict with other mods' patches and break silently on game updates. A patch
@@ -105,6 +107,12 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   player hears about sheets only when an invoice could really be made.
 - **Plan in the core, check everything, then execute** (10-26). `Transfer.Plan` decides where to take and where to put without game
   types; `InvoicePoster` checks the whole plan before the first move.
+- **A functional core, as far as it reads well** (10-28, author). Functional core, imperative shell: the game's API is mutable
+  and object-oriented (stacks, attributes and slots change in place, behaviour comes from overriding virtual methods), so only
+  the core can be functional, and there it pays: all-or-nothing comes from planning before changing anything, and the core's tests
+  need no mocks. The limit is readability: mutation local to a function (filling a `List` inside `Transfer.Plan`, like a
+  `ListBuffer` in a Scala method) stays, rather than being folded with `Aggregate`. Two steps further are in `ROADMAP.md`
+  (Technical): an analyzer that makes `switch` over a record hierarchy exhaustive, and books as a sum type.
 - **Services created lazily** in the mod system (on first use, not in `Start`), because the world may not be ready in `Start`.
 
 #### State

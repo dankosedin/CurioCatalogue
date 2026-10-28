@@ -280,4 +280,18 @@ public class LedgerTests
         Assert.Equal(3, ledger.Sheets);
         Assert.Equal([("a", 1)], Lines(ledger));
     }
+
+    [Fact]
+    public void Posting_up_to_exactly_the_limit_warns_as_the_book_is_then_full()
+    {
+        // domain.md, Books: a book at or above the limit makes no incoming invoices, and reaching it warns (code review
+        // 28.10.2026: the warning used ">" and the refusal ">=", so a book could fill up silently). The limit here is 5.
+        var ledger = LedgerOf(LedgerMode.Types, 3, E("a", 1), E("b", 1), E("c", 1), E("d", 1));
+        var result = ledger.Post(InvoiceOf(InvoiceKind.Incoming, E("e", 1)), Limits);
+
+        Assert.Equal(5, result.Ledger.Entries.Count);
+        Assert.True(result.OverLimit);
+        Assert.Equal(InvoiceRefusal.LedgerFull,
+            Refused(result.Ledger.CreateInvoice(InvoiceKind.Incoming, [E("z", 1)], Limits, 0, Pos)));
+    }
 }

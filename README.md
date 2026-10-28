@@ -52,8 +52,9 @@ With a book in hand, or in your off-hand with the main hand empty:
 - **Shift + Ctrl + right click** on a container: an outgoing invoice for what the book lists.
 - **Right click into the air:** opens the book.
 
-With an invoice or a want list in hand, **Shift + right click** on any container posts it. With the book in your off-hand the book
-is updated and the sheet comes back; without it the invoice becomes parchment.
+With an invoice in hand, **Shift + right click** on any container posts it. With a book in your off-hand the book is updated and
+the sheet comes back (an album only takes the sheet); without one the invoice becomes parchment. A want list is posted the same
+way: it takes what it lists, and a finished one becomes parchment.
 
 Plain right click and Ctrl + right click open containers as usual.
 

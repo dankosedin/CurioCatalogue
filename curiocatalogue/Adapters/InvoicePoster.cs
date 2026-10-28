@@ -104,11 +104,14 @@ public sealed class InvoicePoster
 
         // What will become of the ledger and the invoice: decides whether the invoice's slot counts as free.
         var lim = limits();
-        // An album in the off-hand is left alone: it changes only by taking new items (domain.md, Posting an invoice; Albums and collections).
-        var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger { IsAlbum: false } ? offhandSlot.Itemstack : null;
-        var ledger = ledgerStack != null ? store.ReadLedger(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode) : null;
-        var posted = ledger?.Post(invoice, lim);
-        var withSheet = posted != null && !consumeSheets() ? posted.Ledger.ReturnSheet(lim) : null;
+        // An album in the off-hand takes the sheet back, as when cancelling, but its entries stay: it changes only by taking
+        // new items (domain.md, Posting an invoice; Albums and collections).
+        var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger ? offhandSlot.Itemstack : null;
+        var ledgerItem = (ItemLedger?)ledgerStack?.Collectible;
+        var ledger = ledgerStack != null ? store.ReadLedger(ledgerStack, ledgerItem!.LedgerMode) : null;
+        var posted = ledgerItem is { IsAlbum: false } ? ledger!.Post(invoice, lim) : null;
+        var after = posted?.Ledger ?? ledger;
+        var withSheet = after != null && !consumeSheets() ? after.ReturnSheet(lim) : null;
         var fate = consumeSheets() ? InvoiceFate.Consumed : withSheet != null ? InvoiceFate.SheetReturned : InvoiceFate.Parchment;
         bool invoiceSlotFrees = fate is InvoiceFate.SheetReturned or InvoiceFate.Consumed;
 
@@ -139,16 +142,16 @@ public sealed class InvoicePoster
         }
         int items = moved.Sum(m => m.Amount);
 
-        if (ledgerStack != null && posted != null)
+        if ((withSheet ?? posted?.Ledger) is { } written)
         {
-            store.WriteLedger(ledgerStack, withSheet ?? posted.Ledger);
+            store.WriteLedger(ledgerStack!, written);
             offhandSlot!.MarkDirty();
         }
         if (fate == InvoiceFate.Parchment) invoiceSlot.Itemstack = Parchment();
         invoiceSlot.MarkDirty();
 
         return new PostInvoiceResult.Posted(invoice.Entries.Length, items, fate,
-            ledger?.Entries.Count, posted?.Ledger.Entries.Count, posted?.OverLimit ?? false);
+            posted != null ? ledger!.Entries.Count : null, posted?.Ledger.Entries.Count, posted?.OverLimit ?? false);
     }
 
     /// <summary>
@@ -169,9 +172,10 @@ public sealed class InvoicePoster
         var moved = Carry(player, plan.Moves, container, playerSlots);
         var taken = FullyMoved(plan.Taken, moved, sources);
         var listLeft = invoice.CrossOff(taken.Select(e => e.Key));
-        var fate = listLeft.Entries.IsEmpty ? InvoiceFate.Parchment : InvoiceFate.Kept;
+        // A finished list: parchment, or nothing with ConsumeSheets, as any invoice; it never goes back into a book.
+        var fate = !listLeft.Entries.IsEmpty ? InvoiceFate.Kept : consumeSheets() ? InvoiceFate.Consumed : InvoiceFate.Parchment;
         if (fate == InvoiceFate.Kept) store.WriteInvoice(invoiceSlot.Itemstack!, listLeft);
-        else invoiceSlot.Itemstack = Parchment();
+        else invoiceSlot.Itemstack = fate == InvoiceFate.Parchment ? Parchment() : null;
         invoiceSlot.MarkDirty();
 
         return new PostInvoiceResult.Posted(taken.Count, moved.Sum(m => m.Amount), fate, null, null, false, listLeft.Entries.Length,

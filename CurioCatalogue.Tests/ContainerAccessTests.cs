@@ -31,26 +31,18 @@ public class ContainerAccessTests
     }
 
     [Fact]
-    public void Without_use_access_a_traverseable_container_needs_traverse_access()
+    public void Only_use_access_is_asked_traverse_is_the_engines_business()
     {
-        game.Place(pos, new TraverseableChest());
-        Claim(EnumBlockAccessFlags.Use, EnumWorldAccessResponse.NoPrivilege);
-
-        Claim(EnumBlockAccessFlags.Traverse, EnumWorldAccessResponse.Granted);
-        Assert.True(access.CanUse(player, pos));
-
-        Claim(EnumBlockAccessFlags.Traverse, EnumWorldAccessResponse.NoPrivilege);
-        Assert.False(access.CanUse(player, pos));
-    }
-
-    [Fact]
-    public void Traverse_access_is_not_enough_for_other_containers()
-    {
-        // E.g. a crate: BlockEntityCrate does not implement IClaimTraverseable (vssurvivalmod BECrate.cs:15#BlockEntityCrate).
+        // Inside TestAccess the engine itself turns Use into Traverse for blocks that are IClaimTraverseable and allow it
+        // (chests, baskets, vessels), and any flag other than Use is checked as build-or-break (decompiled
+        // Vintagestory.Common.WorldMap: GetBlockingLandClaimant ~326-329, testBlockAccessInternal ~243-254). So the mock
+        // answers for Use alone, as the engine would.
         game.Place(pos, new TestChest());
         Claim(EnumBlockAccessFlags.Use, EnumWorldAccessResponse.NoPrivilege);
         Claim(EnumBlockAccessFlags.Traverse, EnumWorldAccessResponse.Granted);
+
         Assert.False(access.CanUse(player, pos));
+        game.Claims.DidNotReceive().TestAccess(Arg.Any<IPlayer>(), Arg.Any<BlockPos>(), EnumBlockAccessFlags.Traverse);
     }
 
     [Fact]

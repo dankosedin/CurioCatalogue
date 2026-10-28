@@ -337,6 +337,35 @@ public class InvoicePosterTests
     }
 
     [Fact]
+    public void Finished_want_list_gives_no_sheet_back_even_with_a_book_in_the_off_hand()
+    {
+        // A want list touches no book (domain.md, Albums and collections); README says so since the review of 28.10.2026.
+        game.Place(pos, new TestChest(game.Api, Tapestry("ambush1")));
+        HoldWantList("ambush1");
+        HoldLedger(5);
+
+        var posted = Assert.IsType<PostInvoiceResult.Posted>(PostWantList());
+
+        Assert.Equal(InvoiceFate.Parchment, posted.Fate);
+        Assert.Equal(5, OffhandLedger.Sheets);
+        Assert.Equal(parchment, InvoiceSlot.Itemstack!.Collectible);
+    }
+
+    [Fact]
+    public void Finished_want_list_under_consume_sheets_disappears_like_any_invoice()
+    {
+        // domain.md, Posting an invoice: "With ConsumeSheets ... the invoice just disappears" (decided 28.10.2026 for want lists too).
+        consumeSheets = true;
+        game.Place(pos, new TestChest(game.Api, Tapestry("ambush1")));
+        HoldWantList("ambush1");
+
+        var posted = Assert.IsType<PostInvoiceResult.Posted>(PostWantList());
+
+        Assert.Equal(InvoiceFate.Consumed, posted.Fate);
+        Assert.Null(InvoiceSlot.Itemstack);
+    }
+
+    [Fact]
     public void Want_list_on_a_container_without_anything_from_the_list_is_refused()
     {
         game.Place(pos, new TestChest(game.Api, Tapestry("other")));
@@ -460,18 +489,34 @@ public class InvoicePosterTests
     }
 
     [Fact]
-    public void A_album_in_the_off_hand_is_left_alone_when_posting_an_invoice()
+    public void Posting_an_invoice_with_an_album_in_the_off_hand_returns_the_sheet_and_keeps_its_entries()
     {
+        // Decided 28.10.2026: the sheet goes back as it does when cancelling (less inventory juggling); the album still
+        // changes only by taking new items (domain.md, Posting an invoice).
         game.Place(pos, new TestChest(game.Api, Tapestry("a")));
         HoldInvoice(Tapestry("a"));
         HoldAlbum(offhand, "a", "b");
 
         var posted = Assert.IsType<PostInvoiceResult.Posted>(Post());
 
-        Assert.Equal((InvoiceFate.Parchment, (int?)null), (posted.Fate, posted.LedgerBefore));
-        Assert.Equal(parchment, InvoiceSlot.Itemstack!.Collectible);
+        Assert.Equal((InvoiceFate.SheetReturned, (int?)null), (posted.Fate, posted.LedgerBefore));
+        Assert.Equal([(TapestryKey("a"), 1)], PlayerItems()); // the invoice's slot was free for it
         Assert.Equal([TapestryKey("a"), TapestryKey("b")], Missing(offhand)); // "a" is not crossed off
-        Assert.Equal(4, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+        Assert.Equal(5, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+    }
+
+    [Fact]
+    public void Posting_with_a_full_album_in_the_off_hand_makes_parchment()
+    {
+        game.Place(pos, new TestChest(game.Api, Tapestry("a")));
+        HoldInvoice(Tapestry("a"));
+        HoldAlbum(offhand, "a");
+        store.WriteLedger(offhand.Itemstack!, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album) with { Sheets = Limits.MaxSheets });
+
+        var posted = Assert.IsType<PostInvoiceResult.Posted>(Post());
+
+        Assert.Equal(InvoiceFate.Parchment, posted.Fate);
+        Assert.Equal(Limits.MaxSheets, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
     }
 
     [Theory]

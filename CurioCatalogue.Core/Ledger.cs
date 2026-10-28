@@ -54,7 +54,7 @@ public abstract record CreateInvoiceResult
     public sealed record Refused(InvoiceRefusal Reason) : CreateInvoiceResult;
 }
 
-/// <param name="OverLimit">The ledger now has more entries than the soft limit; warn the player.</param>
+/// <param name="OverLimit">The ledger is now at or over the soft limit, so it makes no more incoming invoices; warn the player.</param>
 public sealed record PostResult(Ledger Ledger, bool OverLimit);
 
 /// <summary>
@@ -151,7 +151,7 @@ public sealed record Ledger(
     public PostResult Post(Invoice invoice, LedgerLimits limits)
     {
         // A want list is for another player's collection: it changes no ledger (domain.md, Albums and collections).
-        if (invoice.Kind == InvoiceKind.WantList) return new PostResult(this, Entries.Count > limits.SoftEntryLimit);
+        if (invoice.Kind == InvoiceKind.WantList) return new PostResult(this, Entries.Count >= limits.SoftEntryLimit);
         if (Mode == LedgerMode.Album) throw new InvalidOperationException("An album takes no posted invoices (domain.md, Posting an invoice)");
 
         var entries = Entries.ToBuilder();
@@ -173,7 +173,7 @@ public sealed record Ledger(
         }
 
         var ledger = this with { Entries = entries.ToImmutable() };
-        return new PostResult(ledger, ledger.Entries.Count > limits.SoftEntryLimit);
+        return new PostResult(ledger, ledger.Entries.Count >= limits.SoftEntryLimit);
     }
 
     /// <summary>

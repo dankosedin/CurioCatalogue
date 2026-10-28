@@ -69,9 +69,10 @@
   "curiocatalogue:invoice-posted": "Posted. Lines: {0}, items: {1}.",
   "curiocatalogue:invoice-posted-ledger": "Book entries: {0} → {1}.",
   "curiocatalogue:invoice-posted-sheet": "Its sheet is back in the book.",
+  "curiocatalogue:invoice-posted-sheet-album": "Its sheet is back in the album.",
   "curiocatalogue:invoice-posted-parchment": "The invoice is now parchment: no book in your off-hand.",
   "curiocatalogue:invoice-posted-parchment-full": "The book already has {0} sheets, so the invoice is now parchment.",
-  "curiocatalogue:ledger-overlimit": "The book has {0} entries, over its limit of {1}. It cannot make incoming invoices until some entries are removed.",
+  "curiocatalogue:ledger-overlimit": "The book has {0} entries, its limit is {1}. It cannot make incoming invoices until some entries are removed.",
   "curiocatalogue:ledger-cleared": "The book is cleared. Entries removed: {0}.",
   "curiocatalogue:album-restarted": "The album starts over. Still to collect: {0}.",
   "curiocatalogue:invoice-cancelled": "The invoice is cancelled.",
@@ -81,6 +82,7 @@
   "curiocatalogue:wantlist-made": "Want list. Items to find: {0}. Sheets left: {1} of {2}.",
   "curiocatalogue:wantlist-posted": "Taken from the list: {0}. Still on the list: {1}.",
   "curiocatalogue:wantlist-posted-done": "Taken from the list: {0}. The list is done and is now parchment.",
+  "curiocatalogue:wantlist-posted-consumed": "Taken from the list: {0}. The list is done.",
   "curiocatalogue:album-collected": "Taken for the collection: {0}. Still to collect: {1}.",
   "curiocatalogue:album-collected-done": "Taken for the collection: {0}. The collection is complete!",
   "curiocatalogue:notfitted": "Did not fit: {0}; make room.",
@@ -121,5 +123,8 @@
   "curiocatalogue:ingameerror-nothingnew": "Nothing new for the collection in this container",
   "curiocatalogue:ingameerror-notshown": "The item in your hand is no longer the one in the window",
   "curiocatalogue:ingameerror-newerversion": "This was written by a newer version of Curio Catalogue; update the mod to change it",
-  "curiocatalogue:ingameerror-movefailed": "The game would not take some of the items; nothing was changed. Please report this as a bug"
+  "curiocatalogue:ingameerror-movefailed": "The game would not take some of the items; nothing was changed. Please report this as a bug",
+  "curiocatalogue:ingameerror-nocollection": "The game no longer has this album's collection (was a mod removed?)",
+  "curiocatalogue:ingameerror-outofreach": "Too far away",
+  "curiocatalogue:ingameerror-offhandgesture": "Hold the book in your off-hand with the main hand empty"
 }

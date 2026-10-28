@@ -68,7 +68,7 @@ public class ItemInvoice : ItemRollable
         if (PlayerMessages.RefuseNewer(player, slot.Itemstack, offhand?.Itemstack)) return;
         var result = Mod.InvoicePoster.Post(player, slot, InvoiceKind, blockSel!.Position, PlayerSlots(player), offhand);
         ModLog.Debug(api, $"{player.PlayerName}: post {InvoiceKind} invoice into {api.World.BlockAccessor.GetBlockEntity(Mod.Containers.MainPos(blockSel.Position))?.GetType().Name} at {blockSel.Position}, off-hand={(offhand?.Itemstack?.Collectible is ItemLedger l ? (l.IsAlbum ? "album" : "ledger") : "-")}: {Describe(result)}");
-        Tell(player, result);
+        Tell(player, result, offhand);
     }
 
     /// <summary>Where taken items may go: the hotbar without the off-hand, and the backpack (its bag slots take only bags).</summary>
@@ -81,7 +81,7 @@ public class ItemInvoice : ItemRollable
             .ToList();
     }
 
-    private void Tell(IServerPlayer player, PostInvoiceResult result)
+    private void Tell(IServerPlayer player, PostInvoiceResult result, ItemSlot? offhand)
     {
         switch (result)
         {
@@ -97,7 +97,12 @@ public class ItemInvoice : ItemRollable
                 break;
 
             case PostInvoiceResult.Posted posted when InvoiceKind == InvoiceKind.WantList:
-                var told = PlayerMessages.Text(player, posted.Fate == InvoiceFate.Kept ? "wantlist-posted" : "wantlist-posted-done", posted.Items, posted.ListLeft);
+                var told = PlayerMessages.Text(player, posted.Fate switch
+                {
+                    InvoiceFate.Kept => "wantlist-posted",
+                    InvoiceFate.Consumed => "wantlist-posted-consumed",
+                    _ => "wantlist-posted-done",
+                }, posted.Items, posted.ListLeft);
                 if (posted.NotFitted > 0) told += " " + PlayerMessages.Text(player, "notfitted", posted.NotFitted);
                 PlayerMessages.TellText(player, told);
                 break;
@@ -106,10 +111,11 @@ public class ItemInvoice : ItemRollable
                 var text = PlayerMessages.Text(player, "invoice-posted", posted.Lines, posted.Items);
                 if (posted.LedgerBefore != null)
                     text += " " + PlayerMessages.Text(player, "invoice-posted-ledger", posted.LedgerBefore, posted.LedgerAfter!);
+                var book = offhand?.Itemstack?.Collectible as ItemLedger; // the book the sheet went back into, or would have
                 if (posted.Fate == InvoiceFate.SheetReturned)
-                    text += " " + PlayerMessages.Text(player, "invoice-posted-sheet");
+                    text += " " + PlayerMessages.Text(player, book is { IsAlbum: true } ? "invoice-posted-sheet-album" : "invoice-posted-sheet");
                 if (posted.Fate == InvoiceFate.Parchment)
-                    text += " " + PlayerMessages.Text(player, posted.LedgerBefore != null ? "invoice-posted-parchment-full" : "invoice-posted-parchment", Mod.Config.MaxSheets);
+                    text += " " + PlayerMessages.Text(player, book != null ? "invoice-posted-parchment-full" : "invoice-posted-parchment", Mod.Config.MaxSheets);
                 PlayerMessages.TellText(player, text);
                 if (posted.OverLimit)
                     PlayerMessages.Tell(player, "ledger-overlimit", posted.LedgerAfter!, Mod.Config.SoftEntryLimit);

@@ -86,10 +86,12 @@ The book in the off-hand:
 | Off-hand | Book | Invoice |
 |---|---|---|
 | ledger or bill of materials | incoming adds entries; outgoing removes them (counts go down, not below zero; unknown entries ignored). Never fails the transaction. | sheet returns to the book, invoice disappears |
-| the same, already 32 sheets | updated as above | becomes parchment |
-| album, or nothing | unchanged | becomes parchment in the same slot |
+| album | unchanged: it changes only by taking new items | sheet returns to the album, invoice disappears |
+| any book, already 32 sheets | updated as above (an album unchanged) | becomes parchment |
+| nothing | | becomes parchment in the same slot |
 
-With `ConsumeSheets` (hardcore option) the invoice just disappears: no sheet back, no parchment.
+With `ConsumeSheets` (hardcore option) the invoice just disappears: no sheet back, no parchment. A want list touches no book: a
+finished one becomes parchment, or with `ConsumeSheets` disappears.
 
 Results go to chat ("Posted. Lines: 5, items: 12.", entries before and after, where the sheet went); refusals are red in-game messages.
 
@@ -121,7 +123,7 @@ A sheet is vanilla parchment; there is no separate blank item.
   collected stays collected, new members are missing, gone members disappear. The stored data catches up the next time the server writes the album.
 - **Want list:** made with a button in the album window; costs one album sheet, appears in the hand. Whoever holds it posts it with
   Shift + RMB on a container: it takes what it lists (one of each) into their inventory, as much as fits, and crosses off what moved;
-  it stays for other chests. When empty, it becomes parchment. The mod only moves items; giving or trading is up to the players.
+  it stays for other chests. When empty, it becomes parchment (with `ConsumeSheets` it disappears). The mod only moves items; giving or trading is up to the players.
 - A tapestry already on a wall gets into an album by taking it down into a chest once.
 
 **Tapestry collection:** generated from the tapestry block's `sizes` attribute (31 pictures = 88 pieces; mods that extend
@@ -171,8 +173,9 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 
 - **Supported:** chests, trunks (two cells), labeled chests, stationary baskets, storage vessels, crates, and backpacks or baskets
   placed on the ground. Chests of other mods that derive from the vanilla classes work too.
-- **Shift + RMB with a book or invoice:** on a supported container, ours; on another block with an inventory (oven, quern, barrel,
-  shelf…), "not supported yet"; anywhere else, including ground storage without bags, the click goes to the game (e.g. putting the book down).
+- **Shift + RMB with a book or invoice** (also a book in the off-hand with the main hand empty): on a supported container, ours;
+  on another block with an inventory (oven, quern, barrel, shelf…), "not supported yet"; anywhere else, including ground storage
+  without bags, the click goes to the game (e.g. putting the book down).
 - **Not supported:** per-player loot chests from world generation ("each player can take…"): their slots show the total, not the player's share.
 - Later (see `ROADMAP.md`): items on the ground, cabinets, shelves, chests on boats.
 
@@ -202,6 +205,8 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 | `ConsumeSheets` | false | hardcore: a posted invoice never returns its sheet |
 | `TapestryExclude`, `TapestryAdd` | empty | tune the tapestry collection |
 | `Diagnostics` | false | debug lines in the game log (`docs/development.md`) |
+
+Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty.
 
 ## Scenarios
 

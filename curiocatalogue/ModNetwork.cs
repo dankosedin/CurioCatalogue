@@ -203,7 +203,12 @@ internal static class ModNetwork
         // An album starts over instead: every member missing again, sheets and name kept (domain.md, Albums and collections).
         if (ledger.Album is { } info)
         {
-            if (mod.Collections.Get(info.CollectionId) is not { } collection) { ModLog.Debug(sapi, $"{player.PlayerName}: restart ignored: no collection {info.CollectionId}"); return; }
+            if (mod.Collections.Get(info.CollectionId) is not { } collection)
+            {
+                PlayerMessages.Refuse(player, "nocollection");
+                ModLog.Debug(sapi, $"{player.PlayerName}: restart refused: no collection {info.CollectionId}");
+                return;
+            }
             mod.Store.WriteLedger(slot.Itemstack, collection.NewAlbum(ledger.Sheets, ledger.Name));
             slot.MarkDirty();
             PlayerMessages.Tell(player, "album-restarted", collection.Members.Count);

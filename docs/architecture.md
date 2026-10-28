@@ -185,8 +185,9 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   and the album could record items left in the chest). When invoices post partially, they move to the want list's path.
 - **Per-player loot chests are unsupported** for making and posting: their slots show the total, not the player's share.
 - **Bags on the ground are writable** through a wrapper inventory (the fallback "read-only for bags" was not needed).
-- **Album in the off-hand is ignored when posting an ordinary invoice** (10-26). Alternatives: take the sheet back but keep entries;
-  keep the old behaviour without the absurd incoming branch. Addition by the author: cancelling any invoice returns its sheet to an album too.
+- **Album in the off-hand: posting an ordinary invoice returns the sheet, the entries stay** (28.10.2026, author: less inventory
+  juggling; was "ignored", 10-26). The album changes only by taking new items. Cancelling any invoice returns its sheet to an album
+  too (author, 10-26). A want list returns no sheet to any book; under `ConsumeSheets` a finished one disappears like any invoice.
 
 ### Album and want list
 

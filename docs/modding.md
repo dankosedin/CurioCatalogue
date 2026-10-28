@@ -56,8 +56,11 @@ In this order:
 
 - Because the item handles the click first, the block and its behaviors never run, so vanilla lock checks (`BlockBehaviorLockable`)
   do not either. Check on the server:
-  - claims: `world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Use)`; `Traverse` is enough for `IClaimTraverseable` block
-    entities (chests, baskets, vessels), as vanilla does;
+  - claims: `world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Use)`, and nothing more. For blocks that are
+    `IClaimTraverseable` and allow it (chests, baskets, vessels) the engine itself turns Use into Traverse inside it; asking for
+    `Traverse` ourselves would be checked as build-or-break (decompiled `Vintagestory.Common.WorldMap`, `GetBlockingLandClaimant`
+    ~326-329, `testBlockAccessInternal` ~243-254). Vanilla chests allow traverse only when `retrieveOnly || isPerPlayer`
+    (vssurvivalmod `BEGenericTypedContainer.cs:458`);
   - padlocks and reinforcement: `ModSystemBlockReinforcement.IsLockedForInteract(pos, player)`.
 - Other protection mods hook `IEventAPI.OnTestBlockAccess`, which `TestAccess` calls, so they are covered.
 

@@ -69,9 +69,10 @@
   "curiocatalogue:invoice-posted": "Проведено: рядків — {0}, предметів — {1}.",
   "curiocatalogue:invoice-posted-ledger": "Записів у книзі: {0} → {1}.",
   "curiocatalogue:invoice-posted-sheet": "Аркуш повернувся в книгу.",
+  "curiocatalogue:invoice-posted-sheet-album": "Аркуш повернувся в альбом.",
   "curiocatalogue:invoice-posted-parchment": "Накладна стала пергаментом: книги в другій руці немає.",
   "curiocatalogue:invoice-posted-parchment-full": "Аркушів у книзі вже {0}, тож накладна стала пергаментом.",
-  "curiocatalogue:ledger-overlimit": "Записів у книзі: {0}, понад ліміт {1}. Прибуткових накладних не буде, доки не приберете частину записів.",
+  "curiocatalogue:ledger-overlimit": "Записів у книзі: {0}, ліміт {1}. Прибуткових накладних не буде, доки не приберете частину записів.",
   "curiocatalogue:ledger-cleared": "Книгу очищено: прибрано записів — {0}.",
   "curiocatalogue:album-restarted": "Альбом розпочато заново. Лишилося зібрати: {0}.",
   "curiocatalogue:invoice-cancelled": "Накладну анульовано.",
@@ -81,6 +82,7 @@
   "curiocatalogue:wantlist-made": "Список бажаного: треба знайти предметів — {0}. Аркушів лишилося: {1} з {2}.",
   "curiocatalogue:wantlist-posted": "Взято зі списку: {0}. Лишилося в списку: {1}.",
   "curiocatalogue:wantlist-posted-done": "Взято зі списку: {0}. Список виконано, він став пергаментом.",
+  "curiocatalogue:wantlist-posted-consumed": "Взято зі списку: {0}. Список виконано.",
   "curiocatalogue:album-collected": "Взято для колекції: {0}. Лишилося зібрати: {1}.",
   "curiocatalogue:album-collected-done": "Взято для колекції: {0}. Колекцію зібрано!",
   "curiocatalogue:notfitted": "Не вмістилося: {0} — звільніть місце.",
@@ -121,5 +123,8 @@
   "curiocatalogue:ingameerror-nothingnew": "У цьому контейнері нічого нового для колекції",
   "curiocatalogue:ingameerror-notshown": "Предмет у руці вже не той, що у вікні",
   "curiocatalogue:ingameerror-newerversion": "Це записано новішою версією «Каталогу дивовиж»; оновіть мод, щоб це змінити",
-  "curiocatalogue:ingameerror-movefailed": "Гра не прийняла частину предметів; нічого не змінено. Повідомте, будь ласка, про цю помилку"
+  "curiocatalogue:ingameerror-movefailed": "Гра не прийняла частину предметів; нічого не змінено. Повідомте, будь ласка, про цю помилку",
+  "curiocatalogue:ingameerror-nocollection": "Колекції цього альбому в грі вже немає (мод видалено?)",
+  "curiocatalogue:ingameerror-outofreach": "Надто далеко",
+  "curiocatalogue:ingameerror-offhandgesture": "Тримайте книгу в другій руці, а основна має бути порожньою"
 }

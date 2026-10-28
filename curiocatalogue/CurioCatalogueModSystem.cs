@@ -101,8 +101,10 @@ public class CurioCatalogueModSystem : ModSystem
             return new CurioCatalogueConfig();
         }
 
-        // Written back every time, so settings added in a newer version appear in the file with their defaults.
+        // Written back every time, so settings added in a newer version appear in the file with their defaults, and
+        // corrections (logged as warnings) replace impossible values.
         config ??= new CurioCatalogueConfig();
+        foreach (var fix in config.Correct()) api.Logger.Warning("[CurioCatalogue] {0}: {1}", ConfigFileName, fix);
         api.StoreModConfig(config, ConfigFileName);
         return config;
     }

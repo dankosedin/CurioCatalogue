@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace CurioCatalogue;
 
 /// <summary>
@@ -29,4 +31,33 @@ public class CurioCatalogueConfig
 
     /// <summary>Write diagnostics to the game log (server-main.log / client-main.log). For finding problems; off by default.</summary>
     public bool Diagnostics { get; set; } = false;
+
+    /// <summary>
+    /// Puts impossible values of a hand-edited file right: limits of at least 1 (a book of 0 sheets makes nothing, a limit of
+    /// 0 makes every book full), and a list set to null as empty.
+    /// </summary>
+    /// <returns>What was corrected, a line each, for the log.</returns>
+    public List<string> Correct()
+    {
+        var fixes = new List<string>();
+        int AtLeastOne(string name, int value)
+        {
+            if (value >= 1) return value;
+            fixes.Add($"{name} {value} is below 1, using 1");
+            return 1;
+        }
+        string[] NotNull(string name, string[]? list)
+        {
+            if (list != null) return list;
+            fixes.Add($"{name} is null, using an empty list");
+            return [];
+        }
+
+        MaxSheets = AtLeastOne(nameof(MaxSheets), MaxSheets);
+        SoftEntryLimit = AtLeastOne(nameof(SoftEntryLimit), SoftEntryLimit);
+        TapestryExclude = NotNull(nameof(TapestryExclude), TapestryExclude);
+        TapestryAdd = NotNull(nameof(TapestryAdd), TapestryAdd);
+        ExtraIgnoredAttributes = NotNull(nameof(ExtraIgnoredAttributes), ExtraIgnoredAttributes);
+        return fixes;
+    }
 }

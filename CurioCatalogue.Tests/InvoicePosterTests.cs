@@ -600,7 +600,7 @@ public class InvoicePosterTests
         var refused = Assert.IsType<PostInvoiceResult.Refused>(Post());
 
         Assert.Equal(PostRefusal.MoveFailed, refused.Reason);
-        Assert.Equal(3, chest.Inventory[0].StackSize);
+        Assert.Equal(3, chest.Inventory[0]!.StackSize);
         Assert.Equal(invoiceBefore, InvoiceSlot.Itemstack!.ToBytes()); // the invoice is back in the hand, unchanged
         Assert.Equal((5, 1), (OffhandLedger.Sheets, OffhandLedger.Entries.Count));
         Assert.Empty(PlayerItems());

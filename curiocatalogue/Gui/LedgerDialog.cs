@@ -135,7 +135,7 @@ public class LedgerDialog : GridDialog
             composer.AddSmallButton(T("ledgerwindow-wantlist"), OnWantList, wantListButton, EnumButtonStyle.Normal, "wantlist");
         }
 
-        SingleComposer = composer.EndChildElements().Compose();
+        SetComposer(composer.EndChildElements());
         SingleComposer.GetTextInput("name").SetValue(ledger.Name);
         SingleComposer.GetTextInput("search").SetValue(search);
         ApplySearch();
@@ -193,7 +193,7 @@ public class LedgerDialog : GridDialog
     private bool OnClear()
     {
         var shown = Shown();
-        new GuiDialogConfirm(capi, Mode == LedgerMode.Album ? T("confirm-restart") : T("confirm-clear", ledger.Entries.Count), ok =>
+        new ConfirmDialog(capi, Mode == LedgerMode.Album ? T("confirm-restart") : T("confirm-clear", ledger.Entries.Count), ok =>
         {
             if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new ClearLedgerRequest { Book = shown });
         }).TryOpen();

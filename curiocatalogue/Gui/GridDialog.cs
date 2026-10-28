@@ -48,17 +48,38 @@ public abstract class GridDialog : GuiDialog
     /// <summary>Read the item and compose the window again.</summary>
     protected abstract void Refresh();
 
+    /// <summary>
+    /// Every opening makes a new window, so a closed one is never used again: the game drops it from LoadedGuis
+    /// (decompiled GuiManager.OnGuiClosed; TryOpen registers it, vsapi GuiDialog.cs:289), and OnGuiClosed frees it.
+    /// </summary>
+    public override bool UnregisterOnClose => true;
+
     public override void OnGuiOpened()
     {
         base.OnGuiOpened();
         fingerprint = Slot.Itemstack is { } stack ? LedgerStore.Fingerprint(stack) : 0;
         tickListener = capi.Event.RegisterGameTickListener(_ => Watch(), 500);
+        ModLog.Debug(capi, $"{GetType().Name} opened, loaded dialogs: {capi.Gui.LoadedGuis.Count}");
     }
 
     public override void OnGuiClosed()
     {
         base.OnGuiClosed();
         capi.Event.UnregisterGameTickListener(tickListener);
+        // Clears the hovered slot, as vanilla does on close (vsessentialsmod GuiDialogCreatureContents.cs:103).
+        SingleComposer?.GetSlotGrid(GridKey)?.OnGuiClosed(capi);
+        Dispose();
+    }
+
+    /// <summary>
+    /// Shows a newly built window. The old composer is disposed first: the setter does not (vsapi GuiDialog.cs:129, only
+    /// ClearComposers and Dispose do, :42-59), and its textures would stay until the game quits. Vanilla does the same
+    /// before recomposing (vsessentialsmod GuiDialogAddWayPoint.cs:164).
+    /// </summary>
+    protected void SetComposer(GuiComposer composer)
+    {
+        SingleComposer?.Dispose();
+        SingleComposer = composer.Compose();
     }
 
     private void Watch()

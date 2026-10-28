@@ -78,7 +78,7 @@ public class InvoiceDialog : GridDialog
         content.WithChildren(cancelButton);
         composer.AddSmallButton(T("invoicewindow-cancel"), OnCancel, cancelButton, EnumButtonStyle.Normal, "cancel");
 
-        SingleComposer = composer.EndChildElements().Compose();
+        SetComposer(composer.EndChildElements());
         UpdateScrollbar();
     }
 
@@ -86,7 +86,7 @@ public class InvoiceDialog : GridDialog
     {
         var shown = Shown();
         var wantList = Slot.Itemstack?.Collectible is ItemInvoice { InvoiceKind: InvoiceKind.WantList };
-        new GuiDialogConfirm(capi, T(wantList ? "confirm-cancel-wantlist" : "confirm-cancel"), ok =>
+        new ConfirmDialog(capi, T(wantList ? "confirm-cancel-wantlist" : "confirm-cancel"), ok =>
         {
             if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new CancelInvoiceRequest { Invoice = shown });
         }).TryOpen();

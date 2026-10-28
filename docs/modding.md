@@ -165,6 +165,12 @@ In this order:
 
 - Slot grid search: `FilterItemsBySearchText(text)` without the name cache matches nothing for a non-empty text (vanilla skips every
   slot). Pass `searchCacheNames` (and `searchCache`); see `GridDialog.FilterByName`.
+- **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129`;
+  only `ClearComposers` and `Dispose` free them, `:42-59`). Dispose the old one before recomposing, as vanilla does
+  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `GridDialog.SetComposer`.
+- **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
+  only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
+  made per opening must set it and dispose itself on close (`GridDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
 
 ## Config and logging
 

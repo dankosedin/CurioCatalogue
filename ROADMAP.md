@@ -57,6 +57,9 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 **Interface**
 - **Highlighting in a container's window:** with an invoice in hand, the slots it lists; with an album, what is new for the
   collection; with a want list, what it asks for. One mechanism for all three.
+- **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three times,
+  since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line. Show the
+  piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
 
 **Access and ownership**
 - **Locks on books.** Protect the book itself, e.g. a guild ledger on a shelf: everyone reads, only the owner and those allowed post
@@ -67,6 +70,9 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 - **All player messages built by the client,** in its language and with its key bindings: the server sends a code, numbers and
   stacks (as `ModNetwork.MissingItemsRefusal` does). Today the server translates our texts itself (`docs/architecture.md`,
   principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway.
+- **A page of commands for testing** (the author, 28.10.2026), e.g. `docs/testing.md`: vanilla commands with their exact syntax
+  (`/giveblock tapestry-north 1 s[] {"type":"ambush1"}`, from the engine's `CmdGive`), our `/curio` commands from `dev-commands`,
+  and what `docs/development.md` now scatters (`/op`, whitelist, `/land claim …`, padlocks).
 
 ## Maybe
 

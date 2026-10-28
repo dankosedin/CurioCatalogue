@@ -125,10 +125,12 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
 
 ## Branches, PRs and releases
 
-Planned in stage 10.4; until the GitHub repository exists, work happens on local `main`.
+The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the rules below for `main` and `release`.
 
 - Work on `feature/<name>`. `main` changes only through a pull request: squash merge only, linear history, the branch must be
   up to date with `main`, CI must pass. No force pushes, no deletion.
+- Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
+  person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
 - CI (GitHub Actions) builds and runs both test projects on `feature/*`, `main`, `release` and on every PR (on the merge result).
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,

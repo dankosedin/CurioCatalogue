@@ -73,6 +73,7 @@ public class CurioCatalogueModSystem : ModSystem
 
     public override void StartServerSide(ICoreServerAPI api)
     {
+        DevCommands.Register(api, this);
         ModNetwork.StartServer(api, this);
     }
 

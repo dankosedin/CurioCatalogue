@@ -33,7 +33,7 @@ Player-facing names in English and Ukrainian (`lang/en.json`, `lang/uk.json`); n
 
 Notation below: **B** is the book's set or multiset, **C** the container's contents.
 
-Old names (before 26.10.2026), still found in history and the archive: the mod was "Warehouse Ledger", the album "catalog",
+Old names (before 26.10.2026), still found in the archive: the mod was "Warehouse Ledger", the album "catalog",
 the want list "collection invoice".
 
 ## Books

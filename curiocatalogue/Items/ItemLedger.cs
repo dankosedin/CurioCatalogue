@@ -286,7 +286,7 @@ public class ItemLedger : Item
     }
 
     /// <summary>
-    /// A named ledger shows its name instead of "Warehouse ledger (by type)"; the kind stays in the tooltip. An unnamed
+    /// A named ledger shows its name instead of "Ledger"; the kind stays in the tooltip. An unnamed
     /// album shows its collection, "Album: tapestries", in the viewer's language (so no default name is stored).
     /// </summary>
     public override string GetHeldItemName(ItemStack itemStack)

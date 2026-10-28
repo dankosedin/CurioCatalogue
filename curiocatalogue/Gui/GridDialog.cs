@@ -84,7 +84,8 @@ public abstract class GridDialog : GuiDialog
 
     private void Watch()
     {
-        // The hotbar keys and the wheel switch the main hand while the window is open (decompiled HudHotbar, OnKeySlot).
+        // The hotbar keys and the wheel switch the main hand while the window is open (decompiled HudHotbar, OnKeySlot;
+        // checked in game 28.10.2026).
         bool switched = !OffHand && capi.World.Player.InventoryManager.ActiveHotbarSlotNumber != hotbarSlot;
         if (switched || !StillShows(Slot.Itemstack)) { TryClose(); return; }
         int now = LedgerStore.Fingerprint(Slot.Itemstack!);

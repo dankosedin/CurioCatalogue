@@ -175,6 +175,9 @@ In this order:
 - **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
   only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
   made per opening must set it and dispose itself on close (`GridDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
+- **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
+  `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`GridDialog.Watch`) and name the
+  item in its requests (`ShownItem`).
 
 ## Config and logging
 

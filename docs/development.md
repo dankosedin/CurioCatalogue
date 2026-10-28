@@ -125,7 +125,7 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
 
 ## Branches, PRs and releases
 
-Planned in stage 10.4; until the GitHub repository exists, work happens on local `main`.
+The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the rules below for `main` and `release`.
 
 - Work on `feature/<name>`. `main` changes only through a pull request: squash merge only, linear history, the branch must be
   up to date with `main`, CI must pass. No force pushes, no deletion.

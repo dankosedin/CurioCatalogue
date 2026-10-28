@@ -679,3 +679,6 @@ notes/
 
 # Local notes (CLAUDE.local.md)
 CLAUDE.local.md
+
+# Claude Code: agent worktrees and local state
+.claude/

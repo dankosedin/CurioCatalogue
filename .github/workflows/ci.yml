@@ -1,4 +1,5 @@
-# Builds the solution and runs both test projects (docs/development.md, Branches, PRs and releases).
+# Runs the core tests, then builds the solution against the game and runs both test projects (docs/development.md,
+# Branches, PRs and releases).
 name: CI
 
 on:
@@ -18,6 +19,10 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+
+      # The core needs no game: its tests fail fast, before the download (docs/architecture.md, Part 1).
+      - name: Core tests
+        run: dotnet test CurioCatalogue.Core.Tests
 
       - name: Game version from modinfo.json
         id: game

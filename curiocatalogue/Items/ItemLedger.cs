@@ -79,8 +79,9 @@ public class ItemLedger : Item
         // Clicks that are not ours go to the base, which runs the item's behaviors: GroundStorable puts the book
         // down on Shift + right-click (vsapi Collectible.cs:1625#OnHeldInteractStart). Without Shift the click belongs to the block
         // anyway (chests open). Blocks without an inventory are not ours either. Both sides decide the same,
-        // since the client has the block entities too.
-        if (!firstEvent || !byEntity.Controls.ShiftKey || !TargetsInventory(blockSel))
+        // since the client has the block entities too. An album has no Ctrl action, so that click is the game's as well
+        // (domain.md, Albums and collections), as from the off-hand.
+        if (!firstEvent || !byEntity.Controls.ShiftKey || !TargetsInventory(blockSel) || !KindFor(byEntity.Controls.CtrlKey, out var kind))
         {
             base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
             return;
@@ -90,8 +91,6 @@ public class ItemLedger : Item
         // The client only claims the click; the server does the work and sends back the items and messages.
         if (api.Side != EnumAppSide.Server) return;
         if ((byEntity as EntityPlayer)?.Player is not IServerPlayer player || slot.Itemstack == null) return;
-
-        if (!KindFor(byEntity.Controls.CtrlKey, out var kind)) return;
         UseOnContainer(player, slot, kind, blockSel!.Position, intoSlot: null);
     }
 
@@ -104,7 +103,7 @@ public class ItemLedger : Item
     /// <param name="intoSlot">The empty main hand, for the new invoice; null for the ledger in the main hand.</param>
     internal void UseOnContainer(IServerPlayer player, ItemSlot ledgerSlot, InvoiceKind kind, BlockPos pos, ItemSlot? intoSlot)
     {
-        if (ledgerSlot.Itemstack == null) return;
+        if (ledgerSlot.Itemstack == null || PlayerMessages.RefuseNewer(player, ledgerSlot.Itemstack)) return;
         if (IsAlbum)
         {
             Collect(player, ledgerSlot, pos, handSlot: intoSlot ?? ledgerSlot);
@@ -199,6 +198,8 @@ public class ItemLedger : Item
     public override bool MatchesForCrafting(ItemStack inputStack, IRecipeBase recipe, IRecipeIngredient ingredient)
     {
         if (!base.MatchesForCrafting(inputStack, recipe, ingredient)) return false;
+        // Data from a newer build of the mod: our recipes would rewrite it without what this build does not know.
+        if (Adapters.LedgerStore.IsNewer(inputStack)) return false;
         if (Is(recipe, SwitchModeRecipe)) return Read(inputStack) is { IsEmpty: true, Album: null };
         if (Is(recipe, RechargeRecipe)) return Read(inputStack).Sheets < Mod.Config.MaxSheets;
         // An album is made from an empty ledger (domain.md, Recipes).

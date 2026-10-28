@@ -50,10 +50,13 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   locale-independent, key-sorted string of attributes minus the ignored ones), `ItemKey` (kind + code + canonical attributes), `ItemIdentity`.
 - **Books:** `Entry` (key, count, opaque sample, kind `Exact`; `Pattern` reserved), `Ledger` (mode, entries, sheets, name, album
   info) with `CreateInvoice`, `Post`, `ReturnSheet`, `AddSheets`, `Clear`, `FromStored`; `Invoice`; `Multiset`.
-  All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`), not exceptions.
+  All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`), not exceptions;
+  a call the caller must never make (`Clear` on an album, `Post` into an album) throws.
   Limits (`LedgerLimits`) come from the config, not from the book.
 - **Moving items:** `Transfer.Plan` (all or nothing: `Ready | Missing | NoRoom`) and `Transfer.PlanWhatFits` (partial, in a given order),
-  over plain `SourceSlot` / `TargetSlot` descriptions.
+  over plain `SourceSlot` / `TargetSlot` descriptions, with merge classes (`Stack`) besides keys.
+- **How an invoice ends:** `InvoiceFates` (`Ended`, `WantListPosted`): the one table of sheet returned / parchment / consumed / kept,
+  for posting and cancelling alike.
 - **Collections:** `Collection` (members, groups, snapshot, progress, `Refresh` / `RefreshIfStale`), `TapestryPieces` (pieces from `sizes`).
 
 #### Adapters (`curiocatalogue/Adapters`)
@@ -76,7 +79,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language).
-- `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix` / `HandbookDiagnostics`.
+- `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.
 
 ### Main flows
 
@@ -97,7 +100,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 #### Code
 
 - **A separate core project without game references** (10-26). Like a separate Gradle/sbt module: the compiler stops the core from
-  depending on the game. The core tests build anywhere, also in CI without game DLLs.
+  depending on the game. The core tests build anywhere; CI runs them first, before it downloads the game.
 - **Our own attribute model and canonical identity** (10-26). Alternative: compare with the game's `ItemStack.Equals(world, …)`;
   it needs an `IWorldAccessor` and cannot be tested without the engine. Details: numeric types stay distinct as in the game
   (int 5 ≠ long 5); an empty tree equals no attributes; unknown attribute types (other mods) go in through their JSON form; a stack
@@ -123,6 +126,14 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   load. `Entry.Sample` in the core is therefore an opaque `object`.
 - **Keys recomputed on read, not stored** (10-26): a change of ignored attributes in the config applies to existing books; an item
   from a removed mod is kept. The same book always serializes to the same bytes (entries sorted).
+- **The album's snapshot as sample stacks** (10-28, code review): re-keyed on read like the entries, so the two always agree. Kept as
+  key strings, any change of a key's text (our format, the config's ignored attributes, a new attribute on the item) reset every
+  album to nothing collected, silently. Strings plus a migration per version would cover only our own format changes. The cost: an
+  album's data about doubles (88 small stacks for tapestries). The unread `album.size` was dropped with it.
+- **Format version `v` at the root of every book and invoice** (10-28, code review): missing means 1. Data of a newer version (after
+  a downgrade of the mod) is read as well as we can and never written: every server action on it, and our recipes, refuse
+  (`LedgerStore.IsNewer`, `PlayerMessages.RefuseNewer`). Alternative: read and write as is, which silently drops what the older
+  build does not know.
 - **modid renamed before the release** (`warehouseledger` → `curiocatalogue`, 10-26, author): after a release a modid cannot change
   without breaking worlds.
 
@@ -169,10 +180,17 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 
 - **Partial stacks first** (10-26, author chose this over plain slot order): whole stacks stay in the chest.
 - **Real stacks move**, with their wear and temperature, not copies of samples.
+- **The plan follows the game's merge rule; what the game did not move is never recorded** (10-28, code review, author: the hybrid).
+  `Transfer` sees merge classes (`SourceSlot.Stack`) besides keys. If the game still moves less than planned (a bug), an invoice,
+  being all or nothing, puts every touched slot back from copies taken before and refuses (`movefailed`); a want list and an album,
+  which take what fits anyway, cross off only what really moved. Alternatives: record what moved for the invoice too (that is the
+  ROADMAP's partial posting, a feature with its own questions: the rest of the lines, the sheet); trust the plan (the old way: the book
+  and the album could record items left in the chest). When invoices post partially, they move to the want list's path.
 - **Per-player loot chests are unsupported** for making and posting: their slots show the total, not the player's share.
 - **Bags on the ground are writable** through a wrapper inventory (the fallback "read-only for bags" was not needed).
-- **Album in the off-hand is ignored when posting an ordinary invoice** (10-26). Alternatives: take the sheet back but keep entries;
-  keep the old behaviour without the absurd incoming branch. Addition by the author: cancelling any invoice returns its sheet to an album too.
+- **Album in the off-hand: posting an ordinary invoice returns the sheet, the entries stay** (28.10.2026, author: less inventory
+  juggling; was "ignored", 10-26). The album changes only by taking new items. Cancelling any invoice returns its sheet to an album
+  too (author, 10-26). A want list returns no sheet to any book; under `ConsumeSheets` a finished one disappears like any invoice.
 
 ### Album and want list
 

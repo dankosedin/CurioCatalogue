@@ -24,10 +24,14 @@ public enum LedgerMode
 /// <summary>Settings that bound a ledger; they come from the config and are not stored in the book.</summary>
 public sealed record LedgerLimits(int MaxSheets, int SoftEntryLimit);
 
-/// <summary>An album remembers which collection it was made from and how big the collection was then.</summary>
-/// <param name="Members">The collection's members (their keys as text) when the album was made or last refreshed;
-/// what was collected is these minus the entries. Null for an album made before this was kept.</param>
-public sealed record AlbumInfo(string CollectionId, int InitialSize, IReadOnlyList<string>? Members = null);
+/// <summary>One member of an album's snapshot: its key and a sample to store it by (the game's ItemStack; the core never reads it).</summary>
+public sealed record SnapshotMember(ItemKey Key, object Sample);
+
+/// <summary>An album remembers which collection it was made from and that collection's members then.</summary>
+/// <param name="Members">The collection's members when the album was made or last refreshed; what was collected is these
+/// minus the entries. Stored as samples and re-keyed on read, like the entries, so the two always agree. Null for an
+/// album without a snapshot (made before it was kept as samples).</param>
+public sealed record AlbumInfo(string CollectionId, IReadOnlyList<SnapshotMember>? Members = null);
 
 public enum InvoiceRefusal
 {
@@ -50,7 +54,7 @@ public abstract record CreateInvoiceResult
     public sealed record Refused(InvoiceRefusal Reason) : CreateInvoiceResult;
 }
 
-/// <param name="OverLimit">The ledger now has more entries than the soft limit; warn the player.</param>
+/// <param name="OverLimit">The ledger is now at or over the soft limit, so it makes no more incoming invoices; warn the player.</param>
 public sealed record PostResult(Ledger Ledger, bool OverLimit);
 
 /// <summary>
@@ -147,7 +151,7 @@ public sealed record Ledger(
     public PostResult Post(Invoice invoice, LedgerLimits limits)
     {
         // A want list is for another player's collection: it changes no ledger (domain.md, Albums and collections).
-        if (invoice.Kind == InvoiceKind.WantList) return new PostResult(this, Entries.Count > limits.SoftEntryLimit);
+        if (invoice.Kind == InvoiceKind.WantList) return new PostResult(this, Entries.Count >= limits.SoftEntryLimit);
         if (Mode == LedgerMode.Album) throw new InvalidOperationException("An album takes no posted invoices (domain.md, Posting an invoice)");
 
         var entries = Entries.ToBuilder();
@@ -169,7 +173,7 @@ public sealed record Ledger(
         }
 
         var ledger = this with { Entries = entries.ToImmutable() };
-        return new PostResult(ledger, ledger.Entries.Count > limits.SoftEntryLimit);
+        return new PostResult(ledger, ledger.Entries.Count >= limits.SoftEntryLimit);
     }
 
     /// <summary>
@@ -187,9 +191,14 @@ public sealed record Ledger(
         return (this with { Sheets = Sheets + used }, used);
     }
 
-    /// <summary>Clears all entries; sheets, name and album info stay.</summary>
     /// <summary>An album with these items crossed off as collected (domain.md, Albums and collections). Items it does not list are ignored.</summary>
     public Ledger CrossOff(IEnumerable<ItemKey> collected) => this with { Entries = Entries.RemoveRange(collected) };
 
-    public Ledger Clear() => this with { Entries = ImmutableDictionary<ItemKey, Entry>.Empty };
+    /// <summary>
+    /// Clears all entries; sheets and name stay. Not for an album: with no entries it would read as "all collected"; it
+    /// starts over instead (<see cref="Collection.NewAlbum"/>, domain.md, Albums and collections).
+    /// </summary>
+    public Ledger Clear() => Mode == LedgerMode.Album
+        ? throw new InvalidOperationException("An album starts over instead of clearing (Collection.NewAlbum)")
+        : this with { Entries = ImmutableDictionary<ItemKey, Entry>.Empty };
 }

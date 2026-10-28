@@ -4,10 +4,12 @@ namespace CurioCatalogue.Core.Tests;
 
 public class TapestryPiecesTests
 {
+    private static List<string> Pieces(Dictionary<string, string> sizes) => TapestryPieces.WithPictures(sizes).Select(p => p.Piece).ToList();
+
     [Fact]
     public void Pieces_follow_the_size()
     {
-        var pieces = TapestryPieces.FromSizes(new Dictionary<string, string>
+        var pieces = Pieces(new Dictionary<string, string>
         {
             ["ambush"] = "3x1",
             ["holy"] = "1x2",
@@ -35,12 +37,12 @@ public class TapestryPiecesTests
             ["symptoms"] = "2x2", ["tempstorm"] = "2x2", ["translocator"] = "2x2",
         };
         Assert.Equal(31, sizes.Count);
-        Assert.Equal(88, TapestryPieces.FromSizes(sizes).Count);
+        Assert.Equal(88, Pieces(sizes).Count);
     }
 
     [Fact]
     public void Bad_size_is_reported()
     {
-        Assert.Throws<FormatException>(() => TapestryPieces.FromSizes(new Dictionary<string, string> { ["x"] = "big" }));
+        Assert.Throws<FormatException>(() => Pieces(new Dictionary<string, string> { ["x"] = "big" }));
     }
 }

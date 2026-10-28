@@ -119,7 +119,7 @@ public class InvoiceMakerTests
     [Fact]
     public void Same_click_twice_makes_two_invoices()
     {
-        // Making an invoice changes neither the container nor the ledger's entries; only posting does (stage 5).
+        // Making an invoice changes neither the container nor the ledger's entries; only posting does (domain.md, Making an invoice).
         game.Place(pos, new TestChest(Tapestry("ambush1")));
         var ledgerStack = LedgerWith(3);
 

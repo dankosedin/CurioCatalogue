@@ -95,9 +95,11 @@ public sealed class PackageTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.EnsureDirectoryExists("../Releases");
-        context.CleanDirectory("../Releases");
+        // Only this build's own folder and zip: anything else in Releases (older zips kept to compare) stays.
+        var zip = $"../Releases/{context.Name}_{context.Version}.zip";
         context.EnsureDirectoryExists($"../Releases/{context.Name}");
+        context.CleanDirectory($"../Releases/{context.Name}");
+        if (context.FileExists(zip)) context.DeleteFile(zip);
         context.CopyFiles($"../{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/publish/*", $"../Releases/{context.Name}");
         if (context.DirectoryExists($"../{BuildContext.ProjectName}/assets"))
         {
@@ -108,12 +110,12 @@ public sealed class PackageTask : FrostingTask<BuildContext>
         {
             context.CopyFile($"../{BuildContext.ProjectName}/modicon.png", $"../Releases/{context.Name}/modicon.png");
         }
-        context.Zip($"../Releases/{context.Name}", $"../Releases/{context.Name}_{context.Version}.zip");
+        context.Zip($"../Releases/{context.Name}", zip);
     }
 }
 
 [TaskName("Default")]
 [IsDependentOn(typeof(PackageTask))]
-public class DefaultTask : FrostingTask
+public sealed class DefaultTask : FrostingTask
 {
 }

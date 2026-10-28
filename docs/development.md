@@ -141,5 +141,8 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
-  ModDB by hand (it has no release API).
+  ModDB by hand (it has no release API). This is the job `release` in `ci.yml`, after `build`.
+- **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
+  release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
+  the date in `CHANGELOG.md` and the version in both READMEs' early-development warning.
 - Release zip by hand: `build.ps1` (CakeBuild) → `Releases\` (it replaces only its own folder and zip there).

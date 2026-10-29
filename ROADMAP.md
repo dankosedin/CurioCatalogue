@@ -43,6 +43,18 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
    `BlockBehavior`, the invoice's saved position). First a `ContainerTarget` (block | entity) behind `ContainerReader` and
    `ContainerAccess`; the access rule for an entity's inventory needs research.
 
+7. **Ore crystals, the third collection** (29.10.2026). Players on the author's server collect them. The item is
+   `crystalizedore-{grade}-{ore}-{rock}` (assumed to be what players mean; check with them): 4 grades (poor … bountiful), 18 ores,
+   17 rocks, about 400 allowed combinations in vanilla (`itemtypes/resource/crystalizedore-graded.json`). Unlike tapestries and
+   butterflies, a piece has three dimensions. Open: what counts as one piece and how the album starts: by ore only (18), by ore and
+   grade (~70), or every combination (~400); or the player chooses when making the album. Needs the album to be told its
+   dimensions, which fits the resolver and the registry as definitions (item 2) and may come with custom collections (item 5).
+   Order against items 2 to 5 not decided.
+
+8. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
+   6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and
+   whether a picked-up shell is an item stack in a chest.
+
 ## Later
 
 **Albums and collections**
@@ -73,6 +85,16 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 **Interface**
 - **Highlighting in a container's window:** with an invoice in hand, the slots it lists; with an album, what is new for the
   collection; with a want list, what it asks for. One mechanism for all three.
+- **Knowing what the album lacks without carrying the book** (first ModDB comment, 29.10.2026: "must I carry the book to check
+  a piece?"). The highlighting above needs the book in the inventory, which costs the materials for the book and an inventory slot,
+  too much to carry only for a hint. Wanted: the same hint ("in the album: have / missing") for a cheap price. Ideas to weigh
+  (not decided):
+  - **a list of the want lists** the player has made, readable somewhere other than the inventory;
+  - **a dynamic page in the handbook** with the state of the collections (needs a Harmony patch of the handbook, `docs/modding.md`;
+    the handbook knows only recipes today);
+  - **a cheap thing that gives the hint,** e.g. a worn item or a one-time resource instead of the whole book ("magic"); open whether
+    it takes an inventory slot or a clothing slot, and what it needs to be made.
+  Open: where the album's data comes from when the book is not in the inventory (the data lives in the item, `DESIGN.md`).
 - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three times,
   since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line. Show the
   piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.

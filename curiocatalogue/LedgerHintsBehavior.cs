@@ -12,7 +12,7 @@ namespace CurioCatalogue;
 /// screen; hints over a block come from the block and its behaviors, hence this behavior.
 /// Added to the storage blocks at load on the client (<see cref="AddTo"/>).
 /// </summary>
-public class LedgerHintsBehavior(Block block) : BlockBehavior(block)
+public class LedgerHintsBehavior(Block owner) : BlockBehavior(owner)
 {
     public const string ClassName = "CurioCatalogue.LedgerHints";
 

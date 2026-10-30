@@ -76,7 +76,9 @@ All or nothing, on the server:
 - **Where from:** smallest partial stacks first, then in slot order, so whole stacks stay in the chest.
 - **What moves:** the container's real stacks (with their wear, temperature…), not copies of the invoice's samples.
 - **Where to:** hotbar (not the off-hand) and backpack, respecting bag restrictions; partial stacks fill first. The invoice's own
-  slot counts as free only when the invoice disappears.
+  slot counts as free only when the invoice disappears. Stacks the game would not put together (a worn and a fresh ingot are one
+  item for the book) need a slot each.
+- If the game still moves less than planned (a bug), everything goes back as it was and the player is asked to report it.
 - Any invoice can be posted with any book mode: a ledger takes the types, a bill of materials the counts.
 
 The book in the off-hand:
@@ -84,10 +86,12 @@ The book in the off-hand:
 | Off-hand | Book | Invoice |
 |---|---|---|
 | ledger or bill of materials | incoming adds entries; outgoing removes them (counts go down, not below zero; unknown entries ignored). Never fails the transaction. | sheet returns to the book, invoice disappears |
-| the same, already 32 sheets | updated as above | becomes parchment |
-| album, or nothing | unchanged | becomes parchment in the same slot |
+| album | unchanged: it changes only by taking new items | sheet returns to the album, invoice disappears |
+| any book, already 32 sheets | updated as above (an album unchanged) | becomes parchment |
+| nothing | | becomes parchment in the same slot |
 
-With `ConsumeSheets` (hardcore option) the invoice just disappears: no sheet back, no parchment.
+With `ConsumeSheets` (hardcore option) the invoice just disappears: no sheet back, no parchment. A want list touches no book: a
+finished one becomes parchment, or with `ConsumeSheets` disappears.
 
 Results go to chat ("Posted. Lines: 5, items: 12.", entries before and after, where the sheet went); refusals are red in-game messages.
 
@@ -99,10 +103,10 @@ to a book **or album** in the off-hand; without one the invoice becomes parchmen
 ## Sheets
 
 A sheet is vanilla parchment; there is no separate blank item.
-- a book spends a sheet on each invoice (and an album on each want list);
-- an invoice posted or cancelled with a book in the off-hand returns its sheet; without one it becomes parchment
-  (dropped on the ground if the inventory is full);
-- parchment recharges a book up to 32 (also when invoices got lost).
+- a book spends a sheet on each invoice (and an album on each want list); the new invoice goes into the inventory, or is dropped
+  on the ground when the inventory is full;
+- an invoice posted or cancelled with a book in the off-hand returns its sheet; without one it becomes parchment in the same slot;
+- parchment recharges a book up to the limit, 32 by default (also when invoices got lost).
 
 ## Albums and collections
 
@@ -119,7 +123,7 @@ A sheet is vanilla parchment; there is no separate blank item.
   collected stays collected, new members are missing, gone members disappear. The stored data catches up the next time the server writes the album.
 - **Want list:** made with a button in the album window; costs one album sheet, appears in the hand. Whoever holds it posts it with
   Shift + RMB on a container: it takes what it lists (one of each) into their inventory, as much as fits, and crosses off what moved;
-  it stays for other chests. When empty, it becomes parchment. The mod only moves items; giving or trading is up to the players.
+  it stays for other chests. When empty, it becomes parchment (with `ConsumeSheets` it disappears). The mod only moves items; giving or trading is up to the players.
 - A tapestry already on a wall gets into an album by taking it down into a chest once.
 
 **Tapestry collection:** generated from the tapestry block's `sizes` attribute (31 pictures = 88 pieces; mods that extend
@@ -169,22 +173,26 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 
 - **Supported:** chests, trunks (two cells), labeled chests, stationary baskets, storage vessels, crates, and backpacks or baskets
   placed on the ground. Chests of other mods that derive from the vanilla classes work too.
-- **Shift + RMB with a book or invoice:** on a supported container, ours; on another block with an inventory (oven, quern, barrel,
-  shelf…), "not supported yet"; anywhere else, including ground storage without bags, the click goes to the game (e.g. putting the book down).
+- **Shift + RMB with a book or invoice** (also a book in the off-hand with the main hand empty): on a supported container, ours;
+  on another block with an inventory (oven, quern, barrel, shelf…), "not supported yet"; anywhere else, including ground storage
+  without bags, the click goes to the game (e.g. putting the book down).
 - **Not supported:** per-player loot chests from world generation ("each player can take…"): their slots show the total, not the player's share.
 - Later (see `ROADMAP.md`): items on the ground, cabinets, shelves, chests on boats.
 
 ## Windows
 
 - **Open:** RMB into the air with the item in the main hand, or with an empty main hand and a book in the off-hand.
-- Read-only slot grids; data comes from the item's attributes and the window refreshes if the item changes while open. Actions that
-  change state (rename, Clear, Start over, Cancel, Make a want list) go to the server, which checks the item is still in the same hand.
+- Read-only slot grids; data comes from the item's attributes and the window refreshes if the item changes while open, and closes
+  if it leaves the hand or the main hand switches to another hotbar slot. Actions that change state (rename, Clear, Start over,
+  Cancel, Make a want list) go to the server and name the item as the window shows it (hand, hotbar slot, data); if the hand no
+  longer holds exactly that item, the server refuses with a message ("no longer the one in the window").
   Irreversible ones ask for confirmation.
 - **Book window:** name (editable, Save), mode, sheets (e.g. 27/32), entries and the limit; search by name in the player's language;
   sort by name, by mod, by count (bill of materials only); "Clear". Album: progress line, the grid under "Missing:", "Start over", "Make a want list".
 - **Invoice window:** type, origin (day and coordinates), lines and items, the grid with counts, "Cancel".
 - **Tooltips:** book: mode, sheets, entries (album: sheets and progress); invoice: type and the first few items.
-- **Hints:** at the bottom of the screen only "RMB: open"; the Shift gestures are hinted over a container while a book is held.
+- **Hints:** at the bottom of the screen the book's own "RMB: open" and the game's "Shift + RMB: place" (from GroundStorable, the
+  book can be put down); the Shift gestures are hinted over a container while a book is held.
 
 ## Config
 
@@ -198,6 +206,8 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 | `ConsumeSheets` | false | hardcore: a posted invoice never returns its sheet |
 | `TapestryExclude`, `TapestryAdd` | empty | tune the tapestry collection |
 | `Diagnostics` | false | debug lines in the game log (`docs/development.md`) |
+
+Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty.
 
 ## Scenarios
 

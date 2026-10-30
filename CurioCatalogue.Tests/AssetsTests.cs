@@ -37,6 +37,24 @@ public class AssetsTests
         Assert.True(ex == null, $"{file}: {ex?.Message}");
     }
 
+    /// <summary>
+    /// The refusals the player sees as "ingameerror-" + the reason in lower case (ItemLedger, ItemInvoice, ModNetwork).
+    /// NoDifference is worded by what was asked: nothing the book lacks or has, or nothing missing in the album.
+    /// </summary>
+    public static TheoryData<string> RefusalCodes() => new(
+        Enum.GetNames<Adapters.MakeRefusal>().Concat(Enum.GetNames<Adapters.PostRefusal>()).Concat(Enum.GetNames<Adapters.CollectRefusal>())
+            .Where(name => name != nameof(Adapters.MakeRefusal.NoDifference))
+            .Select(name => name.ToLowerInvariant())
+            .Concat(["nodifference-incoming", "nodifference-outgoing", "allcollected"])
+            .Distinct());
+
+    [Theory]
+    [MemberData(nameof(RefusalCodes))]
+    public void Every_refusal_has_its_text(string code)
+    {
+        Assert.Contains("curiocatalogue:ingameerror-" + code, Lang("en").Keys);
+    }
+
     public static TheoryData<string> Languages() =>
         new(Directory.GetFiles(Path.Combine(Assets, "lang"), "*.json").Select(Path.GetFileNameWithoutExtension)!);
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -13,6 +14,19 @@ internal static class PlayerMessages
     /// <param name="code">Lang key suffix: the text is "curiocatalogue:ingameerror-{code}".</param>
     public static void Refuse(IServerPlayer player, string code, params object[] args) =>
         player.SendIngameError(code, Text(player, "ingameerror-" + code, args));
+
+    /// <summary>
+    /// Refuses an action on books or invoices whose data is from a newer build of the mod (after a downgrade): writing
+    /// them would lose what this build does not know (LedgerStore.IsNewer). Only our items count; others are passed in
+    /// freely (e.g. whatever is in the off-hand).
+    /// </summary>
+    /// <returns>True when refused.</returns>
+    public static bool RefuseNewer(IServerPlayer player, params ItemStack?[] stacks)
+    {
+        if (!stacks.Any(Adapters.LedgerStore.IsNewer)) return false;
+        Refuse(player, "newerversion");
+        return true;
+    }
 
     public static void Tell(IServerPlayer player, string key, params object[] args) =>
         TellText(player, Text(player, key, args));

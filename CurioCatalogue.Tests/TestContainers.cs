@@ -34,9 +34,6 @@ internal class TestChest : TestInventoryBlock
     public TestChest(ICoreAPI api, params ItemStack?[] stacks) : base(api, stacks) { }
 }
 
-/// <summary>Chests, baskets and vessels allow claim traverse access (vssurvivalmod BlockEntityGenericTypedContainer).</summary>
-internal sealed class TraverseableChest(params ItemStack?[] stacks) : TestChest(stacks), IClaimTraverseable;
-
 /// <summary>Stands for a firepit, quern or barrel: an inventory, but not storage.</summary>
 internal sealed class TestMachine(params ItemStack?[] stacks) : TestInventoryBlock(null, stacks);
 

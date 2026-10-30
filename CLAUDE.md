@@ -24,6 +24,7 @@ Machine-specific notes and personal preferences live in `CLAUDE.local.md` (git-i
 | `docs/architecture.md` | before adding a class, an adapter or a network message | a structural decision is made (Part 1), with the alternatives and why; feature decisions go to the feature's plan |
 | `docs/modding.md` | before changing any code or JSON asset | the game surprises you (checked in game or found in vsapi/vssurvivalmod) |
 | `docs/development.md` | before building, testing, committing, opening a PR | build, CI or branch flow changes |
+| `README.md`, `README.uk.md` | before changing what the player sees (gestures, recipes, config, compatibility) | such a change lands; every release (the version in the early-development warning); both languages together. They are the source of the ModDB page |
 | `CONTRIBUTING.md` | before opening a PR or an issue | the way contributions come in changes (PRs, translations, issue templates) |
 | `docs/onboarding.md` | setting up a new machine | setup steps change (e.g. a new game version) |
 | `docs/archive/` | only for history: the original Ukrainian design, research, reviews, setup and MVP plan | never |

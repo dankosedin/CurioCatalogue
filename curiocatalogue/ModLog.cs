@@ -12,13 +12,6 @@ internal static class ModLog
     /// </summary>
     public static bool DebugEnabled { get; set; }
 
-    /// <summary>
-    /// Always pass text as an argument, never as the format string: item attributes contain braces
-    /// and would break the logger's formatting.
-    /// </summary>
-    public static void Info(ICoreAPI api, string message) =>
-        api.Logger.Notification("[CurioCatalogue] {0}: {1}", api.Side, message);
-
     /// <summary>A diagnostics line, written only when <see cref="DebugEnabled"/>. Use an interpolated string.</summary>
     public static void Debug(ICoreAPI api, [InterpolatedStringHandlerArgument] ref DebugMessage message)
     {

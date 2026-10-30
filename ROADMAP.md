@@ -19,6 +19,10 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
    core is. Different from tapestries: the species is the item's variant (`butterfly-dead-<type>`), not an attribute; 169 types; two
    forms, live (`creature-butterfly-*`) and dead (`butterfly-dead-*`, goes on shelves and into display cases); males and females are
    separate types. Open: which form counts, and how to group (by species?). Ask the player who collects them.
+   Before it (review, 28.10.2026): one collection resolver used by the store, the items and the network (today
+   `Collections.Get` is called in three places), and the registry as a list of collection definitions, not tapestries only.
+   Measure the cost of reading a book first: tooltips and crafting checks read the whole book, the window hashes its whole
+   data every 500 ms; fine for 88 tapestries, maybe not for 169 butterflies.
 3. **Invoices:**
    - **Names from the book.** A want list from the album "Danko's tapestries" is called "Want list for: Danko's tapestries"; the same
      for invoices from a named book.
@@ -34,7 +38,10 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 5. **Custom collections.** The player writes what a full set is (search in the book's window, the handbook) and turns the book into
    an album of that collection: progress, taking only new items, want lists. Covers everything the mod has no built-in collection
    for. New: the collection lives in the item, not in `CollectionRegistry`. Brings **search in the book's window** with it.
-6. **Chests on boats** (an entity's inventory). The author loves boats; no big risks seen.
+6. **Chests on boats** (an entity's inventory). The author loves boats. Costlier than it looks (review, 28.10.2026): "a container"
+   is a block position everywhere (the network request, `InvoiceMaker` / `InvoicePoster`, `ContainerAccess`, hints as a
+   `BlockBehavior`, the invoice's saved position). First a `ContainerTarget` (block | entity) behind `ContainerReader` and
+   `ContainerAccess`; the access rule for an entity's inventory needs research.
 
 ## Later
 
@@ -43,6 +50,10 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
   display cases, other wall-hung things, and mods that add display blocks. A lot of work: many block kinds. Pieces displayed by
   others count too: the collection is the items, the album only a way to look at it.
 - **More collections,** from players' feedback.
+- **Can the tapestry collection be completed?** (review, 28.10.2026) Some pieces in the game's `sizes` have index `-1` and are not
+  in `tapestryGroups` (lore tapestries: `aid-*`, `glider`, `symptoms` and others). If survival never gives them, "the collection
+  is complete" is out of reach, while README promises 88 pieces. Research in game and in the worldgen schematics, together with
+  butterflies (Next, 2) and decorating a complete album.
 - **Decorating a complete album:** golden corners or a seal on the cover for a full collection, a decorated page for a complete
   picture, maybe steps (25 / 50 / 100 %). On the book itself it depends on our own book model (see Spin-off ideas); in the window it does not.
 
@@ -51,12 +62,23 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 - **The ledger's last operations, with undo,** instead of editing it by hand. Open: undo forgets that an invoice was posted; items
   that moved stay where they are.
 
+- **Books and invoices from the creative inventory** (review, 28.10.2026). They have no data: a book has 0 sheets, an album
+  follows no collection and says "the collection is complete", a blank invoice posts as "0 lines" and gives the book a free sheet.
+  Defaults with sheets would break how the handbook shows the recipes, so 0.1.0 leaves it as it is. Open: hide them from the
+  creative inventory, or defaults that keep the handbook working; a blank invoice refused in any case.
+
 **Containers**
 - **More vanilla containers** for invoices: cabinets, shelves and other blocks with an inventory that we now refuse as "not supported yet".
 
 **Interface**
 - **Highlighting in a container's window:** with an invoice in hand, the slots it lists; with an album, what is new for the
   collection; with a want list, what it asks for. One mechanism for all three.
+- **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three times,
+  since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line. Show the
+  piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
+
+- **A hotkey for the book's window** (review, 28.10.2026): today it opens only on right click into the air, which is hard to
+  find in a cellar or at a workbench.
 
 **Access and ownership**
 - **Locks on books.** Protect the book itself, e.g. a guild ledger on a shelf: everyone reads, only the owner and those allowed post
@@ -64,9 +86,32 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
   it on, as with chests), how the lock looks.
 
 **Technical**
+- **The server's config sent to clients** (review, 28.10.2026). Each side reads its own `ModConfig` file and the game does not
+  sync them (vsapi `ICoreAPI.cs:150`). The client then builds its own tapestry collection, item identity and sheet limits: album
+  progress, missing lists, tooltips and the recharge recipe differ from what the server does. Fix: one packet on join with the
+  gameplay settings, used by the client instead of its file. Until then README asks admins to hand out the same file.
 - **All player messages built by the client,** in its language and with its key bindings: the server sends a code, numbers and
   stacks (as `ModNetwork.MissingItemsRefusal` does). Today the server translates our texts itself (`docs/architecture.md`,
-  principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway.
+  principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway. Review, 28.10.2026: messages
+  and handing out new items are spread over `ItemLedger`, `ItemInvoice`, `ModNetwork` and `EmptyHandGesture` ("into the empty
+  hand, else the inventory, else the ground" twice); one `Outcome` packet and one helper for handing out items.
+- **Exhaustive `switch` over record hierarchies** (28.10.2026). Outcomes are closed record hierarchies (`TransferPlan`:
+  `Ready | Missing | NoRoom`; `CreateInvoiceResult`), but unlike Scala's sealed traits C# does not warn when a `switch` misses a
+  case. A Roslyn analyzer (e.g. `ExhaustiveMatching.Analyzer`) makes it a compile error. Cheap; check it with CI and the IDE.
+- **Books as a sum type** (28.10.2026): `LedgerBook | MaterialsBook | Album` instead of one `Ledger` with a `Mode` and an `AlbumInfo`
+  that only an album has. An album then cannot be asked for an invoice at all, and the `InvalidOperationException`s in `Ledger`
+  go. A deep change of the core and of how books are stored: do it together with template entries (Next, 4), which change the
+  data model anyway (README warns that the model may change). Review, 28.10.2026: then also the variant (`book-album-*`) as the
+  only sign of an album (today the `album` attribute tree says it too, `docs/architecture.md` rejected two sources), and a typed
+  sample instead of `Entry.Sample` as `object` with casts to `ItemStack` all over the adapters.
+- **Tests for the item classes** (review, 28.10.2026): gestures, crafting hooks, tooltips of `ItemLedger` / `ItemInvoice` have
+  none. Pull their decisions out into testable code first (as the invoice's fate in the 0.1.0 fixes).
+- **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
+  that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
+  at it when someone reports it or when the game changes the index.
+- **A page of commands for testing** (the author, 28.10.2026), e.g. `docs/testing.md`: vanilla commands with their exact syntax
+  (`/giveblock tapestry-north 1 s[] {"type":"ambush1"}`, from the engine's `CmdGive`), our `/curio` commands from `dev-commands`,
+  and what `docs/development.md` now scatters (`/op`, whitelist, `/land claim …`, padlocks).
 
 ## Maybe
 

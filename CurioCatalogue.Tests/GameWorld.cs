@@ -66,7 +66,8 @@ internal sealed class GameWorld
     // The game sets a collectible's api in OnLoaded, which needs a full game; comparing stacks uses it
     // (vsapi Collectible.cs:3387#api.World, Equals → api.World). Set just the field.
     private static readonly FieldInfo ApiField =
-        typeof(CollectibleObject).GetField("api", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        typeof(CollectibleObject).GetField("api", BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("CollectibleObject has no private field \"api\" any more (vsapi changed?): update GameWorld.Register");
 
     private void Register(CollectibleObject collectible) => ApiField.SetValue(collectible, Api);
 }

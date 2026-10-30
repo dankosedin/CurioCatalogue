@@ -19,8 +19,9 @@ docs/                      documentation; docs/plans/ holds the implementation p
 
 ## Build and test
 
-- Build: `dotnet build curiocatalogue.sln`. Output: `curiocatalogue\bin\Debug\Mods\mod`. The `NU190x` warnings come from the
-  template's CakeBuild project and are harmless.
+- Build: `dotnet build curiocatalogue.sln`. Output: `curiocatalogue\bin\Debug\Mods\mod`. CakeBuild pins
+  `System.Security.Cryptography.Pkcs` over the version Cake brings (`NU1903`); drop the pin when Cake brings a fixed one
+  (`dotnet list CakeBuild package --vulnerable --include-transitive`).
 - The projects reference the game from `$(VINTAGE_STORY)`: `VintagestoryAPI.dll`, `Mods/VSSurvivalMod.dll`, `Mods/VSEssentials.dll`
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
@@ -125,14 +126,28 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
 
 ## Branches, PRs and releases
 
-Planned in stage 10.4; until the GitHub repository exists, work happens on local `main`.
+The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the rules below for `main` and `release`.
 
 - Work on `feature/<name>`. `main` changes only through a pull request: squash merge only, linear history, the branch must be
   up to date with `main`, CI must pass. No force pushes, no deletion.
-- CI (GitHub Actions) builds and runs both test projects on `feature/*`, `main`, `release` and on every PR (on the merge result).
+- The squash commit on `main` takes the PR's title (plus ` (#N)`) and description, so write them as a commit message. Its author
+  is whoever merges, under their GitHub profile name. GitHub itself appends the `Co-authored-by` lines of the branch's commits:
+  keep such trailers in the commits, not in the PR description, or they appear twice.
+- Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
+  person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
+- CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs both test
+  projects; on `feature/*`, `main`, `release` and on every PR (on the merge result).
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
-  ModDB by hand (it has no release API).
-- Release zip by hand: `build.ps1` (CakeBuild) → `Releases\`.
+  ModDB by hand (it has no release API). This is the job `release` in `ci.yml`, after `build`.
+- **ModDB** (https://mods.vintagestory.at/curiocatalogue) takes HTML, not Markdown: paste it in the editor's source code mode
+  (`<>`). The description is `README.md` with `README.uk.md` inside a spoiler
+  (`<div class="spoiler"><div class="spoiler-toggle">Caption </div><div class="spoiler-text">…</div></div>`), images from raw
+  GitHub at the release tag, relative links made absolute. The release's changelog is the `CHANGELOG.md` section. Uploaded
+  screenshots: at most 1920×1080 and 2 MB; the logo is one of them, 480×480 or 480×320.
+- **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
+  release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
+  the date in `CHANGELOG.md` and the version in both READMEs' early-development warning.
+- Release zip by hand: `build.ps1` (CakeBuild) → `Releases\` (it replaces only its own folder and zip there).

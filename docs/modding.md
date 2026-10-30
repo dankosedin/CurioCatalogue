@@ -34,7 +34,8 @@ In this order:
 - Shift+RMB is ours only on blocks with an inventory (`ContainerReader.Classify` ≠ `None`), on both sides; elsewhere the game handles it.
 - Consequence: the vanilla crate inserts the held item on Shift+RMB (`BECrate.cs`), so our items can never be put into a crate by hand.
 - **Held right button with an empty hand:** `Input.InWorldAction` repeats `InWorldRightMouseDown` every 250 ms while held and never
-  reports the release. Swallow repeats of our own press by time (`EmptyHandGesture`), before any check of the hands. Item
+  reports the release. Swallow repeats of our own press by time (`EmptyHandGesture`), before any check of the hands: an event less
+  than 500 ms after the previous one is a repeat, and each repeat extends the window, so holding gives one request. Item
   interactions do not need this: they get `firstEvent`.
 - While any dialog is open, the mouse is free and world clicks do nothing.
 
@@ -56,8 +57,11 @@ In this order:
 
 - Because the item handles the click first, the block and its behaviors never run, so vanilla lock checks (`BlockBehaviorLockable`)
   do not either. Check on the server:
-  - claims: `world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Use)`; `Traverse` is enough for `IClaimTraverseable` block
-    entities (chests, baskets, vessels), as vanilla does;
+  - claims: `world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Use)`, and nothing more. For blocks that are
+    `IClaimTraverseable` and allow it (chests, baskets, vessels) the engine itself turns Use into Traverse inside it; asking for
+    `Traverse` ourselves would be checked as build-or-break (decompiled `Vintagestory.Common.WorldMap`, `GetBlockingLandClaimant`
+    ~326-329, `testBlockAccessInternal` ~243-254). Vanilla chests allow traverse only when `retrieveOnly || isPerPlayer`
+    (vssurvivalmod `BEGenericTypedContainer.cs:458`);
   - padlocks and reinforcement: `ModSystemBlockReinforcement.IsLockedForInteract(pos, player)`.
 - Other protection mods hook `IEventAPI.OnTestBlockAccess`, which `TestAccess` calls, so they are covered.
 
@@ -83,6 +87,11 @@ In this order:
 - Vanilla's ignored-attribute check in nested trees passes the parent's path (a vanilla bug); `AttrCanonical` uses full paths on purpose.
 - **A stack read from bytes** knows only its numeric id until it is resolved, so the same item can key as `game:tapestry-north` or by id.
   `StackKeys` resolves stacks through the world first.
+- **Our key is not the game's merge rule.** The game stacks a source onto a sink by `sink.Collectible.GetMergableQuantity(sink,
+  source, priority)` (vsapi `Collectible.cs:2558`, called from `ItemSlot.CanTakeFrom`, `ItemSlot.cs:110`): `Equals` with
+  `IgnoredStackAttributes`, but behaviors and items may override it (vssurvivalmod `ItemEgg.cs:12` ignores "chick"). It knows
+  nothing of our config, so a worn and a fresh ingot share our key (durability ignored) and still need two slots. Plan moves by
+  merge classes (`InvoicePoster.MergeClasses`), not by keys.
 - `new ItemStack()` has stack size 0, and our storage code drops it as empty: set the size in tests.
 - **Numbers from JSON** (recipe output, `/giveitem`) land in item attributes as longs: read them with `GetAsInt`, not `GetInt`.
 
@@ -160,6 +169,15 @@ In this order:
 
 - Slot grid search: `FilterItemsBySearchText(text)` without the name cache matches nothing for a non-empty text (vanilla skips every
   slot). Pass `searchCacheNames` (and `searchCache`); see `GridDialog.FilterByName`.
+- **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129`;
+  only `ClearComposers` and `Dispose` free them, `:42-59`). Dispose the old one before recomposing, as vanilla does
+  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `GridDialog.SetComposer`.
+- **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
+  only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
+  made per opening must set it and dispose itself on close (`GridDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
+- **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
+  `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`GridDialog.Watch`) and name the
+  item in its requests (`ShownItem`).
 
 ## Config and logging
 
@@ -190,7 +208,7 @@ In this order:
   item-atlas UVs corrupt the chunk mesh; only `… threw Exception again!` means a cube placeholder. It places items with plain RMB, so
   our items fit in, but draws our invoices dark and books back side out. Not supported yet.
 - **Carry On 2.0.0-rc.1** cannot lift two-cell trunks even alone. It uses Shift+RMB with empty hands; no conflict with our off-hand
-  gesture, though `EmptyHandGesture` swallows RMB for 250 ms after ours.
+  gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
 
 ## C#

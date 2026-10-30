@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Util;
+using CurioCatalogue.Adapters;
 
 namespace CurioCatalogue.Gui;
 
 /// <summary>
 /// Base for the ledger and invoice windows: a scrolling, read-only grid of stacks. The grid's inventory exists on
 /// the client only (<see cref="ReadOnlySlot"/>); its packets are dropped. Built like vanilla's container dialog
-/// (vsapi GuiDialogBlockEntityInventory). Also watches the item the window shows and refreshes or closes.
+/// (vsapi GuiDialogBlockEntityInventory). Also watches the item the window shows and refreshes or closes, and names it in
+/// requests (<see cref="Shown"/>): the server acts only on that item.
 /// </summary>
 public abstract class GridDialog : GuiDialog
 {
@@ -21,6 +23,11 @@ public abstract class GridDialog : GuiDialog
     /// <summary>The slot holding the shown item (a hand).</summary>
     protected readonly ItemSlot Slot;
 
+    /// <summary>The item is in the off-hand (opened with an empty main hand).</summary>
+    protected readonly bool OffHand;
+
+    private readonly int hotbarSlot;
+
     private InventoryGeneric? view;
     private double gridHeight;
     private long tickListener;
@@ -28,9 +35,11 @@ public abstract class GridDialog : GuiDialog
 
     public override string ToggleKeyCombinationCode => null!;
 
-    protected GridDialog(ICoreClientAPI capi, ItemSlot slot) : base(capi)
+    protected GridDialog(ICoreClientAPI capi, ItemSlot slot, bool offHand) : base(capi)
     {
         Slot = slot;
+        OffHand = offHand;
+        hotbarSlot = capi.World.Player.InventoryManager.ActiveHotbarSlotNumber;
     }
 
     /// <summary>Is the slot still holding an item this window can show?</summary>
@@ -39,30 +48,54 @@ public abstract class GridDialog : GuiDialog
     /// <summary>Read the item and compose the window again.</summary>
     protected abstract void Refresh();
 
-    /// <summary>The stack's own data, to notice changes made while the window is open (posting, renaming...).</summary>
-    protected abstract int DataOf(ItemStack stack);
+    /// <summary>
+    /// Every opening makes a new window, so a closed one is never used again: the game drops it from LoadedGuis
+    /// (decompiled GuiManager.OnGuiClosed; TryOpen registers it, vsapi GuiDialog.cs:289), and OnGuiClosed frees it.
+    /// </summary>
+    public override bool UnregisterOnClose => true;
 
     public override void OnGuiOpened()
     {
         base.OnGuiOpened();
-        fingerprint = Slot.Itemstack is { } stack ? DataOf(stack) : 0;
+        fingerprint = Slot.Itemstack is { } stack ? LedgerStore.Fingerprint(stack) : 0;
         tickListener = capi.Event.RegisterGameTickListener(_ => Watch(), 500);
+        ModLog.Debug(capi, $"{GetType().Name} opened, loaded dialogs: {capi.Gui.LoadedGuis.Count}");
     }
 
     public override void OnGuiClosed()
     {
         base.OnGuiClosed();
         capi.Event.UnregisterGameTickListener(tickListener);
+        // Clears the hovered slot, as vanilla does on close (vsessentialsmod GuiDialogCreatureContents.cs:103).
+        SingleComposer?.GetSlotGrid(GridKey)?.OnGuiClosed(capi);
+        Dispose();
+    }
+
+    /// <summary>
+    /// Shows a newly built window. The old composer is disposed first: the setter does not (vsapi GuiDialog.cs:129, only
+    /// ClearComposers and Dispose do, :42-59), and its textures would stay until the game quits. Vanilla does the same
+    /// before recomposing (vsessentialsmod GuiDialogAddWayPoint.cs:164).
+    /// </summary>
+    protected void SetComposer(GuiComposer composer)
+    {
+        SingleComposer?.Dispose();
+        SingleComposer = composer.Compose();
     }
 
     private void Watch()
     {
-        if (!StillShows(Slot.Itemstack)) { TryClose(); return; }
-        int now = DataOf(Slot.Itemstack!);
+        // The hotbar keys and the wheel switch the main hand while the window is open (decompiled HudHotbar, OnKeySlot;
+        // checked in game 28.10.2026).
+        bool switched = !OffHand && capi.World.Player.InventoryManager.ActiveHotbarSlotNumber != hotbarSlot;
+        if (switched || !StillShows(Slot.Itemstack)) { TryClose(); return; }
+        int now = LedgerStore.Fingerprint(Slot.Itemstack!);
         if (now == fingerprint) return;
         fingerprint = now;
         Refresh();
     }
+
+    /// <summary>The item as this window shows it, for a request about it. Take it on the click, before any confirmation.</summary>
+    protected ShownItem Shown() => new() { OffHand = OffHand, HotbarSlot = hotbarSlot, Fingerprint = fingerprint };
 
     /// <summary>Fills the client-only inventory with the stacks to show, at least one row.</summary>
     protected int FillView(IReadOnlyList<ItemStack> stacks)
@@ -151,17 +184,5 @@ public abstract class GridDialog : GuiDialog
         var bounds = SingleComposer.GetSlotGrid(GridKey).Bounds;
         bounds.fixedY = -value;
         bounds.CalcWorldBounds();
-    }
-
-    /// <summary>A cheap hash of an attribute subtree's bytes, to notice that it changed.</summary>
-    protected static int HashOf(Vintagestory.API.Datastructures.ITreeAttribute? tree)
-    {
-        if (tree is not Vintagestory.API.Datastructures.TreeAttribute t) return 0;
-        unchecked
-        {
-            int hash = (int)2166136261;
-            foreach (byte b in t.ToBytes()) hash = (hash ^ b) * 16777619;
-            return hash;
-        }
     }
 }

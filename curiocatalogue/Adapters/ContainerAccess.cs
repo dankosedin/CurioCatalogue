@@ -1,4 +1,3 @@
-using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
@@ -22,21 +21,9 @@ public sealed class ContainerAccess
 
     public bool CanUse(IPlayer player, BlockPos pos) => ClaimAllows(player, pos) && !isLocked(pos, player);
 
-    // Assumption: like the engine, Use access is required, but Traverse is enough for blocks that implement
-    // IClaimTraverseable (chests, baskets, vessels) and allow it (vsapi Common/IClaimTraverseable.cs).
+    // Use access, as the engine asks for opening a container. For blocks that are IClaimTraverseable and allow it
+    // (chests, baskets, vessels) TestAccess itself accepts traverse rights instead (decompiled WorldMap.GetBlockingLandClaimant).
     // Other protection mods hook OnTestBlockAccess, which TestAccess calls (modding.md, Access).
-    private bool ClaimAllows(IPlayer player, BlockPos pos)
-    {
-        if (world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Use) == EnumWorldAccessResponse.Granted) return true;
-        return IsTraverseable(pos)
-            && world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Traverse) == EnumWorldAccessResponse.Granted;
-    }
-
-    private bool IsTraverseable(BlockPos pos)
-    {
-        var block = world.BlockAccessor.GetBlock(pos);
-        var be = world.BlockAccessor.GetBlockEntity(pos);
-        object?[] candidates = [block, .. block?.BlockBehaviors ?? [], be, .. be?.Behaviors ?? []];
-        return candidates.OfType<IClaimTraverseable>().Any(t => t.AllowTraverse());
-    }
+    private bool ClaimAllows(IPlayer player, BlockPos pos) =>
+        world.Claims.TestAccess(player, pos, EnumBlockAccessFlags.Use) == EnumWorldAccessResponse.Granted;
 }

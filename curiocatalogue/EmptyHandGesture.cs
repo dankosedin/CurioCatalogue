@@ -61,7 +61,9 @@ internal static class EmptyHandGesture
             if (!entity.Controls.ShiftKey) return;
             // An album has no Shift + Ctrl action: leave that click to the game (domain.md, Albums and collections).
             if (!ledgerItem.KindFor(entity.Controls.CtrlKey, out _)) return;
-            if (mod.Containers.Classify(capi.World, blockSel) != ContainerKind.Supported) return;
+            // Any inventory is ours, as for the book in the main hand: the server answers "not supported yet" for the
+            // ones the mod does not read (domain.md, Containers). Anything else is the game's.
+            if (mod.Containers.Classify(capi.World, blockSel) == ContainerKind.None) return;
 
             // Stops the click from reaching the block: the container does not open (checked in game 26.10.2026
             // on a chest, a crate and a bag on the ground).
@@ -81,14 +83,17 @@ internal static class EmptyHandGesture
         var offhand = player.Entity?.LeftHandItemSlot;
         var ledgerItem = offhand?.Itemstack?.Collectible as ItemLedger;
 
-        string? rejected =
-            ledgerItem == null ? "no ledger in the off-hand"
-            : hand?.Empty != true ? "main hand not empty"
-            : !InReach(player, pos) ? "out of reach"
+        // The hands may have changed since the client sent the request; the player is told either way (DESIGN.md: every
+        // refusal says what stopped it).
+        (string Code, string Why)? rejected =
+            ledgerItem == null ? ("offhandgesture", "no ledger in the off-hand")
+            : hand?.Empty != true ? ("offhandgesture", "main hand not empty")
+            : !InReach(player, pos) ? ("outofreach", "out of reach")
             : null;
-        if (rejected != null)
+        if (rejected is { } r)
         {
-            ModLog.Debug(sapi, $"{player.PlayerName}: empty-hand invoice request for {pos} ignored: {rejected}");
+            PlayerMessages.Refuse(player, r.Code);
+            ModLog.Debug(sapi, $"{player.PlayerName}: empty-hand invoice request for {pos} refused: {r.Why}");
             return;
         }
 

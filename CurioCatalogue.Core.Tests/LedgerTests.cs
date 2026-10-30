@@ -259,15 +259,21 @@ public class LedgerTests
     }
 
     [Fact]
-    public void Clear_keeps_sheets_name_and_album()
+    public void Clear_keeps_sheets_and_name()
     {
-        var ledger = LedgerOf(LedgerMode.Types, 7, E("a", 1)) with { Name = "Tapestries", Album = new AlbumInfo("tapestries", 88) };
+        var ledger = LedgerOf(LedgerMode.Types, 7, E("a", 1)) with { Name = "Tools" };
         var cleared = ledger.Clear();
 
         Assert.True(cleared.IsEmpty);
-        Assert.Equal(7, cleared.Sheets);
-        Assert.Equal("Tapestries", cleared.Name);
-        Assert.Equal(new AlbumInfo("tapestries", 88), cleared.Album);
+        Assert.Equal((7, "Tools"), (cleared.Sheets, cleared.Name));
+    }
+
+    [Fact]
+    public void Clear_refuses_an_album()
+    {
+        // An album with no entries reads as "all collected"; it starts over instead (Collection.NewAlbum).
+        var album = LedgerOf(LedgerMode.Album, 7, E("a", 1)) with { Album = new AlbumInfo("tapestries") };
+        Assert.Throws<InvalidOperationException>(() => album.Clear());
     }
 
     [Fact]
@@ -279,5 +285,19 @@ public class LedgerTests
 
         Assert.Equal(3, ledger.Sheets);
         Assert.Equal([("a", 1)], Lines(ledger));
+    }
+
+    [Fact]
+    public void Posting_up_to_exactly_the_limit_warns_as_the_book_is_then_full()
+    {
+        // domain.md, Books: a book at or above the limit makes no incoming invoices, and reaching it warns (code review
+        // 28.10.2026: the warning used ">" and the refusal ">=", so a book could fill up silently). The limit here is 5.
+        var ledger = LedgerOf(LedgerMode.Types, 3, E("a", 1), E("b", 1), E("c", 1), E("d", 1));
+        var result = ledger.Post(InvoiceOf(InvoiceKind.Incoming, E("e", 1)), Limits);
+
+        Assert.Equal(5, result.Ledger.Entries.Count);
+        Assert.True(result.OverLimit);
+        Assert.Equal(InvoiceRefusal.LedgerFull,
+            Refused(result.Ledger.CreateInvoice(InvoiceKind.Incoming, [E("z", 1)], Limits, 0, Pos)));
     }
 }

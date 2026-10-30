@@ -5,10 +5,13 @@ using System.Linq;
 namespace CurioCatalogue.Core;
 
 /// <summary>A container slot holding an item. <paramref name="Index"/> is the caller's own slot number.</summary>
-public sealed record SourceSlot(int Index, ItemKey Key, int Count);
+/// <param name="Stack">Which stacks the game would merge: stacks of one key with different numbers never share a slot
+/// (the key ignores attributes the game does not, e.g. durability). The same for all stacks of a key when they all merge.</param>
+public sealed record SourceSlot(int Index, ItemKey Key, int Count, int Stack = 0);
 
-/// <summary>A player inventory slot; <paramref name="Key"/> is null when the slot is empty.</summary>
-public sealed record TargetSlot(int Index, ItemKey? Key, int Count);
+/// <summary>A player inventory slot; <paramref name="Key"/> is null when the slot is empty. <paramref name="Stack"/> as in
+/// <see cref="SourceSlot"/>.</summary>
+public sealed record TargetSlot(int Index, ItemKey? Key, int Count, int Stack = 0);
 
 /// <summary>Move <paramref name="Amount"/> items from source slot to target slot.</summary>
 public sealed record Move(int Source, int Target, int Amount);
@@ -35,14 +38,14 @@ public sealed record PartialPlan(IReadOnlyList<Move> Moves, IReadOnlyList<Entry>
 public static class Transfer
 {
     /// <param name="lines">The invoice lines; the same item on several lines is summed.</param>
-    /// <param name="capacity">How many of this item the player slot can hold in total; 0 when it may not hold it
+    /// <param name="capacity">How many of the source's item the player slot can hold in total; 0 when it may not hold it
     /// at all (bags with storage flags) or, for an occupied slot, when the game would not merge it with what is there.</param>
     /// <param name="maxStack">How many of this item fit in an ordinary slot; only for estimating the slots short.</param>
     public static TransferPlan Plan(
         IEnumerable<Entry> lines,
         IReadOnlyList<SourceSlot> sources,
         IReadOnlyList<TargetSlot> targets,
-        Func<int, ItemKey, int> capacity,
+        Func<int, SourceSlot, int> capacity,
         Func<ItemKey, int> maxStack)
     {
         var needed = Multiset.Sum(lines);
@@ -65,7 +68,7 @@ public static class Transfer
         if (lacking.Count > 0) return new TransferPlan.Missing(lacking);
 
         // 2. Where to put: top up stacks of the same item first, then empty slots that may hold it.
-        var content = targets.ToDictionary(t => t.Index, t => (t.Key, t.Count));
+        var content = targets.ToDictionary(t => t.Index, t => new Held(t.Key, t.Stack, t.Count));
         var order = targets.Select(t => t.Index).ToList();
         var moves = new List<Move>();
         var unplaced = new Dictionary<ItemKey, int>();
@@ -94,10 +97,10 @@ public static class Transfer
         IEnumerable<Entry> lines,
         IReadOnlyList<SourceSlot> sources,
         IReadOnlyList<TargetSlot> targets,
-        Func<int, ItemKey, int> capacity)
+        Func<int, SourceSlot, int> capacity)
     {
         var available = sources.ToDictionary(s => s.Index, s => s.Count);
-        var content = targets.ToDictionary(t => t.Index, t => (t.Key, t.Count));
+        var content = targets.ToDictionary(t => t.Index, t => new Held(t.Key, t.Stack, t.Count));
         var order = targets.Select(t => t.Index).ToList();
         var moves = new List<Move>();
         var taken = new List<Entry>();
@@ -116,7 +119,7 @@ public static class Transfer
             }
 
             // Try the line on a copy of the inventory; keep it only when all of it fits.
-            var tryContent = new Dictionary<int, (ItemKey? Key, int Count)>(content);
+            var tryContent = new Dictionary<int, Held>(content);
             var tryMoves = new List<Move>();
             bool fits = needed == 0 && takes.All(t => Place(t.From, t.Amount, tryContent, order, capacity, tryMoves) == 0);
             if (!fits)
@@ -133,11 +136,14 @@ public static class Transfer
     }
 
     /// <summary>
-    /// Puts <paramref name="amount"/> items from a source into the player's slots: tops up stacks of the same item
-    /// first, then empty slots that may hold it. Updates <paramref name="content"/> and returns how many did not fit.
+    /// Puts <paramref name="amount"/> items from a source into the player's slots: tops up stacks the game would merge
+    /// it with first, then empty slots that may hold it. Updates <paramref name="content"/> and returns how many did not fit.
     /// </summary>
-    private static int Place(SourceSlot from, int amount, Dictionary<int, (ItemKey? Key, int Count)> content,
-        IReadOnlyList<int> order, Func<int, ItemKey, int> capacity, List<Move> moves)
+    /// <summary>What a player slot holds while planning.</summary>
+    private readonly record struct Held(ItemKey? Key, int Stack, int Count);
+
+    private static int Place(SourceSlot from, int amount, Dictionary<int, Held> content,
+        IReadOnlyList<int> order, Func<int, SourceSlot, int> capacity, List<Move> moves)
     {
         int left = amount;
         foreach (bool topUp in new[] { true, false })
@@ -145,12 +151,12 @@ public static class Transfer
             foreach (int target in order)
             {
                 if (left == 0) break;
-                var (key, count) = content[target];
-                if (topUp ? key != from.Key : key != null) continue;
-                int room = capacity(target, from.Key) - count;
+                var held = content[target];
+                if (topUp ? held.Key != from.Key || held.Stack != from.Stack : held.Key != null) continue;
+                int room = capacity(target, from) - held.Count;
                 if (room <= 0) continue;
                 int put = Math.Min(left, room);
-                content[target] = (from.Key, count + put);
+                content[target] = new Held(from.Key, from.Stack, held.Count + put);
                 moves.Add(new Move(from.Index, target, put));
                 left -= put;
             }

@@ -53,7 +53,7 @@ public class LedgerStoreTests
     {
         var ledger = Ledger.FromStored(LedgerMode.Counts, 27,
             [store.ToEntry(Tapestry("ambush1", 2)), store.ToEntry(Tapestry("salvation11")), store.ToEntry(new ItemStack(ingot, 40))],
-            name: "Tapestries", album: new AlbumInfo("tapestries", 88));
+            name: "Tapestries", album: new AlbumInfo("tapestries"));
 
         var book = new ItemStack(ledgerItem);
         store.WriteLedger(book, ledger);
@@ -61,7 +61,7 @@ public class LedgerStoreTests
 
         Assert.Equal(27, back.Sheets);
         Assert.Equal("Tapestries", back.Name);
-        Assert.Equal(new AlbumInfo("tapestries", 88), back.Album);
+        Assert.Equal(new AlbumInfo("tapestries"), back.Album);
         Assert.Equal(Lines(ledger.Entries.Values), Lines(back.Entries.Values));
         Assert.All(back.Entries.Values, e => Assert.IsType<ItemStack>(e.Sample));
     }
@@ -98,12 +98,13 @@ public class LedgerStoreTests
     public void Album_member_snapshot_survives_a_round_trip()
     {
         var book = new ItemStack(ledgerItem);
-        var info = new AlbumInfo("tapestries", 2, ["block:a", "block:b"]);
-        store.WriteLedger(book, Ledger.FromStored(LedgerMode.Album, 1, [], album: info));
+        var members = new[] { Tapestry("a"), Tapestry("b") }.Select(s => new SnapshotMember(store.ToEntry(s).Key, s)).ToList();
+        store.WriteLedger(book, Ledger.FromStored(LedgerMode.Album, 1, [], album: new AlbumInfo("tapestries", members)));
 
         var back = store.ReadLedger(ThroughBytes(book), LedgerMode.Album).Album!;
-        Assert.Equal(("tapestries", 2), (back.CollectionId, back.InitialSize));
-        Assert.Equal(["block:a", "block:b"], back.Members!);
+        Assert.Equal("tapestries", back.CollectionId);
+        Assert.Equal(members.Select(m => m.Key), back.Members!.Select(m => m.Key));
+        Assert.All(back.Members!, m => Assert.IsType<ItemStack>(m.Sample));
     }
 
     [Fact]
@@ -123,6 +124,75 @@ public class LedgerStoreTests
 
         Assert.Equal(2, back.Entries.Count); // a2 still missing, b1 new; a1 stays collected
         Assert.Equal(new CollectionProgress(1, 3, 1, 3), now.Progress(back.Entries.Keys));
+    }
+
+    [Fact]
+    public void Album_keeps_its_progress_when_the_ignored_attributes_change()
+    {
+        // The snapshot is re-keyed on read like the entries, with the same config. Kept as key strings, it reset every
+        // album to nothing collected when a key's text changed (code review 28.10.2026).
+        ItemStack Worn(string type)
+        {
+            var stack = Tapestry(type);
+            stack.Attributes.SetInt("durability", 5);
+            return stack;
+        }
+        Collection Of(LedgerStore by) => new("tapestries",
+            new[] { "a1", "a2" }.Select(t => new CollectionMember(by.ToEntry(Worn(t)).Key, t, Worn(t))));
+
+        var strict = new LedgerStore(new StackKeys(game.World, []));
+        var album = Of(strict).NewAlbum(4, "").CrossOff([strict.ToEntry(Worn("a1")).Key]);
+        var book = new ItemStack(ledgerItem);
+        strict.WriteLedger(book, album);
+
+        var now = Of(store);
+        var reading = new LedgerStore(new StackKeys(game.World, ["durability"]), id => id == "tapestries" ? now : null);
+        var back = reading.ReadLedger(ThroughBytes(book), LedgerMode.Album);
+
+        Assert.Equal([reading.ToEntry(Worn("a2")).Key], back.Entries.Keys); // a1 stays collected
+    }
+
+    [Fact]
+    public void Album_from_before_the_sample_snapshot_counts_as_made_from_the_current_collection()
+    {
+        // Albums of the development builds kept the snapshot as key strings.
+        var book = new ItemStack(ledgerItem);
+        store.WriteLedger(book, Ledger.FromStored(LedgerMode.Album, 1, [store.ToEntry(Tapestry("a2"))], album: new AlbumInfo("tapestries")));
+        book.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetTreeAttribute("album")["members"] =
+            new Vintagestory.API.Datastructures.StringArrayAttribute(["block:game:tapestry-north{\"type\":\"a1\"}"]);
+
+        Assert.Null(store.ReadLedger(ThroughBytes(book), LedgerMode.Album).Album!.Members);
+    }
+
+    // --- Format version ---
+
+    [Fact]
+    public void Books_and_invoices_are_written_with_the_format_version()
+    {
+        var book = new ItemStack(ledgerItem);
+        store.WriteLedger(book, Ledger.Empty(LedgerMode.Types, 2));
+        var paper = new ItemStack(invoiceItem);
+        store.WriteInvoice(paper, new Invoice(InvoiceKind.Incoming, [], 0, new BlockPosition(0, 0, 0)));
+
+        Assert.Equal(LedgerStore.Version, book.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetAsInt("v"));
+        Assert.Equal(LedgerStore.Version, paper.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetAsInt("v"));
+    }
+
+    [Fact]
+    public void Only_data_of_a_newer_version_is_newer()
+    {
+        var current = new ItemStack(ledgerItem);
+        store.WriteLedger(current, Ledger.Empty(LedgerMode.Types, 2));
+        var unversioned = new ItemStack(ledgerItem); // before versions, or without our data at all
+        unversioned.Attributes.GetOrAddTreeAttribute(LedgerStore.RootKey).SetInt("sheets", 2);
+        var newer = current.Clone();
+        newer.Attributes.GetTreeAttribute(LedgerStore.RootKey).SetInt("v", LedgerStore.Version + 1);
+
+        Assert.False(LedgerStore.IsNewer(current));
+        Assert.False(LedgerStore.IsNewer(unversioned));
+        Assert.False(LedgerStore.IsNewer(new ItemStack(ledgerItem)));
+        Assert.False(LedgerStore.IsNewer(null));
+        Assert.True(LedgerStore.IsNewer(ThroughBytes(newer)));
     }
 
     [Fact]

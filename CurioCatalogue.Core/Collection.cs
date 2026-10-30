@@ -29,7 +29,7 @@ public sealed class Collection
         Members = members.GroupBy(m => m.Key).Select(g => g.First()).ToList();
     }
 
-    public bool Contains(ItemKey key) => Members.Any(m => m.Key == key);
+    public bool Contains(ItemKey key) => Index.ContainsKey(key);
 
     /// <summary>
     /// Entries in the collection's order (for tapestries: picture by picture, piece by piece), so that taking only
@@ -42,10 +42,12 @@ public sealed class Collection
 
     private IReadOnlyDictionary<ItemKey, int>? index;
 
-    /// <summary>The members' keys as text, sorted: what an album remembers of the collection it follows.</summary>
-    public IReadOnlyList<string> Snapshot => snapshot ??= Members.Select(m => m.Key.ToString()).Order(StringComparer.Ordinal).ToList();
+    /// <summary>What an album remembers of the collection it follows: the members, sorted by key so that the same album
+    /// always gives the same bytes.</summary>
+    public IReadOnlyList<SnapshotMember> Snapshot => snapshot ??=
+        Members.OrderBy(m => m.Key.ToString(), StringComparer.Ordinal).Select(m => new SnapshotMember(m.Key, m.Sample)).ToList();
 
-    private IReadOnlyList<string>? snapshot;
+    private IReadOnlyList<SnapshotMember>? snapshot;
 
     /// <summary>A new album: every member missing, count 1.</summary>
     public Ledger NewAlbum(int sheets, string name) => AlbumMissing(Members, sheets, name);
@@ -56,7 +58,7 @@ public sealed class Collection
     /// (domain.md, Albums and collections): every read goes through this.
     /// </summary>
     public Ledger RefreshIfStale(Ledger album) =>
-        album.Album?.Members is { } members && members.SequenceEqual(Snapshot) ? album : Refresh(album);
+        album.Album?.Members is { } members && members.Select(m => m.Key).ToHashSet().SetEquals(Index.Keys) ? album : Refresh(album);
 
     /// <summary>
     /// The album brought up to the collection as it is now (after a config change or a mod with new tapestries),
@@ -66,16 +68,16 @@ public sealed class Collection
     /// </summary>
     public Ledger Refresh(Ledger album)
     {
-        var missing = album.Entries.Keys.Select(k => k.ToString()).ToHashSet();
+        var missing = album.Entries.Keys.ToHashSet();
         var before = album.Album?.Members ?? Snapshot;
-        var collected = before.Where(k => !missing.Contains(k)).ToHashSet();
-        return AlbumMissing(Members.Where(m => !collected.Contains(m.Key.ToString())), album.Sheets, album.Name);
+        var collected = before.Select(m => m.Key).Where(k => !missing.Contains(k)).ToHashSet();
+        return AlbumMissing(Members.Where(m => !collected.Contains(m.Key)), album.Sheets, album.Name);
     }
 
     private Ledger AlbumMissing(IEnumerable<CollectionMember> missing, int sheets, string name) =>
         new(LedgerMode.Album, sheets,
             missing.ToImmutableDictionary(m => m.Key, m => new Entry(m.Key, 1, m.Sample)),
-            name, new AlbumInfo(Id, Members.Count, Snapshot));
+            name, new AlbumInfo(Id, Snapshot));
 
     /// <summary>
     /// Progress of an album whose entries are <paramref name="missing"/>. Counted against the collection as it is now;
@@ -90,7 +92,15 @@ public sealed class Collection
         return new CollectionProgress(collected, Members.Count, complete, groups.Count);
     }
 
-    /// <summary>Does a name match a pattern with <c>*</c> for any text (config exclusions like "aid-*")?</summary>
-    public static bool Matches(string pattern, string name) =>
-        Regex.IsMatch(name, "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$", RegexOptions.IgnoreCase);
+    /// <summary>
+    /// A test for names that match any of the patterns, with <c>*</c> for any text (config exclusions like "aid-*"). Built
+    /// once; case is ignored the same way in every culture (no Turkish dotless i).
+    /// </summary>
+    public static Func<string, bool> Matcher(IEnumerable<string> patterns)
+    {
+        var alternatives = patterns.Select(p => Regex.Escape(p).Replace("\\*", ".*")).ToList();
+        if (alternatives.Count == 0) return _ => false;
+        var regex = new Regex("^(?:" + string.Join("|", alternatives) + ")$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return regex.IsMatch;
+    }
 }

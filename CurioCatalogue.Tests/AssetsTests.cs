@@ -108,4 +108,39 @@ public class AssetsTests
 
         Assert.Empty(comments);
     }
+
+    [Fact]
+    public void Every_book_is_in_the_creative_inventory()
+    {
+        // The handbook builds a page only for what the creative inventory lists (vsapi Collectible.cs:2474#GetHandBookStacks); a cover left
+        // out has no page, and the handbook opens its main page instead (the aged covers, found 30.10.2026).
+        var book = Load(Path.Combine("itemtypes", "book.json"));
+        var states = (string group) => book["variantgroups"]!.Single(g => (string)g["code"]! == group)["states"]!.Values<string>().ToList();
+        var listed = book["creativeinventory"]!.Children<JProperty>().SelectMany(p => p.Value.Values<string>())
+            .Select(p => new Regex("^" + Regex.Escape(p!).Replace("\\*", ".*") + "$")).ToList();
+
+        var missing = states("kind").SelectMany(k => states("cover").Select(c => $"book-{k}-{c}"))
+            .Where(code => !listed.Any(r => r.IsMatch(code)));
+
+        Assert.Empty(missing);
+    }
+
+    [Fact]
+    public void Handbook_has_a_page_per_kind_and_age()
+    {
+        // groupBy by type: the first key matching the code wins (RegistryObjectType.solveByType, VSEssentials.dll), {kind} is the variant's value.
+        // Aged and normal covers have different recipes, so each of the 3 kinds gets 2 pages, and every book belongs to the page it matches.
+        var book = Load(Path.Combine("itemtypes", "book.json"));
+        var states = (string group) => book["variantgroups"]!.Single(g => (string)g["code"]! == group)["states"]!.Values<string>().ToList();
+        var byType = book["attributes"]!["handbook"]!["groupByByType"]!.Children<JProperty>().ToList();
+        var wildcard = (string pattern) => new Regex("^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$");
+
+        var pages = states("kind").SelectMany(k => states("cover").Select(c => $"book-{k}-{c}"), (k, code) => (kind: k, code))
+            .Select(b => (b.code, patterns: byType.First(p => wildcard(p.Name).IsMatch(b.code)).Value.Values<string>()
+                .Select(p => p!.Replace("{kind}", b.kind)).ToList()))
+            .ToList();
+
+        Assert.All(pages, p => Assert.Contains(p.patterns, pattern => wildcard(pattern).IsMatch(p.code)));
+        Assert.Equal(6, pages.Select(p => string.Join("|", p.patterns)).Distinct().Count());
+    }
 }

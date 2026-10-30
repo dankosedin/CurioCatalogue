@@ -134,6 +134,8 @@ In this order:
 ## Handbook
 
 - `handbook.groupBy` groups a stack with everything matching *any* of its patterns; use a placeholder (`book-{kind}-*`) for one page per variant.
+- To group differently per variant use `groupByByType` (any `*ByType` key takes the first matching wildcard and is merged into the object, a missing key is just set: `RegistryObjectType.solveByType`, VSEssentials.dll, decompiled 30.10.2026). Do not keep a base `groupBy` next to it: arrays merge by concatenation. Ours: a page per kind and age (`book-{kind}-normal-*`, `book-{kind}-aged-*`), guarded by `AssetsTests.Handbook_has_a_page_per_kind_and_age`.
+- **A handbook page exists only for what is in the creative inventory** (or has `handbook: { include: true }`; vsapi Collectible.cs:2474#GetHandBookStacks). A variant left out of `creativeinventory` has no page: pressing H over it, or a link to it, opens the handbook's main page instead, with no error in the log (`aged-*` books, found 30.10.2026; `AssetsTests.Every_book_is_in_the_creative_inventory` guards ours). To fold variants in the list use `groupBy`, not the creative inventory.
 - Own items can add to their page via `ICustomHandbookPageContent.OnHandbookPageComposed`. A button on *every* item's page would need a
   Harmony patch of `CollectibleBehaviorHandbookTextAndExtraInfo.GetHandbookInfo`.
 - "Ingredient for" first looks pages up in `FastSearchRecipesByIngredient`, whose entries merge ingredients that differ only in

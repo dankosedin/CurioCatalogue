@@ -19,7 +19,8 @@
 	attributes: {
 		// One page per kind; the covers of a kind share it.
 		handbook: {
-			groupBy: ["book-{kind}-*"],
+			// A page per kind and age (aged and normal covers differ in their recipes). `*byType` takes the first matching key and merges into the object (RegistryObjectType.solveByType, VSEssentials.dll).
+			groupByByType: { "*-aged-*": ["book-{kind}-aged-*"], "*": ["book-{kind}-normal-*"] },
 			extraSections: [
 				// Each kind has its own section: {kind} is filled in as in variant codes.
 				{ title: "curiocatalogue:handbook-use-title", text: "curiocatalogue:handbook-use-{kind}-text" },
@@ -49,7 +50,8 @@
 		"cover": { base: "game:item/lore/{cover}" },
 		"label": { base: "curiocatalogue:item/book-{kind}" }
 	},
-	creativeinventory: { "general": ["*-normal-*"], "items": ["*-normal-*"] },
+	// Every cover, aged ones too: the handbook builds a page only for what is in the creative inventory (modding.md, Handbook).
+	creativeinventory: { "general": ["*"], "items": ["*"] },
 	guiTransform: {
 		translation: { x: 0, y: 0, z: 0 },
 		rotation: { x: -180, y: 123, z: 33 },

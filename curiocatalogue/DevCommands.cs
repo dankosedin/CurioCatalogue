@@ -40,6 +40,11 @@ internal static class DevCommands
                 .WithArgs(api.ChatCommands.Parsers.OptionalWord("liquid"), api.ChatCommands.Parsers.OptionalInt("litres", 1))
                 .HandleWith(args => GiveJug(api, args))
             .EndSubCommand()
+            .BeginSubCommand("books")
+                .WithDescription("Give a book of every cover: /curio books [ledger|materials|album] [normal|aged|all] [sheets] (sheets: write the ledger data like a used book, -1 leaves the book plain)")
+                .WithArgs(api.ChatCommands.Parsers.OptionalWord("kind"), api.ChatCommands.Parsers.OptionalWord("age"), api.ChatCommands.Parsers.OptionalInt("sheets", -1))
+                .HandleWith(args => GiveBooks(api, args, mod))
+            .EndSubCommand()
             .BeginSubCommand("missing")
                 .WithDescription("Give one of each item listed by the album or want list held in the main hand")
                 .HandleWith(args => GiveMissing(api, args, mod))
@@ -95,7 +100,7 @@ internal static class DevCommands
     {
         block = api.World.GetBlock(TapestryCode);
         var sizes = block?.Attributes?["sizes"].AsObject<Dictionary<string, string>>();
-        pieces = sizes == null ? [] : TapestryPieces.FromSizes(sizes);
+        pieces = sizes == null ? [] : TapestryPieces.WithPictures(sizes).Select(p => p.Piece).ToList();
         return pieces.Count > 0;
     }
 
@@ -123,6 +128,34 @@ internal static class DevCommands
         player.InventoryManager.TryGiveItemstack(stack, true);
         if (stack.StackSize > 0) api.World.SpawnItemEntity(stack, player.Entity.Pos.XYZ);
         return TextCommandResult.Success($"Gave a jug with {litres} L of {code}.");
+    }
+
+    // Reproducing "no recipes for old covers": one book per cover, found among the registered items (not a hardcoded list).
+    private static TextCommandResult GiveBooks(ICoreServerAPI api, TextCommandCallingArgs args, CurioCatalogueModSystem mod)
+    {
+        string kind = args[0] is string { Length: > 0 } k ? k : "ledger";
+        string age = args[1] is string { Length: > 0 } a ? a : "all";
+        int sheets = (int)args[2];
+        if (kind is not ("ledger" or "materials" or "album")) return TextCommandResult.Error($"Kind must be ledger, materials or album, got {kind}.");
+        if (age is not ("normal" or "aged" or "all")) return TextCommandResult.Error($"Age must be normal, aged or all, got {age}.");
+        if (sheets > mod.Config.MaxSheets) return TextCommandResult.Error($"Sheets must be at most {mod.Config.MaxSheets} (MaxSheets in the config), got {sheets}.");
+
+        string prefix = $"book-{kind}-" + (age == "all" ? "" : age + "-");
+        var items = api.World.Items
+            .Where(i => i.Code?.Domain == CurioCatalogueModSystem.ModId && i.Code.Path.StartsWith(prefix))
+            .OrderBy(i => i.Code.Path).ToList();
+        if (items.Count == 0) return TextCommandResult.Error($"No items with code {prefix}*.");
+
+        var player = args.Caller.Player;
+        foreach (var item in items)
+        {
+            var stack = new ItemStack(item);
+            if (sheets >= 0 && item is ItemLedger ledgerItem)
+                mod.Store.WriteLedger(stack, Ledger.Empty(ledgerItem.LedgerMode, sheets));
+            player.InventoryManager.TryGiveItemstack(stack, true);
+            if (stack.StackSize > 0) api.World.SpawnItemEntity(stack, player.Entity.Pos.XYZ);
+        }
+        return TextCommandResult.Success($"Gave {items.Count} books: {string.Join(", ", items.Select(i => i.Code.Path))}");
     }
 
     private static TextCommandResult GiveMissing(ICoreServerAPI api, TextCommandCallingArgs args, CurioCatalogueModSystem mod)

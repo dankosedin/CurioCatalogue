@@ -6,7 +6,7 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 
 Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 
-> **Early development.** This is 0.1.0, the first and minimal version of the mod (an MVP). Try it in a test world first.
+> **Early development.** This is 0.1.1, still a minimal version of the mod (an MVP). Try it in a test world first.
 > The way books and lists store their data may change in the next two releases, and books and lists made with this
 > version may not carry over.
 >

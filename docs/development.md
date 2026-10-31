@@ -162,6 +162,10 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
   the date in `CHANGELOG.md` and the version in both READMEs' early-development warning. A fresh Fendragon invite in both READMEs'
   thanks (an invite expires in 30 days); the author asks for it on the server.
-- **Before a release** pass `docs/testing/functional.md` and the release's `docs/testing/upgrade-<from>-to-<to>.md`, with the release zip,
-  in single player and on the dedicated server; fill in their result columns in the release PR.
+- **Before a release**, with the release zip:
+  - a minor release (0.x.0), or a patch that changes stored data, network messages or access checks: all of
+    `docs/testing/functional.md` and the release's `docs/testing/upgrade-<from>-to-<to>.md`, in single player and on the
+    dedicated server;
+  - any other patch release (0.x.y): the smoke test in `functional.md`; its new cases were checked in game in their steps.
+  The results go into the release PR's description (`functional.md`, Results).
 - Release zip by hand: `build.ps1` (CakeBuild) → `Releases\` (it replaces only its own folder and zip there).

@@ -37,8 +37,9 @@ them how a thing works means weak docs. The author checks the behaviour in game.
 
 **Input** (the same for every role): the change's description and diff (for a whole-mod round: none), `DESIGN.md`, `README.md`,
 `README.uk.md`, `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
-help, window texts), `docs/images/` and the screenshots the author gives. Players do not read the source code; the makers may
-read the diff, but they report behaviour, not code.
+help, window texts), `docs/images/` and the screenshots the author gives; and, so that no role re-proposes what is decided or
+makes up a mechanic, `docs/domain.md`, `ROADMAP.md` and the current plan's Decisions. Players do not read the source code;
+the makers may read the diff, but they report behaviour, not code.
 
 **Severity:** `blocker` (items lost, the player stuck, or the server harmed), `major` (the player misunderstands and does the
 wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opinion, marked as such).
@@ -52,8 +53,9 @@ wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opi
 > it fit `DESIGN.md`; does it break the usual course of play (survival, storage, trading, servers); are the texts and gestures
 > understandable in both languages. Every finding is a player's scenario: what you try, what you expect, what the texts lead you
 > to believe, citing the file and line or the lang key. When the docs do not answer a question, that is a `docs` finding, not a
-> guess about the code. Stay in your role; mark opinions as `taste`. Do not start the game, do not write files, do not read
-> other mods' code. Report in the format below and end with what you read and found fine.
+> guess about the code. Skip what `ROADMAP.md` or the plan's Decisions already hold; if you disagree with one, say so as `taste`.
+> A fix of a wrong text is worth more than a new sentence: the author keeps texts short. Stay in your role; mark opinions as
+> `taste`. Do not start the game, do not write files, do not read other mods' code. Report in the format below and end with what you read and found fine.
 > Input: … (the list above, with the paths of this round). The change: … (its description, or "the whole mod").
 
 **Roles** (Sonnet, read-only: the `Plan` agent type):

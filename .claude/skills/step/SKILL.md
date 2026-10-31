@@ -60,3 +60,10 @@ In the same branch, with the step's commit or as the last commit after "комі
 Then tell the author, briefly and in Ukrainian: what is done, what is left, the in-game checks for them, the commands for them
 to run, and proposed roadmap lines if any. End with the next step: its id, its `Model:` (so the author can `/model` before
 `/step`) and its `After:` (whether it waits for a merge), read from the plan.
+
+Then advise how to start it (the rule is one step per session: every call rereads the whole context, so carrying a finished
+step costs more than the ≈17 thousand tokens of a fresh start):
+- **Go on in this session** only when the next step is small, needs the same model, and works on the files this session has
+  already read (e.g. a decision, then the rename it decided). Say which shared files make it worth it.
+- **`/clear` first** when the next step needs the same model but is large or works on other files.
+- **`/model <name>`, then `/clear`** when the model differs.

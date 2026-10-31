@@ -53,6 +53,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 1. **Invoices:**
    - **Names from the book.** A want list from the album "Danko's tapestries" is called "Want list for: Danko's tapestries"; the same
      for invoices from a named book.
+   - **No coordinates on an invoice** (players' round, 31.10.2026): its tooltip shows where it was made (coordinates from spawn)
+     to whoever holds it, which leaks a base's place on servers that hide coordinates. Show the chest's label if it has one,
+     else nothing.
    - **Partial posting for every invoice,** as the want list already does: what is there and fits moves, the invoice stays shorter.
      Open: by default or with another gesture (today "missing, nothing moves" is a useful signal for an outgoing invoice); a partly
      posted incoming invoice records only what moved.

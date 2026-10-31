@@ -109,38 +109,97 @@ public class AssetsTests
         Assert.Empty(comments);
     }
 
+    // ---- Books and the handbook: shared helpers ----
+
+    private static JToken Book() => Load(Path.Combine("itemtypes", "book.json"));
+
+    private static List<string> States(JToken type, string group) =>
+        type["variantgroups"]!.Single(g => (string)g["code"]! == group)["states"]!.Values<string>().Select(s => s!).ToList();
+
+    // A wildcard as the game reads it: "*" is any text (WildcardUtil.Match).
+    private static Regex Wildcard(string pattern) => new("^" + Regex.Escape(pattern).Replace(@"\*", ".*") + "$");
+
+    private static List<(string kind, string cover, string code)> Books() =>
+        States(Book(), "kind").SelectMany(k => States(Book(), "cover").Select(c => (k, c, $"book-{k}-{c}"))).ToList();
+
+    // Codes of an item type with one variant group of any name, without the domain: "invoice-incoming".
+    private static IEnumerable<string> ItemCodes(string file)
+    {
+        var type = Load(Path.Combine("itemtypes", file));
+        return States(type, (string)type["variantgroups"]![0]!["code"]!).Select(s => $"{(string)type["code"]!}-{s}");
+    }
+
+    // The 24 covers: 13 normal and 11 aged (no aged teal and purple). Frozen on purpose: a removed state turns such books in a world
+    // into unknown items, an added one needs recipes (domain.md, Covers).
+    private static readonly string[] FrozenCovers =
+    [
+        "normal-brickred", "normal-cherryred", "normal-darkbeige", "normal-darkgray", "normal-darkgreen", "normal-darkolive", "normal-gray",
+        "normal-olive", "normal-orange", "normal-orangebrown", "normal-purple", "normal-purpleorange", "normal-teal",
+        "aged-brickred", "aged-cherryred", "aged-darkbeige", "aged-darkgray", "aged-darkgreen", "aged-darkolive", "aged-gray",
+        "aged-olive", "aged-orange", "aged-orangebrown", "aged-purpleorange"
+    ];
+
     [Fact]
-    public void Every_book_is_in_the_creative_inventory()
+    public void Every_book_is_in_both_creative_tabs()
     {
         // The handbook builds a page only for what the creative inventory lists (vsapi Collectible.cs:2474#GetHandBookStacks); a cover left
         // out has no page, and the handbook opens its main page instead (the aged covers, found 30.10.2026).
-        var book = Load(Path.Combine("itemtypes", "book.json"));
-        var states = (string group) => book["variantgroups"]!.Single(g => (string)g["code"]! == group)["states"]!.Values<string>().ToList();
-        var listed = book["creativeinventory"]!.Children<JProperty>().SelectMany(p => p.Value.Values<string>())
-            .Select(p => new Regex("^" + Regex.Escape(p!).Replace("\\*", ".*") + "$")).ToList();
+        var tabs = Book()["creativeinventory"]!.Children<JProperty>().ToDictionary(p => p.Name, p => p.Value.Values<string>().Select(v => Wildcard(v!)).ToList());
 
-        var missing = states("kind").SelectMany(k => states("cover").Select(c => $"book-{k}-{c}"))
-            .Where(code => !listed.Any(r => r.IsMatch(code)));
-
+        Assert.Equal(["general", "items"], tabs.Keys.Order());
+        var missing = tabs.SelectMany(tab => Books().Where(b => !tab.Value.Any(r => r.IsMatch(b.code))).Select(b => $"{tab.Key}: {b.code}"));
         Assert.Empty(missing);
     }
 
     [Fact]
-    public void Handbook_has_a_page_per_kind_and_age()
+    public void Recipe_icons_group_by_kind_and_age()
     {
-        // groupBy by type: the first key matching the code wins (RegistryObjectType.solveByType, VSEssentials.dll), {kind} is the variant's value.
-        // Aged and normal covers have different recipes, so each of the 3 kinds gets 2 pages, and every book belongs to the page it matches.
-        var book = Load(Path.Combine("itemtypes", "book.json"));
-        var states = (string group) => book["variantgroups"]!.Single(g => (string)g["code"]! == group)["states"]!.Values<string>().ToList();
-        var byType = book["attributes"]!["handbook"]!["groupByByType"]!.Children<JProperty>().ToList();
-        var wildcard = (string pattern) => new Regex("^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$");
+        // groupBy by type: the first key matching the code wins (RegistryObjectType.cs:356#jsonObj), {kind} is the variant's value.
+        // The groups only fold the icons of "Ingredient for" and "Created by"; every book has its own page (modding.md, Handbook).
+        // Aged and normal covers have different recipes, so a book's group is exactly the books of the same kind and age.
+        var byType = Book()["attributes"]!["handbook"]!["groupByByType"]!.Children<JProperty>().ToList();
+        var books = Books();
 
-        var pages = states("kind").SelectMany(k => states("cover").Select(c => $"book-{k}-{c}"), (k, code) => (kind: k, code))
-            .Select(b => (b.code, patterns: byType.First(p => wildcard(p.Name).IsMatch(b.code)).Value.Values<string>()
-                .Select(p => p!.Replace("{kind}", b.kind)).ToList()))
-            .ToList();
+        foreach (var (kind, cover, code) in books)
+        {
+            var patterns = byType.First(p => Wildcard(p.Name).IsMatch(code)).Value.Values<string>().Select(p => Wildcard(p!.Replace("{kind}", kind))).ToList();
+            var grouped = books.Where(b => patterns.Any(r => r.IsMatch(b.code))).Select(b => b.code).Order();
+            var sameKindAndAge = books.Where(b => b.kind == kind && b.cover.Split('-')[0] == cover.Split('-')[0]).Select(b => b.code).Order();
 
-        Assert.All(pages, p => Assert.Contains(p.patterns, pattern => wildcard(pattern).IsMatch(p.code)));
-        Assert.Equal(6, pages.Select(p => string.Join("|", p.patterns)).Distinct().Count());
+            Assert.Equal(sameKindAndAge, grouped);
+        }
+    }
+
+    [Fact]
+    public void Covers_are_the_frozen_list_in_book_and_recipes()
+    {
+        // The 24 covers are written in book.json and in every recipe that names covers (a recipe lists them in allowedVariants.cover).
+        Assert.Equal(["ledger", "materials", "album"], States(Book(), "kind"));
+        Assert.Equal(FrozenCovers, States(Book(), "cover"));
+
+        var lists = AssetFiles().Where(f => f.StartsWith("recipes" + Path.DirectorySeparatorChar)).SelectMany(f =>
+            ((JContainer)Load(f)).Descendants().OfType<JProperty>().Where(p => p.Name == "cover" && p.Parent?.Parent is JProperty { Name: "allowedVariants" })
+                .Select(p => (where: $"{f} {p.Path}", covers: p.Value.Values<string>().ToList()))).ToList();
+
+        Assert.NotEmpty(lists);
+        Assert.All(lists, l => Assert.True(FrozenCovers.SequenceEqual(l.covers!), l.where));
+    }
+
+    [Theory]
+    [MemberData(nameof(Languages))]
+    public void Handbook_links_point_to_existing_pages(string code)
+    {
+        // A link to a missing page opens the handbook's main page without an error (modding.md, Handbook). Ours are item-curiocatalogue:<code>
+        // (an item or block of the vanilla game, "item-paper-parchment", is not checked) or a guide's pageCode.
+        var ours = Books().Select(b => b.code).Concat(ItemCodes("invoice.json")).ToHashSet();
+        var guides = Directory.GetFiles(Path.Combine(Assets, "config", "handbook"), "*.json")
+            .Select(f => (string)JToken.Parse(File.ReadAllText(f))["pageCode"]!).ToHashSet();
+
+        var targets = Lang(code).Values.SelectMany(text => Regex.Matches(text, @"handbook://([^""\\]+)").Select(m => m.Groups[1].Value)).ToList();
+        var broken = targets.Where(t => t.StartsWith("item-curiocatalogue:") ? !ours.Contains(t["item-curiocatalogue:".Length..])
+            : t.StartsWith("item-") || t.StartsWith("block-") ? false : !guides.Contains(t));
+
+        Assert.Contains("item-curiocatalogue:book-ledger-aged-darkgreen", targets);
+        Assert.Empty(broken);
     }
 }

@@ -17,9 +17,9 @@
 		{ name: "GroundStorable", properties: { layout: 'Quadrants', collisionBox: { x1: 0, y1: 0, z1: 0, x2: 1, y2: 0.125, z2: 1 } } }
 	],
 	attributes: {
-		// One page per kind; the covers of a kind share it.
+		// Every cover has its own handbook page; groupBy only folds the recipe icons (modding.md, Handbook).
 		handbook: {
-			// A page per kind and age (aged and normal covers differ in their recipes). `*byType` takes the first matching key and merges into the object (RegistryObjectType.solveByType, VSEssentials.dll).
+			// Icons of "Ingredient for" and "Created by" are grouped per kind and age: aged and normal covers differ in their recipes.
 			groupByByType: { "*-aged-*": ["book-{kind}-aged-*"], "*": ["book-{kind}-normal-*"] },
 			extraSections: [
 				// Each kind has its own section: {kind} is filled in as in variant codes.

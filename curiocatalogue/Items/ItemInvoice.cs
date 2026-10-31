@@ -1,4 +1,3 @@
-using ExhaustiveMatching;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +8,7 @@ using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue;
 
@@ -109,7 +109,10 @@ public class ItemInvoice : ItemRollable
                     {
                         InvoiceFate.Kept => "wantlist-posted",
                         InvoiceFate.Consumed => "wantlist-posted-consumed",
-                        _ => "wantlist-posted-done",
+                        InvoiceFate.Parchment => "wantlist-posted-done",
+                        // A want list's sheet goes back into no book (InvoiceFates.WantListPosted).
+                        InvoiceFate.SheetReturned => throw ExhaustiveMatch.Failed(posted.Fate),
+                        _ => throw ExhaustiveMatch.Failed(posted.Fate),
                     }, posted.Items, posted.ListLeft);
                     if (posted.NotFitted > 0) told += " " + PlayerMessages.Text(player, "notfitted", posted.NotFitted);
                     PlayerMessages.TellText(player, told);

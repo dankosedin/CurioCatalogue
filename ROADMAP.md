@@ -17,6 +17,13 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 
 [The 0.1.1 plan](docs/plans/2026-10-31-release-0.1.1.md): the aged covers' handbook pages, English names of the invoices, small fixes.
 
+### 0.1.x or with 0.2
+
+- **Lists out of the creative inventory, still in the handbook** (31.10.2026). Intake lists, pick lists and want lists from the
+  creative tab are blank and useless; hide them (`creativeinventory` empty) and keep their handbook pages with `handbook.include`
+  (`docs/modding.md`, Handbook: a page exists only for what the creative inventory lists, unless included). Check in game that
+  the pages, the guide's links and "Created by" still work. Books stay in the creative inventory.
+
 ### 0.2: collections
 
 Butterflies were promised for 0.2 on the ModDB page (29.10.2026); ore crystals "maybe in 0.2". Crystals and seashells come in
@@ -93,10 +100,10 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **The ledger's last operations, with undo,** instead of editing it by hand. Open: undo forgets that an invoice was posted; items
   that moved stay where they are.
 
-- **Books and invoices from the creative inventory** (review, 28.10.2026). They have no data: a book has 0 sheets, an album
-  follows no collection and says "the collection is complete", a blank invoice used to post as "0 lines" and give the book a free sheet.
-  Defaults with sheets would break how the handbook shows the recipes, so 0.1.0 leaves it as it is. Open: hide them from the
-  creative inventory, or defaults that keep the handbook working. (A blank invoice is refused since 0.1.1.)
+- **Books from the creative inventory** (review, 28.10.2026). They have no data: a book has 0 sheets, an album follows no
+  collection and says "the collection is complete". Defaults with sheets would break how the handbook shows the recipes, so 0.1.0
+  leaves it as it is. Open: hide them from the creative inventory, or defaults that keep the handbook working. Lists: see Next,
+  0.1.x (a blank list is refused and cancels to nothing since 0.1.1).
 
 **Containers**
 - **More vanilla containers** for invoices: cabinets, shelves and other blocks with an inventory that we now refuse as "not supported yet".
@@ -132,7 +139,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   stacks (as `ModNetwork.MissingItemsRefusal` does). Today the server translates our texts itself (`docs/architecture.md`,
   principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway. Review, 28.10.2026: messages
   and handing out new items are spread over `ItemLedger`, `ItemInvoice`, `ModNetwork` and `EmptyHandGesture` ("into the empty
-  hand, else the inventory, else the ground" twice); one `Outcome` packet and one helper for handing out items.
+  hand, else the inventory, else the ground" twice); one `Outcome` packet and one helper for handing out items. Code review of
+  0.1.1: the messages after making a list (`invoice-made`, `wantlist-made`) name "Shift" as written, while the tooltip follows a
+  rebinding; research how the client could name the key there.
 - **Books as a sum type** (28.10.2026): `LedgerBook | MaterialsBook | Album` instead of one `Ledger` with a `Mode` and an `AlbumInfo`
   that only an album has. An album then cannot be asked for an invoice at all, and the `InvalidOperationException`s in `Ledger`
   go. A deep change of the core and of how books are stored: do it together with template entries (Next, after 0.2), which change

@@ -52,16 +52,17 @@ docs/                      documentation; docs/plans/ holds the implementation p
 
 The closed hierarchies of records (`TransferPlan`, `CreateInvoiceResult`, `MakeInvoiceResult`, `PostInvoiceResult`, `CollectResult`,
 `AttrValue`) carry `[Closed(typeof(A), typeof(B), …)]` and every `switch` over them ends in `default: throw ExhaustiveMatch.Failed(x)`.
-The analyzer `ExhaustiveMatching.Analyzer` (package in `CurioCatalogue.Core.csproj`) then turns a missed case into error `EM0003` at build
-time, locally and in CI. A new subtype of a closed record is added to its `[Closed]` list; a new hierarchy of the same kind gets the
-attribute too.
+The analyzer `ExhaustiveMatching.Analyzer` then turns a missed case into error `EM0003` at build time, locally and in CI. A new subtype
+of a closed record is added to its `[Closed]` list; a new hierarchy of the same kind gets the attribute too.
 
+- **Enums too:** a switch over an enum that ends in `_ => throw ExhaustiveMatch.Failed(x)` must name every value (`EM0001`). Use it
+  wherever an enum maps to another enum or to a text; keep `_ =>` only for a deliberate fallback (e.g. `Reason.ToString()` as a
+  lang key, which `AssetsTests` guards). Tuples and game types are not covered.
 - The analyzer rejects `when` guards and property patterns (`Refused { Reason: X }`) in such a switch (`EM0100`, `EM0101`): switch on the
   type, then on the property inside the case.
-- `ExhaustiveMatching.dll` (the attribute and the exception) is a runtime dependency: a call into a missing assembly fails when the
-  method is compiled, not when the branch runs. `CopyLocalLockFileAssemblies` in `curiocatalogue.csproj` brings it into the mod folder,
-  and CakeBuild adds `THIRD-PARTY-NOTICES.md` (its BSD-3-Clause licence) to the zip. A new third-party library goes there too.
-- A switch over an enum, a tuple or a game type is not covered; use `_ =>` there as before.
+- The analyzer is referenced in both `CurioCatalogue.Core.csproj` and `curiocatalogue.csproj`, with `ExcludeAssets="compile;runtime"`:
+  only the analyzer. `ClosedAttribute` and `ExhaustiveMatch` are our own (`CurioCatalogue.Core/ExhaustiveMatching.cs`); the mod ships no
+  third-party dll (`docs/architecture.md`, Exhaustive switch). Check after changing the package: remove a case, see `EM0003` / `EM0001`.
 
 ## Run and debug in game
 

@@ -199,7 +199,8 @@ public class AssetsTests
         var broken = targets.Where(t => t.StartsWith("item-curiocatalogue:") ? !ours.Contains(t["item-curiocatalogue:".Length..])
             : t.StartsWith("item-") || t.StartsWith("block-") ? false : !guides.Contains(t));
 
-        Assert.Contains("item-curiocatalogue:book-ledger-aged-darkgreen", targets);
+        // The regex finds links at all: the English guide links the aged ledger. Not required of a translation, which may word it otherwise.
+        if (code == "en") Assert.Contains("item-curiocatalogue:book-ledger-aged-darkgreen", targets);
         Assert.Empty(broken);
     }
 }

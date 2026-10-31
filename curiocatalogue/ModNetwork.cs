@@ -1,5 +1,4 @@
 using System;
-using ExhaustiveMatching;
 using System.Collections.Generic;
 using System.Linq;
 using ProtoBuf;
@@ -9,6 +8,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue;
 
@@ -279,7 +279,9 @@ internal static class ModNetwork
         {
             InvoiceFate.SheetReturned => toAlbum ? "invoice-cancelled-sheet-album" : "invoice-cancelled-sheet",
             InvoiceFate.Parchment => "invoice-cancelled-parchment",
-            _ => "invoice-cancelled",
+            InvoiceFate.Consumed => "invoice-cancelled",
+            InvoiceFate.Kept => throw ExhaustiveMatch.Failed(fate), // only a posted want list is kept
+            _ => throw ExhaustiveMatch.Failed(fate),
         });
         ModLog.Debug(sapi, $"{player.PlayerName}: invoice cancelled: {fate}");
     }

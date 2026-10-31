@@ -1,4 +1,3 @@
-using ExhaustiveMatching;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -8,6 +7,7 @@ using Vintagestory.API.Server;
 using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
 using CurioCatalogue.Gui;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue;
 

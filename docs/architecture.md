@@ -114,8 +114,15 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   and object-oriented (stacks, attributes and slots change in place, behaviour comes from overriding virtual methods), so only
   the core can be functional, and there it pays: all-or-nothing comes from planning before changing anything, and the core's tests
   need no mocks. The limit is readability: mutation local to a function (filling a `List` inside `Transfer.Plan`, like a
-  `ListBuffer` in a Scala method) stays, rather than being folded with `Aggregate`. Two steps further are in `ROADMAP.md`
-  (Technical): an analyzer that makes `switch` over a record hierarchy exhaustive, and books as a sum type.
+  `ListBuffer` in a Scala method) stays, rather than being folded with `Aggregate`. One step further is in `ROADMAP.md`
+  (Technical): books as a sum type.
+- **Exhaustive switch through an analyzer, with our own types** (10-31, author). The analyzer `ExhaustiveMatching.Analyzer`
+  makes a missed case in a `switch` over a `[Closed]` record hierarchy or an enum a build error (like a sealed trait's match in
+  Scala). It is a build-time dependency only: the attribute and the exception it looks for by full name are our own
+  (`CurioCatalogue.Core/ExhaustiveMatching.cs`), written from the public API alone. Rejected: shipping the package's dll in the
+  zip (S5's first choice). All mods share one process, and the game resolves a dependency by its file name from the first mod
+  folder that has it (`docs/modding.md`, Other mods), so a library another mod ships in another version could stop a mod from
+  loading. The rule: the mod ships no third-party dll.
 - **Services created lazily** in the mod system (on first use, not in `Start`), because the world may not be ready in `Start`.
 
 #### State

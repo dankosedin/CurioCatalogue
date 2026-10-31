@@ -76,7 +76,8 @@ public sealed class InvoiceMaker
                 {
                     InvoiceRefusal.LedgerFull => MakeRefusal.LedgerFull,
                     InvoiceRefusal.NoDifference => MakeRefusal.NoDifference,
-                    _ => MakeRefusal.NoSheets,
+                    InvoiceRefusal.NoSheets => MakeRefusal.NoSheets,
+                    _ => throw ExhaustiveMatch.Failed(refused.Reason),
                 });
 
             case CreateInvoiceResult.Created created:

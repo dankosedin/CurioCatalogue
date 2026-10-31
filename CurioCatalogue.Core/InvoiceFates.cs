@@ -9,7 +9,7 @@ public enum InvoiceFate
     /// <summary>No book in the off-hand, or it is full of sheets: the invoice is now parchment.</summary>
     Parchment,
 
-    /// <summary>Hardcore option ConsumeSheets: the invoice is gone, no sheet comes back.</summary>
+    /// <summary>Hardcore option ConsumeSheets, or a blank invoice cancelled: the invoice is gone, no sheet comes back.</summary>
     Consumed,
 
     /// <summary>A want list with lines still left: it stays in the hand, shorter (domain.md, Albums and collections).</summary>
@@ -25,8 +25,10 @@ public sealed record InvoiceEnd(InvoiceFate Fate, Ledger? Book);
 ///                       ConsumeSheets   book with room   full book / none
 /// posted invoice        consumed        sheet returned   parchment
 /// cancelled (any kind)  consumed        sheet returned   parchment
+/// cancelled blank       consumed        consumed         consumed
 /// posted want list      list done: consumed or parchment (never into a book); lines left: kept
 /// </code>
+/// A blank invoice (no lines: from the creative inventory) was never a book's sheet, so it gives none back.
 /// "Book" is any book in the off-hand, an album included: an album takes the sheet, its entries stay.
 /// </summary>
 public static class InvoiceFates
@@ -40,6 +42,10 @@ public static class InvoiceFates
             ? new InvoiceEnd(InvoiceFate.SheetReturned, withSheet)
             : new InvoiceEnd(InvoiceFate.Parchment, null);
     }
+
+    /// <summary>A cancelled invoice of any kind; a blank one is just gone.</summary>
+    public static InvoiceEnd Cancelled(bool blank, Ledger? book, LedgerLimits limits, bool consumeSheets) =>
+        blank ? new InvoiceEnd(InvoiceFate.Consumed, null) : Ended(book, limits, consumeSheets);
 
     /// <summary>A posted want list: it was made for someone else's collection, so its sheet goes back into no book.</summary>
     public static InvoiceFate WantListPosted(bool done, bool consumeSheets) =>

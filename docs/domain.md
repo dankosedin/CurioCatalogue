@@ -103,7 +103,8 @@ Results go to chat ("Posted. Lines: 5, items: 12.", entries before and after, wh
 ## Cancelling
 
 A button in the invoice's window (with confirmation). Nothing moves. The sheet of any invoice, the want list included, returns
-to a book **or album** in the off-hand; without one the invoice becomes parchment.
+to a book **or album** in the off-hand; without one the invoice becomes parchment. A blank invoice (no lines: from the
+creative inventory) was never a book's sheet: it is just gone. Posting refuses it.
 
 ## Sheets
 

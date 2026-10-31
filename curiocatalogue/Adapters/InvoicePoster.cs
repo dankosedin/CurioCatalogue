@@ -211,13 +211,15 @@ public sealed class InvoicePoster
 
     /// <summary>
     /// Cancels an invoice of any kind (domain.md, Cancelling): no items move, the ledger's entries stay; the sheet goes back
-    /// into the ledger or album in the off-hand, else the invoice becomes parchment; ConsumeSheets: gone.
+    /// into the ledger or album in the off-hand, else the invoice becomes parchment; ConsumeSheets, or a blank invoice: gone.
     /// </summary>
     public InvoiceFate Cancel(ItemSlot invoiceSlot, ItemSlot? offhandSlot)
     {
         var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger ? offhandSlot.Itemstack : null;
         var book = ledgerStack != null ? store.ReadLedger(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode) : null;
-        var (fate, withSheet) = InvoiceFates.Ended(book, limits(), consumeSheets());
+        var paper = invoiceSlot.Itemstack!;
+        bool blank = store.ReadInvoice(paper, ((ItemInvoice)paper.Collectible).InvoiceKind).Entries.IsEmpty;
+        var (fate, withSheet) = InvoiceFates.Cancelled(blank, book, limits(), consumeSheets());
         if (withSheet != null)
         {
             store.WriteLedger(ledgerStack!, withSheet);

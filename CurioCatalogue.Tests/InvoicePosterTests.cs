@@ -387,9 +387,43 @@ public class InvoicePosterTests
     {
         game.Place(pos, new TestChest(game.Api, Tapestry("ambush1")));
         HoldWantList();
+        HoldAlbum(offhand, "a");
 
         Assert.Equal(PostRefusal.Blank, Assert.IsType<PostInvoiceResult.Refused>(PostWantList()).Reason);
         Assert.Equal(invoiceItem, InvoiceSlot.Itemstack!.Collectible);
+        Assert.Equal(4, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+    }
+
+    [Fact]
+    public void A_list_with_no_data_at_all_is_refused_as_blank()
+    {
+        // As the creative inventory and /giveitem give it: no attributes, not even an empty root (LedgerStore.ReadInvoice, root == null).
+        var chest = new TestChest(game.Api, Tapestry("ambush1", 2));
+        game.Place(pos, chest);
+        InvoiceSlot.Itemstack = new ItemStack(invoiceItem);
+        HoldLedger(5, Tapestry("ambush3"));
+
+        Assert.Equal(PostRefusal.Blank, Assert.IsType<PostInvoiceResult.Refused>(Post()).Reason);
+
+        Assert.Equal(invoiceItem, InvoiceSlot.Itemstack!.Collectible);
+        Assert.Equal(5, OffhandLedger.Sheets);
+        Assert.Equal(2, chest.Inventory.Sum(s => s.StackSize));
+    }
+
+    [Fact]
+    public void Cancelling_a_blank_list_gives_no_sheet_and_no_parchment()
+    {
+        // The other way to the free sheet that filling refuses (InvoiceFates.Cancelled).
+        InvoiceSlot.Itemstack = new ItemStack(invoiceItem);
+        HoldLedger(5);
+        Assert.Equal(InvoiceFate.Consumed, Poster().Cancel(InvoiceSlot, offhand));
+        Assert.Null(InvoiceSlot.Itemstack);
+        Assert.Equal(5, OffhandLedger.Sheets);
+
+        HoldInvoice();
+        offhand.Itemstack = null;
+        Assert.Equal(InvoiceFate.Consumed, Poster().Cancel(InvoiceSlot, offhand));
+        Assert.Null(InvoiceSlot.Itemstack);
     }
 
     [Fact]

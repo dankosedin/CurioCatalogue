@@ -5,9 +5,13 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
     <Nullable>enable</Nullable>
-    <!-- A library project does not copy NuGet runtime assets by itself; ExhaustiveMatching.dll must reach the mod folder. -->
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Only the analyzer: a missed case in a switch over a [Closed] hierarchy or an enum is a build error here too. Its types
+         are our own, in CurioCatalogue.Core (ExhaustiveMatching.cs); the package's dll is neither compiled against nor shipped. -->
+    <PackageReference Include="ExhaustiveMatching.Analyzer" Version="0.5.0" ExcludeAssets="compile;runtime" PrivateAssets="all" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="VintagestoryAPI">

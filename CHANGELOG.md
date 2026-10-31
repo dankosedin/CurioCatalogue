@@ -11,7 +11,7 @@ Fixes after the first release.
 - The invoices have English names that follow the player's view: **Intake list** (was "Incoming invoice"), **Pick list** (was
   "Outgoing invoice"), and "Post" is now **Fill**. Item codes and saved worlds are unchanged; Ukrainian keeps its own terms.
 - A blank list taken from the creative inventory is refused with a message instead of being filled as "0 lines" and giving the
-  book a free sheet.
+  book a free sheet; cancelling it just removes it, with no sheet and no parchment.
 - Clearer texts after the first players' review: the album counts "pieces" and "whole pictures"; a new list says how to fill it;
   the book's tooltip says that filling moves the items into your inventory, and that a pick list from a ledger takes every stack;
   the hints over a container say "Make an intake list" / "Make a pick list"; "no sheets left" says to add parchment. README: what

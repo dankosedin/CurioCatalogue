@@ -12,6 +12,7 @@ Code still uses `LedgerMode.Types` / `Counts` / `Album` and `ItemLedger` for all
 
 This file is an index. Each document below says when to read it and when to update it; follow both.
 Machine-specific notes and personal preferences live in `CLAUDE.local.md` (git-ignored; template `CLAUDE.local.example.md`).
+Steps of the current plan are taken one per session with the project skill `/step <id>` (`.claude/skills/step/SKILL.md`).
 
 @docs/critical.md
 

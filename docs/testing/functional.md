@@ -68,8 +68,8 @@ which build, who ran it, and each `❌` with its reason.
 | # | Since | Case | Expected |
 |---|---|---|---|
 | W1 | 0.1.0 | Want list in hand, Shift + right click on a friend's chest that has some of the pieces | What is there and fits moves; the list gets shorter |
-| W2 | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | The list is gone, "Taken from the list: N. List done."; no parchment; the album's sheets +1 |
-| W3 | 0.1.0 | Same with `ConsumeSheets` true | The list is gone; the album's sheets unchanged |
+| W2 | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | "Taken from the list: N. The list is done and is now parchment."; the list is parchment (a want list goes back into no book, `docs/domain.md`); the album's sheets unchanged |
+| W3 | 0.1.0 | Same with `ConsumeSheets` true | "…The list is done."; the list is gone, no parchment; the album's sheets unchanged |
 | W4 | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit |
 
 ## The ledger and the bill of materials

@@ -141,9 +141,6 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.
-- **A page of commands for testing** (the author, 28.10.2026), e.g. `docs/testing.md`: vanilla commands with their exact syntax
-  (`/giveblock tapestry-north 1 s[] {"type":"ambush1"}`, from the engine's `CmdGive`), our `/curio` commands from `dev-commands`,
-  and what `docs/development.md` now scatters (`/op`, whitelist, `/land claim …`, padlocks).
 
 ## Maybe
 

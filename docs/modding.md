@@ -196,7 +196,7 @@ In this order:
   `BlockTapestry.cs`). Taken off a wall it always drops as `tapestry-north` (`BehaviorHorizontalAttachable`, `dropBlockFace`).
   A rotten tapestry drops nothing (`BlockTapestry.GetDrops`). Large ones are pieces: `ambush` (3×1) = `ambush1..3`, `salvation` (2×2)
   = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (mods that extend `sizes` are
-  picked up). Not in the creative inventory; give with `/giveblock tapestry-north 1 <player> {type:"ambush1"}`.
+  picked up). Not in the creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
 - **Books:** empty book `book-normal-<colour>` (2 leather + 8 `paper-parchment`; also `book-aged-*`, `book-rotten-*`); parchment
   stacks to 32; `inkandquill`. A found large book is clutter: block `clutter` with `type: "bookshelves/large-book-closed"` (also
   `-open`, called "Cartography book" in game; `-pile*`, `-standing*`; `-evaporating` is story-only). Clutter is `Reparable`: unless

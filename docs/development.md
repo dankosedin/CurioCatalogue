@@ -90,10 +90,8 @@ Launch profiles are in `curiocatalogue\Properties\launchSettings.json` (F5 in Vi
 
 ### Dev commands
 
-The `/curio` chat commands (`DevCommands.cs`, privilege `gamemode`) live on the branch `dev-commands`, never in `main`:
-`sheets <n>`, `tapestries [count]`, `tapestry <piece> [qty]`, `jug [lime|acid] [litres]`, `missing`.
-For a test session, merge or cherry-pick them into a scratch branch; never merge them back into `main`.
-CI does not build this branch, so it may lag behind `main`: rebase it and fix what broke when you need it.
+The `/curio` chat commands (`DevCommands.cs`) live on the branch `dev-commands`, never in `main`; the list and how to use the branch are in
+`docs/testing/commands.md`.
 
 ### Dedicated server test
 
@@ -101,12 +99,8 @@ CI does not build this branch, so it may lag behind `main`: rebase it and fix wh
   server's language show up as English), the mod as the release zip in its `Mods`.
 - The client (profile **Client (no mod)**) needs the same zip in its own `Mods`: a server does not send mods, the client downloads
   missing ones from the ModDB, and an unpublished build is not there. Remove that zip before using **Client** again, or the mod loads twice.
-- Rights: `/op <name>` in the server console. A second player on the LAN joins `<this PC>:42420`; the server is whitelisted by
-  default (`WhitelistMode: 0`): `/player <name> whitelist add`.
+- Rights, whitelist, claims and padlocks: `docs/testing/commands.md`. A second player on the LAN joins `<this PC>:42420`.
 - On Windows, a Wi-Fi network marked Public blocks inbound connections: mark it Private and allow `dotnet` for private networks.
-- Land claims: create with `/land claim new|start|end|add|save`. To change one, `/land claim load <id>` (id from `/land list`) before
-  `grant <name> use` / `revoke <name>`, then `/land claim save`. The game's hint suggests `/land claim modify`, which does not exist.
-  A padlock needs the block reinforced first (plumb and square, stones in the inventory).
 
 ## Tools
 

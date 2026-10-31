@@ -160,7 +160,8 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   screenshots: at most 1920×1080 and 2 MB; the logo is one of them, 480×480 or 480×320.
 - **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
   release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
-  the date in `CHANGELOG.md` and the version in both READMEs' early-development warning.
+  the date in `CHANGELOG.md` and the version in both READMEs' early-development warning. A fresh Fendragon invite in both READMEs'
+  thanks (an invite expires in 30 days); the author asks for it on the server.
 - **Before a release** pass `docs/testing/functional.md` and the release's `docs/testing/upgrade-<from>-to-<to>.md`, with the release zip,
   in single player and on the dedicated server; fill in their result columns in the release PR.
 - Release zip by hand: `build.ps1` (CakeBuild) → `Releases\` (it replaces only its own folder and zip there).

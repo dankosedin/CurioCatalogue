@@ -129,7 +129,7 @@ Curio Catalogue про колекції. Інші моди дещо перети
 ## Автори й подяки
 
 - Дякуємо Anego Studios за Vintage Story і за відкритий код її API та модуля виживання: з нього ми дізналися, як працює гра.
-- Дякуємо серверу Fendragon, де автор збирає ті самі гобелени, для яких зроблено цей мод.
+- Дякуємо [серверу Fendragon](https://discord.gg/2yNGvKcRP), де автор збирає ті самі гобелени, для яких зроблено цей мод.
 - Дякуємо Jeff Walker за [ExhaustiveMatching](https://github.com/WalkerCodeRanger/ExhaustiveMatching) (BSD-3-Clause): вона перетворює
   пропущений `case` у `switch` на помилку компіляції. Вона потрібна лише під час збирання; у зіпі мода її коду немає.
 

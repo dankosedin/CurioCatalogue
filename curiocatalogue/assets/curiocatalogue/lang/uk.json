@@ -124,6 +124,7 @@
   "curiocatalogue:ingameerror-nothingnew": "У цьому контейнері нічого нового для колекції",
   "curiocatalogue:ingameerror-notshown": "Предмет у руці вже не той, що у вікні",
   "curiocatalogue:ingameerror-newerversion": "Це записано новішою версією «Каталогу дивовиж»; оновіть мод, щоб це змінити",
+  "curiocatalogue:ingameerror-blank": "Нічого проводити: накладна чи список порожні",
   "curiocatalogue:ingameerror-movefailed": "Гра не прийняла частину предметів; нічого не змінено. Повідомте, будь ласка, про цю помилку",
   "curiocatalogue:ingameerror-nocollection": "Колекції цього альбому в грі вже немає (мод видалено?)",
   "curiocatalogue:ingameerror-outofreach": "Надто далеко",

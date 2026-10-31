@@ -25,7 +25,7 @@ Steps of the current plan are taken one per session with the project skill `/ste
 | `docs/architecture.md` | before adding a class, an adapter or a network message | a structural decision is made (Part 1), with the alternatives and why; feature decisions go to the feature's plan |
 | `docs/modding.md` | before changing any code or JSON asset | the game surprises you (checked in game or found in vsapi/vssurvivalmod) |
 | `docs/development.md` | before building, testing, committing, opening a PR | build, CI or branch flow changes |
-| `docs/testing/` | before a release: `functional.md` (all cases, accumulates) and the `upgrade-<from>-to-<to>.md` of this release | functional: with every feature or fixed bug, in the same PR; upgrade: when a change touches stored data, recipes, item codes, config or lang; a new upgrade plan per release (copy the previous one) |
+| `docs/testing/` | before a release: `functional.md` (all cases, accumulates), `commands.md` (commands to set a test up) and the `upgrade-<from>-to-<to>.md` of this release | functional: with every feature or fixed bug, in the same PR; upgrade: when a change touches stored data, recipes, item codes, config or lang; a new upgrade plan per release (copy the previous one) |
 | `README.md`, `README.uk.md` | before changing what the player sees (gestures, recipes, config, compatibility) | such a change lands; every release (the version in the early-development warning); both languages together. They are the source of the ModDB page |
 | `CONTRIBUTING.md` | before opening a PR or an issue | the way contributions come in changes (PRs, translations, issue templates) |
 | `docs/onboarding.md` | setting up a new machine | setup steps change (e.g. a new game version) |

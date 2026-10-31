@@ -237,7 +237,7 @@ internal static class ModNetwork
         if (Target(sapi, player, request.Book, c => c is ItemLedger { IsAlbum: true }, "want list") is not { } slot) return;
 
         var result = mod.InvoiceMaker.MakeWantList(slot.Itemstack!, player.Entity.Pos.AsBlockPos);
-        ModLog.Debug(sapi, $"{player.PlayerName}: make want list: {result}");
+        ModLog.Debug(sapi, $"{player.PlayerName}: make want list: {ItemLedger.Describe(result)}");
         switch (result)
         {
             case MakeInvoiceResult.Refused refused:
@@ -274,15 +274,9 @@ internal static class ModNetwork
         var offhand = player.Entity?.LeftHandItemSlot;
         if (PlayerMessages.RefuseNewer(player, offhand?.Itemstack)) return; // the sheet would go back into it
         bool toAlbum = offhand?.Itemstack?.Collectible is ItemLedger { IsAlbum: true };
+        var kind = ((ItemInvoice)hand.Itemstack!.Collectible).InvoiceKind; // read before Cancel empties the slot
         var fate = mod.InvoicePoster.Cancel(hand, offhand);
-        PlayerMessages.Tell(player, fate switch
-        {
-            InvoiceFate.SheetReturned => toAlbum ? "invoice-cancelled-sheet-album" : "invoice-cancelled-sheet",
-            InvoiceFate.Parchment => "invoice-cancelled-parchment",
-            InvoiceFate.Consumed => "invoice-cancelled",
-            InvoiceFate.Kept => throw ExhaustiveMatch.Failed(fate), // only a posted want list is kept
-            _ => throw ExhaustiveMatch.Failed(fate),
-        });
-        ModLog.Debug(sapi, $"{player.PlayerName}: invoice cancelled: {fate}");
+        PlayerMessages.Tell(player, PlayerMessages.CancelledKey(kind, fate, toAlbum));
+        ModLog.Debug(sapi, $"{player.PlayerName}: {kind} list cancelled: {fate}");
     }
 }

@@ -85,6 +85,7 @@ Fill it in the PR of the release; older runs are in git history. A `❌` gets a 
 | I9 | 0.1.0 | Plain right click and Ctrl + right click on a chest | Open it as usual | — |
 | I10 | 0.1.0 | Put a list on the ground, on a shelf | Behaves as an ordinary item | — |
 | I11 | 0.1.1 | A blank intake list, a blank pick list and a blank want list from the creative inventory (`/giveitem` or the tab), a ledger in the off-hand; Shift + right click on a chest | Red "Nothing to fill: …" (Ukrainian too); the list stays in the hand, the book keeps its sheets, nothing moves. Then Cancel in its window, with the ledger in the off-hand and again without one: "The list is cancelled."; the list is gone, the book keeps its sheets, no parchment | — |
+| I12 | 0.1.1 | Make a want list from an album; cancel it in its window three ways: with an album in the off-hand, with a ledger in the off-hand, with nothing in the off-hand. Then the same with an intake list, in `en` and `uk` | Want list: "The want list is cancelled, its sheet is back in the album." / "…in the book." / "…and is now parchment." (uk: "Список бажаного скасовано, …"); intake list keeps "The list is cancelled…" (uk: "Накладну анульовано…"). The sheet and the parchment go as before | — |
 
 ## Access (S)
 

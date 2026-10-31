@@ -28,6 +28,23 @@ internal static class PlayerMessages
         return true;
     }
 
+    /// <summary>
+    /// The chat line after a cancel. A want list has its own four texts (the name agrees in gender in Ukrainian, so the
+    /// item's name cannot be a placeholder); an intake or pick list shares one set.
+    /// </summary>
+    public static string CancelledKey(Core.InvoiceKind kind, Core.InvoiceFate fate, bool toAlbum)
+    {
+        string prefix = kind == Core.InvoiceKind.WantList ? "wantlist-cancelled" : "invoice-cancelled";
+        return fate switch
+        {
+            Core.InvoiceFate.SheetReturned => prefix + (toAlbum ? "-sheet-album" : "-sheet"),
+            Core.InvoiceFate.Parchment => prefix + "-parchment",
+            Core.InvoiceFate.Consumed => prefix,
+            Core.InvoiceFate.Kept => throw ExhaustiveMatching.ExhaustiveMatch.Failed(fate), // only a filled want list is kept
+            _ => throw ExhaustiveMatching.ExhaustiveMatch.Failed(fate),
+        };
+    }
+
     public static void Tell(IServerPlayer player, string key, params object[] args) =>
         TellText(player, Text(player, key, args));
 

@@ -172,7 +172,7 @@ public class ItemLedger : Item
 
     // Our hints are shown over the container, not at the bottom of the screen: see LedgerHintsBehavior.
 
-    private static string Describe(MakeInvoiceResult result) => result switch
+    internal static string Describe(MakeInvoiceResult result) => result switch
     {
         MakeInvoiceResult.Made made => $"made, {made.Invoice.Entries.Length} lines, {made.SheetsLeft} sheets left",
         MakeInvoiceResult.Refused refused => $"refused, {refused.Reason}",

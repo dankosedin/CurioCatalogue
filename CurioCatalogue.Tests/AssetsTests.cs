@@ -9,6 +9,8 @@ public class AssetsTests
 {
     private static readonly string Assets = Path.Combine(RepoRoot(), "curiocatalogue", "assets", "curiocatalogue");
 
+    internal static string AssetsFolder => Assets;
+
     private static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

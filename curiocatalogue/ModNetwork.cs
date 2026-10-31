@@ -1,4 +1,5 @@
 using System;
+using ExhaustiveMatching;
 using System.Collections.Generic;
 using System.Linq;
 using ProtoBuf;
@@ -258,6 +259,9 @@ internal static class ModNetwork
                 }
                 PlayerMessages.Tell(player, "wantlist-made", made.Invoice.Entries.Length, made.SheetsLeft, mod.Config.MaxSheets);
                 break;
+
+            default:
+                throw ExhaustiveMatch.Failed(result);
         }
     }
 

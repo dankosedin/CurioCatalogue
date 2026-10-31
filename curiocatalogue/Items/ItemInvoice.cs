@@ -1,3 +1,4 @@
+using ExhaustiveMatching;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -85,29 +86,36 @@ public class ItemInvoice : ItemRollable
     {
         switch (result)
         {
-            case PostInvoiceResult.Refused { Reason: PostRefusal.Missing } missing:
-                // Named by the client, in the player's language (ModNetwork.MissingItemsRefusal).
-                ModNetwork.SendMissing((ICoreServerAPI)api, player, missing.Lacking!);
-                break;
-            case PostInvoiceResult.Refused { Reason: PostRefusal.NoRoom } noRoom:
-                PlayerMessages.Refuse(player, "noroom", noRoom.SlotsShort);
-                break;
             case PostInvoiceResult.Refused refused:
-                PlayerMessages.Refuse(player, refused.Reason.ToString().ToLowerInvariant());
-                break;
-
-            case PostInvoiceResult.Posted posted when InvoiceKind == InvoiceKind.WantList:
-                var told = PlayerMessages.Text(player, posted.Fate switch
+                switch (refused.Reason)
                 {
-                    InvoiceFate.Kept => "wantlist-posted",
-                    InvoiceFate.Consumed => "wantlist-posted-consumed",
-                    _ => "wantlist-posted-done",
-                }, posted.Items, posted.ListLeft);
-                if (posted.NotFitted > 0) told += " " + PlayerMessages.Text(player, "notfitted", posted.NotFitted);
-                PlayerMessages.TellText(player, told);
+                    case PostRefusal.Missing:
+                        // Named by the client, in the player's language (ModNetwork.MissingItemsRefusal).
+                        ModNetwork.SendMissing((ICoreServerAPI)api, player, refused.Lacking!);
+                        break;
+                    case PostRefusal.NoRoom:
+                        PlayerMessages.Refuse(player, "noroom", refused.SlotsShort);
+                        break;
+                    default:
+                        PlayerMessages.Refuse(player, refused.Reason.ToString().ToLowerInvariant());
+                        break;
+                }
                 break;
 
             case PostInvoiceResult.Posted posted:
+                if (InvoiceKind == InvoiceKind.WantList)
+                {
+                    var told = PlayerMessages.Text(player, posted.Fate switch
+                    {
+                        InvoiceFate.Kept => "wantlist-posted",
+                        InvoiceFate.Consumed => "wantlist-posted-consumed",
+                        _ => "wantlist-posted-done",
+                    }, posted.Items, posted.ListLeft);
+                    if (posted.NotFitted > 0) told += " " + PlayerMessages.Text(player, "notfitted", posted.NotFitted);
+                    PlayerMessages.TellText(player, told);
+                    break;
+                }
+
                 var text = PlayerMessages.Text(player, "invoice-posted", posted.Lines, posted.Items);
                 if (posted.LedgerBefore != null)
                     text += " " + PlayerMessages.Text(player, "invoice-posted-ledger", posted.LedgerBefore, posted.LedgerAfter!);
@@ -125,6 +133,9 @@ public class ItemInvoice : ItemRollable
                 if (posted.OverLimit)
                     PlayerMessages.Tell(player, "ledger-overlimit", posted.LedgerAfter!, Mod.Config.SoftEntryLimit);
                 break;
+
+            default:
+                throw ExhaustiveMatch.Failed(result);
         }
     }
 
@@ -132,11 +143,13 @@ public class ItemInvoice : ItemRollable
     {
         PostInvoiceResult.Posted p =>
             $"posted, {p.Lines} lines, {p.Items} items, {p.Fate}, ledger {p.LedgerBefore?.ToString() ?? "-"} -> {p.LedgerAfter?.ToString() ?? "-"}{(p.OverLimit ? ", over limit" : "")}{(p.NotFitted > 0 ? $", {p.NotFitted} did not fit" : "")}",
-        PostInvoiceResult.Refused { Reason: PostRefusal.Missing } r =>
-            $"refused, Missing: {string.Join(", ", r.Lacking!.Select(e => $"{e.Count} x {e.Key}"))}",
-        PostInvoiceResult.Refused { Reason: PostRefusal.NoRoom } r => $"refused, NoRoom, {r.SlotsShort} slots short",
-        PostInvoiceResult.Refused r => $"refused, {r.Reason}",
-        _ => result.ToString(),
+        PostInvoiceResult.Refused r => r.Reason switch
+        {
+            PostRefusal.Missing => $"refused, Missing: {string.Join(", ", r.Lacking!.Select(e => $"{e.Count} x {e.Key}"))}",
+            PostRefusal.NoRoom => $"refused, NoRoom, {r.SlotsShort} slots short",
+            _ => $"refused, {r.Reason}",
+        },
+        _ => throw ExhaustiveMatch.Failed(result),
     };
 
     /// <summary>The hint at the bottom of the screen while the invoice is in hand; posting shows over a container (LedgerHintsBehavior).</summary>

@@ -5,4 +5,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Compile-time check that a switch over a closed hierarchy covers every case; ExhaustiveMatching.dll (the attributes and
+         the exception) ships in the mod zip with its licence: THIRD-PARTY-NOTICES.md. -->
+    <PackageReference Include="ExhaustiveMatching.Analyzer" Version="0.5.0" />
+  </ItemGroup>
+
 </Project>

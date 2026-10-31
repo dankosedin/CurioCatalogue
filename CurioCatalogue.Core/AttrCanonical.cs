@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue.Core;
 
@@ -65,7 +66,7 @@ public static class AttrCanonical
                 sb.Append(']');
                 break;
             case AttrTree tree: WriteTree(sb, tree, path, ignoredPaths); break;
-            default: throw new ArgumentException($"Unknown attribute type {value.GetType().Name}");
+            default: throw ExhaustiveMatch.Failed(value);
         }
     }
 

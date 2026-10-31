@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue.Core;
 
@@ -46,6 +47,7 @@ public enum InvoiceRefusal
 }
 
 /// <summary>Result of <see cref="Ledger.CreateInvoice"/>: either a new invoice or the reason there is none.</summary>
+[Closed(typeof(CreateInvoiceResult.Created), typeof(CreateInvoiceResult.Refused))]
 public abstract record CreateInvoiceResult
 {
     /// <param name="Ledger">The ledger with one sheet spent.</param>

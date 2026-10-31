@@ -125,6 +125,8 @@ Thanks to these authors: their work makes the game's mod community richer.
 - Thanks to Anego Studios for Vintage Story, and for opening the code of its API and of the survival mod: it taught us how the
   game works.
 - Thanks to the Fendragon server, where the author collects the very tapestries this mod was made for.
+- Thanks to Jeff Walker for [ExhaustiveMatching](https://github.com/WalkerCodeRanger/ExhaustiveMatching) (BSD-3-Clause), which turns a missed
+  `switch` case into a compile error. Its library ships in the mod zip; its licence is in `THIRD-PARTY-NOTICES.md`.
 
 ## License
 

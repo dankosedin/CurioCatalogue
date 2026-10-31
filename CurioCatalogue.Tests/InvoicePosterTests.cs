@@ -366,6 +366,33 @@ public class InvoicePosterTests
     }
 
     [Fact]
+    public void A_blank_invoice_is_refused_and_nothing_changes()
+    {
+        // From the creative inventory: no lines, no data. It used to post as "0 lines" and give the book a free sheet (ROADMAP, Books).
+        var chest = new TestChest(game.Api, Tapestry("ambush1", 2));
+        game.Place(pos, chest);
+        HoldInvoice();
+        HoldLedger(5, Tapestry("ambush3"));
+
+        Assert.Equal(PostRefusal.Blank, Assert.IsType<PostInvoiceResult.Refused>(Post()).Reason);
+
+        Assert.Equal(invoiceItem, InvoiceSlot.Itemstack!.Collectible);
+        Assert.Equal(5, OffhandLedger.Sheets);
+        Assert.Equal(2, chest.Inventory.Sum(s => s.StackSize));
+        Assert.Empty(PlayerItems());
+    }
+
+    [Fact]
+    public void A_blank_want_list_is_refused_as_blank()
+    {
+        game.Place(pos, new TestChest(game.Api, Tapestry("ambush1")));
+        HoldWantList();
+
+        Assert.Equal(PostRefusal.Blank, Assert.IsType<PostInvoiceResult.Refused>(PostWantList()).Reason);
+        Assert.Equal(invoiceItem, InvoiceSlot.Itemstack!.Collectible);
+    }
+
+    [Fact]
     public void Want_list_on_a_container_without_anything_from_the_list_is_refused()
     {
         game.Place(pos, new TestChest(game.Api, Tapestry("other")));

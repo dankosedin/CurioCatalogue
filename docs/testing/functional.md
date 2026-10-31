@@ -84,6 +84,7 @@ Fill it in the PR of the release; older runs are in git history. A `❌` gets a 
 | I8 | 0.1.0 | Shift + Ctrl + right click with an album in hand | The mod does nothing; the game handles the click | — |
 | I9 | 0.1.0 | Plain right click and Ctrl + right click on a chest | Open it as usual | — |
 | I10 | 0.1.0 | Put a list on the ground, on a shelf | Behaves as an ordinary item | — |
+| I11 | 0.1.1 | A blank intake list, a blank pick list and a blank want list from the creative inventory (`/giveitem` or the tab), a ledger in the off-hand; Shift + right click on a chest | Red "Nothing to fill: …" (Ukrainian too); the list stays in the hand, the book keeps its sheets, nothing moves | — |
 
 ## Access (S)
 

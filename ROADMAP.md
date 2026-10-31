@@ -91,9 +91,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   that moved stay where they are.
 
 - **Books and invoices from the creative inventory** (review, 28.10.2026). They have no data: a book has 0 sheets, an album
-  follows no collection and says "the collection is complete", a blank invoice posts as "0 lines" and gives the book a free sheet.
+  follows no collection and says "the collection is complete", a blank invoice used to post as "0 lines" and give the book a free sheet.
   Defaults with sheets would break how the handbook shows the recipes, so 0.1.0 leaves it as it is. Open: hide them from the
-  creative inventory, or defaults that keep the handbook working; a blank invoice refused in any case.
+  creative inventory, or defaults that keep the handbook working. (A blank invoice is refused since 0.1.1.)
 
 **Containers**
 - **More vanilla containers** for invoices: cabinets, shelves and other blocks with an inventory that we now refuse as "not supported yet".

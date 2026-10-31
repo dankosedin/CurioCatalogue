@@ -8,7 +8,7 @@ using CurioCatalogue.Core;
 
 namespace CurioCatalogue.Adapters;
 
-public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList, MoveFailed }
+public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList, MoveFailed, Blank }
 
 public abstract record PostInvoiceResult
 {
@@ -81,6 +81,8 @@ public sealed class InvoicePoster
 
         var container = reader.Open(be)!;
         var invoice = store.ReadInvoice(invoiceSlot.Itemstack!, kind);
+        // A blank invoice (from the creative inventory) has nothing to post; it would post as "0 lines" and give the book a sheet.
+        if (invoice.Entries.IsEmpty) return new PostInvoiceResult.Refused(PostRefusal.Blank);
         var merge = new MergeClasses();
         var (sources, samples) = Sources(container, merge);
         if (kind == InvoiceKind.WantList)

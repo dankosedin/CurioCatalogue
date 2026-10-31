@@ -124,6 +124,7 @@
   "curiocatalogue:ingameerror-nothingnew": "Nothing new for the collection in this container",
   "curiocatalogue:ingameerror-notshown": "The item in your hand is no longer the one in the window",
   "curiocatalogue:ingameerror-newerversion": "This was written by a newer version of Curio Catalogue; update the mod to change it",
+  "curiocatalogue:ingameerror-blank": "Nothing to fill: this list is blank",
   "curiocatalogue:ingameerror-movefailed": "The game would not take some of the items; nothing was changed. Please report this as a bug",
   "curiocatalogue:ingameerror-nocollection": "The game no longer has this album's collection (was a mod removed?)",
   "curiocatalogue:ingameerror-outofreach": "Too far away",

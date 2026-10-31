@@ -10,6 +10,8 @@ Fixes after the first release.
   book's page with its recipes instead of the handbook's main page. Every cover is now in the creative inventory.
 - The invoices have English names that follow the player's view: **Intake list** (was "Incoming invoice"), **Pick list** (was
   "Outgoing invoice"), and "Post" is now **Fill**. Item codes and saved worlds are unchanged; Ukrainian keeps its own terms.
+- A blank list taken from the creative inventory is refused with a message instead of being filled as "0 lines" and giving the
+  book a free sheet.
 
 ## 0.1.0 (2026-10-28)
 

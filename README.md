@@ -100,9 +100,28 @@ English and Ukrainian. Translations are welcome: see `CONTRIBUTING.md`.
 
 Bug reports, ideas, code and translations: see `CONTRIBUTING.md`. What may come next: `ROADMAP.md`.
 
+## Similar mods
+
+Curio Catalogue is about collections. Other mods overlap with it a little; if one suits you better, use it.
+
+- **[Infinitum Collections](https://mods.vintagestory.at/infinitumcollections)** by unicorn_ares is a journal of discoveries (fish,
+  mushrooms, butterflies) with links to the handbook. Curio Catalogue's album tracks what you actually keep, in chests or on
+  display, and takes the missing pieces from there. It also makes want lists for other players.
+- **[Bookkeeper](https://mods.vintagestory.at/show/mod/43155)** and **[Quartermaster](https://mods.vintagestory.at/show/mod/57459)**
+  by Feyd manage storage: finding items in nearby containers and, with Quartermaster, taking and depositing them remotely. They
+  care about what is stored, not about what is missing from a collection.
+
+Thanks to these authors: their work makes the game's mod community richer.
+
+## AI and human work
+
+- **Direction:** human. DankoSedin decides what the mod is, what it does and what it will not do.
+- **Code:** written by AI (Claude, Anthropic) within a framework of tests and documentation.
+- **Texts and translations:** everything the player reads, in English and Ukrainian, is written by AI under close human supervision.
+- **Assets:** item textures are drawn by script; the book shape and the mod icon are based on the game's own assets.
+
 ## Credits
 
-- Co-authored with Claude Opus (Anthropic).
 - Thanks to Anego Studios for Vintage Story, and for opening the code of its API and of the survival mod: it taught us how the
   game works.
 - Thanks to the Fendragon server, where the author collects the very tapestries this mod was made for.

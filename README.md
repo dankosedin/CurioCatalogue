@@ -7,7 +7,7 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 
 > **Early development.** This is 0.1.0, the first and minimal version of the mod (an MVP). Try it in a test world first.
-> The way books and invoices store their data may change in the next two releases, and books and invoices made with this
+> The way books and lists store their data may change in the next two releases, and books and lists made with this
 > version may not carry over.
 >
 > **Back up your world** before installing the mod or a new version of it.
@@ -21,10 +21,10 @@ Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 - **Want lists** come out of the album: give one to a friend, and it gathers what you still miss from their chests.
 - **The ledger** notes which kinds of items there are; **the bill of materials** how many of each, as a shopping list for a project
   that shrinks by itself as you take what you need from chests.
-- Books compare themselves with a chest and write **invoices**: documents listing what to move. Post an invoice on a chest and the
+- Books compare themselves with a chest and write **lists**: an **intake list** (what the chest has that the book lacks) and a **pick list** (what the chest has of the book's entries). Fill a list from a chest and the
   items move into your inventory, all of them or none.
 
-Books and invoices are ordinary items. They hold their data themselves, so you can hand them over, put them on a shelf or lose them.
+Books and lists are ordinary items. They hold their data themselves, so you can hand them over, put them on a shelf or lose them.
 
 ![The album window: 3 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.png)
 
@@ -50,19 +50,19 @@ The in-game handbook has a Curio Catalogue guide and a page for every book.
 With a book in hand, or in your off-hand with the main hand empty:
 
 - **Shift + right click** on a container: the album takes what is new for the collection; a ledger or a bill of materials makes an
-  incoming invoice for what the book lacks.
-- **Shift + Ctrl + right click** on a container: an outgoing invoice for what the book lists.
+  intake list for what the book lacks.
+- **Shift + Ctrl + right click** on a container: a pick list for what the book lists.
 - **Right click into the air:** opens the book.
 
-With an invoice in hand, **Shift + right click** on any container posts it. With a book in your off-hand the book is updated and
-the sheet comes back (an album only takes the sheet); without one the invoice becomes parchment. A want list is posted the same
+With a list in hand, **Shift + right click** on any container fills it. With a book in your off-hand the book is updated and
+the sheet comes back (an album only takes the sheet); without one the list becomes parchment. A want list is filled the same
 way: it takes what it lists, and a finished one becomes parchment.
 
 Plain right click and Ctrl + right click open containers as usual.
 
 ## Fair play on servers
 
-- The server decides. An invoice moves everything it lists or nothing, and says what stopped it.
+- The server decides. A list moves everything it lists or nothing, and says what stopped it.
 - No more access than by hand: land claims, padlocks and reinforcement apply to every action, as to opening the chest yourself.
 - No remote access: items move only from the container you click.
 
@@ -71,8 +71,8 @@ Plain right click and Ctrl + right click open containers as usual.
 `ModConfig/curiocatalogue.json`:
 
 - `MaxSheets` (32): sheets a book can hold.
-- `SoftEntryLimit` (500): a book with this many entries makes no more incoming invoices.
-- `ConsumeSheets` (false): hardcore; a posted invoice never gives its sheet back.
+- `SoftEntryLimit` (500): a book with this many entries makes no more intake lists.
+- `ConsumeSheets` (false): hardcore; a filled list never gives its sheet back.
 - `ExtraIgnoredAttributes` (`["durability"]`): attributes ignored when comparing items, on top of the game's own.
 - `TapestryExclude`, `TapestryAdd`: leave tapestry pieces out of the collection, or add pieces of other mods.
 - `Diagnostics` (false): write details to the game log, for finding problems.
@@ -85,8 +85,8 @@ give players the same file: otherwise the album and the tooltips show the client
 - Needs Vintage Story 1.22.7. Install it on the server and on every client.
 - Mods that add tapestries to the game's tapestry list are picked up by the album.
 - Tested with Upgradeable Storage and Carry On.
-- **Better Crates** is not supported: its crates refuse invoices, and they draw our invoices dark and our books back side out.
-- Our books and invoices do not go into a vanilla crate: Shift + right click on a container is ours.
+- **Better Crates** is not supported: its crates refuse our lists, and they draw our lists dark and our books back side out.
+- Our books and lists do not go into a vanilla crate: Shift + right click on a container is ours.
 - With `ConsumeSheets` on, the handbook's "the sheet comes back" does not apply.
 - Supported containers: chests, trunks, labeled chests, stationary baskets, storage vessels, crates, backpacks and baskets placed on
   the ground, and other mods' chests built on the vanilla ones. On other blocks with an inventory (ovens, barrels,

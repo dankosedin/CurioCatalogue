@@ -56,34 +56,34 @@ Fill it in the PR of the release; older runs are in git history. A `❌` gets a 
 | # | Since | Case | Expected | Last run |
 |---|---|---|---|---|
 | W1 | 0.1.0 | Want list in hand, Shift + right click on a friend's chest that has some of the pieces | What is there and fits moves; the list gets shorter | — |
-| W2 | 0.1.0 | Post it until it is finished, `ConsumeSheets` false, album in off-hand | The list is gone, "Taken from the list: N. List done."; no parchment; the album's sheets +1 | — |
+| W2 | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | The list is gone, "Taken from the list: N. List done."; no parchment; the album's sheets +1 | — |
 | W3 | 0.1.0 | Same with `ConsumeSheets` true | The list is gone; the album's sheets unchanged | — |
-| W4 | 0.1.0 | Post with no room for one piece | Partial post; the list keeps the piece that did not fit | — |
+| W4 | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit | — |
 
 ## The ledger and the bill of materials
 
 | # | Since | Case | Expected | Last run |
 |---|---|---|---|---|
-| L1 | 0.1.0 | Ledger, Shift + right click on a chest | An incoming invoice for the kinds the ledger lacks; the ledger's sheets −1 | — |
-| L2 | 0.1.0 | Ledger, Shift + Ctrl + right click on a chest | An outgoing invoice for the kinds the ledger lists | — |
-| L3 | 0.1.0 | Bill of materials: the same two gestures | Invoices by count; the book shrinks as items are taken | — |
+| L1 | 0.1.0 | Ledger, Shift + right click on a chest | An intake list for the kinds the ledger lacks; the ledger's sheets −1 | — |
+| L2 | 0.1.0 | Ledger, Shift + Ctrl + right click on a chest | A pick list for the kinds the ledger lists | — |
+| L3 | 0.1.0 | Bill of materials: the same two gestures | Lists by count; the book shrinks as items are taken | — |
 | L4 | 0.1.0 | Window: search, sorting, rename, clear | Work as in A1, A6, A7 | — |
-| L5 | 0.1.0 | `SoftEntryLimit: 3`; a book with 2 entries, incoming invoice with 1 new item | Posted, warning "limit 3"; the next one says the book is full | — |
+| L5 | 0.1.0 | `SoftEntryLimit: 3`; a book with 2 entries, intake list with 1 new item | Filled, warning "limit 3"; the next one says the book is full | — |
 
-## Invoices
+## Lists
 
 | # | Since | Case | Expected | Last run |
 |---|---|---|---|---|
-| I1 | 0.1.0 | Invoice in hand, Shift + right click on a chest that has everything | All items into the inventory; the book in the off-hand is updated and the sheet comes back | — |
+| I1 | 0.1.0 | List in hand, Shift + right click on a chest that has everything | All items into the inventory; the book in the off-hand is updated and the sheet comes back | — |
 | I2 | 0.1.0 | Same, with something missing | "Missing"; nothing moves | — |
-| I3 | 0.1.0 | No book in the off-hand | The invoice becomes parchment | — |
+| I3 | 0.1.0 | No book in the off-hand | The list becomes parchment | — |
 | I4 | 0.1.0 | Album in the off-hand, full (32 sheets) | Parchment; the message says the book already has 32 sheets | — |
-| I5 | 0.1.0 | Inventory with one free slot, invoice for 3 plain + 3 damaged iron ingots (`/giveitem ingot-iron 3 {durability:5}`) | Refused "not enough room (1 slot short)"; nothing moves | — |
-| I6 | 0.1.0 | Invoice posted on a furnace, quern, barrel | Red "This container is not supported yet" (also from the off-hand) | — |
+| I5 | 0.1.0 | Inventory with one free slot, list for 3 plain + 3 damaged iron ingots (`/giveitem ingot-iron 3 {durability:5}`) | Refused "not enough room (1 slot short)"; nothing moves | — |
+| I6 | 0.1.0 | List filled on a furnace, quern, barrel | Red "This container is not supported yet" (also from the off-hand) | — |
 | I7 | 0.1.0 | Per-player loot chest in ruins | Refused | — |
 | I8 | 0.1.0 | Shift + Ctrl + right click with an album in hand | The mod does nothing; the game handles the click | — |
 | I9 | 0.1.0 | Plain right click and Ctrl + right click on a chest | Open it as usual | — |
-| I10 | 0.1.0 | Put an invoice on the ground, on a shelf | Behaves as an ordinary item | — |
+| I10 | 0.1.0 | Put a list on the ground, on a shelf | Behaves as an ordinary item | — |
 
 ## Access (S)
 

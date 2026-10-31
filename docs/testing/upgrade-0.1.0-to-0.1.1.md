@@ -20,6 +20,7 @@ The same fixture as in `upgrade-0.1-to-0.2.md` (the 0.1.0 world, a fresh copy fo
 | U3 | Creative inventory | Every cover of every book is listed (normal and aged); the books of the world are not unknown items | — |
 | U4 | H over a book of the world with data, normal and aged | Its handbook page opens | — |
 | U5 | The recipes of 0.1.0 (first ledger, restoring a large book, album, recolouring, aging) | Still craft | — |
+| U6 | An intake list, a pick list and a want list made in 0.1.0, in inventory and in a chest (English) | Named Intake list / Pick list / Want list; they fill and cancel as before | — |
 
 ## Changes in 0.1.1 that need a case
 
@@ -27,6 +28,7 @@ The same fixture as in `upgrade-0.1-to-0.2.md` (the 0.1.0 world, a fresh copy fo
 |---|---|---|
 | Every cover in the creative inventory, `groupByByType` in `book.json` | Item JSON only: no codes, no stored data. The handbook pages and the recipe icon groups change | U3, U4 |
 | Handbook links in `lang/*.json` | Lang values only, no keys | U4 |
+| English item names and texts: Intake list, Pick list, Fill (S3) | Lang values only, no keys, no item codes; Ukrainian unchanged | U6 |
 
 ## Outcome
 

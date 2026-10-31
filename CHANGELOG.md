@@ -8,6 +8,8 @@ Fixes after the first release.
 
 - Aged book covers have their own handbook pages: H over an aged book, or a link to it (the guide's "ages its cover"), opens the
   book's page with its recipes instead of the handbook's main page. Every cover is now in the creative inventory.
+- The invoices have English names that follow the player's view: **Intake list** (was "Incoming invoice"), **Pick list** (was
+  "Outgoing invoice"), and "Post" is now **Fill**. Item codes and saved worlds are unchanged; Ukrainian keeps its own terms.
 
 ## 0.1.0 (2026-10-28)
 

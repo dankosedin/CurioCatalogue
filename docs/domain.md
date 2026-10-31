@@ -143,7 +143,7 @@ with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `sympt
 
 - **Age:** book + jug of sulfuric acid (1 L, the jug stays) → aged cover of the same colour (not for teal and purple).
 - Recolouring and aging keep everything (entries, name, sheets). The colour list must stay stable: a removed variant turns such
-  books in the world into unknown items. Covers are collapsed in the handbook and creative inventory (only `normal-*` shown).
+  books in the world into unknown items. Every cover is in the creative inventory, aged ones too, so each has its own handbook page (mechanics: modding.md, Handbook).
 
 ## Recipes
 

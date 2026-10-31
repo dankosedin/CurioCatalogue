@@ -133,7 +133,9 @@ In this order:
 
 ## Handbook
 
-- `handbook.groupBy` groups a stack with everything matching *any* of its patterns; use a placeholder (`book-{kind}-*`) for one page per variant.
+- `handbook.groupBy` groups only the icons of the recipe slideshows ("Ingredient for", "Created by"): a stack matching *any* of the patterns shows the recipes of all of them. It does not merge pages: every stack of the creative inventory has its own page, and the list is not folded. Placeholders (`book-{kind}-*`) make one group per variant.
+- To group differently per variant use `groupByByType` (any `*ByType` key takes the first matching wildcard; an object is merged into the base object, anything else, arrays included, replaces the base value: `RegistryObjectType.cs:352#Merge`, `RegistryObjectType.cs:356#jsonObj`). Keep no base `groupBy` next to it anyway. Ours: one icon group per kind and age (`book-{kind}-normal-*`, `book-{kind}-aged-*`), guarded by `AssetsTests.Recipe_icons_group_by_kind_and_age`.
+- **A handbook page exists only for what is in the creative inventory** (or has `handbook: { include: true }`; vsapi Collectible.cs:2474#GetHandBookStacks). A variant left out of `creativeinventory` has no page: pressing H over it, or a link to it, opens the handbook's main page instead, with no error in the log (`aged-*` books, found 30.10.2026; `AssetsTests.Every_book_is_in_the_creative_inventory` guards ours). The creative inventory is the only thing that decides which pages exist, so a variant listed there has a page of its own; `groupBy` does not fold the list. Vanilla does the same with its 29 book colours.
 - Own items can add to their page via `ICustomHandbookPageContent.OnHandbookPageComposed`. A button on *every* item's page would need a
   Harmony patch of `CollectibleBehaviorHandbookTextAndExtraInfo.GetHandbookInfo`.
 - "Ingredient for" first looks pages up in `FastSearchRecipesByIngredient`, whose entries merge ingredients that differ only in
@@ -145,7 +147,7 @@ In this order:
   GuiDialogSurvivalHandbook.cs:42#GetMany); title and text are lang keys. VTML: `<strong>`, `<i>`, `<font color>`, `<br>`, `<hk>shift</hk>`
   (the player's own binding, localized), `<icon>rightmousebutton</icon>`,
   `<itemstack type="item">curiocatalogue:book-album-normal-brickred|…</itemstack>` (no attributes),
-  `<a href="handbook://item-curiocatalogue:book-ledger-normal-darkgreen">` (any cover opens the grouped page).
+  `<a href="handbook://item-curiocatalogue:book-ledger-normal-darkgreen">` (the link names one cover and opens that cover's page).
 - A link to a page with attributes: `handbook://block-clutter-{{ \\\"type\\\": \\\"bookshelves/large-book-closed\\\" }}` in the JSON
   file, spaces as `ToJsonToken` writes them; the click handler drops the backslashes (SurvivalHandbook.cs:58#Replace). Checked in game 27.10.2026.
 - Whitespace right after a closing tag is dropped: put the space inside the tag (`<i>Italic. </i>`).

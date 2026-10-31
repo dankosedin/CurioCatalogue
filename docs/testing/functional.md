@@ -30,6 +30,10 @@ Fill it in the PR of the release; older runs are in git history. A `❌` gets a 
 | C3 | 0.1.0 | An empty ledger and a tapestry piece in the grid | An album; the piece stays | — |
 | C4 | 0.1.0 | Craft a book out of an old book (one with entries) | Crafts; no stack or attribute error in the log | — |
 | C5 | 0.1.0 | Open the handbook | A Curio Catalogue guide and a page for every book, in both languages | — |
+| C6 | 0.1.1 | Creative inventory, search "ledger" (and "bill", "album") | Every cover is listed, normal and aged: 24 per kind, 72 books in all | — |
+| C7 | 0.1.1 | H over an empty aged ledger, and over one with entries (three different aged covers) | The book's own handbook page opens, with "Created by" and "Ingredient for"; not the handbook's main page | — |
+| C8 | 0.1.1 | In the guide, click "ages its cover" (English and Ukrainian) | The page of an aged ledger opens | — |
+| C9 | 0.1.1 | "Ingredient for" on a page of an aged book, then on a normal one | The aged page shows the aged covers' recipes, the normal page the normal covers'; recolouring takes aged books too (`DESIGN.md` 2.5) | — |
 
 ## The album
 

@@ -2,6 +2,13 @@
 
 What changed in each version of Curio Catalogue. A version's section is its release notes on GitHub and on the ModDB page.
 
+## 0.1.1 (unreleased)
+
+Fixes after the first release.
+
+- Aged book covers have their own handbook pages: H over an aged book, or a link to it (the guide's "ages its cover"), opens the
+  book's page with its recipes instead of the handbook's main page. Every cover is now in the creative inventory.
+
 ## 0.1.0 (2026-10-28)
 
 The first release, for Vintage Story 1.22.7. An early version: try it in a test world first and back up your world.

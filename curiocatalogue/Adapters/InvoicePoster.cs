@@ -5,11 +5,13 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using CurioCatalogue.Core;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue.Adapters;
 
 public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList, MoveFailed, Blank }
 
+[Closed(typeof(PostInvoiceResult.Posted), typeof(PostInvoiceResult.Refused))]
 public abstract record PostInvoiceResult
 {
     /// <param name="LedgerBefore">Entries in the off-hand ledger before and after; null without a ledger.</param>
@@ -26,6 +28,7 @@ public abstract record PostInvoiceResult
 public enum CollectRefusal { Unsupported, NoAccess, NothingNew, NoRoom }
 
 /// <summary>An album taking new items for its collection straight from a container (domain.md, Albums and collections).</summary>
+[Closed(typeof(CollectResult.Collected), typeof(CollectResult.Refused))]
 public abstract record CollectResult
 {
     /// <param name="Taken">Items taken into the inventory and crossed off the album.</param>
@@ -106,17 +109,22 @@ public sealed class InvoicePoster
         int MaxStack(ItemKey key) => Math.Max(1, samples[key].Collectible.MaxStackSize);
 
         var plan = Transfer.Plan(invoice.Entries, sources, targets, Capacity, MaxStack);
+        IReadOnlyList<Move> moves;
         switch (plan)
         {
             case TransferPlan.Missing missing:
                 return new PostInvoiceResult.Refused(PostRefusal.Missing, Lacking: missing.Lacking);
             case TransferPlan.NoRoom noRoom:
                 return new PostInvoiceResult.Refused(PostRefusal.NoRoom, SlotsShort: noRoom.SlotsShort);
+            case TransferPlan.Ready ready:
+                moves = ready.Moves;
+                break;
+            default:
+                throw ExhaustiveMatch.Failed(plan);
         }
 
         // Carry it out. The invoice leaves its slot first when that slot is planned to take items. If the game moves less
         // than planned (a bug in the plan), every touched slot goes back as it was: an invoice posts whole or not at all.
-        var moves = ((TransferPlan.Ready)plan).Moves;
         var before = Snapshot(moves, container, playerSlots, invoiceSlot);
         if (invoiceSlotFrees) invoiceSlot.Itemstack = null;
         var moved = Carry(player, moves, container, playerSlots);

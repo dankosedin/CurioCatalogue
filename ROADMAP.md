@@ -130,9 +130,6 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway. Review, 28.10.2026: messages
   and handing out new items are spread over `ItemLedger`, `ItemInvoice`, `ModNetwork` and `EmptyHandGesture` ("into the empty
   hand, else the inventory, else the ground" twice); one `Outcome` packet and one helper for handing out items.
-- **Exhaustive `switch` over record hierarchies** (28.10.2026). Outcomes are closed record hierarchies (`TransferPlan`:
-  `Ready | Missing | NoRoom`; `CreateInvoiceResult`), but unlike Scala's sealed traits C# does not warn when a `switch` misses a
-  case. A Roslyn analyzer (e.g. `ExhaustiveMatching.Analyzer`) makes it a compile error. Cheap; check it with CI and the IDE.
 - **Books as a sum type** (28.10.2026): `LedgerBook | MaterialsBook | Album` instead of one `Ledger` with a `Mode` and an `AlbumInfo`
   that only an album has. An album then cannot be asked for an invoice at all, and the `InvalidOperationException`s in `Ledger`
   go. A deep change of the core and of how books are stored: do it together with template entries (Next, after 0.2), which change

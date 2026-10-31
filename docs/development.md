@@ -48,6 +48,21 @@ docs/                      documentation; docs/plans/ holds the implementation p
 - Concrete game classes without virtual members (e.g. `ModSystemBlockReinforcement`) cannot be mocked: wrap them behind a small
   interface of our own.
 
+## Exhaustive `switch`
+
+The closed hierarchies of records (`TransferPlan`, `CreateInvoiceResult`, `MakeInvoiceResult`, `PostInvoiceResult`, `CollectResult`,
+`AttrValue`) carry `[Closed(typeof(A), typeof(B), …)]` and every `switch` over them ends in `default: throw ExhaustiveMatch.Failed(x)`.
+The analyzer `ExhaustiveMatching.Analyzer` (package in `CurioCatalogue.Core.csproj`) then turns a missed case into error `EM0003` at build
+time, locally and in CI. A new subtype of a closed record is added to its `[Closed]` list; a new hierarchy of the same kind gets the
+attribute too.
+
+- The analyzer rejects `when` guards and property patterns (`Refused { Reason: X }`) in such a switch (`EM0100`, `EM0101`): switch on the
+  type, then on the property inside the case.
+- `ExhaustiveMatching.dll` (the attribute and the exception) is a runtime dependency: a call into a missing assembly fails when the
+  method is compiled, not when the branch runs. `CopyLocalLockFileAssemblies` in `curiocatalogue.csproj` brings it into the mod folder,
+  and CakeBuild adds `THIRD-PARTY-NOTICES.md` (its BSD-3-Clause licence) to the zip. A new third-party library goes there too.
+- A switch over an enum, a tuple or a game type is not covered; use `_ =>` there as before.
+
 ## Run and debug in game
 
 Launch profiles are in `curiocatalogue\Properties\launchSettings.json` (F5 in Visual Studio):

@@ -3,12 +3,14 @@ using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using CurioCatalogue.Core;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue.Adapters;
 
 /// <summary>Why no invoice was made; the code also names the player-facing message ("ingameerror-" + code).</summary>
 public enum MakeRefusal { Unsupported, NoAccess, LedgerFull, NoDifference, NoSheets }
 
+[Closed(typeof(MakeInvoiceResult.Made), typeof(MakeInvoiceResult.Refused))]
 public abstract record MakeInvoiceResult
 {
     /// <param name="InvoiceStack">The new invoice item, still to be handed to the player.</param>
@@ -86,7 +88,7 @@ public sealed class InvoiceMaker
                 return new MakeInvoiceResult.Made(invoiceStack, created.Invoice, created.Ledger.Sheets);
 
             default:
-                throw new InvalidOperationException($"Unknown result {result}");
+                throw ExhaustiveMatch.Failed(result);
         }
     }
 

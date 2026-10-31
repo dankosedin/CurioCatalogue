@@ -1,3 +1,4 @@
+using ExhaustiveMatching;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -137,6 +138,9 @@ public class ItemLedger : Item
                 PlayerMessages.Tell(player, "invoice-made",
                     PlayerMessages.ItemName(player, made.InvoiceStack), made.Invoice.Entries.Length, made.SheetsLeft, Mod.Config.MaxSheets);
                 break;
+
+            default:
+                throw ExhaustiveMatch.Failed(result);
         }
     }
 
@@ -147,11 +151,9 @@ public class ItemLedger : Item
 
         switch (result)
         {
-            case CollectResult.Refused { Reason: CollectRefusal.NoRoom } noRoom:
-                PlayerMessages.Refuse(player, "noroom", noRoom.SlotsShort);
-                break;
             case CollectResult.Refused refused:
-                PlayerMessages.Refuse(player, refused.Reason.ToString().ToLowerInvariant());
+                if (refused.Reason == CollectRefusal.NoRoom) PlayerMessages.Refuse(player, "noroom", refused.SlotsShort);
+                else PlayerMessages.Refuse(player, refused.Reason.ToString().ToLowerInvariant());
                 break;
             case CollectResult.Collected collected:
                 var text = collected.MissingLeft == 0
@@ -160,6 +162,9 @@ public class ItemLedger : Item
                 if (collected.NotFitted > 0) text += " " + PlayerMessages.Text(player, "notfitted", collected.NotFitted);
                 PlayerMessages.TellText(player, text);
                 break;
+
+            default:
+                throw ExhaustiveMatch.Failed(result);
         }
     }
 
@@ -171,7 +176,7 @@ public class ItemLedger : Item
     {
         MakeInvoiceResult.Made made => $"made, {made.Invoice.Entries.Length} lines, {made.SheetsLeft} sheets left",
         MakeInvoiceResult.Refused refused => $"refused, {refused.Reason}",
-        _ => result.ToString(),
+        _ => throw ExhaustiveMatch.Failed(result),
     };
 
     // --- Crafting (domain.md, Recipes; recipes in recipes/grid/ledger.json, told apart by their name) ---

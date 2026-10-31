@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue.Core;
 
@@ -7,6 +8,8 @@ namespace CurioCatalogue.Core;
 /// <c>ITreeAttribute</c> into this model; the core only reads it to build an <see cref="ItemKey"/>.
 /// Each value keeps its type, because the game tells e.g. an int 5 from a long 5.
 /// </summary>
+[Closed(typeof(AttrString), typeof(AttrInt), typeof(AttrLong), typeof(AttrFloat), typeof(AttrDouble), typeof(AttrBool),
+    typeof(AttrBytes), typeof(AttrArray), typeof(AttrTree))]
 public abstract record AttrValue;
 
 public sealed record AttrString(string Value) : AttrValue;

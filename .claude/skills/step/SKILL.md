@@ -58,4 +58,5 @@ In the same branch, with the step's commit or as the last commit after "комі
 - the updates the `CLAUDE.md` table asks for (e.g. `docs/testing/functional.md` with every fixed bug, `CHANGELOG.md`, both READMEs).
 
 Then tell the author, briefly and in Ukrainian: what is done, what is left, the in-game checks for them, the commands for them
-to run, and proposed roadmap lines if any.
+to run, and proposed roadmap lines if any. End with the next step: its id, its `Model:` (so the author can `/model` before
+`/step`) and its `After:` (whether it waits for a merge), read from the plan.

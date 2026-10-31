@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ExhaustiveMatching;
 
 namespace CurioCatalogue.Core;
 
@@ -16,6 +17,7 @@ public sealed record TargetSlot(int Index, ItemKey? Key, int Count, int Stack = 
 /// <summary>Move <paramref name="Amount"/> items from source slot to target slot.</summary>
 public sealed record Move(int Source, int Target, int Amount);
 
+[Closed(typeof(TransferPlan.Ready), typeof(TransferPlan.Missing), typeof(TransferPlan.NoRoom))]
 public abstract record TransferPlan
 {
     /// <summary>Everything is there and fits; carry out the moves in order.</summary>

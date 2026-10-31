@@ -30,6 +30,20 @@ public class InvoiceFatesTests
         Assert.Equal(new InvoiceEnd(InvoiceFate.Consumed, null), InvoiceFates.Ended(null, Limits, consumeSheets: true));
     }
 
+    [Fact]
+    public void A_cancelled_blank_invoice_gives_no_sheet_and_no_parchment()
+    {
+        Assert.Equal(new InvoiceEnd(InvoiceFate.Consumed, null), InvoiceFates.Cancelled(blank: true, Book(1), Limits, consumeSheets: false));
+        Assert.Equal(new InvoiceEnd(InvoiceFate.Consumed, null), InvoiceFates.Cancelled(blank: true, null, Limits, consumeSheets: false));
+    }
+
+    [Fact]
+    public void A_cancelled_invoice_with_lines_ends_as_a_posted_one()
+    {
+        Assert.Equal(InvoiceFate.SheetReturned, InvoiceFates.Cancelled(blank: false, Book(3), Limits, consumeSheets: false).Fate);
+        Assert.Equal(InvoiceFate.Parchment, InvoiceFates.Cancelled(blank: false, null, Limits, consumeSheets: false).Fate);
+    }
+
     [Theory]
     [InlineData(false, false, InvoiceFate.Kept)]
     [InlineData(false, true, InvoiceFate.Kept)]

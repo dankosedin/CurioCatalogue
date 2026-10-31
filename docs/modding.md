@@ -205,6 +205,11 @@ In this order:
 
 ## Other mods
 
+- **One process for all mods' code** (VintagestoryLib, decompiled 31.10.2026: `ModContainer`, `ModAssemblyLoader`). The game
+  loads only a mod's main dll (the one with a `ModSystem`) by its path. Any other dll is found through `AssemblyResolve`: in the
+  game's folder, its `Lib`, then every mod folder in turn, and the first file named `<assembly>.dll` wins for all mods. Two mods
+  shipping a library of the same name share one copy, and a different version can stop one of them from loading ("two mods with
+  .dlls with the same name"). So we ship no third-party dll (`docs/architecture.md`, Exhaustive switch).
 - **Better Crates 1.10.0** (from its IL): tessellates with its own texture source by baked name (block atlas, then
   `textures/<name>.png`); on an exception logs `<name> Item threw Exception! Shape.Base: …` and retries with the vanilla source, whose
   item-atlas UVs corrupt the chunk mesh; only `… threw Exception again!` means a cube placeholder. It places items with plain RMB, so

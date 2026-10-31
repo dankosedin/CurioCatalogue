@@ -110,8 +110,6 @@ public sealed class PackageTask : FrostingTask<BuildContext>
         {
             context.CopyFile($"../{BuildContext.ProjectName}/modicon.png", $"../Releases/{context.Name}/modicon.png");
         }
-        // The licence of ExhaustiveMatching.dll, which ships in the zip.
-        context.CopyFile("../THIRD-PARTY-NOTICES.md", $"../Releases/{context.Name}/THIRD-PARTY-NOTICES.md");
         context.Zip($"../Releases/{context.Name}", zip);
     }
 }

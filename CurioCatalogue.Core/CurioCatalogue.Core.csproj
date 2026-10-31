@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Compile-time check that a switch over a closed hierarchy covers every case; ExhaustiveMatching.dll (the attributes and
-         the exception) ships in the mod zip with its licence: THIRD-PARTY-NOTICES.md. -->
-    <PackageReference Include="ExhaustiveMatching.Analyzer" Version="0.5.0" />
+    <!-- Only the analyzer: a missed case in a switch over a [Closed] hierarchy or an enum is a build error. The types it looks
+         for are our own (ExhaustiveMatching.cs); the package's dll is neither compiled against nor shipped. -->
+    <PackageReference Include="ExhaustiveMatching.Analyzer" Version="0.5.0" ExcludeAssets="compile;runtime" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

@@ -15,6 +15,8 @@ Thanks for wanting to help. Bug reports, ideas, code and translations are all we
 - Fork the repository, make a branch `feature/<name>` and open a pull request into `main`. No issue is needed first.
 - What the mod does for the player is described in `DESIGN.md`, and it changes only after agreeing with the author. If your change
   does something new for the player, say what and why in the pull request; `ROADMAP.md` lists the ideas we already want.
+- A pull request goes through a players' round and a code review (`docs/review.md`); expect questions about how a player
+  meets your change before any about the code.
 - One logical change per pull request. It is squash-merged, so its title becomes the commit message: English, imperative, short.
 - Build and test as in `docs/development.md`; `dotnet test curiocatalogue.sln` must pass. CI runs the same on your pull request.
   For a first-time contributor GitHub waits until a maintainer approves the run.

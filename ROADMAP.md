@@ -141,6 +141,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.
+- **The review procedure, next ideas** (`docs/review.md`): tests from the C# expert as proof of a bug; a security role first in
+  line for outside pull requests (calls out of the game, processes, build scripts, new dependencies) before anyone builds them;
+  a check that the code does what `DESIGN.md`, the READMEs and the lang texts say.
 
 ## Maybe
 

@@ -144,6 +144,7 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   keep such trailers in the commits, not in the PR description, or they appear twice.
 - Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
   person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
+  How a change is reviewed (a players' round, then a code review, both by role subagents): `docs/review.md`.
 - CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs both test
   projects; on `feature/*`, `main`, `release` and on every PR (on the merge result).
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.

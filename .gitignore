@@ -680,5 +680,6 @@ notes/
 # Local notes (CLAUDE.local.md)
 CLAUDE.local.md
 
-# Claude Code: agent worktrees and local state
-.claude/
+# Claude Code: agent worktrees and local state; project skills are shared
+.claude/*
+!.claude/skills/

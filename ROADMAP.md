@@ -3,7 +3,7 @@
 What may come after 0.1.0, and roughly when. Why the mod exists and what it will not do: `DESIGN.md`.
 
 **Horizons:**
-- **Next:** what we work on, in this order. Several releases, not one.
+- **Next:** what we work on, grouped by release (planned 31.10.2026), in this order within a release.
 - **Later:** wanted; order not decided.
 - **Maybe:** ideas without promises, often because the design space or the research is too large to judge yet.
 - **When pigs fly:** ideas we would rather not build; only on strong demand.
@@ -13,9 +13,16 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 
 ## Next
 
-1. **Stamp-album view.** The album window shows the whole collection: collected pieces in their slots, missing ones as dim empty
-   cells, grouped by picture. Today it shows only what is missing.
-2. **Butterflies, the second collection.** Collected by a player on the author's server. A second collection tests how general the
+### 0.1.1: fixes
+
+[The 0.1.1 plan](docs/plans/2026-10-31-release-0.1.1.md): the aged covers' handbook pages, English names of the invoices, small fixes.
+
+### 0.2: collections
+
+Butterflies were promised for 0.2 on the ModDB page (29.10.2026); ore crystals "maybe in 0.2". Crystals and seashells come in
+0.2 if the release has room for them, else in 0.2.x: after the registry of definitions (item 1) each is a small step.
+
+1. **Butterflies, the second collection.** Collected by a player on the author's server. A second collection tests how general the
    core is. Different from tapestries: the species is the item's variant (`butterfly-dead-<type>`), not an attribute; 169 types; two
    forms, live (`creature-butterfly-*`) and dead (`butterfly-dead-*`, goes on shelves and into display cases); males and females are
    separate types. Open: which form counts, and how to group (by species?). Ask the player who collects them.
@@ -23,37 +30,45 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
    `Collections.Get` is called in three places), and the registry as a list of collection definitions, not tapestries only.
    Measure the cost of reading a book first: tooltips and crafting checks read the whole book, the window hashes its whole
    data every 500 ms; fine for 88 tapestries, maybe not for 169 butterflies.
-3. **Invoices:**
+2. **Stamp-album view.** The album window shows the whole collection: collected pieces in their slots, missing ones as dim empty
+   cells, grouped by picture. Today it shows only what is missing.
+3. **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three times,
+   since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line. Show the
+   piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
+4. **Ore crystals, the third collection** (29.10.2026). Players on the author's server collect them. The item is
+   `crystalizedore-{grade}-{ore}-{rock}` (assumed to be what players mean; check with them): 4 grades (poor … bountiful), 18 ores,
+   17 rocks, about 400 allowed combinations in vanilla (`itemtypes/resource/crystalizedore-graded.json`). Unlike tapestries and
+   butterflies, a piece has three dimensions. Open: what counts as one piece and how the album starts: by ore only (18), by ore and
+   grade (~70), or every combination (~400); or the player chooses when making the album. Needs the album to be told its
+   dimensions, which fits the resolver and the registry as definitions (item 1) and may come with custom collections (after 0.2).
+5. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
+   6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and
+   whether a picked-up shell is an item stack in a chest.
+
+### After 0.2
+
+Proposed (31.10.2026), not decided: 0.3 for invoices and comfort (item 1, the hotkey for the book's window, the server's config
+sent to clients, messages built by the client), then recipes into a bill of materials with books as a sum type.
+
+1. **Invoices:**
    - **Names from the book.** A want list from the album "Danko's tapestries" is called "Want list for: Danko's tapestries"; the same
      for invoices from a named book.
    - **Partial posting for every invoice,** as the want list already does: what is there and fits moves, the invoice stays shorter.
      Open: by default or with another gesture (today "missing, nothing moves" is a useful signal for an outgoing invoice); a partly
      posted incoming invoice records only what moved.
-4. **Recipes into a bill of materials** (the killer feature of the bill of materials):
+2. **Recipes into a bill of materials** (the killer feature of the bill of materials):
    - **from the handbook:** a button on a recipe's page puts its ingredients into the bill of materials; pages of other mods' items
      need a Harmony patch of the handbook (`docs/modding.md`, Handbook);
    - **into raw materials:** "5 barrels" becomes boards and hoops; needs a choice when an item has several recipes;
    - **template entries** ("any boards"): vanilla ingredients are often wildcards, so expanding recipes needs them. The deepest
      change to the core (exact `ItemKey` matching, which stack a transfer takes), so it is done early, with this feature.
-5. **Custom collections.** The player writes what a full set is (search in the book's window, the handbook) and turns the book into
+3. **Custom collections.** The player writes what a full set is (search in the book's window, the handbook) and turns the book into
    an album of that collection: progress, taking only new items, want lists. Covers everything the mod has no built-in collection
    for. New: the collection lives in the item, not in `CollectionRegistry`. Brings **search in the book's window** with it.
-6. **Chests on boats** (an entity's inventory). The author loves boats. Costlier than it looks (review, 28.10.2026): "a container"
+4. **Chests on boats** (an entity's inventory). The author loves boats. Costlier than it looks (review, 28.10.2026): "a container"
    is a block position everywhere (the network request, `InvoiceMaker` / `InvoicePoster`, `ContainerAccess`, hints as a
    `BlockBehavior`, the invoice's saved position). First a `ContainerTarget` (block | entity) behind `ContainerReader` and
    `ContainerAccess`; the access rule for an entity's inventory needs research.
-
-7. **Ore crystals, the third collection** (29.10.2026). Players on the author's server collect them. The item is
-   `crystalizedore-{grade}-{ore}-{rock}` (assumed to be what players mean; check with them): 4 grades (poor … bountiful), 18 ores,
-   17 rocks, about 400 allowed combinations in vanilla (`itemtypes/resource/crystalizedore-graded.json`). Unlike tapestries and
-   butterflies, a piece has three dimensions. Open: what counts as one piece and how the album starts: by ore only (18), by ore and
-   grade (~70), or every combination (~400); or the player chooses when making the album. Needs the album to be told its
-   dimensions, which fits the resolver and the registry as definitions (item 2) and may come with custom collections (item 5).
-   Order against items 2 to 5 not decided.
-
-8. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
-   6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and
-   whether a picked-up shell is an item stack in a chest.
 
 ## Later
 
@@ -61,11 +76,12 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 - **Exhibits:** record a collection where it is displayed, without moving it: tapestries on walls, butterflies on shelves and in
   display cases, other wall-hung things, and mods that add display blocks. A lot of work: many block kinds. Pieces displayed by
   others count too: the collection is the items, the album only a way to look at it.
-- **More collections,** from players' feedback.
+- **More collections,** from players' feedback. Noted by the author (31.10.2026): **fish**, **fruit trees** and **berry
+  bushes**. Open for each: what one piece is (a species? a fruit or a sapling?) and whether it can lie in a chest at all.
 - **Can the tapestry collection be completed?** (review, 28.10.2026) Some pieces in the game's `sizes` have index `-1` and are not
   in `tapestryGroups` (lore tapestries: `aid-*`, `glider`, `symptoms` and others). If survival never gives them, "the collection
   is complete" is out of reach, while README promises 88 pieces. Research in game and in the worldgen schematics, together with
-  butterflies (Next, 2) and decorating a complete album.
+  butterflies (Next, 0.2) and decorating a complete album.
 - **Decorating a complete album:** golden corners or a seal on the cover for a full collection, a decorated page for a complete
   picture, maybe steps (25 / 50 / 100 %). On the book itself it depends on our own book model (see Spin-off ideas); in the window it does not.
 
@@ -95,9 +111,6 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
   - **a cheap thing that gives the hint,** e.g. a worn item or a one-time resource instead of the whole book ("magic"); open whether
     it takes an inventory slot or a clothing slot, and what it needs to be made.
   Open: where the album's data comes from when the book is not in the inventory (the data lives in the item, `DESIGN.md`).
-- **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three times,
-  since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line. Show the
-  piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
 
 - **A hotkey for the book's window** (review, 28.10.2026): today it opens only on right click into the air, which is hard to
   find in a cellar or at a workbench.
@@ -122,8 +135,8 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
   case. A Roslyn analyzer (e.g. `ExhaustiveMatching.Analyzer`) makes it a compile error. Cheap; check it with CI and the IDE.
 - **Books as a sum type** (28.10.2026): `LedgerBook | MaterialsBook | Album` instead of one `Ledger` with a `Mode` and an `AlbumInfo`
   that only an album has. An album then cannot be asked for an invoice at all, and the `InvalidOperationException`s in `Ledger`
-  go. A deep change of the core and of how books are stored: do it together with template entries (Next, 4), which change the
-  data model anyway (README warns that the model may change). Review, 28.10.2026: then also the variant (`book-album-*`) as the
+  go. A deep change of the core and of how books are stored: do it together with template entries (Next, after 0.2), which change
+  the data model anyway (README warns that the model may change). Review, 28.10.2026: then also the variant (`book-album-*`) as the
   only sign of an album (today the `album` attribute tree says it too, `docs/architecture.md` rejected two sources), and a typed
   sample instead of `Entry.Sample` as `object` with casts to `ItemStack` all over the adapters.
 - **Tests for the item classes** (review, 28.10.2026): gestures, crafting hooks, tooltips of `ItemLedger` / `ItemInvoice` have

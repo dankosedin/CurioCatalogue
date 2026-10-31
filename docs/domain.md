@@ -17,16 +17,16 @@ Player-facing names in English and Ukrainian (`lang/en.json`, `lang/uk.json`); n
 | **bill of materials** | список матеріалів | `book-materials-*`, `LedgerMode.Counts` | a register of types *with counts* (a multiset) |
 | **album** | альбом | `book-album-*`, `LedgerMode.Album` | a types book filled with a collection; its entries are what is still **missing** |
 | **entry** | запис | `Entry` | one item type in a book (with a count in a bill of materials); stored as a sample stack |
-| **invoice** | накладна | item type `invoice`, class `ItemInvoice` | a standalone document listing real stacks with counts; not bound to a book |
-| **incoming invoice** | прибуткова накладна | `invoice-incoming` | what a container has that the book lacks |
-| **outgoing invoice** | видаткова накладна | `invoice-outgoing` | what a container has of the book's entries |
-| **want list** | список бажаного | `invoice-wantlist` | what an album misses, made to hand to another player; technically an invoice |
+| **list** (code: invoice) | накладна | item type `invoice`, class `ItemInvoice` | a standalone document listing real stacks with counts; not bound to a book |
+| **intake list** (code: incoming invoice) | прибуткова накладна | `invoice-incoming` | what a container has that the book lacks |
+| **pick list** (code: outgoing invoice) | видаткова накладна | `invoice-outgoing` | what a container has of the book's entries |
+| **want list** | список бажаного | `invoice-wantlist` | what an album misses, made to hand to another player; technically an invoice (a list in English) |
 | **sheet** | аркуш | | vanilla parchment (`paper-parchment`) held by a book; one per invoice |
 | **cover** | обкладинка | variant `<type>-<colour>` | the book's colour, to tell books apart; `normal-*` or `aged-*` |
 | **collection** | колекція | `Collection` | a set of items worth collecting; tapestries are the first and only one so far |
 | **member**, **piece** | шматок | | one item of a collection; for tapestries, one piece of a picture |
 | **snapshot** | знімок | | the collection's members at the time an album was made or started over |
-| **posting** | проведення | `InvoicePoster.Post` | carrying out an invoice on a container: the items move into the player's inventory |
+| **filling** (code: posting) | проведення | `InvoicePoster.Post` | carrying out an invoice on a container: the items move into the player's inventory |
 | **cancelling** | анулювання | | dropping an invoice without moving anything |
 | **taking new** | забрати нове для колекції | `InvoicePoster.Collect` | the album's gesture: take one of each missing member straight from a container |
 | **origin** | | | where and when an invoice was made (day and coordinates; for information only) |
@@ -35,6 +35,11 @@ Notation below: **B** is the book's set or multiset, **C** the container's conte
 
 Old names (before 26.10.2026), still found in the archive: the mod was "Warehouse Ledger", the album "catalog",
 the want list "collection invoice".
+
+English player-facing names (decided 31.10.2026, `docs/plans/2026-10-31-release-0.1.1.md`): "invoice" is **list**, incoming is
+**intake list**, outgoing is **pick list**, "post" is **fill**. Item codes and C# identifiers keep the old words (`invoice-incoming`,
+`InvoicePoster.Post`): the codes live in saved worlds and recipes. Like `LedgerMode`, this page and the code say "invoice", "incoming",
+"outgoing" and "post"; the player sees the English names above. Ukrainian keeps its accounting terms.
 
 ## Books
 

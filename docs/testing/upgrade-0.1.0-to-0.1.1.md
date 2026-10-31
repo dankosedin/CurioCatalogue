@@ -13,15 +13,15 @@ The same fixture as in `upgrade-0.1-to-0.2.md` (the 0.1.0 world, a fresh copy fo
 
 ## Cases
 
-| # | Case | Expected | Result |
-|---|---|---|---|
-| U1 | Load the world | Loads; no `[CurioCatalogue]` errors, no "Failed to parse grid recipe", no "cannot be resolved" | — |
-| U2 | Every book from the fixture (tooltip, window) | Same entries, name, sheets and cover as before | — |
-| U3 | Creative inventory | Every cover of every book is listed (normal and aged); the books of the world are not unknown items | — |
-| U4 | H over a book of the world with data, normal and aged | Its handbook page opens | — |
-| U5 | The recipes of 0.1.0 (first ledger, restoring a large book, album, recolouring, aging) | Still craft | — |
-| U6 | An intake list, a pick list and a want list made in 0.1.0, in inventory and in a chest (English) | Named Intake list / Pick list / Want list; they fill and cancel as before | — |
-| U7 | Open the release zip; load the world | The zip holds `curiocatalogue.dll` and `CurioCatalogue.Core.dll` and no other dll; the mod loads without "Could not load file or assembly" in the logs | — |
+| # | Case | Expected |
+|---|---|---|
+| U1 | Load the world | Loads; no `[CurioCatalogue]` errors, no "Failed to parse grid recipe", no "cannot be resolved" |
+| U2 | Every book from the fixture (tooltip, window) | Same entries, name, sheets and cover as before |
+| U3 | Creative inventory | Every cover of every book is listed (normal and aged); the books of the world are not unknown items |
+| U4 | H over a book of the world with data, normal and aged | Its handbook page opens |
+| U5 | The recipes of 0.1.0 (first ledger, restoring a large book, album, recolouring, aging) | Still craft |
+| U6 | An intake list, a pick list and a want list made in 0.1.0, in inventory and in a chest (English) | Named Intake list / Pick list / Want list; they fill and cancel as before |
+| U7 | Open the release zip; load the world | The zip holds `curiocatalogue.dll` and `CurioCatalogue.Core.dll` and no other dll; the mod loads without "Could not load file or assembly" in the logs |
 
 ## Changes in 0.1.1 that need a case
 
@@ -35,4 +35,7 @@ The same fixture as in `upgrade-0.1-to-0.2.md` (the 0.1.0 world, a fresh copy fo
 
 ## Outcome
 
-Fill in at the release: date, the 0.1.1 build (zip or commit), who ran it, and a line for each `❌`.
+The results go into the release pull request's description (`functional.md`, Results).
+
+Not run for 0.1.1 (the author, 31.10.2026): nothing in the table above changes stored data, item codes or config keys, and
+the world from 0.1.0 is gone. U7 is the first step of the smoke test (`functional.md`).

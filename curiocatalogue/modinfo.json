@@ -7,7 +7,7 @@
         "DankoSedin"
     ],
     "description": "Collect curiosities in an album that knows what you still miss, keep stock in ledgers and bills of materials, and trade want lists with friends.",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "dependencies": {
         "game": "1.22.7"
     }

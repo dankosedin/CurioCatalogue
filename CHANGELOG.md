@@ -2,7 +2,7 @@
 
 What changed in each version of Curio Catalogue. A version's section is its release notes on GitHub and on the ModDB page.
 
-## 0.1.1 (unreleased)
+## 0.1.1 (2026-10-31)
 
 Fixes after the first release.
 

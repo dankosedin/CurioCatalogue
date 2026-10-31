@@ -6,7 +6,7 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 
 Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 
-> **Early development.** This is 0.1.0, the first and minimal version of the mod (an MVP). Try it in a test world first.
+> **Early development.** This is 0.1.1, still a minimal version of the mod (an MVP). Try it in a test world first.
 > The way books and lists store their data may change in the next two releases, and books and lists made with this
 > version may not carry over.
 >
@@ -130,7 +130,7 @@ Thanks to these authors: their work makes the game's mod community richer.
 
 - Thanks to Anego Studios for Vintage Story, and for opening the code of its API and of the survival mod: it taught us how the
   game works.
-- Thanks to the Fendragon server, where the author collects the very tapestries this mod was made for.
+- Thanks to the [Fendragon server](https://discord.gg/2yNGvKcRP), where the author collects the very tapestries this mod was made for.
 - Thanks to Jeff Walker for [ExhaustiveMatching](https://github.com/WalkerCodeRanger/ExhaustiveMatching) (BSD-3-Clause), which turns a missed
   `switch` case into a compile error. It is used only when building; the mod zip holds none of its code.
 

@@ -31,20 +31,20 @@ If the fixture is lost, make it again with the 0.1.0 zip from the GitHub release
 
 ## Cases
 
-| # | Case | Expected | Result |
-|---|---|---|---|
-| U1 | Load the world | Loads; no `[CurioCatalogue]` errors or warnings about unknown items, no "Failed to parse grid recipe", no "cannot be resolved" | — |
-| U2 | Config of 0.1.0 | Read as it is; the new keys of 0.2.0 appear with defaults; the old values are kept | — |
-| U3 | Look at every book from the fixture (tooltip, window) | Same counts, entries, name and cover colour as before | — |
-| U4 | Open the album window | Collected pieces and the missing ones as before; the collection counts match | — |
-| U5 | Post an invoice from the fixture (each kind) | Works as in 0.1.0; the book in the off-hand updates and gets the sheet back | — |
-| U6 | The want list from the fixture | Posts on the chest; finishes normally | — |
-| U7 | Books and invoices lying in the world (chest, shelf, ground, inventory) | Drawn correctly, not as error items; nothing disappeared | — |
-| U8 | Craft a book out of an old book (a book once could not be crafted from an old one) | Crafts; the result is a valid book | — |
-| U9 | Old recipes | All three still craft: first ledger, restoring a large book, album | — |
-| U10 | The format version `v` of the old books | Read as version 1 and still work; if 0.2.0 changed the format, they are converted without losing entries | — |
-| U11 | Save, quit, load again | Everything from U3 is still there | — |
-| U12 | The other direction: the 0.2.0 world on 0.1.0 | Not supported; check only that 0.1.0 says "newer version" for a changed book and does not wipe it, if 0.2.0 changed the format | — |
+| # | Case | Expected |
+|---|---|---|
+| U1 | Load the world | Loads; no `[CurioCatalogue]` errors or warnings about unknown items, no "Failed to parse grid recipe", no "cannot be resolved" |
+| U2 | Config of 0.1.0 | Read as it is; the new keys of 0.2.0 appear with defaults; the old values are kept |
+| U3 | Look at every book from the fixture (tooltip, window) | Same counts, entries, name and cover colour as before |
+| U4 | Open the album window | Collected pieces and the missing ones as before; the collection counts match |
+| U5 | Post an invoice from the fixture (each kind) | Works as in 0.1.0; the book in the off-hand updates and gets the sheet back |
+| U6 | The want list from the fixture | Posts on the chest; finishes normally |
+| U7 | Books and invoices lying in the world (chest, shelf, ground, inventory) | Drawn correctly, not as error items; nothing disappeared |
+| U8 | Craft a book out of an old book (a book once could not be crafted from an old one) | Crafts; the result is a valid book |
+| U9 | Old recipes | All three still craft: first ledger, restoring a large book, album |
+| U10 | The format version `v` of the old books | Read as version 1 and still work; if 0.2.0 changed the format, they are converted without losing entries |
+| U11 | Save, quit, load again | Everything from U3 is still there |
+| U12 | The other direction: the 0.2.0 world on 0.1.0 | Not supported; check only that 0.1.0 says "newer version" for a changed book and does not wipe it, if 0.2.0 changed the format |
 
 ## Changes in 0.2.0 that need a case
 
@@ -56,4 +56,4 @@ Fill in while 0.2.0 is made. Take each line from the changelog or the PR and say
 
 ## Outcome
 
-Fill in at the release: date, the 0.2.0 build (zip or commit), who ran it, and a line for each `❌`.
+The results go into the release pull request's description (`functional.md`, Results).

@@ -91,6 +91,12 @@ give players the same file: otherwise the album and the tooltips show the client
 - Supported containers: chests, trunks, labeled chests, stationary baskets, storage vessels, crates, backpacks and baskets placed on
   the ground, and other mods' chests built on the vanilla ones. On other blocks with an inventory (ovens, barrels,
   shelves…) the mod says "This container is not supported yet". Per-player loot chests in ruins are refused.
+  If a container of another mod says so, tell us the mod and the block: see `CONTRIBUTING.md`.
+
+## Removing the mod
+
+The game deletes items of a removed mod. Without Curio Catalogue, every book and list disappears from inventories and chests,
+with the sheets in them; installing the mod again does not bring them back.
 
 ## Languages
 

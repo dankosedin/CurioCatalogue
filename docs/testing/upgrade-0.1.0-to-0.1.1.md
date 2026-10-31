@@ -31,6 +31,7 @@ The same fixture as in `upgrade-0.1-to-0.2.md` (the 0.1.0 world, a fresh copy fo
 | Handbook links in `lang/*.json` | Lang values only, no keys | U4 |
 | English item names and texts: Intake list, Pick list, Fill (S3) | Lang values only, no keys, no item codes; Ukrainian unchanged | U6 |
 | `ExhaustiveMatching.dll` and `THIRD-PARTY-NOTICES.md` in the zip (S5) | The zip gains a library; no stored data | U7 |
+| Clearer texts after the players' round (S8), en and uk | Lang values only, no keys | U6 |
 
 ## Outcome
 

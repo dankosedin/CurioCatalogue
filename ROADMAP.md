@@ -46,7 +46,8 @@ Butterflies were promised for 0.2 on the ModDB page (29.10.2026); ore crystals "
    `crystalizedore-{grade}-{ore}-{rock}` (assumed to be what players mean; check with them): 4 grades (poor … bountiful), 18 ores,
    17 rocks, about 400 allowed combinations in vanilla (`itemtypes/resource/crystalizedore-graded.json`). Unlike tapestries and
    butterflies, a piece has three dimensions. Open: what counts as one piece and how the album starts: by ore only (18), by ore and
-   grade (~70), or every combination (~400); or the player chooses when making the album. Needs the album to be told its
+   grade (~70), or every combination (~400); or the player chooses when making the album. First step: ask the
+   collectors on the author's server what one piece is for them (ore, grade, rock). Needs the album to be told its
    dimensions, which fits the resolver and the registry as definitions (item 1) and may come with custom collections (after 0.2).
 5. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
    6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and

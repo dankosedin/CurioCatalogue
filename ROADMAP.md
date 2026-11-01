@@ -52,9 +52,8 @@ Butterflies were promised for 0.2 on the ModDB page (29.10.2026); ore crystals "
 5. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
    6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and
    whether a picked-up shell is an item stack in a chest.
-6. **Screenshots in one style and both languages** (moved from 0.1.1, 31.10.2026), for the README and the ModDB page;
-   `docs/images/first-ledger.png` still shows "incoming invoice" and "When posted". With the stamp-album view, so the album
-   is shown as it will look.
+6. **Screenshots taken again with the stamp-album view,** by the process of [the mod page plan](docs/plans/2026-11-01-mod-page.md)
+   (studio, macros, shot list); this also checks how reproducible that process is.
 
 ### After 0.2
 

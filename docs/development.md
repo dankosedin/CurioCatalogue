@@ -104,6 +104,14 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - **`CraftingTests`** crafts through a real player's grid (C1–C4 of `functional.md`): stacks put into the grid's slots, the output taken with
   `ActivateSlot` as the server does with the client's packet; it checks the recipe found, the book made (cover, sheets, entries, name) and
   what is left in the grid. How: `docs/modding.md`, "Crafting on the server".
+- **`LanguageTests`** (T2 of `functional.md`): `FakeClient.Join(game, "name", "uk")` joins with a client language (the player's `LanguageCode`) on the
+  fixture's English server. A red refusal, the chat line after making a list, after a post (the sheet back in the album) and after the album
+  taking come in the player's language; the expected texts are read from the mod's `lang/*.json`, not written in the tests. Join also
+  greets the player in the chat ("Welcome …", the server's language): the tests skip that line.
+- **`ConfigFileTests`** (G1): calls the mod's private `LoadConfig` by reflection on the running server with a config file the test writes into
+  the temp world's `ModConfig` (put back afterwards): corrections are logged as warnings and written back, a good file gets the settings it
+  lacked, a broken file stays as it is. The mod's own `Config` is not touched. The warnings the mod logs on purpose are taken out of the log with
+  `GameServerFixture.LogMark()` and `Withdraw(mark)`, so `AssetLoadTests` stays clean whatever the order.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand. With other mods, `Cache` stays (their DLLs are loaded from it and locked:

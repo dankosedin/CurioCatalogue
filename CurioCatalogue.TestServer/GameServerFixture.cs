@@ -184,6 +184,23 @@ public class GameServerFixture : IDisposable
     /// <summary>Everything the server logged since it started (a snapshot), warnings and errors included.</summary>
     internal IReadOnlyList<LogLine> LogEntries() { lock (logLines) return [.. logLines]; }
 
+    /// <summary>The number of log lines so far: the mark for <see cref="Withdraw"/>.</summary>
+    internal int LogMark() { lock (logLines) return logLines.Count; }
+
+    /// <summary>
+    /// Takes the lines logged after <paramref name="mark"/> out of the log and returns them. For a test that makes the mod log a
+    /// warning on purpose: <c>AssetLoadTests</c> reads the whole log and must not see it.
+    /// </summary>
+    internal List<LogLine> Withdraw(int mark)
+    {
+        lock (logLines)
+        {
+            var taken = logLines.Skip(mark).ToList();
+            logLines.RemoveRange(mark, logLines.Count - mark);
+            return taken;
+        }
+    }
+
     static void RequirePath(string what, string actual, string expected)
     {
         if (!string.Equals(Path.GetFullPath(actual), Path.GetFullPath(expected), StringComparison.OrdinalIgnoreCase))

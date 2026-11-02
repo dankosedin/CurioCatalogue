@@ -17,8 +17,8 @@ public class ConfigFileTests(GameServerFixture game)
 {
     static string FilePath => Path.Combine(GamePaths.ModConfig, CurioCatalogueModSystem.ConfigFileName);
 
-    /// <summary>Writes <paramref name="text"/> as the config file, runs the mod's loader, and returns what it made, what it logged and what the file says now.</summary>
-    (CurioCatalogueConfig Config, List<LogLine> Log, string File) Load(string text)
+    /// <summary>Writes <paramref name="text"/> as the config file, runs the mod's loader, and returns what it made, what it logged (all of it, and the problems without the known noise) and what the file says now.</summary>
+    (CurioCatalogueConfig Config, IReadOnlyList<LogLine> Log, List<LogLine> Problems, string File) Load(string text)
     {
         string? original = File.Exists(FilePath) ? File.ReadAllText(FilePath) : null; // none if the mod's start did not write it
         int mark = game.LogMark();
@@ -28,7 +28,7 @@ public class ConfigFileTests(GameServerFixture game)
             File.WriteAllText(FilePath, text);
             var config = game.OnMain(() => (CurioCatalogueConfig)typeof(CurioCatalogueModSystem)
                 .GetMethod("LoadConfig", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [game.Api])!);
-            return (config, game.Withdraw(mark), File.ReadAllText(FilePath));
+            return (config, game.LogSince(mark), LogProblems.Since(game, mark), File.ReadAllText(FilePath));
         }
         finally
         {
@@ -40,7 +40,7 @@ public class ConfigFileTests(GameServerFixture game)
     [Fact]
     public void Impossible_values_are_corrected_logged_and_written_back()
     {
-        var (config, log, file) = Load("""{ "MaxSheets": 0, "SoftEntryLimit": -5, "TapestryAdd": null }""");
+        var (config, log, _, file) = Load("""{ "MaxSheets": 0, "SoftEntryLimit": -5, "TapestryAdd": null }""");
 
         Assert.Equal((1, 1, 0), (config.MaxSheets, config.SoftEntryLimit, config.TapestryAdd.Length));
         var warnings = log.Where(l => l.Type == EnumLogType.Warning).Select(l => l.Text).ToList();
@@ -58,10 +58,10 @@ public class ConfigFileTests(GameServerFixture game)
     public void A_good_file_loads_without_a_warning_and_gets_the_missing_settings()
     {
         // "Written back every time": a setting a newer version added appears in the file with its default.
-        var (config, log, file) = Load("""{ "MaxSheets": 12 }""");
+        var (config, _, problems, file) = Load("""{ "MaxSheets": 12 }""");
 
         Assert.Equal(12, config.MaxSheets);
-        Assert.Empty(log.Where(l => l.Type is EnumLogType.Warning or EnumLogType.Error or EnumLogType.Fatal));
+        Assert.Empty(problems);
         var written = JsonNode.Parse(file)!;
         Assert.Equal(12, (int)written["MaxSheets"]!);
         Assert.Equal(500, (int)written["SoftEntryLimit"]!);
@@ -72,7 +72,7 @@ public class ConfigFileTests(GameServerFixture game)
     {
         // So the player can fix it: one error line that names the file, the defaults, and no write-back over the broken text.
         const string broken = "{ \"MaxSheets\": ";
-        var (config, log, file) = Load(broken);
+        var (config, log, _, file) = Load(broken);
 
         Assert.Equal(new CurioCatalogueConfig().MaxSheets, config.MaxSheets);
         var error = Assert.Single(log, l => l.Type == EnumLogType.Error);

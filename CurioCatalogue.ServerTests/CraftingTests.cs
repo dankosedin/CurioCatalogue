@@ -192,7 +192,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
     public void C4_recolouring_an_aged_ledger_with_entries_keeps_its_entries_sheets_and_name()
     {
         var client = FakeClient.Join(game, "c4-recolour");
-        int logBefore = game.LogEntries().Count;
+        int logBefore = game.LogMark();
         var (recipe, before, after, left) = game.OnMain(() =>
         {
             var player = client.Player;
@@ -215,7 +215,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
     public void C4_recharging_an_aged_ledger_with_entries_keeps_its_entries_and_uses_only_the_sheets_added()
     {
         var client = FakeClient.Join(game, "c4-recharge");
-        int logBefore = game.LogEntries().Count;
+        int logBefore = game.LogMark();
         var (recipe, shownSheets, after, left) = game.OnMain(() =>
         {
             var player = client.Player;
@@ -255,7 +255,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
     /// <summary>C4 asks for "no stack or attribute error in the log": no warning or error since the test's start.</summary>
     void AssertNoProblemsSince(int index)
     {
-        var problems = game.LogEntries().Skip(index).Where(l => l.Type is EnumLogType.Warning or EnumLogType.Error or EnumLogType.Fatal).ToList();
+        var problems = LogProblems.Since(game, index);
         Assert.True(problems.Count == 0, "problems in the log:\n" + string.Join("\n", problems));
     }
 }

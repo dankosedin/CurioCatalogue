@@ -18,6 +18,36 @@ public abstract class BookTestBase(GameServerFixture server)
     protected CurioCatalogueModSystem Mod => game.Api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
     protected IWorldAccessor World => game.Api.World;
 
+    // ---- the config on a running server
+
+    /// <summary>
+    /// Runs <paramref name="check"/> (on the main thread) with the config changed, and puts the config back. The mod builds its
+    /// services on first use from the config of that moment ("keys ??= ..."), so they are dropped before and after: every private
+    /// field of the mod system whose type is ours, found by reflection, so a service added later is dropped too.
+    /// </summary>
+    protected T WithConfig<T>(Action<CurioCatalogueConfig> change, Func<T> check)
+    {
+        var config = typeof(CurioCatalogueModSystem).GetProperty(nameof(CurioCatalogueModSystem.Config))!;
+        // A copy through JSON, as the game stores the config: every setting, also one added later.
+        var saved = Newtonsoft.Json.JsonConvert.SerializeObject(Mod.Config);
+        change(Mod.Config);
+        ForgetServices();
+        try { return check(); }
+        finally
+        {
+            config.SetValue(Mod, Newtonsoft.Json.JsonConvert.DeserializeObject<CurioCatalogueConfig>(saved));
+            ForgetServices();
+        }
+    }
+
+    void ForgetServices()
+    {
+        var ours = new[] { typeof(CurioCatalogueModSystem).Assembly, typeof(ItemKey).Assembly };
+        foreach (var field in typeof(CurioCatalogueModSystem).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic))
+            if (ours.Contains(field.FieldType.Assembly) && field.FieldType != typeof(CurioCatalogueConfig))
+                field.SetValue(Mod, null);
+    }
+
     // ---- stacks
 
     protected ItemStack Vanilla(string code, int size = 1) =>

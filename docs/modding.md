@@ -271,8 +271,9 @@ a client sends on join make a real `ServerPlayer` through the server's own path 
 
 - **`VerifyPlayerAuth`** must be false, or identification waits for the auth server forever. The whitelist is skipped for a local
   address (127.0.0.1). A non-dummy socket gets the default role (`suplayer`), not the singleplayer's top role.
-- **`NetworkVersion`** in the identification is compared with a constant ("1.22.6" on game 1.22.7); a wrong one disconnects
-  with "disconnect-wrongversion". It changes with game updates.
+- **`NetworkVersion`** in the identification is compared with `GameVersion.NetworkVersion` ("1.22.6" on game 1.22.7); a wrong one
+  disconnects with "Incompatible Server Version". `FakeClient` sends the constant of the API it is built against, and fails at once with
+  the reason when the server disconnects it. So does a player name that does not match `^(\w|-){1,16}$`.
 - **Packet 34 first.** Without it, `FinalizePlayerIdentification` starts a thread-pool task that checks 10 s later whether UDP
   came; in the test process it throws a `NullReferenceException` there and kills the process. A real client sends 34 when its UDP
   does not get through.

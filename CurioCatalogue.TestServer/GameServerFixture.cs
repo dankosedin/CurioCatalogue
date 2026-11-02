@@ -18,11 +18,16 @@ namespace CurioCatalogue.TestServer;
 public class GameServerFixture : IDisposable
 {
     const string ModId = "curiocatalogue";
+    // A start takes 10–20 s (docs/development.md); a cold disk or a slow CI runner may take several times that.
     static readonly TimeSpan StartTimeout = TimeSpan.FromMinutes(3);
+    // A task waits for the next tick (50 ms); a tick that sends a new player's spawn chunks may take seconds, not 30.
     static readonly TimeSpan MainThreadTimeout = TimeSpan.FromSeconds(30);
+    // The stop saves the world: a few seconds for the small superflat test world.
     static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(60);
+    // A kept data folder (a failed start or a crash) older than this is swept by the next run.
+    static readonly TimeSpan KeepFailedFor = TimeSpan.FromDays(7);
 
-    // The engine keeps its state in statics (ServerMain.Logger, GamePaths, Lang): one server per process.
+    // The engine keeps its state in statics (ServerMain.Logger, GamePaths, Lang): one server per process, ever.
     static int instances;
 
     readonly Thread thread;
@@ -31,6 +36,7 @@ public class GameServerFixture : IDisposable
     volatile bool stopRequested;
     volatile Exception? crash;
     readonly List<LogLine> logLines = [];
+    int startupLines; // how many of logLines the server wrote until RunGame
 
     /// <summary>The throwaway data folder (world, config, logs); deleted after the run unless the server failed to start.</summary>
     public string DataPath { get; } = Path.Combine(Path.GetTempPath(), DataFolderPrefix + Guid.NewGuid().ToString("N")[..8]);
@@ -56,7 +62,8 @@ public class GameServerFixture : IDisposable
     protected GameServerFixture(IReadOnlyList<OtherMod> otherMods)
     {
         if (Interlocked.Increment(ref instances) != 1)
-            throw new InvalidOperationException("a second game server in one process: the engine's state is static; share the fixture through one [Collection]");
+            throw new InvalidOperationException("a second game server in one process: the engine's state is static, so a process "
+                + "runs one server once. Share the fixture through one [Collection]; to run the tests again, restart the test host.");
         OtherMods = otherMods;
         if (!File.Exists(TestPaths.ModDll))
             throw new InvalidOperationException($"our mod is not built at {TestPaths.ModDll}");
@@ -159,6 +166,7 @@ public class GameServerFixture : IDisposable
                 if (!started.Task.IsCompleted && Api.Server.CurrentRunPhase == EnumServerRunPhase.RunGame)
                 {
                     StartTime = clock.Elapsed;
+                    lock (logLines) startupLines = logLines.Count;
                     started.SetResult();
                 }
             }
@@ -196,22 +204,20 @@ public class GameServerFixture : IDisposable
     /// <summary>Everything the server logged since it started (a snapshot), warnings and errors included.</summary>
     internal IReadOnlyList<LogLine> LogEntries() { lock (logLines) return [.. logLines]; }
 
-    /// <summary>The number of log lines so far: the mark for <see cref="Withdraw"/>.</summary>
+    /// <summary>
+    /// What the server logged until it reached RunGame: the loading of the assets and the mods' start. The same for every test,
+    /// whatever ran before it.
+    /// </summary>
+    internal IReadOnlyList<LogLine> StartupLog() { lock (logLines) return [.. logLines.Take(startupLines)]; }
+
+    /// <summary>The number of log lines so far: the mark for <see cref="LogSince"/>.</summary>
     internal int LogMark() { lock (logLines) return logLines.Count; }
 
     /// <summary>
-    /// Takes the lines logged after <paramref name="mark"/> out of the log and returns them. For a test that makes the mod log a
-    /// warning on purpose: <c>AssetLoadTests</c> reads the whole log and must not see it.
+    /// The lines logged after <paramref name="mark"/>, by any thread: a test reads what its own action logged, plus whatever the
+    /// server logged meanwhile (<see cref="LogProblems.Since"/> leaves out the known noise).
     /// </summary>
-    internal List<LogLine> Withdraw(int mark)
-    {
-        lock (logLines)
-        {
-            var taken = logLines.Skip(mark).ToList();
-            logLines.RemoveRange(mark, logLines.Count - mark);
-            return taken;
-        }
-    }
+    internal IReadOnlyList<LogLine> LogSince(int mark) { lock (logLines) return [.. logLines.Skip(mark)]; }
 
     static void RequirePath(string what, string actual, string expected)
     {
@@ -229,17 +235,25 @@ public class GameServerFixture : IDisposable
         return port;
     }
 
-    /// <summary>Runs <paramref name="work"/> on the server's main thread, where game code runs in the game.</summary>
+    /// <summary>
+    /// Runs <paramref name="work"/> on the server's main thread, where game code runs in the game. Called on the main thread
+    /// itself (from inside another <c>OnMain</c>), it runs at once: waiting for the queue there would wait for itself.
+    /// </summary>
     public T OnMain<T>(Func<T> work)
     {
         if (crash != null) throw new InvalidOperationException("the test server crashed", crash);
+        if (Thread.CurrentThread == thread) return work();
         var result = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        int abandoned = 0;
         server!.EnqueueMainThreadTask(() =>
         {
+            // A task whose test has given up on it must not run later, in the middle of another test.
+            if (Volatile.Read(ref abandoned) == 1) return;
             try { result.SetResult(work()); }
             catch (Exception e) { result.SetException(e); }
         });
-        Await(result.Task, MainThreadTimeout, "the main thread did not run the task");
+        try { Await(result.Task, MainThreadTimeout, "the main thread did not run the task"); }
+        catch (TimeoutException) { Volatile.Write(ref abandoned, 1); throw; }
         return result.Task.Result;
     }
 
@@ -253,7 +267,8 @@ public class GameServerFixture : IDisposable
     public void Dispose()
     {
         stopRequested = true;
-        if (!thread.Join(StopTimeout)) throw new TimeoutException($"the test server did not stop in {StopTimeout}; its data: {DataPath}");
+        if (!thread.Join(StopTimeout))
+            throw new TimeoutException($"the test server did not stop in {StopTimeout}; its data: {DataPath}", crash); // a crash may be why
         if (crash != null) throw new InvalidOperationException($"the test server crashed, see {ServerLog}", crash);
         KeepLogs();
         DeleteData();
@@ -290,8 +305,9 @@ public class GameServerFixture : IDisposable
     }
 
     /// <summary>
-    /// Deletes the data folders of earlier passing runs that kept only <c>Cache</c> (<see cref="DeleteData"/>). A folder with more in
-    /// it is a failed start kept for diagnosis, or a run going on in another process: left alone.
+    /// Deletes the data folders of earlier passing runs that kept only <c>Cache</c> (<see cref="DeleteData"/>), and the folders kept
+    /// for diagnosis (a failed start, a crash) once they are older than <see cref="KeepFailedFor"/>. A newer folder with more in it
+    /// is a failure to look at, or a run going on in another process: left alone.
     /// </summary>
     static void SweepLeftCaches()
     {
@@ -299,7 +315,8 @@ public class GameServerFixture : IDisposable
         {
             try
             {
-                if (Directory.EnumerateFileSystemEntries(dir).Select(Path.GetFileName).SequenceEqual(["Cache"]))
+                if (Directory.EnumerateFileSystemEntries(dir).Select(Path.GetFileName).SequenceEqual(["Cache"])
+                    || DateTime.UtcNow - Directory.GetLastWriteTimeUtc(dir) > KeepFailedFor)
                     Directory.Delete(dir, recursive: true);
             }
             catch (IOException) { }

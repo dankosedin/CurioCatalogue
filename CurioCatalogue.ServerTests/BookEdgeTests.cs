@@ -17,31 +17,7 @@ namespace CurioCatalogue.ServerTests;
 [Collection(ServerCollection.Name)]
 public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
 {
-    // ---- the config on a running server
-
-    // The mod builds these on first use from the config of that moment ("keys ??= ..."), so a change after that needs them dropped.
-    static readonly string[] ConfigDependent = ["keys", "store", "invoiceMaker", "invoicePoster", "collections"];
-
-    void ForgetConfigDependents()
-    {
-        foreach (var name in ConfigDependent)
-            typeof(CurioCatalogueModSystem).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(Mod, null);
-    }
-
-    /// <summary>Runs <paramref name="check"/> (on the main thread) with the config changed, and puts the config back.</summary>
-    T WithConfig<T>(Action<CurioCatalogueConfig> change, Func<T> check)
-    {
-        var config = Mod.Config;
-        var saved = (config.SoftEntryLimit, config.ConsumeSheets, config.MaxSheets, config.ExtraIgnoredAttributes, config.TapestryExclude, config.TapestryAdd);
-        change(config);
-        ForgetConfigDependents();
-        try { return check(); }
-        finally
-        {
-            (config.SoftEntryLimit, config.ConsumeSheets, config.MaxSheets, config.ExtraIgnoredAttributes, config.TapestryExclude, config.TapestryAdd) = saved;
-            ForgetConfigDependents();
-        }
-    }
+    // ---- the config on a running server (WithConfig: BookTestBase)
 
     [Fact]
     public void L5_a_ledger_at_the_soft_limit_warns_and_then_makes_no_more_intake_lists()

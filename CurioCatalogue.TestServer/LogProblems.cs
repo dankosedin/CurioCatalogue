@@ -5,7 +5,7 @@ namespace CurioCatalogue.TestServer;
 
 /// <summary>
 /// The warnings and errors of a server log that are ours to look at. The game logs a broken asset and goes on without it
-/// (docs/critical.md, Recipes), so a clean log is what the asset tests of each test project check.
+/// (docs/critical.md, Recipes), so a clean start is what the asset tests of each test project check.
 /// </summary>
 internal static class LogProblems
 {
@@ -20,7 +20,11 @@ internal static class LogProblems
 
     static bool IsProblem(LogLine line) => line.Type is EnumLogType.Warning or EnumLogType.Error or EnumLogType.Fatal;
 
-    /// <summary>Every Warning, Error or Fatal line the server logged so far, except the known noise.</summary>
-    public static List<LogLine> Of(GameServerFixture game) =>
-        game.LogEntries().Where(IsProblem).Where(l => !KnownNoise.Any(n => n.IsMatch(l.Text))).ToList();
+    static List<LogLine> Of(IEnumerable<LogLine> lines) => lines.Where(IsProblem).Where(l => !KnownNoise.Any(n => n.IsMatch(l.Text))).ToList();
+
+    /// <summary>Every Warning, Error or Fatal line the server logged until RunGame, except the known noise: whatever ran before.</summary>
+    public static List<LogLine> AtStart(GameServerFixture game) => Of(game.StartupLog());
+
+    /// <summary>Every Warning, Error or Fatal line logged after <paramref name="mark"/> (<see cref="GameServerFixture.LogMark"/>), except the known noise.</summary>
+    public static List<LogLine> Since(GameServerFixture game, int mark) => Of(game.LogSince(mark));
 }

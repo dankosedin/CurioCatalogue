@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # A run takes about 3 minutes; a hang (a server that waits for a client that never answers) must not run for 6 hours.
+    timeout-minutes: 20
     env:
       # The projects take the game DLLs from here; nothing of the game is committed.
       VINTAGE_STORY: ${{ github.workspace }}/game

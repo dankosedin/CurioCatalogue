@@ -4,19 +4,26 @@ using Vintagestory.API.MathTools;
 namespace CurioCatalogue.TestServer;
 
 /// <summary>
-/// Vanilla blocks put into the test world. One counter for all test classes: every placement takes its own cell near the
-/// spawn, so tests that run side by side never meet.
+/// Vanilla blocks put into the test world. One counter for all test classes: nothing is removed, so every placement takes a
+/// cell of its own near the spawn and no test meets the blocks of an earlier one.
 /// </summary>
 internal static class TestBlocks
 {
     static int nextCell;
 
+    // Cells 4 blocks apart (a chest and the player's reach around it), in a square of Side × Side from the spawn on: 64 × 64 blocks,
+    // inside the chunks the server keeps loaded without a player (offsets 0 to 127 seen loaded, 03.11.2026). A block set into a
+    // chunk that is not loaded is lost, so the cells end there.
+    const int Spacing = 4, Side = 16;
+
     /// <summary>A free cell near the spawn (the spawn chunks are loaded).</summary>
     public static BlockPos FreePos(GameServerFixture game)
     {
         int n = Interlocked.Increment(ref nextCell);
+        if (n >= Side * Side)
+            throw new InvalidOperationException($"the {Side * Side} cells near the spawn are used up: widen {nameof(TestBlocks)} only inside the loaded spawn chunks");
         var spawn = game.Api.World.DefaultSpawnPosition.AsBlockPos;
-        return new BlockPos(spawn.X + 4 * (n % 8), spawn.Y + 6, spawn.Z + 4 * (n / 8), 0);
+        return new BlockPos(spawn.X + Spacing * (n % Side), spawn.Y + 6, spawn.Z + Spacing * (n / Side), 0);
     }
 
     /// <summary>

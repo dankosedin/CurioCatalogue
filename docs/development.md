@@ -73,14 +73,15 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   `The_tests_and_the_game_share_one_copy_of_our_types` fails if a second copy is ever loaded. Why: `docs/modding.md`, "A server
   inside the test process".
 - **The server log is captured from the start** (`GameServerFixture.LogEntries()`, a subscription to `ServerMain.Logger.EntryAdded`
-  made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line, except the lines of `LogProblems.KnownNoise`
+  made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line logged until RunGame (`StartupLog()`, the
+  same whatever test ran before), except the lines of `LogProblems.KnownNoise`
   (a vanilla line that is not ours goes there with its reason and game version). Server only: textures and shapes are read by the
   client, so a missing one is still found in game.
 - **A real player without a client:** `FakeClient.Join(game, "name")` joins through a fake socket with the packets a client
   sends and returns when the player is playing (`IServerPlayer` with inventories, rights, a position); `SendToMod(request)` sends
   a message to our channel, handled by the server at a later tick (wait with `WaitFor`); `Received` holds what the server sent.
-  The fixture sets `VerifyPlayerAuth = false` for it. `FakeClient.OurMessageTypes` repeats the order of `ModNetwork.Register`:
-  change both together. How and its traps: `docs/modding.md`, "A player without a client".
+  The fixture sets `VerifyPlayerAuth = false` for it. `FakeClient` reads the ids of our messages from the server's channel,
+  so `ModNetwork.Register` may change freely. How and its traps: `docs/modding.md`, "A player without a client".
 - **`RecipeTests`** compares the server's grid recipes of our domain with expected sets written out in the test (output, ingredient
   codes, counts, tools, shape, group): 1067 recipes in 7 groups. A recipe change in `recipes/grid/ledger.json` is made in two places;
   a new recipe name fails `All_our_recipes_are_covered_by_a_test_above` until it has a test.
@@ -99,7 +100,8 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - **`BookEdgeTests`** (helpers shared with `BookFlowTests` in `BookTestBase`) takes the cases the first one left: a full album, blank lists (post and
   cancel), a 60-character name through the channel, and the clicks that are not ours (a plain click opens the chest, Shift on the floor
   lays the book on the ground). The config is changed on the running server by `WithConfig` and put back in `finally`; it also drops the mod's
-  lazily built caches (`keys`, `store`, `invoiceMaker`, `invoicePoster`, `collections`) by reflection, because they take the config when first used.
+  lazily built services (every private field of ours, found by reflection) because they take the config when first used; the config is
+  restored from a JSON copy, so a setting added later is restored too. `WithConfig` is in `BookTestBase`.
   `Diagnostics` is tested through the flag of `ModLog` (internal, by reflection), not through the config.
   The branches the coverage review found untested (T9 of the server tests plan) are here too: an album started over, a want list into the empty
   main hand, refused, or on the ground, a list on the ground, a full ledger. A full inventory needs the player in survival (`AsInSurvival`):
@@ -113,8 +115,8 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   greets the player in the chat ("Welcome …", the server's language): the tests skip that line.
 - **`ConfigFileTests`** (G1): calls the mod's private `LoadConfig` by reflection on the running server with a config file the test writes into
   the temp world's `ModConfig` (put back afterwards): corrections are logged as warnings and written back, a good file gets the settings it
-  lacked, a broken file stays as it is. The mod's own `Config` is not touched. The warnings the mod logs on purpose are taken out of the log with
-  `GameServerFixture.LogMark()` and `Withdraw(mark)`, so `AssetLoadTests` stays clean whatever the order.
+  lacked, a broken file stays as it is. The mod's own `Config` is not touched. A test reads what its action logged with `GameServerFixture.LogMark()` and
+  `LogSince(mark)`; `LogProblems.Since` leaves out the known noise (also in the C4 crafting tests).
 - **`RefusalTests`** (the section "Not reproducible in game" of `functional.md`): `newerversion` (the test raises `v` of a book's or invoice's data above
   `LedgerStore.Version`: a click in hand, an invoice with the book in the off-hand, the off-hand gesture through the channel, the four window requests and
   the cancel with a newer book in the off-hand are refused, and the stacks' attributes are the same afterwards) and `nocollection` (an album of a

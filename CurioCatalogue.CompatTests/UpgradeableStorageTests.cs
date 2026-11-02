@@ -24,7 +24,7 @@ public class UpgradeableStorageTests(CompatServerFixture server) : BookTestBase(
     public void Both_mods_load_without_warnings_or_errors()
     {
         var enabled = game.OnMain(() => (game.Api.ModLoader.IsModEnabled(CurioCatalogueModSystem.ModId), game.Api.ModLoader.IsModEnabled(Domain)));
-        var problems = LogProblems.Of(game);
+        var problems = LogProblems.AtStart(game);
 
         Assert.Equal((true, true), enabled);
         Assert.True(problems.Count == 0, "the server logged problems:\n" + string.Join("\n", problems));

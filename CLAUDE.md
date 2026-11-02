@@ -12,13 +12,13 @@ Code still uses `LedgerMode.Types` / `Counts` / `Album` and `ItemLedger` for all
 
 This file is an index. Each document below says when to read it and when to update it; follow both.
 Machine-specific notes and personal preferences live in `CLAUDE.local.md` (git-ignored; template `CLAUDE.local.example.md`).
-Steps of the current plan are taken one per session with the project skill `/step <id>` (`.claude/skills/step/SKILL.md`).
+Steps of the open plans are taken one per session with the project skill `/step <id>` (`.claude/skills/step/SKILL.md`).
 
 @docs/critical.md
 
 | Document | Read | Update |
 |---|---|---|
-| `docs/plans/` | at the start of a session: the newest plan is the current work | tick items as they are done; a new plan per big feature, named `YYYY-MM-DD-<feature>.md` (start date), with a "Decisions" section for that feature |
+| `docs/plans/` | at the start of a session: the open plans (with unticked steps) are the current work; several may run side by side | tick items as they are done; a new plan per big feature, named `YYYY-MM-DD-<feature>.md` (start date), with a "Decisions" section for that feature and its own letter for step ids, not used by another open plan |
 | `ROADMAP.md` | when choosing what to do next | an idea comes up; an idea gets its own plan (replace the line with a link) |
 | `DESIGN.md` | before changing what the mod does for the player | only after agreeing the change with the author |
 | `docs/domain.md` | before touching books, invoices, collections; when a term is unclear | a new term or mechanic appears |

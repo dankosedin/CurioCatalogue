@@ -12,6 +12,9 @@ curiocatalogue/            the mod: game glue (items, adapters, GUI, network); a
 CurioCatalogue.Core/       domain core: sets and multisets of items; never references game DLLs
 CurioCatalogue.Core.Tests/ xUnit tests of the core
 CurioCatalogue.Tests/      xUnit tests of the adapters, against the game API with mocks
+CurioCatalogue.ServerTests/ xUnit tests against a real game server started inside the test process
+CurioCatalogue.CompatTests/ the same server with other mods loaded (compatibility tests)
+CurioCatalogue.TestServer/ what both share: the fixture, the fake client, test helpers, TestServer.props (no project of its own)
 CakeBuild/, build.ps1      release zip (from the official mod template)
 tools/                     scripts that generate assets (see below)
 docs/                      documentation; docs/plans/ holds the implementation plans
@@ -26,7 +29,9 @@ docs/                      documentation; docs/plans/ holds the implementation p
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
   Harmless: the next build after closing the game copies it.
-- Tests: `dotnet test curiocatalogue.sln`. Both test projects must pass before a commit.
+- Tests: `dotnet test curiocatalogue.sln`. All four test projects must pass before a commit. The server tests take about
+  45 s (the server starts in about 10 s), the compatibility tests about 20 s, side by side; alone: `dotnet test CurioCatalogue.ServerTests`,
+  `dotnet test CurioCatalogue.CompatTests`.
 
 ## Writing tests
 
@@ -39,7 +44,7 @@ docs/                      documentation; docs/plans/ holds the implementation p
   "checked in game <date>". A mock without a source is a hypothesis: confirm it by reading the source, decompiling, or in game.
 - `IPlayer` (and `IServerPlayer`) cannot be mocked or implemented outside the game: it has an `internal` member. Code under test
   only passes the player on, so tests use `null!`. Prefer code that takes what it needs (e.g. a list of player slots, see
-  `InvoicePoster.Post`) over code that takes an `IPlayer`.
+  `InvoicePoster.Post`) over code that takes an `IPlayer`. A real player is in the server tests (`FakeClient`, below).
 - Real slot operations (`TryPutInto`, `MarkDirty`, stack `Equals`) need an api: give inventories `game.Api` (the test helper
   `GameWorld`), call `LateInitialize(id, game.Api)` on inventories made by a block entity constructor; `GameWorld` also sets the
   collectibles' protected `api` field.
@@ -47,6 +52,78 @@ docs/                      documentation; docs/plans/ holds the implementation p
   recipe arrays) without starting the game. A new trap of this kind gets a test there.
 - Concrete game classes without virtual members (e.g. `ModSystemBlockReinforcement`) cannot be mocked: wrap them behind a small
   interface of our own.
+
+### Server tests
+
+`CurioCatalogue.ServerTests` starts the real game server (no client) inside the test process: a superflat creative world in a
+throwaway folder `%TEMP%\cc-servertests-…`, with the game's mods and ours. What the engine does there needs no source comment:
+the engine ran it. How it works and its traps: `docs/modding.md`, "A server inside the test process".
+
+- **One server per process**, shared by every test through `[Collection(ServerCollection.Name)]` (`GameServerFixture`); a second
+  instance throws. `dotnet test` runs each test project in its own process, so the compatibility tests get a server of their own.
+- **The fixture is shared, not copied:** `CurioCatalogue.TestServer/` holds the fixture, `GameAssemblies`, `FakeClient`, `TestBlocks`,
+  `BookTestBase`, `LogProblems` and `TestServer.props` (the references, the Newtonsoft copy, `TestPathsAsMetadata`, and those `.cs` files as
+  links). Each test project imports the props, so each test assembly compiles its own copy, with its own module initializer and paths.
+  Each project declares its own `[CollectionDefinition]`.
+- Game code runs on the server's main thread: `game.OnMain(() => …)`, as in the game.
+- It needs the game in `$(VINTAGE_STORY)` and builds the mod first. The paths (the game, the built mod, its assets) are written
+  into the test assembly at build time from MSBuild (target `TestPathsAsMetadata`), not hard-coded.
+- **Tests call our code directly** (`OurCodeTests`): the project references the mod and Core with `Private=false`, so neither is
+  copied into the test bin; the game's mod loader loads them from the mod's output and the tests bind to that same copy.
+  `The_tests_and_the_game_share_one_copy_of_our_types` fails if a second copy is ever loaded. Why: `docs/modding.md`, "A server
+  inside the test process".
+- **The server log is captured from the start** (`GameServerFixture.LogEntries()`, a subscription to `ServerMain.Logger.EntryAdded`
+  made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line, except the lines of `LogProblems.KnownNoise`
+  (a vanilla line that is not ours goes there with its reason and game version). Server only: textures and shapes are read by the
+  client, so a missing one is still found in game.
+- **A real player without a client:** `FakeClient.Join(game, "name")` joins through a fake socket with the packets a client
+  sends and returns when the player is playing (`IServerPlayer` with inventories, rights, a position); `SendToMod(request)` sends
+  a message to our channel, handled by the server at a later tick (wait with `WaitFor`); `Received` holds what the server sent.
+  The fixture sets `VerifyPlayerAuth = false` for it. `FakeClient.OurMessageTypes` repeats the order of `ModNetwork.Register`:
+  change both together. How and its traps: `docs/modding.md`, "A player without a client".
+- **`RecipeTests`** compares the server's grid recipes of our domain with expected sets written out in the test (output, ingredient
+  codes, counts, tools, shape, group): 1067 recipes in 7 groups. A recipe change in `recipes/grid/ledger.json` is made in two places;
+  a new recipe name fails `All_our_recipes_are_covered_by_a_test_above` until it has a test.
+- **`ContainerTests`** puts real vanilla blocks into the world (`BlockAccessor.SetBlock`, a trunk with `DoPlaceBlock` and a joined player)
+  near the spawn and runs `ContainerReader` and the mod's own `ContainerAccess` (`CurioCatalogueModSystem.Access`) on them: chest, trunk,
+  labeled chest, vessel, crate, barrel, quern, firepit, sign; a backpack in a chest and on the ground (open, save, read back); a per-player
+  loot chest; claims and a padlock with two real players. The hand-made `TestChest` cases in `CurioCatalogue.Tests` stay as fast logic
+  tests and point to their server twin. A block code in a test is the vanilla code (`chest-east`, `crate`, `barrel`, `backpack-normal`).
+- **`BookFlowTests`** runs the books end to end with real players and chests: a gesture is the held item's `OnHeldInteractStart` called on the
+  server with Shift (and Ctrl) set on the player's controls; the off-hand gesture and the window requests (rename, clear, want list, cancel)
+  go through `FakeClient.SendToMod` into the real handlers. It checks the world's state (inventory, chest, book, list) and the *codes* of the
+  red refusals the fake client received (`Errors(client)`), not their texts. Cases: making intake, pick and by-count lists; posting (moves,
+  missing, no room, parchment); the album taking, the want list (made, filled, partly filled, cancelled); claims, a padlock, unsupported
+  containers, reach and stale windows. `TestBlocks` hands out the cells for all test classes.
+  The `functional.md` cases it covers are marked with ⚙ there.
+- **`BookEdgeTests`** (helpers shared with `BookFlowTests` in `BookTestBase`) takes the cases the first one left: a full album, blank lists (post and
+  cancel), a 60-character name through the channel, and the clicks that are not ours (a plain click opens the chest, Shift on the floor
+  lays the book on the ground). The config is changed on the running server by `WithConfig` and put back in `finally`; it also drops the mod's
+  lazily built caches (`keys`, `store`, `invoiceMaker`, `invoicePoster`, `collections`) by reflection, because they take the config when first used.
+  `Diagnostics` is tested through the flag of `ModLog` (internal, by reflection), not through the config.
+- **`CraftingTests`** crafts through a real player's grid (C1–C4 of `functional.md`): stacks put into the grid's slots, the output taken with
+  `ActivateSlot` as the server does with the client's packet; it checks the recipe found, the book made (cover, sheets, entries, name) and
+  what is left in the grid. How: `docs/modding.md`, "Crafting on the server".
+- The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
+- After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
+  `Logs\server-main.log`; delete such folders by hand. With other mods, `Cache` stays (their DLLs are loaded from it and locked:
+  `docs/modding.md`, "A server inside the test process"); the next run of either project deletes folders that hold only `Cache`.
+
+### Compatibility tests
+
+`CurioCatalogue.CompatTests` runs the server of the server tests (`CompatServerFixture`, a `GameServerFixture` given the other mods) with
+other mods loaded, so their effects never reach the server tests. Now: Upgradeable Storage (`UpgradeableStorageTests`: both mods load with a
+clean log; its six kinds of storage are supported; every gesture of K1 on each; the off-hand gesture; a padlock).
+
+- **The mods are not in the repo** (their licences). `CurioCatalogue.CompatTests/mods.json` pins each one: `modid`, `version`, `file`, `url`,
+  `sha256`. `PinnedMods` takes the file from `CurioCatalogue.CompatTests/mods/` (git-ignored) or downloads it there from `url`; a wrong hash
+  or a failed download fails the run (never a skip). The fixture copies the files into the temp world's `Mods` (so only listed files load)
+  and fails to start unless each mod is enabled with the listed version.
+- **Adding a mod** (or a new version): its file on the mod database (`https://mods.vintagestory.at/api/mod/<modid>` lists the releases;
+  the download URL is `https://mods.vintagestory.at/download/<fileid>/<filename>`), its SHA-256 (`sha256sum`, or `Get-FileHash` in
+  PowerShell), a line in `mods.json`, and a test class of its own. A block of another mod is placed with its domain:
+  `TestBlocks.Place(game, "upgradablestorage:chest-east")`.
+- Every mod in the list is loaded for every compatibility test: two mods that conflict with each other would need a project each.
 
 ## Exhaustive `switch`
 
@@ -146,9 +223,17 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 - Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
   person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
   How a change is reviewed (a players' round, then a code review, both by role subagents): `docs/review.md`.
-- CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs both test
-  projects; on `feature/*`, `main`, `release` and on every PR (on the merge result).
+- CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs all four test
+  projects (`dotnet test curiocatalogue.sln`, including the server and the compatibility tests, which start a real server on the
+  Linux runner); on `feature/*`, `main`, `release` and on every PR (on the merge result).
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.
+  - **The pinned mods** (`CurioCatalogue.CompatTests/mods/`) are cached with the key `pinned-mods-<hash of mods.json>`; a changed pin
+    downloads again, a wrong hash still fails.
+  - **When a test fails**, the step "Server logs of a failed run" uploads the artifact `server-logs` (14 days): the fixture copies the
+    `Logs` of each server into the folder named by the environment variable `CURIOCATALOGUE_KEEP_LOGS` (set only in CI) before it
+    deletes the temp world; a start that failed or a crash keeps the whole data folder, whose `Logs` are uploaded too.
+  - **How long:** locally the four projects take about 1 minute (server tests 43 s, compatibility tests 6 s); on GitHub (ubuntu, game cached) the Test step took 78 s
+    and the whole job about 2 minutes (first run, 02.11.2026); the Test step prints each project's duration.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the

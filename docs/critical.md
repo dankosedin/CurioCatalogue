@@ -12,8 +12,8 @@ Imported into every session from `CLAUDE.md`. Details and the reasons live in `d
 - **Clicks that are not ours go to `base.OnHeldInteractStart`.** A bare `return` silently breaks the item's behaviors (e.g. putting it on the ground).
 - **Logger:** never pass dynamic text as the format string: `api.Logger.Notification("{0}", text)`. Text with `{}` throws and the line is lost.
 - **Core stays pure:** `CurioCatalogue.Core` never references game DLLs.
-- **Recipes:** every vanilla code needs `game:` (also in `requiresContent`); no comments inside a recipe array. After a change, check
-  `server-main.log` for "Failed to parse grid recipe" and "cannot be resolved".
+- **Recipes:** every vanilla code needs `game:` (also in `requiresContent`); no comments inside a recipe array. After a change, run the server tests:
+  `AssetLoadTests` fails on any warning or error the server logs while loading (e.g. "Failed to parse grid recipe").
 - **Lang files:** every `lang/*.json` has exactly the keys of `lang/en.json` (`AssetsTests`); write `{` and `}` as `{{` `}}` in texts.
 - **Item names on the server** come in the server's language, not the player's: use `PlayerMessages.ItemName` or let the client name the stacks.
 - **Mocks carry a source:** every mocked engine behaviour cites vsapi/vssurvivalmod file and line, a section of the docs, or "checked in game <date>".

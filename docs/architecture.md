@@ -164,6 +164,20 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - **Harmony in tests is closer to a mock than to a patch** (10-28, author): like PowerMock or `mockito-inline` for final and static
   methods. It never reaches players, so the conflict risk is gone, but it still encodes our understanding of the engine: it needs a
   source comment like any mock. Try a small wrapper interface of our own first; it is cheaper and more explicit.
+- **A real game server inside the test process** (11-02, plan `2026-11-02-server-tests.md`): a third test project starts the
+  dedicated server on a thread of the test process, in a throwaway superflat world, and the tests use `ICoreServerAPI` directly
+  on its main thread. One server per process (the engine keeps state in statics), shared by all tests of the project. Rejected:
+  `VintagestoryServer.exe` as a separate process (it started, but stopping it through stdin was unreliable, and the tests could
+  talk to it only through the log or a test mod); a client as well as the server (tests stay headless, what needs a client stays
+  in game checks).
+- **Compatibility tests in a project of their own** (11-02, author, plan `2026-11-02-server-tests.md`, T12): the same fixture, a
+  server with other mods loaded, so their effects never reach the server tests. Other mods are not in the repo (their licences):
+  a pinned list (mod id, version, file URL, SHA-256) is, and the zips come from a folder or a download into it, the same locally
+  and on CI; a missing or changed zip fails the run. Rejected: other mods in the server tests' own server; skipping when a mod is
+  missing. **The fixture is shared as source files** (11-02, author, T12): `CurioCatalogue.TestServer/` has no project; its `.cs` files
+  and `TestServer.props` are imported by both test projects, so each test assembly has its own module initializer, which must run
+  before any game type loads. Rejected: a class library referenced by both (its module initializer runs only when one of its types is
+  first touched, possibly after the test assembly has loaded a game type; internal types would need `InternalsVisibleTo`).
 
 ## Part 2. Fitting features into the game
 

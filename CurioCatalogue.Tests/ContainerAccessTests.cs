@@ -5,6 +5,10 @@ using CurioCatalogue.Adapters;
 
 namespace CurioCatalogue.Tests;
 
+/// <summary>
+/// The logic of the access check with mocked claims and a mocked lock. The engine's answers (a claim, a shared claim, a padlock,
+/// two real players) run on a real server: <c>ServerTests/ContainerTests</c>, 02.11.2026.
+/// </summary>
 public class ContainerAccessTests
 {
     private readonly GameWorld game = new();
@@ -36,7 +40,8 @@ public class ContainerAccessTests
         // Inside TestAccess the engine itself turns Use into Traverse for blocks that are IClaimTraverseable and allow it
         // (chests, baskets, vessels), and any flag other than Use is checked as build-or-break (decompiled
         // Vintagestory.Common.WorldMap: GetBlockingLandClaimant ~326-329, testBlockAccessInternal ~243-254). So the mock
-        // answers for Use alone, as the engine would.
+        // answers for Use alone, as the engine would. Confirmed on a real server 02.11.2026:
+        // a claim that lets the visitor "Use" opens the chest to them (ServerTests/ContainerTests.A_land_claim_keeps_the_visitor_out_unless_it_allows_use).
         game.Place(pos, new TestChest());
         Claim(EnumBlockAccessFlags.Use, EnumWorldAccessResponse.NoPrivilege);
         Claim(EnumBlockAccessFlags.Traverse, EnumWorldAccessResponse.Granted);

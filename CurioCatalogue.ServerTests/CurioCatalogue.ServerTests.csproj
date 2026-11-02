@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests against a real game server started inside the test process (docs/development.md, Server tests). The fixture,
+       the references and the build steps are shared with CurioCatalogue.CompatTests through this import. -->
+  <Import Project="..\CurioCatalogue.TestServer\TestServer.props" />
+
+</Project>

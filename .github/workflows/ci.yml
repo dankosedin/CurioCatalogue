@@ -52,8 +52,33 @@ jobs:
       - name: Build
         run: dotnet build curiocatalogue.sln
 
+      # The compatibility tests take the pinned mods from this folder or download them there (CurioCatalogue.CompatTests/mods.json);
+      # the key changes with the pin; a wrong hash still fails the run.
+      - name: Cache the pinned mods
+        uses: actions/cache@v6
+        with:
+          path: CurioCatalogue.CompatTests/mods
+          key: pinned-mods-${{ hashFiles('CurioCatalogue.CompatTests/mods.json') }}
+
+      # All four projects; the server tests and the compatibility tests start a real server (docs/development.md). The test
+      # logger prints each test's duration; the server's Logs of every run are copied to server-logs for the step below.
       - name: Test
-        run: dotnet test curiocatalogue.sln --no-build
+        env:
+          CURIOCATALOGUE_KEEP_LOGS: ${{ runner.temp }}/server-logs
+        run: dotnet test curiocatalogue.sln --no-build --logger "console;verbosity=normal"
+
+      # A finished test run deletes its temp world, but the copied logs stay; a start that failed or a crash keeps the whole
+      # data folder in the temp directory.
+      - name: Server logs of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-logs
+          path: |
+            ${{ runner.temp }}/server-logs
+            /tmp/cc-servertests-*/Logs
+          if-no-files-found: ignore
+          retention-days: 14
 
   # A push to `release` publishes the version in modinfo.json: the zip, the tag and a GitHub Release whose notes are that
   # version's section of CHANGELOG.md (docs/development.md, Branches, PRs and releases).

@@ -12,6 +12,8 @@ added it ("Since"). The upgrade between two versions has its own plan per releas
 - Debug build, creative world; switch to survival where a case says so. Config `"Diagnostics": true` (`docs/development.md`).
 - Dev commands (`/curio ...`, branch `dev-commands`) help to fill chests and books; see `docs/development.md`.
 - After a case that changes the config, put the config back.
+- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`, `CraftingTests`, `UpgradeableStorageTests`; `docs/development.md`, Server tests and Compatibility tests) that checks the state of the world
+  and the refusals' codes. Check it in game only for what a client shows: texts in the player's language, windows, hints.
 - Logs after the run: no `[CurioCatalogue]` errors, no "Failed to parse grid recipe", no "cannot be resolved".
 - Cases marked **S** also run on the dedicated server (`ServerLanguage "en"`, client in Ukrainian): chat messages and red
   refusals must come in the player's language, not the server's.
@@ -37,10 +39,10 @@ which build, who ran it, and each `❌` with its reason.
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| C1 | 0.1.0 | Vanilla book in the grid's middle, nails above and below, ink and quill to its right | A ledger with 8 sheets and the cover of the book used |
-| C2 | 0.1.0 | A large book from ruins, jug of lime water, ink and quill | A ledger with 32 sheets |
-| C3 | 0.1.0 | An empty ledger and a tapestry piece in the grid | An album; the piece stays |
-| C4 | 0.1.0 | Craft a book out of an old book (one with entries) | Crafts; no stack or attribute error in the log |
+| C1 ⚙ | 0.1.0 | Vanilla book in the grid's middle, nails above and below, ink and quill to its right | A ledger with 8 sheets and the cover of the book used |
+| C2 ⚙ | 0.1.0 | A large book from ruins, jug of lime water, ink and quill | A ledger with 32 sheets |
+| C3 ⚙ | 0.1.0 | An empty ledger and a tapestry piece in the grid | An album; the piece stays |
+| C4 ⚙ | 0.1.0 | Craft a book out of an old book (one with entries) | Crafts; no stack or attribute error in the log |
 | C5 | 0.1.0 | Open the handbook | A Curio Catalogue guide and a page for every book, in both languages |
 | C6 | 0.1.1 | Creative inventory, search "ledger" (and "bill", "album") | Every cover is listed, normal and aged: 24 per kind, 72 books in all |
 | C7 | 0.1.1 | H over an empty aged ledger, and over one with entries (three different aged covers) | The book's own handbook page opens, with "Created by" and "Ingredient for"; not the handbook's main page |
@@ -52,69 +54,69 @@ which build, who ran it, and each `❌` with its reason.
 | # | Since | Case | Expected |
 |---|---|---|---|
 | A1 | 0.1.0 | Right click into the air with the album | The window opens: missing pieces, counts of pieces and whole pictures, search |
-| A2 | 0.1.0 | Shift + right click on a chest with tapestries, album in hand | One of each missing piece into the inventory; duplicates stay; message says how many |
-| A3 | 0.1.0 | Same with the album in the off-hand, main hand empty | Same result |
-| A4 | 0.1.0 | Same on a chest with nothing new | A message that nothing is new; nothing moves |
-| A5 | 0.1.0 | "Make a want list" in the window | A want list for the missing pieces; the album's sheets −1 |
-| A6 | 0.1.0 | Rename with a name longer than 40 characters | The field accepts 40 and no more |
-| A7 | 0.1.0 | Clear, with and without confirmation | "No" and "Cancel" change nothing; "Yes" empties the book |
+| A2 ⚙ | 0.1.0 | Shift + right click on a chest with tapestries, album in hand | One of each missing piece into the inventory; duplicates stay; message says how many |
+| A3 ⚙ | 0.1.0 | Same with the album in the off-hand, main hand empty | Same result |
+| A4 ⚙ | 0.1.0 | Same on a chest with nothing new | A message that nothing is new; nothing moves |
+| A5 ⚙ | 0.1.0 | "Make a want list" in the window | A want list for the missing pieces; the album's sheets −1 |
+| A6 ⚙ | 0.1.0 | Rename with a name longer than 40 characters | The field accepts 40 and no more |
+| A7 ⚙ | 0.1.0 | Clear, with and without confirmation | "No" and "Cancel" change nothing; "Yes" empties the book |
 | A8 | 0.1.0 | Open and close the window ~10 times, some with confirmations | The log line "loaded dialogs: N" does not grow |
 | A9 | 0.1.0 | Open the window, then press a hotbar key or scroll | The window closes |
-| A10 | 0.1.0 | Open the window of book 1, switch to book 2, press Clear → Yes | Red "the item in the hand is not the one in the window"; book 2 untouched (or the window closed first: also fine) |
+| A10 ⚙ | 0.1.0 | Open the window of book 1, switch to book 2, press Clear → Yes | Red "the item in the hand is not the one in the window"; book 2 untouched (or the window closed first: also fine) |
 | A11 | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
 
 ## Want lists
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| W1 | 0.1.0 | Want list in hand, Shift + right click on a friend's chest that has some of the pieces | What is there and fits moves; the list gets shorter |
-| W2 | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | "Taken from the list: N. The list is done and is now parchment."; the list is parchment (a want list goes back into no book, `docs/domain.md`); the album's sheets unchanged |
-| W3 | 0.1.0 | Same with `ConsumeSheets` true | "…The list is done."; the list is gone, no parchment; the album's sheets unchanged |
-| W4 | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit |
+| W1 ⚙ | 0.1.0 | Want list in hand, Shift + right click on a friend's chest that has some of the pieces | What is there and fits moves; the list gets shorter |
+| W2 ⚙ | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | "Taken from the list: N. The list is done and is now parchment."; the list is parchment (a want list goes back into no book, `docs/domain.md`); the album's sheets unchanged |
+| W3 ⚙ | 0.1.0 | Same with `ConsumeSheets` true | "…The list is done."; the list is gone, no parchment; the album's sheets unchanged |
+| W4 ⚙ | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit |
 
 ## The ledger and the bill of materials
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| L1 | 0.1.0 | Ledger, Shift + right click on a chest | An intake list for the kinds the ledger lacks; the ledger's sheets −1 |
-| L2 | 0.1.0 | Ledger, Shift + Ctrl + right click on a chest | A pick list for the kinds the ledger lists |
-| L3 | 0.1.0 | Bill of materials: the same two gestures | Lists by count; the book shrinks as items are taken |
-| L4 | 0.1.0 | Window: search, sorting, rename, clear | Work as in A1, A6, A7 |
-| L5 | 0.1.0 | `SoftEntryLimit: 3`; a book with 2 entries, intake list with 1 new item | Filled, warning "limit 3"; the next one says the book is full |
+| L1 ⚙ | 0.1.0 | Ledger, Shift + right click on a chest | An intake list for the kinds the ledger lacks; the ledger's sheets −1 |
+| L2 ⚙ | 0.1.0 | Ledger, Shift + Ctrl + right click on a chest | A pick list for the kinds the ledger lists |
+| L3 ⚙ | 0.1.0 | Bill of materials: the same two gestures | Lists by count; the book shrinks as items are taken |
+| L4 ⚙ | 0.1.0 | Window: search, sorting, rename, clear | Work as in A1, A6, A7 |
+| L5 ⚙ | 0.1.0 | `SoftEntryLimit: 3`; a book with 2 entries, intake list with 1 new item | Filled, warning "limit 3"; the next one says the book is full |
 
 ## Lists
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| I1 | 0.1.0 | List in hand, Shift + right click on a chest that has everything | All items into the inventory; the book in the off-hand is updated and the sheet comes back |
-| I2 | 0.1.0 | Same, with something missing | "Missing"; nothing moves |
-| I3 | 0.1.0 | No book in the off-hand | The list becomes parchment |
-| I4 | 0.1.0 | Album in the off-hand, full (32 sheets) | Parchment; the message says the book already has 32 sheets |
-| I5 | 0.1.0 | Inventory with one free slot, list for 3 plain + 3 damaged iron ingots (`/giveitem ingot-iron 3 {durability:5}`) | Refused "not enough room (1 slot short)"; nothing moves |
-| I6 | 0.1.0 | List filled on a furnace, quern, barrel | Red "This container is not supported yet" (also from the off-hand) |
-| I7 | 0.1.0 | Per-player loot chest in ruins | Refused |
-| I8 | 0.1.0 | Shift + Ctrl + right click with an album in hand | The mod does nothing; the game handles the click |
-| I9 | 0.1.0 | Plain right click and Ctrl + right click on a chest | Open it as usual |
-| I10 | 0.1.0 | Put a list on the ground, on a shelf | Behaves as an ordinary item |
-| I11 | 0.1.1 | A blank intake list, a blank pick list and a blank want list from the creative inventory (`/giveitem` or the tab), a ledger in the off-hand; Shift + right click on a chest | Red "Nothing to fill: …" (Ukrainian too); the list stays in the hand, the book keeps its sheets, nothing moves. Then Cancel in its window, with the ledger in the off-hand and again without one: "The list is cancelled."; the list is gone, the book keeps its sheets, no parchment |
-| I12 | 0.1.1 | Make a want list from an album; cancel it in its window three ways: with an album in the off-hand, with a ledger in the off-hand, with nothing in the off-hand. Then the same with an intake list, in `en` and `uk` | Want list: "The want list is cancelled, its sheet is back in the album." / "…in the book." / "…and is now parchment." (uk: "Список бажаного скасовано, …"); intake list keeps "The list is cancelled…" (uk: "Накладну анульовано…"). The sheet and the parchment go as before |
+| I1 ⚙ | 0.1.0 | List in hand, Shift + right click on a chest that has everything | All items into the inventory; the book in the off-hand is updated and the sheet comes back |
+| I2 ⚙ | 0.1.0 | Same, with something missing | "Missing"; nothing moves |
+| I3 ⚙ | 0.1.0 | No book in the off-hand | The list becomes parchment |
+| I4 ⚙ | 0.1.0 | Album in the off-hand, full (32 sheets) | Parchment; the message says the book already has 32 sheets |
+| I5 ⚙ | 0.1.0 | Inventory with one free slot, list for 3 plain + 3 damaged iron ingots (`/giveitem ingot-iron 3 {durability:5}`) | Refused "not enough room (1 slot short)"; nothing moves |
+| I6 ⚙ | 0.1.0 | List filled on a furnace, quern, barrel | Red "This container is not supported yet" (also from the off-hand) |
+| I7 ⚙ | 0.1.0 | Per-player loot chest in ruins | Refused |
+| I8 ⚙ | 0.1.0 | Shift + Ctrl + right click with an album in hand | The mod does nothing; the game handles the click |
+| I9 ⚙ | 0.1.0 | Plain right click and Ctrl + right click on a chest | Open it as usual |
+| I10 ⚙ | 0.1.0 | Put a list on the ground, on a shelf | Behaves as an ordinary item |
+| I11 ⚙ | 0.1.1 | A blank intake list, a blank pick list and a blank want list from the creative inventory (`/giveitem` or the tab), a ledger in the off-hand; Shift + right click on a chest | Red "Nothing to fill: …" (Ukrainian too); the list stays in the hand, the book keeps its sheets, nothing moves. Then Cancel in its window, with the ledger in the off-hand and again without one: "The list is cancelled."; the list is gone, the book keeps its sheets, no parchment |
+| I12 ⚙ | 0.1.1 | Make a want list from an album; cancel it in its window three ways: with an album in the off-hand, with a ledger in the off-hand, with nothing in the off-hand. Then the same with an intake list, in `en` and `uk` | Want list: "The want list is cancelled, its sheet is back in the album." / "…in the book." / "…and is now parchment." (uk: "Список бажаного скасовано, …"); intake list keeps "The list is cancelled…" (uk: "Накладну анульовано…"). The sheet and the parchment go as before |
 
 ## Access (S)
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| X1 | 0.1.0 | A chest in another player's land claim, no `use` rights | All gestures refused, as opening by hand |
-| X2 | 0.1.0 | Same after `grant <name> use` | Works |
-| X3 | 0.1.0 | A padlocked or reinforced chest | Refused |
-| X4 | 0.1.0 | A chest out of reach (request from a window or the off-hand) | Refused |
-| X5 | 0.1.0 | The book changes in the hand during a request | Red refusal; nothing changes |
+| X1 ⚙ | 0.1.0 | A chest in another player's land claim, no `use` rights | All gestures refused, as opening by hand |
+| X2 ⚙ | 0.1.0 | Same after `grant <name> use` | Works |
+| X3 ⚙ | 0.1.0 | A padlocked or reinforced chest | Refused |
+| X4 ⚙ | 0.1.0 | A chest out of reach (request from a window or the off-hand) | Refused |
+| X5 ⚙ | 0.1.0 | The book changes in the hand during a request | Red refusal; nothing changes |
 
 ## Containers
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| K1 | 0.1.0 | Chest, trunk, labeled chest, basket, storage vessel, crate, a backpack and a basket on the ground | Each supported |
-| K2 | 0.1.0 | Upgradeable Storage chest | Works |
+| K1 ⚙ | 0.1.0 | Chest, trunk, labeled chest, basket, storage vessel, crate, a backpack and a basket on the ground | Each supported |
+| K2 ⚙ | 0.1.0 | Upgradeable Storage chest | Works |
 | K3 | 0.1.0 | Carry On: carry a chest, put it down | No conflict with our gestures |
 | K4 | 0.1.0 | Better Crates | Not supported, as in the README's list of limitations |
 
@@ -123,9 +125,9 @@ which build, who ran it, and each `❌` with its reason.
 | # | Since | Case | Expected |
 |---|---|---|---|
 | G1 | 0.1.0 | `"MaxSheets": 0`, restart | Server log warning "MaxSheets 0 is below 1, using 1"; the file now says 1. Put back 32 |
-| G2 | 0.1.0 | `ExtraIgnoredAttributes`: `[]` and `["durability"]` | Damaged and plain items count as different, or the same |
-| G3 | 0.1.0 | `TapestryExclude` / `TapestryAdd` | The collection changes accordingly |
-| G4 | 0.1.0 | `Diagnostics` true / false | Debug lines appear / do not |
+| G2 ⚙ | 0.1.0 | `ExtraIgnoredAttributes`: `[]` and `["durability"]` | Damaged and plain items count as different, or the same |
+| G3 ⚙ | 0.1.0 | `TapestryExclude` / `TapestryAdd` | The collection changes accordingly |
+| G4 ⚙ | 0.1.0 | `Diagnostics` true / false | Debug lines appear / do not |
 
 ## Languages (S)
 

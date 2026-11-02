@@ -5,6 +5,12 @@ using CurioCatalogue.Adapters;
 
 namespace CurioCatalogue.Tests;
 
+/// <summary>
+/// The logic of the reader against hand-made containers: fast, no game. What stands for engine behaviour here also runs on a real
+/// server (<c>ServerTests/ContainerTests</c>, 02.11.2026): real chest, trunk, crate, machines and a sign classified; a backpack
+/// in a chest; a pile and a backpack on the ground (open, save, read back); a per-player loot chest. Only mocked here:
+/// <c>MayBeStorage</c> (a type check, no engine).
+/// </summary>
 public class ContainerReaderTests
 {
     private readonly GameWorld game = new();
@@ -52,6 +58,7 @@ public class ContainerReaderTests
         Assert.Null(reader.Read(machine));
     }
 
+    // Real one: ServerTests/ContainerTests.A_loot_chest_with_a_share_per_player_is_unsupported.
     [Fact]
     public void Per_player_loot_chest_is_unsupported()
     {
@@ -69,6 +76,7 @@ public class ContainerReaderTests
     [Fact]
     public void Vanilla_storage_is_chests_and_crates()
     {
+        // The same on real blocks: ServerTests/ContainerTests.Vanilla_blocks_are_classified.
         // The real classes, without reading them: their inventory is made only in Initialize(api).
         Assert.True(ContainerReader.IsVanillaStorage(new BlockEntityGenericTypedContainer()));
         Assert.True(ContainerReader.IsVanillaStorage(new BlockEntityLabeledChest()));

@@ -271,6 +271,13 @@ a client sends on join make a real `ServerPlayer` through the server's own path 
   id is the type's place in the channel's `RegisterMessageType` calls, from 0.
 - The join makes one long tick: "Server overloaded. A tick took …ms" (a warning).
 
+**Blocks in the test world** (checked 02.11.2026). `BlockAccessor.SetBlock(id, pos, stack)` near `DefaultSpawnPosition` (the spawn
+chunks are loaded) makes the block entity and initializes it with the server api, so `Inventory` exists; the stack's attributes
+(`isPerPlayer`) reach it. A trunk's filler cell comes only from `Block.DoPlaceBlock(world, player, selection, stack)`, which needs a
+real player (`FakeClient`). Land claims and padlocks work for the fake players, creative or not: a claim keeps a creative visitor
+out (`TestAccess`), and `TryLock` locks a chest against them. An `[InlineData]` argument of a type from our DLL (an enum) is read at
+discovery, before the module initializer can find the DLL ("Could not load file or assembly 'curiocatalogue'"): pass a string.
+
 ## C#
 
 - A tuple element cannot be named `Rest` (reserved by `ValueTuple`).

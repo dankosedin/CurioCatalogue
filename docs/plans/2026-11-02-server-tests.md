@@ -45,7 +45,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       assembly through `Api.ModLoader`, or make the mod loader use the assembly already loaded) and prove it with one call
       into an adapter. After: T1. Model: opus. Author: decides between the ways found. Done when: the decision with the
       rejected ways is in Decisions; one test calls our code on the server.
-- [ ] **T5. Real containers in the world.** Place a chest (and the other storage our books read) on the superflat, fill it,
+- [x] **T5. Real containers in the world.** Place a chest (and the other storage our books read) on the superflat, fill it,
       and test what our adapters read from it and write into it: the cases that `TestContainers` and `GameWorld` mock today.
       Each mock that a server test now covers is marked or removed. After: T4. Model: sonnet. Author: none.
       Done when: the container cases run on the server; the mocks' "checked in game" notes they replace are updated.
@@ -211,6 +211,17 @@ T6 (02.11.2026):
 - **Left for T7:** the server's ping timeout (`ClientConnectionTimeout`, 150 s; the fake client does not answer pings) and a
   player leaving (packet 14), if a test needs a clean server or runs long.
 
+T5 (02.11.2026):
+
+- **Real blocks through `SetBlock`**, not hand-made block entities: the vanilla block entities initialize themselves with the server api (a trunk
+  through `DoPlaceBlock` with a joined player, for its filler cell). Each placement takes its own cell near the spawn.
+- **The mocks stay as fast logic tests** (they run without the game, in the core CI job), as `AssetsTests` did in T2; each says in a comment which
+  server test is its twin. Rejected: removing `TestChest` cases (the overlap is small, the cost of keeping them is nothing).
+- **Access with the mod's own wiring** (`CurioCatalogueModSystem.Access`) and two joined players, claims added and removed per test.
+- **Mutations:** the lock check dropped, `Traverse` asked instead of `Use`, the crate removed from `IsVanillaStorage`, `MainPos` returning its
+  argument: each fails exactly one server test.
+- Not covered (still mocks): `MayBeStorage` (a type check, no engine).
+
 ## Where we stopped
 
 - 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
@@ -223,3 +234,4 @@ T6 (02.11.2026):
   three projects pass. Next: T5 (sonnet) or T6 (opus), both After: T4; T8 any time.
 - 02.11.2026: T6 done: `FakeClient` joins a real player without a client and sends requests to our channel; `PlayerTests`
   (2 tests); all three projects pass (98 + 160 + 20). Next: T5 (sonnet, After: T4); T7 waits for T5; T8 any time.
+- 02.11.2026: T5 done: `ContainerTests` (18 cases: real chest, trunk, labeled chest, vessel, crate, machines, sign, loot chest, backpack in a chest and on the ground, claims, padlock); four mutations checked; the mocks point to their server twins; `development.md`, `modding.md` updated. All three projects pass (98 + 160 + 38). Next: T7 (sonnet, After: T5, T6, both done); T8 any time.

@@ -170,6 +170,11 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   `VintagestoryServer.exe` as a separate process (it started, but stopping it through stdin was unreliable, and the tests could
   talk to it only through the log or a test mod); a client as well as the server (tests stay headless, what needs a client stays
   in game checks).
+- **Compatibility tests in a project of their own** (11-02, author, plan `2026-11-02-server-tests.md`, T12): the same fixture, a
+  server with other mods loaded, so their effects never reach the server tests. Other mods are not in the repo (their licences):
+  a pinned list (mod id, version, file URL, SHA-256) is, and the zips come from a folder or a download into it, the same locally
+  and on CI; a missing or changed zip fails the run. Rejected: other mods in the server tests' own server; skipping when a mod is
+  missing.
 
 ## Part 2. Fitting features into the game
 

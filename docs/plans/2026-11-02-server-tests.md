@@ -3,7 +3,7 @@
 Started 02.11.2026. A third test project starts the real game server (headless, no client) inside the `dotnet test` process,
 in a throwaway superflat world, with our mod loaded, and gives the tests the server API. What our tests now mock, or what
 is checked only in game (assets that fail to load, real slots and containers, books on real inventories), becomes testable.
-No change to the mod itself.
+No change to the mod itself (except a bug a test finds, T11). The same server, with other mods loaded, tests compatibility (T12).
 
 Some mods are known to declare such tests; we found the way ourselves (engine 1.22.7 decompiled with `ilspycmd`), without
 looking at how they do it. The findings and the skeleton are in "Findings" below; the steps go from the smallest to the
@@ -58,13 +58,38 @@ assumptions"), but its source is now the test itself: the engine ran it.
       the want list, each "all or nothing" (`docs/critical.md`) on real inventories, and the access checks (claims,
       reinforcement). After: T5, T6. Model: sonnet. Author: none (or splits the step if large).
       Done when: the cases of `docs/testing/functional.md` that need no client have a server test, marked there.
-- [ ] **T8. CI.** The `build` job (it has the game server) runs the server tests; how long they take; what CI keeps when
-      they fail (the server log of the temp world as an artifact). After: T1 (may wait for T2–T7). Model: sonnet. Author: none.
+- [ ] **T10. The cases T7 left that need no new means.** With the fixture, `FakeClient` and the gestures of T7: I4 (a full
+      album), I11 (blank lists: "Nothing to fill", Cancel with and without a book); L5, W3, G2, G4 with the config changed in
+      the test and put back (`CurioCatalogueConfig` has setters, the poster reads it through lambdas); G3 if the collection is
+      built after start (find out; if at start only, say so in Decisions); A6 on the server's side (a 60-character name through
+      the channel is cut by `ModNetwork.LimitName`); I9 and I10 on the server's side: a plain click on a chest and Shift + click
+      on the floor go to `base` (`docs/critical.md`, "Clicks that are not ours"), the chest opens, the list lies on the ground.
+      After: T7. Model: sonnet. Author: none. Done when: each case has a test or a reason in Decisions why not; the covered
+      ones are marked ⚙ in `functional.md`; a mutation per group (the config ignored, `base` not called) fails its test.
+- [ ] **T11. Crafting on the server.** Research first: whether stacks put into a real player's crafting grid on the server and
+      the output taken run the game's recipe matching and our crafting hooks as in game (the grid inventory, the output slot,
+      `OnCreatedByCrafting`, what the client normally sends). Then C1–C4, C4 being the open bug "a book could not be crafted
+      from an old one": a test that reproduces it, if it does. After: T7. Model: opus. Author: decides whether to go on after the
+      research, and whether the bug's fix (if found) is made in the step or gets its own. Done when: the answer and the way (or
+      "not possible, because") are in Decisions; C1–C4 marked ⚙ or the reason why not.
+- [ ] **T12. Compatibility tests: Upgradeable Storage.** A fourth project `CurioCatalogue.CompatTests` with its own server that
+      loads our mod and Upgradeable Storage (`upgradablestorage` 1.1.9, Decisions "Before T10"). The fixture is shared with
+      `CurioCatalogue.ServerTests`, not copied (the way chosen in the step). The mods come from a pinned list in the repo
+      (mod id, version, file URL, SHA-256): the folder first, then a download into it, as on CI; neither, or a wrong hash,
+      fails the run. Tests: both mods load with no warning or error in the log; our books on its chests, trunks and storage
+      vessels (each gesture of K1, the album and a list end to end, as `BookFlowTests` do on vanilla chests).
+      Docs: `docs/development.md` (the fourth project, the mods folder, how to add a mod); `docs/architecture.md` Part 1
+      (the project and the mods' source); `functional.md` K2 marked ⚙. After: T10 (the shared fixture moves code that T10 uses).
+      Model: opus. Author: decides how the fixture is shared. Done when: the tests pass from an empty folder (download) and from
+      a full one; a mutation (a wrong hash, the mod missing from the list) fails clearly.
+- [ ] **T8. CI.** The `build` job (it has the game server) runs the server tests and the compatibility tests; how long they take;
+      what CI keeps when they fail (the server log of the temp world as an artifact); the mods folder of T12 cached between runs.
+      After: T12. Model: sonnet. Author: none.
       Done when: `ci.yml` changed; `docs/development.md` (CI) says so; checked after the push (the author).
-- [ ] **T9. Coverage review.** What the three test projects cover now and what they do not: a coverage report (coverlet is in
+- [ ] **T9. Coverage review.** What the four test projects cover now and what they do not: a coverage report (coverlet is in
       the tests already) per class of the adapters; the mocks left and whether each still needs to be a mock; the cases of
       `functional.md` still only in game; the item classes (`ROADMAP.md`, "Tests for the item classes"). Findings fixed in
-      the step if small, otherwise lines in `ROADMAP.md`. After: T7, T8. Model: opus. Author: decides on each finding.
+      the step if small, otherwise lines in `ROADMAP.md`. After: T8, T10, T11. Model: opus. Author: decides on each finding.
       Done when: the review is in Decisions, its findings fixed, moved to `ROADMAP.md` or rejected with a reason.
 
 ## Open questions (for the steps that name them)
@@ -236,6 +261,19 @@ T5 (02.11.2026):
 - **Mutations:** the lock check dropped, `Traverse` asked instead of `Use`, the crate removed from `IsVanillaStorage`, `MainPos` returning its
   argument: each fails exactly one server test.
 - Not covered (still mocks): `MayBeStorage` (a type check, no engine).
+
+Before T10 (02.11.2026, author):
+
+- **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
+  what needs no new means, T11 crafting (with research first). Stay in game: A1, A8, A9 (windows), T1, textures, shapes, rendering.
+- **Compatibility tests start with positive integrations:** Upgradeable Storage first (README: "Tested with"; its chests are built on
+  the vanilla ones, so books should work). Not now: Better Crates (not supported, `ROADMAP.md`, When pigs fly) and Carry On (its
+  conflict with our gestures is client input).
+- **A project of their own** (`CurioCatalogue.CompatTests`): one server per process, so other mods do not change what the server tests
+  see. Rejected: other mods in the server tests' server (every failure would have two suspects).
+- **Other mods are not in the repo** (their licences): a pinned list with SHA-256 is. Locally and on CI the same way: a folder first,
+  then a download from the mod database; without the mod the run fails, not skips (a skip would hide a missing check).
+- **The steps' order:** T10, T11, T12, then T8 (CI runs all four projects at once), then T9.
 
 ## Where we stopped
 

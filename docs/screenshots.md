@@ -2,8 +2,8 @@
 
 How we shoot the mod's screenshots (ModDB gallery, READMEs) so that a shot can be taken again, in `en` and `uk`, with the same
 framing. Facts checked in engine 1.22.7 (decompiled) and in game on 01.11.2026 (superflat creative world, `uk` → `en`).
-The shot list, the studio and the macros of the current round live in the plan `docs/plans/2026-11-01-mod-page.md`
-(they move here with step P2).
+The studio (a WorldEdit schematic) and the macros live in `tools/studio/`; the recipe to rebuild the studio and the shot
+list come here with step P2 of the plan `docs/plans/2026-11-01-mod-page.md`.
 
 **Update when** the game surprises you while shooting.
 
@@ -13,6 +13,14 @@ The shot list, the studio and the macros of the current round live in the plan `
   (if some gets in, the difference is ignored).
 - Only screenshots: no video, no shader or texture packs (the player sees what the page shows).
 - Keep the GUI scale at 100 %.
+
+## Studio
+
+- The scene is kept as a WorldEdit schematic (`/we export`, JSON) in `tools/studio/`, not as a world file: a `.vcdbs` is a
+  ~9 MB SQLite database that every save rewrites whole.
+- To rebuild: a superflat creative world, `/we import` at the fixed point written here (the macros' `.cam` coordinates are
+  absolute), then time and weather once (below). The recipe with the exact commands comes with P2.
+- Not yet checked: whether the schematic carries the chest's contents and the books' attributes.
 
 ## Camera points
 
@@ -27,6 +35,8 @@ The shot list, the studio and the macros of the current round live in the plan `
 - Ctrl+M: a name, a list of commands (both `.` and `/` forms) and a key. Macros survive a restart and a language switch.
 - The editor wraps long lines and saves them wrapped, which breaks `.cam load …`. Write long commands into
   `VintageStory-DevData\Macros\<n>-<code>.json` while the editor is closed, then restart the client.
+- The source of the macros is `tools/studio/macros/`; they are copied into `VintageStory-DevData\Macros` with the client
+  closed (the script comes with P3).
 
 ## World, time, weather
 

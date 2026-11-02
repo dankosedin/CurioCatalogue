@@ -23,6 +23,7 @@ public class StackKeysTests
 
     // Assumption: a tapestry taken off a wall is "game:tapestry-north" with its picture in the string
     // attribute "type" (modding.md, Vanilla content we rely on; vssurvivalmod BlockTapestry.cs).
+    // Real one: ServerTests/VanillaContentTests.A_tapestry_taken_off_a_wall_is_a_north_piece_with_its_picture_and_a_member_of_the_collection.
     private ItemStack Tapestry(string type)
     {
         var stack = new ItemStack(tapestry);
@@ -53,6 +54,7 @@ public class StackKeysTests
         var fresh = new ItemStack(item);
         var used = new ItemStack(item);
         // Assumption: heat lives in the "temperature" subtree (GlobalConstants.IgnoredStackAttributes), wear in "durability".
+        // Real ones: ServerTests/VanillaContentTests.A_hot_ingot_counts_as_the_same_item_as_a_cold_one; BookEdgeTests.G2_ExtraIgnoredAttributes_decides_whether_damaged_and_plain_items_are_the_same.
         used.Attributes.GetOrAddTreeAttribute("temperature").SetFloat("temperature", 600);
         used.Attributes.SetInt("durability", 10);
         Assert.Equal(keys.KeyOf(fresh), keys.KeyOf(used));
@@ -71,14 +73,41 @@ public class StackKeysTests
         tree.SetBytes("bytes", [1, 2]);
         tree["sa"] = new StringArrayAttribute(["a", "b"]);
         tree["ia"] = new IntArrayAttribute([3, 4]);
+        tree["la"] = new LongArrayAttribute([5L, 6L]);
+        tree["fa"] = new FloatArrayAttribute([0.5f]);
+        tree["da"] = new DoubleArrayAttribute([0.25]);
+        tree["ba"] = new BoolArrayAttribute([true, false]);
         tree.GetOrAddTreeAttribute("sub").SetString("k", "v");
 
         var key = new ItemIdentity([]).KeyOf(CollectibleKind.Item, "game:x", keys.ToAttrTree(tree));
 
         Assert.Equal(
-            "{\"b\":true,\"bytes\":0x0102,\"d\":2.5D,\"f\":1.5F,\"i\":1,\"ia\":[3,4],\"l\":2L," +
+            "{\"b\":true,\"ba\":[true,false],\"bytes\":0x0102,\"d\":2.5D,\"da\":[0.25D],\"f\":1.5F,\"fa\":[0.5F],\"i\":1,\"ia\":[3,4],\"l\":2L,\"la\":[5L,6L]," +
             "\"s\":\"x\",\"sa\":[\"a\",\"b\"],\"sub\":{\"k\":\"v\"}}",
             key.Attributes);
+    }
+
+    [Fact]
+    public void An_attribute_type_of_another_mod_counts_by_its_type_and_json()
+    {
+        var tree = new TreeAttribute();
+        tree["odd"] = new OtherModAttribute();
+
+        var key = new ItemIdentity([]).KeyOf(CollectibleKind.Item, "game:x", keys.ToAttrTree(tree));
+
+        Assert.Equal("{\"odd\":\"" + typeof(OtherModAttribute).FullName + ":{7}\"}", key.Attributes);
+    }
+
+    /// <summary>An attribute class the game does not have (mods may register their own, vsapi TreeAttribute.cs:94#AttributeIdMapping).</summary>
+    private sealed class OtherModAttribute : IAttribute
+    {
+        public void ToBytes(BinaryWriter stream) => stream.Write(7);
+        public void FromBytes(BinaryReader stream) => stream.ReadInt32();
+        public int GetAttributeId() => 99;
+        public object GetValue() => 7;
+        public string ToJsonToken() => "{7}";
+        public bool Equals(IWorldAccessor worldForResolve, IAttribute attr) => attr is OtherModAttribute;
+        public IAttribute Clone() => new OtherModAttribute();
     }
 
     [Fact]

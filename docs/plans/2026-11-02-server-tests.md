@@ -120,7 +120,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       The album counts the added piece and takes it from a chest. Branch: `test/server-tests`. After: T12. Model: opus (the
       fixture's other mods). Author: decides between a real mod and our test mod. Done when: the test passes; a mutation (the
       patch removed) fails it; A11 marked ⚙ or the reason why not in Decisions.
-- [ ] **T9. Coverage review.** What the four test projects cover now and what they do not: a coverage report (coverlet is in
+- [x] **T9. Coverage review.** What the four test projects cover now and what they do not: a coverage report (coverlet is in
       the tests already) per class of the adapters; the mocks left and whether each still needs to be a mock; the cases of
       `functional.md` still only in game; the item classes (`ROADMAP.md`, "Tests for the item classes"). Findings fixed in
       the step if small, otherwise lines in `ROADMAP.md`. After: T8, T10, T11, T13–T17. Model: opus. Author: decides on each finding.
@@ -403,6 +403,33 @@ T17 (02.11.2026):
 - **Mutation:** the patch moved out of the mod fails both. Renamed to `.json.off` in place it still applied: the game applies every
   file in `patches/` (`docs/modding.md`, Other mods).
 
+T9, coverage review (03.11.2026; the author decided each finding):
+
+- **How coverage is measured:** coverlet in every test project; `tools/coverage.ps1` runs all four and merges per source file and line
+  (unit = Core.Tests + Tests, server = ServerTests + CompatTests). The server tests run our DLL from the mod's output, so coverlet is pointed
+  there (`IncludeDirectory`) and needs `VintagestoryAPI.dll` beside it for the run; the game does not load it (only the DLL with `ModInfo`
+  and a `ModSystem`, decompiled `ModContainer`). Rejected: a coverlet console tool (one more tool to install, the same resolver problem).
+- **The report, kept for T18** (`tools/coverage.ps1` regenerates it): lines 1839; before T9 unit 50%, server 64%, all 68% (587 missed);
+  after T9 unit 50%, server 70%, all 73% (495 missed). Core 98% and the adapters 98–100% (all tests together); `ModNetwork` 94%, `ItemLedger`
+  91%, `ItemInvoice` 77%, `CurioCatalogueModSystem` 84%. Never run: the client code, about 420 lines (the four windows, `LedgerHintsBehavior`,
+  `HandbookIndexFix`, the client side of `EmptyHandGesture` and of `ModNetwork`, the windows opened from the items); the
+  `ExhaustiveMatch.Failed` throws; `Describe` for the debug log; `GetHeldInteractionHelp` (the hint at the bottom of the screen).
+- **Fixed in the step:** F1, an album started over through "Clear" had no test anywhere (A7 was marked ⚙ for a ledger's clear):
+  `BookEdgeTests.A7_…`. F2, server branches with no test: a want list into the empty main hand, on the ground, refused (`allcollected`,
+  `nosheets`); an intake list on the ground; a full ledger in the off-hand (parchment, "the book already has N sheets"); an album from a
+  piece that is not a member (`CraftingTests.C3_…`). F3, names and tooltips of the books and lists and the "Missing: …" text
+  (`TooltipTests`, 6 cases). F5, the server twins of two assumptions of `StackKeysTests` (`VanillaContentTests`: a tapestry off the
+  wall, a hot ingot) and pointers to them. F6, `StackKeys` arrays of long, float, double, bool and another mod's attribute type
+  (`StackKeysTests`). F7, `tools/coverage.ps1`. Sixteen mutations, one per new case, each fail their test.
+- **Rejected:** F4, the client code: no client in the tests; A1, A8, A9, C7–C9 and T1 check it in game, and `ROADMAP.md` keeps "Tests for the
+  client code" (narrowed from "Tests for the item classes"). The unreachable lines: the `ExhaustiveMatch.Failed` throws, the `: 1` fallback of
+  `InvoicePoster.SlotsShort`, "item not registered" in `InvoiceMaker`, the format overload of `ModLog`. The assumption about JSON integers
+  as `LongAttribute` (`LedgerStoreTests`) has no server twin: none of our stacks gets attributes from JSON; its vsapi source stays.
+- **The mocks left** (`GameWorld`: world, api, blocks, claims, calendar; two `IHeldBag`; the logger of `ModLogTests`) stay: they are the fast
+  tier of logic tests and each has a server twin or a source. None is removed.
+- **Found on the way:** a creative player's inventory is never full, and a new list given to a full creative inventory vanishes
+  (`docs/modding.md`; a line in `ROADMAP.md`, 0.1.x). The tests that need a full inventory switch their player to survival (`AsInSurvival`).
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -451,3 +478,4 @@ Before T13 (02.11.2026, author):
 - 02.11.2026: T15 done: `RefusalTests` (14 cases: `newerversion` everywhere, `nocollection`); mutations checked; `functional.md`, `development.md` updated. Next: T16 (sonnet, After: T8), T17 (opus, After: T12).
 - 02.11.2026: T16 done: `CreativeInventoryTests` (6 cases); mutation checked; `functional.md` C6 ⚙, `development.md` updated. Next: T17 (opus, After: T12), then T9.
 - 02.11.2026: T17 done: our test mod `cctapestry` (`testmods/`, a JSON patch of `sizes`), `TestMods`, the fixture copies mod folders; `ModdedTapestryTests` (2 cases); mutation checked; all four projects pass (98 + 160 + 126 + 17); `functional.md` A11 ⚙, `development.md`, `modding.md`, `ROADMAP.md` (tapestries of other mods) updated. Next: T9 (opus, After: T8, T10, T11, T13–T17).
+- 03.11.2026: T9 done: coverage measured (`tools/coverage.ps1`, all 68% → 73%, report in Decisions); findings F1–F3, F5–F7 fixed (16 server cases in `BookEdgeTests`, `CraftingTests`, `TooltipTests`, `VanillaContentTests`; `StackKeysTests`), F4 rejected; 16 mutations checked; all four projects pass (98 + 161 + 142 + 17); `development.md`, `modding.md`, `ROADMAP.md` updated. Next: T18 (opus, After: T9).

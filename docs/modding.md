@@ -304,6 +304,14 @@ block) does not use up the item of a creative player: the hand keeps it, and the
 mod's lazily built parts (`keys ??= …` in `CurioCatalogueModSystem`) read the config when first used, so a config changed on the running
 server reaches them only after they are dropped; in the game that is a restart.
 
+**A creative player's inventory is never full** (decompiled `VintagestoryLib` 1.22.7, checked 03.11.2026). `TryGiveItemstack` puts the stack into
+the best slot of any player inventory the player has opened (`PlayerInventoryManager.GetBestSuitedSlot`); in creative that includes the creative
+inventory, which swallows anything. With the hotbar and backpack full it then returns `false` and leaves the stack at size 0, so our
+"else drop it on the ground" spawns nothing (in game a new list would vanish; `ROADMAP.md`). `CloseInventory` does not close the creative
+inventory while the player is in creative. A test that needs a full inventory switches its own player to survival
+(`WorldData.CurrentGameMode = EnumGameMode.Survival`, then `BroadcastPlayerData(true)`; `BookEdgeTests.AsInSurvival`): then the stack is
+refused whole.
+
 **Crafting on the server** (decompiled `VintagestoryLib` 1.22.7, checked 02.11.2026). The grid is the player's own inventory
 `craftinggrid-<uid>` (`InventoryCraftingGrid`: slots 0–8 row by row, 9 the output), there on the server for a creative player too
 (only closed for the client). A stack put into a slot plus `MarkDirty` makes it look for a recipe (`OnItemSlotModified` →

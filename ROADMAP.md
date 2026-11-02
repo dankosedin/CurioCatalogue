@@ -26,6 +26,11 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 - **Two stale game-source references** (02.11.2026): `tools/check-refs.ps1` fails on `InvoicePoster.cs:371`
   (`Collectible.cs:2558#GetMergableQuantity`) and `InvoicePosterTests.cs:678` (`ItemSlot.cs:222#TryPutInto`): the symbols are not
   on those lines at 1.22.7. Find the lines, re-check that the behaviour cited still holds, fix the references.
+- **A new list vanishes in creative when the inventory is full** (coverage review, 03.11.2026). Making a list (or a want list) with the
+  main hand busy hands it out with `TryGiveItemstack`, else drops it on the ground. In creative the creative inventory swallows the stack:
+  `TryGiveItemstack` returns `false` with the stack at size 0, nothing is dropped, and the list is gone with its sheet (`docs/modding.md`,
+  "A creative player's inventory is never full"). Seen on the test server; check in game, then drop only what is left of the stack, or
+  hand it out in a way that does not reach the creative inventory. Together with the one helper for handing out items (Later, the messages line).
 
 ### 0.2: collections
 
@@ -159,8 +164,10 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   the data model anyway (README warns that the model may change). Review, 28.10.2026: then also the variant (`book-album-*`) as the
   only sign of an album (today the `album` attribute tree says it too, `docs/architecture.md` rejected two sources), and a typed
   sample instead of `Entry.Sample` as `object` with casts to `ItemStack` all over the adapters.
-- **Tests for the item classes** (review, 28.10.2026): gestures, crafting hooks, tooltips of `ItemLedger` / `ItemInvoice` have
-  none. Pull their decisions out into testable code first (as the invoice's fate in the 0.1.0 fixes).
+- **Tests for the client code** (review, 28.10.2026; narrowed by the coverage review, 03.11.2026: the gestures, crafting hooks and tooltips
+  of the item classes now have server tests): the windows (`Gui/`), the hints over containers (`LedgerHintsBehavior`), `HandbookIndexFix` and
+  the client side of the gestures run only in game (A1, A8, A9, C7–C9, T1 of `functional.md`). Pull their decisions out into testable code
+  first (as the invoice's fate in the 0.1.0 fixes).
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.

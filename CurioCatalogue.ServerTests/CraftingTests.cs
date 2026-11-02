@@ -167,6 +167,25 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal((null, null), shown);
     }
 
+    [Fact]
+    public void C3_a_tapestry_that_is_not_in_the_collection_makes_no_album()
+    {
+        // The recipe takes any "game:tapestry-*" (ledger.json), so a piece of another side matches it; such a stack comes only
+        // from the creative pick block and is not a member (CollectionRegistry). The album is not made and the grid shows nothing.
+        var client = FakeClient.Join(game, "c3-east");
+        var shown = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var east = Vanilla("tapestry-east");
+            east.Attributes.SetString("type", "ambush1");
+            Put(player, (0, Book("book-ledger-normal-brickred", 12)), (1, east));
+            var (recipe, output) = Shown(player);
+            return (recipe, output == null ? null : Describe(output));
+        });
+
+        Assert.Equal(("ledger-album", (string?)null), shown);
+    }
+
     // ---- C4: books made from an old book (one with entries)
 
     [Fact]

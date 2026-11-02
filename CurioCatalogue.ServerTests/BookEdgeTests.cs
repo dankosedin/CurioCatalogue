@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
@@ -242,6 +243,164 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         client.WaitFor(() => client.Player.InventoryManager.ActiveHotbarSlot.Empty, "the blank list to be gone");
         var seen = game.OnMain(() => (Inventory(client.Player), withBook ? BookState(client.Player.Entity.LeftHandItemSlot.Itemstack!).Sheets : 5));
         Assert.Equal(("", 5), seen); // no parchment, no extra sheet
+    }
+
+    // ---- branches the coverage review found untested (T9 of the server tests plan)
+
+    Ledger ReadBook(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
+
+    /// <summary>Whether an item of ours with this code prefix lies on the ground near the player. Main thread.</summary>
+    bool OnGroundNear(IServerPlayer player, string codePrefix) =>
+        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 4, e => e is EntityItem { Itemstack: { } st }
+            && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length > 0;
+
+    /// <summary>
+    /// The test players are in creative, where the inventory is never full: <c>TryGiveItemstack</c> puts a stack into any player
+    /// inventory the player has opened (decompiled VintagestoryLib 1.22.7, <c>PlayerInventoryManager.GetBestSuitedSlot</c>), and in
+    /// creative that includes the creative inventory, which swallows it (closing it does not help: it stays opened in creative).
+    /// In survival a full inventory refuses the stack and it is left whole. The player is this test's own.
+    /// </summary>
+    static void AsInSurvival(IServerPlayer player)
+    {
+        player.WorldData.CurrentGameMode = EnumGameMode.Survival;
+        player.BroadcastPlayerData(true);
+    }
+
+    [Fact]
+    public void A7_clearing_an_album_starts_it_over_and_keeps_its_sheets_and_name()
+    {
+        // An album's "Clear" starts it over: every member missing again (domain.md, Albums and collections).
+        var client = FakeClient.Join(game, "restarter");
+        var (fingerprint, members, collected) = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Tapestry("ambush1");
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Album(8);
+            Mod.Store.WriteLedger(hand.Itemstack, ReadBook(hand.Itemstack) with { Name = "Wall pieces" });
+            int members = BookState(hand.Itemstack).Entries;
+            Click(player, hand, pos); // takes ambush1: one missing fewer
+            return (LedgerStore.Fingerprint(hand.Itemstack!), members, BookState(hand.Itemstack!).Entries);
+        });
+        Assert.Equal(members - 1, collected);
+
+        client.SendToMod(new ClearLedgerRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+
+        client.WaitFor(() => BookState(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Entries == members, "the album to start over");
+        var seen = game.OnMain(() =>
+        {
+            var album = ReadBook(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!);
+            return (album.Sheets, album.Name, album.Album?.CollectionId);
+        });
+        Assert.Equal((8, "Wall pieces", "tapestries"), seen);
+        client.WaitFor(() => Chat(client).Any(l => l.Contains(members.ToString())), "the chat line 'starts over, still to collect'");
+    }
+
+    [Fact]
+    public void A5_a_want_list_from_the_album_in_the_off_hand_goes_into_the_empty_main_hand()
+    {
+        var client = FakeClient.Join(game, "wanter-offhand");
+        var fingerprint = game.OnMain(() =>
+        {
+            // The main hand is the fourth hotbar slot and the first is free: given away instead, the list would go to the first.
+            client.Player.InventoryManager.ActiveHotbarSlotNumber = 3;
+            var offhand = client.Player.Entity.LeftHandItemSlot;
+            offhand.Itemstack = Album(8);
+            return LedgerStore.Fingerprint(offhand.Itemstack);
+        });
+
+        client.SendToMod(new MakeWantListRequest { Book = new ShownItem { OffHand = true, Fingerprint = fingerprint } });
+
+        client.WaitFor(() => client.Player.InventoryManager.ActiveHotbarSlot.Itemstack?.Collectible.Code.Path == "invoice-wantlist", "the want list in the main hand");
+        Assert.Equal(3, game.OnMain(() => client.Player.InventoryManager.ActiveHotbarSlotNumber));
+        Assert.Equal(7, game.OnMain(() => BookState(client.Player.Entity.LeftHandItemSlot.Itemstack!).Sheets));
+    }
+
+    [Fact]
+    public void A5_a_want_list_lands_on_the_ground_when_the_inventory_is_full()
+    {
+        var client = FakeClient.Join(game, "wanter-full");
+        var fingerprint = game.OnMain(() =>
+        {
+            var hand = client.Player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Album(8);
+            AsInSurvival(client.Player);
+            client.Player.Entity.LeftHandItemSlot.Itemstack = Vanilla("stick"); // the off-hand would take it too
+            FillWithSticks(client.Player);
+            return LedgerStore.Fingerprint(hand.Itemstack);
+        });
+
+        client.SendToMod(new MakeWantListRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+
+        client.WaitFor(() => OnGroundNear(client.Player, "invoice-wantlist"), "the want list on the ground");
+        Assert.Equal(7, game.OnMain(() => BookState(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Sheets));
+    }
+
+    [Theory]
+    [InlineData("allcollected")]
+    [InlineData("nosheets")]
+    public void A5_a_want_list_is_refused_when_nothing_is_missing_or_no_sheet_is_left(string refusal)
+    {
+        var client = FakeClient.Join(game, "wl-" + refusal[..5]);
+        var (fingerprint, before) = game.OnMain(() =>
+        {
+            var hand = client.Player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = refusal == "nosheets" ? Album(0) : Album(8);
+            if (refusal == "allcollected") Mod.Store.WriteLedger(hand.Itemstack, ReadBook(hand.Itemstack) with { Entries = ImmutableDictionary<ItemKey, Entry>.Empty });
+            return (LedgerStore.Fingerprint(hand.Itemstack), BookState(hand.Itemstack));
+        });
+
+        client.SendToMod(new MakeWantListRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+
+        client.WaitFor(() => Errors(client).Contains(refusal), $"the refusal '{refusal}'");
+        var seen = game.OnMain(() => (FindOurs(client.Player, "invoice-") != null, BookState(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!)));
+        Assert.Equal((false, before), seen);
+    }
+
+    [Fact]
+    public void L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full()
+    {
+        var client = FakeClient.Join(game, "maker-full");
+        var sheets = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("ingot-copper", 5);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Book("book-ledger-normal-brickred", 8);
+            AsInSurvival(player);
+            player.Entity.LeftHandItemSlot.Itemstack = Vanilla("stick"); // the off-hand would take it too
+            FillWithSticks(player);
+
+            Click(player, hand, pos);
+            return BookState(hand.Itemstack!).Sheets;
+        });
+        Assert.Equal(7, sheets);
+        client.WaitFor(() => OnGroundNear(client.Player, "invoice-incoming"), "the intake list on the ground");
+    }
+
+    [Fact]
+    public void I4_a_full_ledger_does_not_take_the_sheet_back_and_says_the_book_is_full()
+    {
+        // I4 for a ledger: the same parchment as for a full album, with the book's own words.
+        var client = FakeClient.Join(game, "full-ledger");
+        var seen = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("ingot-copper", 5);
+            int max = Mod.Config.MaxSheets;
+            player.Entity.LeftHandItemSlot.Itemstack = Book("book-ledger-normal-brickred", max);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5));
+
+            Click(player, hand, pos);
+
+            return (Inventory(player), BookState(player.Entity.LeftHandItemSlot.Itemstack!).Sheets == max, max);
+        });
+        Assert.Equal(("ingot-copper x5, paper-parchment x1", true), (seen.Item1, seen.Item2));
+        client.WaitFor(() => Chat(client).Any(l => l.Contains($"The book already has {seen.max} sheets")), "the chat line 'the book already has N sheets'");
     }
 
     // ---- a long name through the channel

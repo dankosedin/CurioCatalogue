@@ -101,6 +101,9 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   lays the book on the ground). The config is changed on the running server by `WithConfig` and put back in `finally`; it also drops the mod's
   lazily built caches (`keys`, `store`, `invoiceMaker`, `invoicePoster`, `collections`) by reflection, because they take the config when first used.
   `Diagnostics` is tested through the flag of `ModLog` (internal, by reflection), not through the config.
+  The branches the coverage review found untested (T9 of the server tests plan) are here too: an album started over, a want list into the empty
+  main hand, refused, or on the ground, a list on the ground, a full ledger. A full inventory needs the player in survival (`AsInSurvival`):
+  a creative player's inventory is never full (`docs/modding.md`, "A server inside the test process").
 - **`CraftingTests`** crafts through a real player's grid (C1–C4 of `functional.md`): stacks put into the grid's slots, the output taken with
   `ActivateSlot` as the server does with the client's packet; it checks the recipe found, the book made (cover, sheets, entries, name) and
   what is left in the grid. How: `docs/modding.md`, "Crafting on the server".
@@ -117,6 +120,9 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   the cancel with a newer book in the off-hand are refused, and the stacks' attributes are the same afterwards) and `nocollection` (an album of a
   collection the server does not have). `movefailed` stays a unit test: no container of the server accepts only part of what is put in.
 - **`CreativeInventoryTests`** (C6): the server fills `CreativeInventoryTabs` of every item from the JSON (`ItemType.GetCreativeTabs`), and the client's creative dialog and the handbook read that field: 24 books per kind (13 normal, 11 aged), 72 in the `general` tab, the three blank lists there too (`ROADMAP.md` wants them out; the test changes then), nothing else of ours.
+- **`TooltipTests`**: the names and tooltips of the books and lists and the "Missing: …" text of a refused post (`ModNetwork.MissingText`, internal, by
+  reflection), in the server's English. The client calls them, but they need no client; the key names fall back to "Shift" and "Ctrl".
+- **`VanillaContentTests`**: the server twins of assumptions the adapter tests make about vanilla stacks (a tapestry taken off a wall, a hot ingot).
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand. With other mods, `Cache` stays (their DLLs are loaded from it and locked:
@@ -210,6 +216,9 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
 - `ConvertFrom-Json` validates strict JSON (lang files, recipes). Item and block types are JSON5 (unquoted keys, comments): it
   rejects them, as it does vanilla's.
 
+- `tools/coverage.ps1` measures line coverage by all four test projects (coverlet) and writes a table per source file into
+  `TestResults/coverage/report.md` (git-ignored): unit and server tests apart, and the lines no test runs. For the server tests it copies
+  `VintagestoryAPI.dll` into the mod's output for the run (coverlet must resolve it; the game does not load it from there). About 2 minutes.
 - `tools/check-refs.ps1` checks every reference into the game source (`File.cs:line#Symbol`, see `docs/modding.md`): the symbol
   must be on that line at the game version in `modinfo.json`. It reads the clones named by `VINTAGE_STORY_SRC` (see
   `docs/onboarding.md`) at their "Updated to Version X" commits, without checking anything out. `-GameVersion x.y.z` checks another version.

@@ -20,10 +20,13 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <!-- The mod is built first, but its DLL is not referenced: the game's mod loader loads it from the mod's output (T4 of
-       docs/plans/2026-11-02-server-tests.md decides how tests call our code). -->
+  <!-- Tests compile against our DLLs but do not copy them: the game's mod loader loads them from the mod's output
+       (Assembly.UnsafeLoadFrom, the default load context), and the tests bind to that same loaded copy by name. A copy in
+       the test bin would be the one the game runs instead (LoadFrom returns an assembly of the same name from the app's
+       own list). Core is named here too, or it would come in transitively and be copied. -->
   <ItemGroup>
-    <ProjectReference Include="..\curiocatalogue\curiocatalogue.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\curiocatalogue\curiocatalogue.csproj" Private="false" />
+    <ProjectReference Include="..\CurioCatalogue.Core\CurioCatalogue.Core.csproj" Private="false" />
   </ItemGroup>
 
   <!-- Game DLLs are not copied: GameAssemblies (a module initializer) loads them from the game folder, so there is one copy

@@ -244,6 +244,13 @@ Traps, in the order they showed up (each blocked the next):
 
 Not needed: the game's `Lib` on `PATH` (the native libraries load without it, checked 02.11.2026).
 
+**Our types in the tests** (checked 02.11.2026). The mod loader loads a mod's DLL with `Assembly.UnsafeLoadFrom(path)`
+(`ModAssemblyLoader.LoadFrom`), into the default load context. After that, a reference by name (a test using `ItemLedger`)
+gets that loaded assembly, without asking `AssemblyResolve`: tests and game share one copy. If the test bin holds a copy too
+(a plain project reference), `LoadFrom` of the mod's path quietly returns the bin's copy (an assembly of that name in the
+app's own list), so the game runs a file other than the one in `ModPaths`. A real second copy comes only from `LoadFile` or
+another load context.
+
 ## C#
 
 - A tuple element cannot be named `Rest` (reserved by `ValueTuple`).

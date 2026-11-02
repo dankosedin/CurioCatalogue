@@ -61,8 +61,10 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - Game code runs on the server's main thread: `game.OnMain(() => …)`, as in the game.
 - It needs the game in `$(VINTAGE_STORY)` and builds the mod first. The paths (the game, the built mod, its assets) are written
   into the test assembly at build time from MSBuild (target `TestPathsAsMetadata`), not hard-coded.
-- The test project does not reference our DLL: the game's mod loader loads the built one (calling our code from a test is step T4
-  of `docs/plans/2026-11-02-server-tests.md`).
+- **Tests call our code directly** (`OurCodeTests`): the project references the mod and Core with `Private=false`, so neither is
+  copied into the test bin; the game's mod loader loads them from the mod's output and the tests bind to that same copy.
+  `The_tests_and_the_game_share_one_copy_of_our_types` fails if a second copy is ever loaded. Why: `docs/modding.md`, "A server
+  inside the test process".
 - **The server log is captured from the start** (`GameServerFixture.LogEntries()`, a subscription to `ServerMain.Logger.EntryAdded`
   made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line, except the lines of `KnownNoise`
   (empty on 1.22.7: a vanilla line that is not ours goes there with its reason). Server only: textures and shapes are read by the

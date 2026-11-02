@@ -34,7 +34,9 @@ static class GameAssemblies
     {
         string gameDir = TestPaths.GameDir;
         // Game DLLs are referenced with Private=false, so they are not in the test bin: load them from where the game has them.
-        string[] dirs = { gameDir, Path.Combine(gameDir, "Lib"), Path.Combine(gameDir, "Mods") };
+        // Ours too, from the mod's output: once the mod loader has loaded them, the tests bind to that copy without asking
+        // here; this entry serves a test that touches our types before the server starts, with the same file the loader takes.
+        string[] dirs = { gameDir, Path.Combine(gameDir, "Lib"), Path.Combine(gameDir, "Mods"), Path.GetDirectoryName(TestPaths.ModDll)! };
         AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
         {
             string file = new AssemblyName(args.Name).Name + ".dll";

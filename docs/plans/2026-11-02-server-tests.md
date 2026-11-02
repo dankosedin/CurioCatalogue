@@ -40,7 +40,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       ingredients we wrote (codes resolved, wildcards matched, counts), including the book recipes from an old book.
       After: T2. Model: sonnet. Author: none. Done when: one test per recipe file or a table-driven test; a mutation of an
       ingredient fails it.
-- [ ] **T4. How tests call our code.** Our DLL is loaded by the game's mod loader; a test project that references
+- [x] **T4. How tests call our code.** Our DLL is loaded by the game's mod loader; a test project that references
       `curiocatalogue.dll` too gets a second copy of our types. Find the way (e.g. take our types from the mod's loaded
       assembly through `Api.ModLoader`, or make the mod loader use the assembly already loaded) and prove it with one call
       into an adapter. After: T1. Model: opus. Author: decides between the ways found. Done when: the decision with the
@@ -130,7 +130,7 @@ The fixture (an xUnit collection fixture, one server for all tests of the projec
 - **Dispose:** sets the stop flag, joins the thread, deletes the temp folder.
 - **Project file:** xUnit as in the other test projects; references `VintagestoryAPI`, `VintagestoryLib`,
   `xplatforminterface` (`Lib`) with `Private=false`; an after-build target that copies the game's `Newtonsoft.Json.dll` into
-  the output (trap 2). It does not reference our mod's DLL (T4).
+  the output (trap 2). It references our mod and Core with `Private=false` (T4, Decisions).
 
 ## Decisions
 
@@ -175,6 +175,21 @@ T3 (02.11.2026):
 - **Mutations:** another leather in one recolour recipe, parchment quantity 2, and a typo in an ingredient code each fail the matching test
   (a typo drops the recipe: "missing (72)").
 
+T4 (02.11.2026):
+
+- **The premise was wrong:** the mod loader loads our DLL with `Assembly.UnsafeLoadFrom` into the default load context, and a
+  reference by name then gets that copy, so tests and game share one set of types by themselves (`docs/modding.md`, "Our types in
+  the tests"). The question left was which file the game runs.
+- **Chosen (author): reference the mod and Core with `Private=false`**, nothing of ours in the test bin; the `AssemblyResolve` hook
+  also looks in the mod's output, for a test that touches our types before the server starts. The game and the tests run the file
+  in `ModPaths`. Core is referenced by name too, or it comes in transitively and is copied.
+- Rejected: **a plain project reference** (works, one copy, but the game runs the test bin's copy, because `LoadFrom` returns the
+  same-named assembly of the app's list: correct only by a quiet runtime rule, and not the file the config names);
+  **reflection** through `Api.ModLoader.GetMod(...)` (no type checks at compile time, verbose tests).
+- **Proof:** `OurCodeTests`: the game's mod system and `ItemLedger` come from the assembly the tests compiled against, one copy of
+  each DLL loaded; `StackKeys.KeyOf` keys a real book. Mutation: a `LoadFile` of our DLL in the test fails it with "curiocatalogue:
+  2 copies loaded".
+
 ## Where we stopped
 
 - 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
@@ -182,4 +197,6 @@ T3 (02.11.2026):
   nothing written there). CI still runs `dotnet test curiocatalogue.sln`, which now includes the server tests (T8).
 - 02.11.2026: T2 done: `GameServerFixture.LogEntries()` and `AssetLoadTests` (log captured from the start; fails on any warning or error); two mutations checked; `critical.md`, `modding.md`, `development.md` updated. Next: T3 or T4 (both After: T1).
 
-- 02.11.2026: T3 done: `RecipeTests` (8 tests, 1067 recipes of our domain checked against expected sets); three mutations checked; `development.md` updated. Not committed yet (waits for "комічь"). Next: T4 (opus) or T8.
+- 02.11.2026: T3 done: `RecipeTests` (8 tests, 1067 recipes of our domain checked against expected sets); three mutations checked; `development.md` updated. Next: T4 (opus) or T8.
+- 02.11.2026: T4 done: tests reference our DLLs without copying them; `OurCodeTests` (2 tests) call our code on the server; all
+  three projects pass. Next: T5 (sonnet) or T6 (opus), both After: T4; T8 any time.

@@ -43,11 +43,12 @@ sealed class FakeClient : NetConnection
     public IServerPlayer Player => (IServerPlayer)game.Api.World.PlayerByUid(PlayerUid);
 
     /// <summary>
-    /// Joins the server as <paramref name="name"/> and returns when the player is playing. The server must not verify
+    /// Joins the server as <paramref name="name"/> with the client language <paramref name="language"/> (it becomes the player's
+    /// <c>LanguageCode</c>) and returns when the player is playing. The server must not verify
     /// players with the auth server (the fixture sets <c>VerifyPlayerAuth = false</c>); the whitelist is skipped for a
     /// local address (127.0.0.1).
     /// </summary>
-    public static FakeClient Join(GameServerFixture game, string name)
+    public static FakeClient Join(GameServerFixture game, string name, string language = "en")
     {
         var fake = new FakeClient(game, FakeSocket.Of(game), name + "-uid");
         fake.socket.Connect(fake);
@@ -62,7 +63,7 @@ sealed class FakeClient : NetConnection
             MdProtocolVersion = "", MpToken = "", ServerPassword = "", ViewDistance = 128,
         });
         fake.WaitFor(() => fake.client?.Player != null, "the server to identify the player");
-        fake.Send(RequestJoin, p => p.RequestJoin = new Packet_ClientRequestJoin { Language = "en" });
+        fake.Send(RequestJoin, p => p.RequestJoin = new Packet_ClientRequestJoin { Language = language });
         fake.WaitFor(() => fake.client!.ServerAssetsSent, "the server to answer the join request");
         fake.Send(ClientLoaded, p => p.ClientPlaying = new Packet_ClientPlaying());
         fake.WaitFor(() => fake.client!.State == EnumClientState.Connected, "the server to take the client as loaded");

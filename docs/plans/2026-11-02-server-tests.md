@@ -87,7 +87,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       After: T12. Model: sonnet. Author: none.
       Done when: `ci.yml` changed; `docs/development.md` (CI) says so; checked after the push (the author).
       Done locally 02.11.2026; the run on GitHub is for the author to check (Where we stopped).
-- [ ] **T13. The player's language (T2 of `functional.md`).** `FakeClient` takes the language it joins with (today always
+- [x] **T13. The player's language (T2 of `functional.md`).** `FakeClient` takes the language it joins with (today always
       `"en"`). A player joined with `"uk"` on the fixture's English server: a red refusal (e.g. I6, "not supported"), a chat line
       after a post (with the sheet back in the album) and the invoice's name in a chat line (`PlayerMessages.ItemName`, the
       bug of 27.10.2026 "Incoming invoice: рядків — 2") come in Ukrainian; an `"en"` player gets English. Checks on texts here,
@@ -404,3 +404,4 @@ Before T13 (02.11.2026, author):
   (15 cases), from an empty folder (download) and a full one; four mutations checked; all four projects pass (98 + 160 + 95 + 15);
   `development.md`, `architecture.md`, `modding.md`, `functional.md` (K2 ⚙) updated. Next: T8 (sonnet, After: T12).
 - 02.11.2026: T8 done in the repo: `ci.yml` caches the pinned mods, runs the four projects with durations, uploads `server-logs` on failure (the fixture copies `Logs` when `CURIOCATALOGUE_KEEP_LOGS` is set); `development.md` updated; locally all four pass (98 + 160 + 95 + 15, 1 min). **First run on ubuntu passed** (PR #21, Test step 78 s). Next: T9 (opus, After: T8).
+- 02.11.2026: T13 done: `FakeClient.Join` takes the language; `LanguageTests` (8 cases: refusal, list-made chat line with the invoice's name, post with the sheet back in the album, album taking; `uk` and `en`), expected texts read from `lang/*.json`; mutations checked (`ItemName` → `GetName()` fails the invoice-name case; `Lang.GetL` → `Lang.Get` fails four `uk` cases); T2 marked ⚙. Join also gets the engine's "Welcome …" chat line, which the tests skip. Next: T14–T16 (sonnet) or T17 (opus), all After: T8/T12.

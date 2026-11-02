@@ -163,7 +163,7 @@ In this order:
   via `PlayerMessages.Tell` (chat). Both translate on the server with `Lang.GetL(player.LanguageCode, ...)`.
 - **Item names on the server:** `ItemStack.GetName()` gives the *server's* language (`ServerLanguage` in serverconfig), not the
   player's; singleplayer hides this. Our own items: `PlayerMessages.ItemName`. Any other items: send the stacks to the client and let
-  it name them (`ModNetwork.MissingItemsRefusal`). Checked on a dedicated server 27.10.2026.
+  it name them (`ModNetwork.MissingItemsRefusal`). Checked on a dedicated server 27.10.2026; `LanguageTests` check it on the server (a mutation to `GetName()` or `Lang.Get` fails them).
 - **Chat commands:** do not use `Parsers.IntRange`; its error "Number out of range" does not say the range. Parse a plain `Int` and
   check it in the handler with a message that names the range.
 

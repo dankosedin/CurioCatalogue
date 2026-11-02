@@ -87,10 +87,43 @@ assumptions"), but its source is now the test itself: the engine ran it.
       After: T12. Model: sonnet. Author: none.
       Done when: `ci.yml` changed; `docs/development.md` (CI) says so; checked after the push (the author).
       Done locally 02.11.2026; the run on GitHub is for the author to check (Where we stopped).
+- [ ] **T13. The player's language (T2 of `functional.md`).** `FakeClient` takes the language it joins with (today always
+      `"en"`). A player joined with `"uk"` on the fixture's English server: a red refusal (e.g. I6, "not supported"), a chat line
+      after a post (with the sheet back in the album) and the invoice's name in a chat line (`PlayerMessages.ItemName`, the
+      bug of 27.10.2026 "Incoming invoice: рядків — 2") come in Ukrainian; an `"en"` player gets English. Checks on texts here,
+      unlike T7 (codes only): the language is the point; the expected texts are taken from `uk.json`, not written in the test.
+      Branch: `test/server-tests`. After: T8. Model: sonnet. Author: none.
+      Done when: the tests pass; a mutation (`ItemName` replaced by `GetName()`, `Text` by `Lang.Get`) fails them; T2 marked ⚙
+      in `functional.md` (the game check stays for the client's own texts, T1).
+- [ ] **T14. The config file at start (G1).** `Correct()` has unit tests; nothing tests the wiring in `LoadConfig`: the warning
+      in the server log and the corrected file written back. With the fixture's server: write a config file with `MaxSheets: 0`
+      (and a list set to `null`), call the mod's config loading (reflection, as T10 does for `ModLog`), check the log lines and the
+      file; put the file and the mod's `Config` back. Also a broken JSON file: what the mod does then (find out, say it in
+      Decisions). Branch: `test/server-tests`. After: T8. Model: sonnet. Author: none.
+      Done when: the tests pass; a mutation (the store call dropped, the fixes not logged) fails them; G1 marked ⚙.
+- [ ] **T15. Refusals that the game cannot show.** `newerversion` (a book or invoice whose format version `v` is above this
+      build's: every gesture and window request refused, the stack untouched) and `nocollection` ("Start over" for an album whose
+      collection the server does not know) on the server, with the stacks' attributes written by the test. `movefailed` stays a
+      unit test (the server has no container that accepts only part; say so in Decisions). Branch: `test/server-tests`.
+      After: T8. Model: sonnet. Author: none. Done when: the tests pass; a mutation per refusal fails its test; the section
+      "Not reproducible in game" of `functional.md` says which have a server test.
+- [ ] **T16. The creative inventory (C6).** Research first: whether the server resolves our items' creative inventory stacks
+      (`CreativeInventoryStacks`, the tabs) as the client does. If it does: a test counts our books in the tab (24 per kind,
+      normal and aged; 72) and that the blank lists are where `ROADMAP.md` says they are today. If it does not: the reason in
+      Decisions, C6 stays in game. Branch: `test/server-tests`. After: T8. Model: sonnet. Author: none.
+      Done when: the answer is in Decisions; the test with a mutation (an aged cover dropped from the item's JSON), or the reason why not.
+- [ ] **T17. A tapestry from another mod (A11).** The album's collection comes from the `sizes` attribute of `game:tapestry-north`
+      (`CollectionRegistry`), so another mod's tapestry counts only if it patches that attribute. Find out first: which mods add
+      tapestries and how (`notes`: none listed yet; a mod that adds them is an integration target, not a competitor; ask if
+      unsure). Then a compatibility test: such a mod pinned (T12's list) or, if none fits, a tiny test mod of our own (a JSON
+      patch of `sizes`) kept in `CurioCatalogue.CompatTests`, which the fixture loads from the repo, not the pinned list.
+      The album counts the added piece and takes it from a chest. Branch: `test/server-tests`. After: T12. Model: opus (the
+      fixture's other mods). Author: decides between a real mod and our test mod. Done when: the test passes; a mutation (the
+      patch removed) fails it; A11 marked ⚙ or the reason why not in Decisions.
 - [ ] **T9. Coverage review.** What the four test projects cover now and what they do not: a coverage report (coverlet is in
       the tests already) per class of the adapters; the mocks left and whether each still needs to be a mock; the cases of
       `functional.md` still only in game; the item classes (`ROADMAP.md`, "Tests for the item classes"). Findings fixed in
-      the step if small, otherwise lines in `ROADMAP.md`. After: T8, T10, T11. Model: opus. Author: decides on each finding.
+      the step if small, otherwise lines in `ROADMAP.md`. After: T8, T10, T11, T13–T17. Model: opus. Author: decides on each finding.
       Done when: the review is in Decisions, its findings fixed, moved to `ROADMAP.md` or rejected with a reason.
 
 ## Open questions (for the steps that name them)
@@ -332,6 +365,13 @@ Before T10 (02.11.2026, author):
 - **Other mods are not in the repo** (their licences): a pinned list with SHA-256 is. Locally and on CI the same way: a folder first,
   then a download from the mod database; without the mod the run fails, not skips (a skip would hide a missing check).
 - **The steps' order:** T10, T11, T12, then T8 (CI runs all four projects at once), then T9.
+
+Before T13 (02.11.2026, author):
+
+- **The in-game checks still without a server test get steps of their own:** T13 (T2, the player's language), T14 (G1, the
+  config file), T15 (`newerversion`, `nocollection`), T16 (C6, research first), T17 (A11, another mod's tapestry); T9 after them.
+  Stay in game, as before: A1, A8, A9 (windows), C5, C7–C9 (the handbook, client), T1, K3 (Carry On, client input), K4 (Better
+  Crates, not supported).
 
 ## Where we stopped
 

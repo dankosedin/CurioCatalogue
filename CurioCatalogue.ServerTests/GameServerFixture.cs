@@ -89,6 +89,10 @@ public sealed class GameServerFixture : IDisposable
                 {
                     ModPaths = new[] { Path.Combine(TestPaths.GameDir, "Mods"), TestPaths.ModsPath },
                     VerifyPlayerAuth = false,
+                    // Every test joins its own player and none leaves: the default 16 clients would run out, and a fake client
+                    // that never answers pings would be dropped after 150 s (ServerConfig.MaxClients, ClientConnectionTimeout).
+                    MaxClients = 1000,
+                    ClientConnectionTimeout = 3600,
                     WorldConfig = new { WorldType = "superflat", PlayStyle = "creativebuilding", AllowCreativeMode = true, WorldName = "servertests" },
                 }),
             };

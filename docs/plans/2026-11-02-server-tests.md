@@ -54,7 +54,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       through them?), with its inventories, rights and position. A research step: no client means no network messages.
       After: T4. Model: opus. Author: decides whether to go on and how. Done when: the answer and the chosen way (or
       "not possible, because") are in Decisions.
-- [ ] **T7. Books and invoices end to end.** With T6's player: making an invoice, posting it, the album taking from a chest,
+- [x] **T7. Books and invoices end to end.** With T6's player: making an invoice, posting it, the album taking from a chest,
       the want list, each "all or nothing" (`docs/critical.md`) on real inventories, and the access checks (claims,
       reinforcement). After: T5, T6. Model: sonnet. Author: none (or splits the step if large).
       Done when: the cases of `docs/testing/functional.md` that need no client have a server test, marked there.
@@ -211,6 +211,21 @@ T6 (02.11.2026):
 - **Left for T7:** the server's ping timeout (`ClientConnectionTimeout`, 150 s; the fake client does not answer pings) and a
   player leaving (packet 14), if a test needs a clean server or runs long.
 
+T7 (02.11.2026):
+
+- **Gestures are called, not simulated:** a click is the held item's `OnHeldInteractStart` on the server with Shift (Ctrl) on the player's
+  controls; the off-hand gesture and the window requests go through the fake client's channel. No client side (hints, windows, `EmptyHandGesture`
+  on the client) is tested; that stays a game check.
+- **Checks are on state and on the codes of the refusals** (`IngameError.Code`), not on texts: texts and their language are the lang files'
+  and the `S` cases' business.
+- **The `functional.md` cases covered are marked ⚙** (27 cases); the game check stays for what a client shows. Not covered: C1–C4 (crafting
+  through the grid), A1, A6, A8, A9, A11, L5 (`SoftEntryLimit`, a config change), W3 (`ConsumeSheets`), I4, I9–I11, G, T, K2–K4.
+- **The fixture's limits:** `MaxClients = 1000` and `ClientConnectionTimeout = 3600` (the defaults, 16 and 150 s, ended the run after ~16 joins);
+  the long timeout is set, not tried. Player names are at most 16 characters.
+- **Mutations:** the access check dropped from `Post` fails the claim and the padlock tests; `KindFor` letting an album act on Shift + Ctrl fails
+  its test; the fingerprint check of `ShownSlot` dropped fails the stale-window test. A fourth (the Missing refusal swapped for another) still
+  refused, so it proved nothing: all-or-nothing of the plan itself is in Core's `Transfer` tests, the server tests show it at work.
+
 T5 (02.11.2026):
 
 - **Real blocks through `SetBlock`**, not hand-made block entities: the vanilla block entities initialize themselves with the server api (a trunk
@@ -235,3 +250,4 @@ T5 (02.11.2026):
 - 02.11.2026: T6 done: `FakeClient` joins a real player without a client and sends requests to our channel; `PlayerTests`
   (2 tests); all three projects pass (98 + 160 + 20). Next: T5 (sonnet, After: T4); T7 waits for T5; T8 any time.
 - 02.11.2026: T5 done: `ContainerTests` (18 cases: real chest, trunk, labeled chest, vessel, crate, machines, sign, loot chest, backpack in a chest and on the ground, claims, padlock); four mutations checked; the mocks point to their server twins; `development.md`, `modding.md` updated. All three projects pass (98 + 160 + 38). Next: T7 (sonnet, After: T5, T6, both done); T8 any time.
+- 02.11.2026: T7 done: `BookFlowTests` (24 cases: lists made and posted, album, want list, claims, padlock, reach, stale windows), `TestBlocks`, fixture limits; all three projects pass (98 + 160 + 62); `development.md`, `modding.md`, `functional.md` (⚙) updated. Next: T8 (sonnet, After: T1); T9 (opus) after T8.

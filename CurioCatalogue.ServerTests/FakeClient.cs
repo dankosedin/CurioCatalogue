@@ -108,7 +108,7 @@ sealed class FakeClient : NetConnection
         var until = DateTime.UtcNow + WaitTimeout;
         while (!game.OnMain(done))
         {
-            if (DateTime.UtcNow > until) throw new TimeoutException($"waited {WaitTimeout} for {what}");
+            if (DateTime.UtcNow > until) throw new TimeoutException($"waited {WaitTimeout} for {what}; the end of the server log:{Environment.NewLine}" + string.Join(Environment.NewLine, game.LogEntries().TakeLast(12)));
             Thread.Sleep(20);
         }
     }

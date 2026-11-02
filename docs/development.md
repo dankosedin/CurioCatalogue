@@ -82,6 +82,13 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   labeled chest, vessel, crate, barrel, quern, firepit, sign; a backpack in a chest and on the ground (open, save, read back); a per-player
   loot chest; claims and a padlock with two real players. The hand-made `TestChest` cases in `CurioCatalogue.Tests` stay as fast logic
   tests and point to their server twin. A block code in a test is the vanilla code (`chest-east`, `crate`, `barrel`, `backpack-normal`).
+- **`BookFlowTests`** runs the books end to end with real players and chests: a gesture is the held item's `OnHeldInteractStart` called on the
+  server with Shift (and Ctrl) set on the player's controls; the off-hand gesture and the window requests (rename, clear, want list, cancel)
+  go through `FakeClient.SendToMod` into the real handlers. It checks the world's state (inventory, chest, book, list) and the *codes* of the
+  red refusals the fake client received (`Errors(client)`), not their texts. Cases: making intake, pick and by-count lists; posting (moves,
+  missing, no room, parchment); the album taking, the want list (made, filled, partly filled, cancelled); claims, a padlock, unsupported
+  containers, reach and stale windows. `TestBlocks` hands out the cells for all test classes.
+  The `functional.md` cases it covers are marked with ⚙ there.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand.

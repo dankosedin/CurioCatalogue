@@ -15,27 +15,10 @@ namespace CurioCatalogue.ServerTests;
 [Collection(ServerCollection.Name)]
 public class ContainerTests(GameServerFixture game)
 {
-    static int nextCell;
+    // Every placement gets its own cell (TestBlocks), so tests do not meet.
+    BlockPos FreePos() => TestBlocks.FreePos(game);
 
-    /// <summary>A free cell near the spawn (every placement gets its own, so tests do not meet).</summary>
-    BlockPos FreePos()
-    {
-        int n = Interlocked.Increment(ref nextCell);
-        var spawn = game.Api.World.DefaultSpawnPosition.AsBlockPos;
-        return new BlockPos(spawn.X + 4 * (n % 8), spawn.Y + 6, spawn.Z + 4 * (n / 8), 0);
-    }
-
-    /// <summary>Puts a vanilla block into the world (main thread only) and returns where and its block entity.</summary>
-    (BlockPos Pos, BlockEntity Entity) Place(string code, Action<ItemStack>? configure = null)
-    {
-        var pos = FreePos();
-        var block = game.Api.World.GetBlock(new AssetLocation("game", code)) ?? throw new InvalidOperationException($"no block game:{code}");
-        var stack = new ItemStack(block);
-        configure?.Invoke(stack);
-        game.Api.World.BlockAccessor.SetBlock(block.BlockId, pos, stack);
-        var entity = game.Api.World.BlockAccessor.GetBlockEntity(pos) ?? throw new InvalidOperationException($"game:{code} has no block entity at {pos}");
-        return (pos, entity);
-    }
+    (BlockPos Pos, BlockEntity Entity) Place(string code, Action<ItemStack>? configure = null) => TestBlocks.Place(game, code, configure);
 
     ItemStack Stack(string code, int size) =>
         new(game.Api.World.GetItem(new AssetLocation("game", code)) ?? throw new InvalidOperationException($"no item game:{code}"), size);

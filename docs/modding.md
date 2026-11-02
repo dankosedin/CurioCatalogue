@@ -271,6 +271,16 @@ a client sends on join make a real `ServerPlayer` through the server's own path 
   id is the type's place in the channel's `RegisterMessageType` calls, from 0.
 - The join makes one long tick: "Server overloaded. A tick took …ms" (a warning).
 
+**Several players, clicks and requests** (checked 02.11.2026). The server's default `MaxClients` is 16 and a fake client never leaves, so the
+fixture sets `MaxClients = 1000` (30 joins in a row work) and `ClientConnectionTimeout = 3600` (default 150 s: a fake client does not answer
+pings; the long value is set, not tried). A player name is at most 16 characters (letters, digits, `-`): a longer one is refused at
+identification ("invalid Playername") and the join times out; `FakeClient.WaitFor` now adds the end of the server log to its timeout
+message. A click is `item.OnHeldInteractStart(slot, player.Entity, selection, null, true, ref handling)` on the main thread with
+`Entity.Controls.ShiftKey` (and `CtrlKey`) set: no network, the same code the game runs for the click. A creative player reaches 100
+blocks (`WorldData.PickingRange`), so "out of reach" needs 100+ blocks of distance; a server entity's place is `ServerPos`, and `Pos` follows
+it each tick: move both. The red refusals arrive as `Packet_Server.IngameError` (its `Code` is the lang key suffix) and chat lines as
+`Chatline`, in `FakeClient.Received`.
+
 **Blocks in the test world** (checked 02.11.2026). `BlockAccessor.SetBlock(id, pos, stack)` near `DefaultSpawnPosition` (the spawn
 chunks are loaded) makes the block entity and initializes it with the server api, so `Inventory` exists; the stack's attributes
 (`isPerPlayer`) reach it. A trunk's filler cell comes only from `Block.DoPlaceBlock(world, player, selection, stack)`, which needs a

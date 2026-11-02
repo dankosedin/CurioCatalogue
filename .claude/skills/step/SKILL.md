@@ -1,20 +1,22 @@
 ---
 name: step
-description: Work on one step of the current plan in docs/plans/ in a short, self-contained session. Use when the author types /step <id> (e.g. /step S4) or asks to take the next step of the plan.
+description: Work on one step of an open plan in docs/plans/ in a short, self-contained session. Use when the author types /step <id> (e.g. /step S4) or asks to take the next step of a plan.
 argument-hint: "[step id, e.g. S4]"
 ---
 
 # One step of the plan
 
-You take exactly one step of the current plan and carry it to its "Done when", or stop cleanly and say where. The session
+You take exactly one step of an open plan and carry it to its "Done when", or stop cleanly and say where. The session
 may run on Sonnet without the context of earlier sessions: the plan and the docs are the source, not memory of past talks.
 
 ## 1. Find the step
 
 1. `git status` and `git branch --show-current`. If the tree is not clean, stop and ask.
-2. The current plan is the newest file in `docs/plans/` (by the date in its name). Read its "How to work on this plan",
-   the step, "Decisions" and "Where we stopped".
-3. No id given (`$ARGUMENTS` empty): propose the first unticked step whose `After:` is satisfied, and wait for a yes.
+2. Several plans may be open at once (a plan is open while it has an unticked step). Each plan has its own letter for step
+   ids (`P` for P1, P2…), so an id names one plan: find the open plan in `docs/plans/` with that step. Read its "How to work
+   on this plan", the step, "Decisions" and "Where we stopped".
+3. No id given (`$ARGUMENTS` empty): for each open plan, the first unticked step whose `After:` is satisfied; propose one
+   (or list them, one per plan) and wait for a yes.
 4. Check the step's fields:
    - `After:` not satisfied (a step unticked, a branch not merged into `main`): say so and stop.
    - `Model: opus` while you are not Opus: say so and ask whether to go on anyway or to switch (`/model opus`).

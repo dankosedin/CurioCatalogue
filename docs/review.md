@@ -38,7 +38,7 @@ them how a thing works means weak docs. The author checks the behaviour in game.
 **Input** (the same for every role): the change's description and diff (for a whole-mod round: none), `DESIGN.md`, `README.md`,
 `README.uk.md`, `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
 help, window texts), `docs/images/` and the screenshots the author gives; and, so that no role re-proposes what is decided or
-makes up a mechanic, `docs/domain.md`, `ROADMAP.md` and the current plan's Decisions. Players do not read the source code;
+makes up a mechanic, `docs/domain.md`, `ROADMAP.md` and the Decisions of the plan the change belongs to. Players do not read the source code;
 the makers may read the diff, but they report behaviour, not code.
 
 **Severity:** `blocker` (items lost, the player stuck, or the server harmed), `major` (the player misunderstands and does the

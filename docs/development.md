@@ -63,6 +63,10 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   into the test assembly at build time from MSBuild (target `TestPathsAsMetadata`), not hard-coded.
 - The test project does not reference our DLL: the game's mod loader loads the built one (calling our code from a test is step T4
   of `docs/plans/2026-11-02-server-tests.md`).
+- **The server log is captured from the start** (`GameServerFixture.LogEntries()`, a subscription to `ServerMain.Logger.EntryAdded`
+  made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line, except the lines of `KnownNoise`
+  (empty on 1.22.7: a vanilla line that is not ours goes there with its reason). Server only: textures and shapes are read by the
+  client, so a missing one is still found in game.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand.

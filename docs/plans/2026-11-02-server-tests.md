@@ -29,7 +29,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       alternatives). Branch: `test/server-tests`. After: none. Model: opus (the fixture is delicate). Author: none.
       Done when: all three test projects pass locally; a mutation (our mod path wrong, `DataPath` not set) fails clearly;
       the temp world folder is gone after a passing run.
-- [ ] **T2. Assets load without errors.** The fixture collects the server log (`ILogger.EntryAdded`, or `server-main.log`
+- [x] **T2. Assets load without errors.** The fixture collects the server log (`ILogger.EntryAdded`, or `server-main.log`
       after start); a test fails on an error or warning about our domain or our files ("Failed to parse grid recipe", "cannot
       be resolved", JSON errors, missing textures or shapes, lang). Vanilla noise that is not ours is filtered by a short,
       commented list. Then decide with the author which checks of `AssetsTests` stay (they run without the game, in the core
@@ -157,8 +157,21 @@ T1 (02.11.2026):
 - **On a failed start the temp folder stays** for diagnosis (the error names its log); after a passing run it is deleted, and a
   failure to delete fails the run.
 
+T2 (02.11.2026):
+
+- **`AssetsTests` stays whole** (author). The server catches a broken JSON, a comment in a recipe array and an unregistered item
+  class too, but the tests without the game are fast, run in the core CI job and name the file and the path; the overlap is three
+  tests. Rejected: removing `Json_file_parses` and `Recipe_arrays_have_no_comments`.
+- **No `KnownNoise` yet:** a clean run on 1.22.7 has no warning or error at all (1409 log lines), so the filter list is empty and
+  every problem line fails the test, not only lines that name our domain (a "Failed to parse" line names a file, not always a domain).
+- **Mutations:** a comment in `recipes/grid/ledger.json` fails with "Failed to parse grid recipe: curiocatalogue:recipes/grid/ledger.json";
+  a wrong item class in `invoice.json` fails with "no such class registered" (and the smoke test). Textures and shapes are read by the
+  client, so the server does not log a missing one: still an in-game check.
+
 ## Where we stopped
 
 - 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
   wrong mod path: "our mod is not enabled; mods: …"; `GamePaths.DataPath` not set: "the data path is …\VintagestoryData",
   nothing written there). CI still runs `dotnet test curiocatalogue.sln`, which now includes the server tests (T8).
+- 02.11.2026: T2 done: `GameServerFixture.LogEntries()` and `AssetLoadTests` (log captured from the start; fails on any warning or error); two mutations checked; `critical.md`, `modding.md`, `development.md` updated. Next: T3 or T4 (both After: T1).
+

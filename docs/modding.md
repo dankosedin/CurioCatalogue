@@ -112,7 +112,7 @@ In this order:
 ## Recipes
 
 - A code without a domain resolves in the mod's own domain (`curiocatalogue:`), so every vanilla code needs `game:` (also inside
-  `requiresContent`). After changing recipes, check `server-main.log` for "Failed to parse grid recipe" and "cannot be resolved".
+  `requiresContent`). After changing recipes, run the server tests (`AssetLoadTests` fails on "Failed to parse grid recipe", "cannot be resolved" and the like).
 - No comments inside a recipe array: each comment becomes an array element and logs "Failed to parse" (vssurvivalmod RecipeLoader.cs:89#parsedContent).
 - An ingredient with an exact code is matched by `Satisfies`: the recipe's attributes must be a subset of the stack's, so
   `{ code: "clutter", attributes: { type: "bookshelves/large-book-closed" } }` works without code.

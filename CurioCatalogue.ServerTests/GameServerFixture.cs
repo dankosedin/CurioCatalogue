@@ -29,6 +29,7 @@ public sealed class GameServerFixture : IDisposable
     ServerMain? server;
     volatile bool stopRequested;
     volatile Exception? crash;
+    readonly List<LogLine> logLines = [];
 
     /// <summary>The throwaway data folder (world, config, logs); deleted after the run unless the server failed to start.</summary>
     public string DataPath { get; } = Path.Combine(Path.GetTempPath(), "cc-servertests-" + Guid.NewGuid().ToString("N")[..8]);
@@ -93,6 +94,7 @@ public sealed class GameServerFixture : IDisposable
 
             ServerMain.xPlatInterface = XPlatformInterfaces.GetInterface();
             ServerMain.Logger = new ServerLogger(args);
+            ServerMain.Logger.EntryAdded += OnLogEntry; // before the mod loader and the asset loader write anything
             Lang.PreLoad(ServerMain.Logger, GamePaths.AssetsPath, "en");
 
             server = new ServerMain(null, [], args, isDedicatedServer: true);
@@ -132,6 +134,18 @@ public sealed class GameServerFixture : IDisposable
             }
         }
     }
+
+    void OnLogEntry(EnumLogType type, string message, object[] args)
+    {
+        // Called on any thread; the logger formats the same way (string.Format) and an unformattable text must not lose the line.
+        string text;
+        try { text = args is { Length: > 0 } ? string.Format(message, args) : message; }
+        catch (FormatException) { text = message; }
+        lock (logLines) logLines.Add(new LogLine(type, text));
+    }
+
+    /// <summary>Everything the server logged since it started (a snapshot), warnings and errors included.</summary>
+    internal IReadOnlyList<LogLine> LogEntries() { lock (logLines) return [.. logLines]; }
 
     static void RequirePath(string what, string actual, string expected)
     {
@@ -183,4 +197,12 @@ public sealed class GameServerFixture : IDisposable
 public class ServerCollection : ICollectionFixture<GameServerFixture>
 {
     public const string Name = "game server";
+}
+
+/// <summary>One line of the server log: its level and its text as written.</summary>
+// internal: xUnit lists the public types before the module initializer (GameAssemblies) has run, and a public type with a game
+// enum as a field would load VintagestoryAPI too early ("Could not load file or assembly").
+internal sealed record LogLine(EnumLogType Type, string Text)
+{
+    public override string ToString() => $"[{Type}] {Text}";
 }

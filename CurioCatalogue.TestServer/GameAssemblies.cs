@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace CurioCatalogue.ServerTests;
+namespace CurioCatalogue.TestServer;
 
 /// <summary>The paths MSBuild wrote into this assembly (the project file, target <c>TestPathsAsMetadata</c>).</summary>
 static class TestPaths
@@ -18,7 +18,8 @@ static class TestPaths
     /// <summary>The mod's assets: a Debug build has none, so they are an extra origin, as <c>--addOrigin</c> in the launch profiles.</summary>
     public static readonly string ModAssets = Get("ModAssets");
 
-    static string Get(string key) =>
+    /// <summary>A value the project file wrote into this assembly; a test project may write keys of its own.</summary>
+    public static string Get(string key) =>
         typeof(TestPaths).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(a => a.Key == key)?.Value
         ?? throw new InvalidOperationException($"assembly metadata {key} is missing: the project file sets it at build time");
 }

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Compatibility tests: the server of CurioCatalogue.ServerTests (shared through this import) with other mods loaded
+       (docs/development.md, Compatibility tests). The mods are not in the repo: mods.json pins them, PinnedMods fetches them. -->
+  <Import Project="..\CurioCatalogue.TestServer\TestServer.props" />
+
+  <!-- Read back with TestPaths.Get: the pinned list, and the folder the mods' files are kept in between runs (git-ignored;
+       CI caches it). -->
+  <Target Name="CompatPathsAsMetadata" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>PinnedModsList</_Parameter1>
+        <_Parameter2>$(MSBuildProjectDirectory)$([System.IO.Path]::DirectorySeparatorChar)mods.json</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>PinnedModsFolder</_Parameter1>
+        <_Parameter2>$(MSBuildProjectDirectory)$([System.IO.Path]::DirectorySeparatorChar)mods</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+</Project>

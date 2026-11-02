@@ -7,14 +7,15 @@ using Vintagestory.API.Server;
 using Vintagestory.Server;
 using VSPlatform;
 
-namespace CurioCatalogue.ServerTests;
+namespace CurioCatalogue.TestServer;
 
 /// <summary>
-/// One real game server for all tests of this project, inside the test process, in a throwaway data folder: a superflat
-/// creative world with the game's mods and ours. Started the way <c>ServerProgram.Main</c> does it (VintagestoryLib 1.22.7,
-/// decompiled; docs/modding.md, "A server inside the test process").
+/// One real game server for all tests of a project, inside the test process, in a throwaway data folder: a superflat
+/// creative world with the game's mods, ours and, for the compatibility tests, the other mods given to the constructor.
+/// Started the way <c>ServerProgram.Main</c> does it (VintagestoryLib 1.22.7, decompiled; docs/modding.md, "A server inside
+/// the test process"). Each test project declares its own <c>[CollectionDefinition]</c> with it.
 /// </summary>
-public sealed class GameServerFixture : IDisposable
+public class GameServerFixture : IDisposable
 {
     const string ModId = "curiocatalogue";
     static readonly TimeSpan StartTimeout = TimeSpan.FromMinutes(3);
@@ -32,31 +33,47 @@ public sealed class GameServerFixture : IDisposable
     readonly List<LogLine> logLines = [];
 
     /// <summary>The throwaway data folder (world, config, logs); deleted after the run unless the server failed to start.</summary>
-    public string DataPath { get; } = Path.Combine(Path.GetTempPath(), "cc-servertests-" + Guid.NewGuid().ToString("N")[..8]);
+    public string DataPath { get; } = Path.Combine(Path.GetTempPath(), DataFolderPrefix + Guid.NewGuid().ToString("N")[..8]);
 
     public string ServerLog => Path.Combine(DataPath, "Logs", "server-main.log");
     public ICoreServerAPI Api { get; private set; } = null!;
     public TimeSpan StartTime { get; private set; }
     public int Port { get; } = FreePort();
 
-    public GameServerFixture()
+    /// <summary>The mods besides the game's and ours, as given to the constructor.</summary>
+    public IReadOnlyList<OtherMod> OtherMods { get; }
+
+    /// <summary>The folder the other mods' files are copied into, a ModPaths entry of its own.</summary>
+    string OtherModsPath => Path.Combine(DataPath, "Mods");
+
+    /// <summary>The game's mods and ours.</summary>
+    public GameServerFixture() : this([]) { }
+
+    /// <summary>
+    /// The game's mods, ours and <paramref name="otherMods"/>: their files are copied into the data folder's <c>Mods</c>, so
+    /// only the files given load (not a whole folder); each must be enabled after start, with the version given.
+    /// </summary>
+    protected GameServerFixture(IReadOnlyList<OtherMod> otherMods)
     {
         if (Interlocked.Increment(ref instances) != 1)
-            throw new InvalidOperationException("a second game server in one process: the engine's state is static; share the fixture through [Collection(ServerCollection.Name)]");
+            throw new InvalidOperationException("a second game server in one process: the engine's state is static; share the fixture through one [Collection]");
+        OtherMods = otherMods;
         if (!File.Exists(TestPaths.ModDll))
             throw new InvalidOperationException($"our mod is not built at {TestPaths.ModDll}");
         if (!Directory.Exists(TestPaths.ModAssets))
             throw new InvalidOperationException($"our assets are not at {TestPaths.ModAssets}");
+        SweepLeftCaches();
         Directory.CreateDirectory(DataPath);
+        Directory.CreateDirectory(OtherModsPath);
+        foreach (var mod in otherMods) File.Copy(mod.File, Path.Combine(OtherModsPath, Path.GetFileName(mod.File)));
 
         thread = new Thread(Run) { Name = "TestServerMain", IsBackground = true };
         thread.Start();
         try
         {
             Await(started.Task, StartTimeout, "the server did not reach RunGame"); // rethrows a start failure
-            string? notOurs = OnMain(() => Api.ModLoader.IsModEnabled(ModId) ? null :
-                "our mod is not enabled; mods: " + string.Join(", ", Api.ModLoader.Mods.Select(m => $"{m.Info?.ModID} ({m.SourcePath})")));
-            if (notOurs != null) throw new InvalidOperationException(notOurs);
+            string? notLoaded = OnMain(NotLoaded);
+            if (notLoaded != null) throw new InvalidOperationException(notLoaded);
         }
         catch (Exception e)
         {
@@ -65,6 +82,21 @@ public sealed class GameServerFixture : IDisposable
             thread.Join(StopTimeout);
             throw new InvalidOperationException($"the test server failed to start, see {ServerLog}: {e.Message}", e);
         }
+    }
+
+    /// <summary>Null when our mod and every other mod are enabled (the others with their version), else what is wrong and the mods loaded.</summary>
+    string? NotLoaded()
+    {
+        var problems = new List<string>();
+        if (!Api.ModLoader.IsModEnabled(ModId)) problems.Add("our mod is not enabled");
+        foreach (var other in OtherMods)
+        {
+            var mod = Api.ModLoader.GetMod(other.Id);
+            if (mod == null || !Api.ModLoader.IsModEnabled(other.Id)) problems.Add($"{other.Id} is not enabled");
+            else if (mod.Info.Version != other.Version) problems.Add($"{other.Id} is {mod.Info.Version}, expected {other.Version}");
+        }
+        return problems.Count == 0 ? null : string.Join("; ", problems) + "; mods: "
+            + string.Join(", ", Api.ModLoader.Mods.Select(m => $"{m.Info?.ModID} {m.Info?.Version} ({m.SourcePath})"));
     }
 
     void Run()
@@ -87,7 +119,7 @@ public sealed class GameServerFixture : IDisposable
                 AddOrigin = [TestPaths.ModAssets],
                 WithConfig = JsonSerializer.Serialize(new
                 {
-                    ModPaths = new[] { Path.Combine(TestPaths.GameDir, "Mods"), TestPaths.ModsPath },
+                    ModPaths = new[] { Path.Combine(TestPaths.GameDir, "Mods"), TestPaths.ModsPath, OtherModsPath },
                     VerifyPlayerAuth = false,
                     // Every test joins its own player and none leaves: the default 16 clients would run out, and a fake client
                     // that never answers pings would be dropped after 150 s (ServerConfig.MaxClients, ClientConnectionTimeout).
@@ -194,15 +226,46 @@ public sealed class GameServerFixture : IDisposable
         stopRequested = true;
         if (!thread.Join(StopTimeout)) throw new TimeoutException($"the test server did not stop in {StopTimeout}; its data: {DataPath}");
         if (crash != null) throw new InvalidOperationException($"the test server crashed, see {ServerLog}", crash);
-        Directory.Delete(DataPath, recursive: true);
+        DeleteData();
+    }
+
+    const string DataFolderPrefix = "cc-servertests-";
+
+    /// <summary>
+    /// Deletes the data folder. Another code mod is unpacked into <c>Cache\unpack</c> and its DLL is loaded from there; Windows keeps
+    /// a loaded DLL locked until the process ends, so with other mods <c>Cache</c> may stay: the next run sweeps it
+    /// (<see cref="SweepLeftCaches"/>). Everything else must go, or the run fails.
+    /// </summary>
+    void DeleteData()
+    {
+        string cache = Path.Combine(DataPath, "Cache");
+        foreach (string dir in Directory.EnumerateDirectories(DataPath).Where(d => d != cache)) Directory.Delete(dir, recursive: true);
+        foreach (string file in Directory.EnumerateFiles(DataPath)) File.Delete(file);
+        try { Directory.Delete(DataPath, recursive: true); }
+        catch (UnauthorizedAccessException) when (OtherMods.Count > 0) { }
+    }
+
+    /// <summary>
+    /// Deletes the data folders of earlier passing runs that kept only <c>Cache</c> (<see cref="DeleteData"/>). A folder with more in
+    /// it is a failed start kept for diagnosis, or a run going on in another process: left alone.
+    /// </summary>
+    static void SweepLeftCaches()
+    {
+        foreach (string dir in Directory.EnumerateDirectories(Path.GetTempPath(), DataFolderPrefix + "*"))
+        {
+            try
+            {
+                if (Directory.EnumerateFileSystemEntries(dir).Select(Path.GetFileName).SequenceEqual(["Cache"]))
+                    Directory.Delete(dir, recursive: true);
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
     }
 }
 
-[CollectionDefinition(Name)]
-public class ServerCollection : ICollectionFixture<GameServerFixture>
-{
-    public const string Name = "game server";
-}
+/// <summary>A mod loaded besides the game's and ours: its id and version (checked after start) and its file (a zip).</summary>
+public sealed record OtherMod(string Id, string Version, string File);
 
 /// <summary>One line of the server log: its level and its text as written.</summary>
 // internal: xUnit lists the public types before the module initializer (GameAssemblies) has run, and a public type with a game

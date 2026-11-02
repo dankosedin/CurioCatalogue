@@ -72,7 +72,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       from an old one": a test that reproduces it, if it does. After: T7. Model: opus. Author: decides whether to go on after the
       research, and whether the bug's fix (if found) is made in the step or gets its own. Done when: the answer and the way (or
       "not possible, because") are in Decisions; C1–C4 marked ⚙ or the reason why not.
-- [ ] **T12. Compatibility tests: Upgradeable Storage.** A fourth project `CurioCatalogue.CompatTests` with its own server that
+- [x] **T12. Compatibility tests: Upgradeable Storage.** A fourth project `CurioCatalogue.CompatTests` with its own server that
       loads our mod and Upgradeable Storage (`upgradablestorage` 1.1.9, Decisions "Before T10"). The fixture is shared with
       `CurioCatalogue.ServerTests`, not copied (the way chosen in the step). The mods come from a pinned list in the repo
       (mod id, version, file URL, SHA-256): the folder first, then a download into it, as on CI; neither, or a wrong hash,
@@ -293,6 +293,32 @@ T11 (02.11.2026):
 - **Mutations:** no sheets for the fallback fails C1; the base `ConsumeCraftingIngredients` for recharging and the recharged ledger not written
   each fail the recharge case; an album from any ledger fails C3; switching a ledger with entries fails the switch case.
 
+T12 (02.11.2026):
+
+- **The fixture is shared as source files** (author): `CurioCatalogue.TestServer/`, no project of its own, with `TestServer.props` that both
+  test projects import (references, the Newtonsoft copy, `TestPathsAsMetadata`, the shared `.cs` files as links). Each test assembly
+  compiles its own copy, so each has its own module initializer and paths; each project declares its own collection. Rejected: a class
+  library (its module initializer runs only when one of its types is first touched, maybe after a game type is loaded; `InternalsVisibleTo`
+  for the internal types). The shared files moved with `git mv` and the namespace `CurioCatalogue.TestServer`; `KnownNoise` moved from
+  `AssetLoadTests` to `LogProblems`, so both projects filter the same noise.
+- **Other mods into the fixture:** a protected constructor takes `OtherMod(Id, Version, File)`; their files are copied into the temp world's
+  `Mods` (a ModPaths entry of its own), so only listed files load, and the start fails unless each is enabled with its version.
+  `TestBlocks.Place` takes a code with a domain.
+- **The pin:** `mods.json` (mod id, version, file, URL, SHA-256), the URL `https://mods.vintagestory.at/download/99303/…`; the same hash as
+  the copy the author's game got from a server and as the CDN link of the mod database's API. The folder is `CurioCatalogue.CompatTests/mods/`
+  (git-ignored; T8 caches it). A failed download leaves nothing behind (`.part`, deleted).
+- **A loaded DLL cannot be deleted:** a code mod is unpacked into `Cache\unpack` and its DLL stays locked until the process ends. With other
+  mods the fixture leaves `Cache`, and the next run of either project deletes data folders that hold only `Cache` (a failed start keeps
+  `Logs`, so it is never swept). Rejected: tolerating any failure to delete (would hide a real leak); loading the mods from the pin folder
+  directly (a stray file there would load too).
+- **Covered (`UpgradeableStorageTests`, 15 cases):** both mods load with a clean log; its chest, trunk, storage vessel, labeled chest, labeled
+  trunk and labeled vessel are supported (their block entity classes named in the test); on each, an intake list and a pick list made,
+  the list posted with the ledger in the off-hand, the album taking, a want list filled; the off-hand gesture through the channel on a labeled
+  trunk; a padlock on a labeled vessel. K2 marked ⚙. No change to the mod was needed.
+- **Mutations:** a wrong hash with the file kept ("delete the file to download it again, or fix the list"); a wrong hash from an empty folder
+  (the download refused, nothing kept); the mod missing from the list (every test fails: "no block upgradablestorage:…", the load test
+  "(True, False)"); a wrong version ("upgradablestorage is 1.1.9, expected 1.1.8", the start refused).
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -322,3 +348,6 @@ Before T10 (02.11.2026, author):
 - 02.11.2026: T7 done: `BookFlowTests` (24 cases: lists made and posted, album, want list, claims, padlock, reach, stale windows), `TestBlocks`, fixture limits; all three projects pass (98 + 160 + 62); `development.md`, `modding.md`, `functional.md` (⚙) updated. Next: T8 (sonnet, After: T1); T9 (opus) after T8.
 - 02.11.2026: T10 done: `BookEdgeTests` (23 cases) and `BookTestBase` (helpers moved out of `BookFlowTests`); all three projects pass (98 + 160 + 85); eight mutations checked; `functional.md` (⚙), `development.md`, `modding.md` updated. Next: T11 (opus) or T12 (opus, After: T10).
 - 02.11.2026: T11 done: `CraftingTests` (10 cases, C1–C4 through a real player's grid); all three projects pass (98 + 160 + 95); five mutations checked; `functional.md` (⚙), `development.md`, `modding.md` updated. Next: T12 (opus, After: T10).
+- 02.11.2026: T12 done: the fixture shared from `CurioCatalogue.TestServer/`; `CurioCatalogue.CompatTests` with Upgradeable Storage 1.1.9
+  (15 cases), from an empty folder (download) and a full one; four mutations checked; all four projects pass (98 + 160 + 95 + 15);
+  `development.md`, `architecture.md`, `modding.md`, `functional.md` (K2 ⚙) updated. Next: T8 (sonnet, After: T12).

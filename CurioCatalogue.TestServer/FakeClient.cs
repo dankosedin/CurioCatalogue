@@ -5,7 +5,7 @@ using Vintagestory.API.Server;
 using Vintagestory.Common;
 using Vintagestory.Server;
 
-namespace CurioCatalogue.ServerTests;
+namespace CurioCatalogue.TestServer;
 
 /// <summary>
 /// A player without a game client: a fake connection that sends the server the packets a client sends when it joins, so

@@ -1,7 +1,7 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
-namespace CurioCatalogue.ServerTests;
+namespace CurioCatalogue.TestServer;
 
 /// <summary>
 /// Vanilla blocks put into the test world. One counter for all test classes: every placement takes its own cell near the
@@ -19,15 +19,19 @@ internal static class TestBlocks
         return new BlockPos(spawn.X + 4 * (n % 8), spawn.Y + 6, spawn.Z + 4 * (n / 8), 0);
     }
 
-    /// <summary>Puts a vanilla block into the world (main thread only) and returns where and its block entity.</summary>
+    /// <summary>
+    /// Puts a block into the world (main thread only) and returns where and its block entity. A code without a domain is the
+    /// game's (<c>chest-east</c>); another mod's has its domain (<c>upgradablestorage:chest-east</c>).
+    /// </summary>
     public static (BlockPos Pos, BlockEntity Entity) Place(GameServerFixture game, string code, Action<ItemStack>? configure = null)
     {
         var pos = FreePos(game);
-        var block = game.Api.World.GetBlock(new AssetLocation("game", code)) ?? throw new InvalidOperationException($"no block game:{code}");
+        var location = new AssetLocation(code);
+        var block = game.Api.World.GetBlock(location) ?? throw new InvalidOperationException($"no block {location}");
         var stack = new ItemStack(block);
         configure?.Invoke(stack);
         game.Api.World.BlockAccessor.SetBlock(block.BlockId, pos, stack);
-        var entity = game.Api.World.BlockAccessor.GetBlockEntity(pos) ?? throw new InvalidOperationException($"game:{code} has no block entity at {pos}");
+        var entity = game.Api.World.BlockAccessor.GetBlockEntity(pos) ?? throw new InvalidOperationException($"{location} has no block entity at {pos}");
         return (pos, entity);
     }
 }

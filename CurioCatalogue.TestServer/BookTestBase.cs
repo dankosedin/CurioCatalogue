@@ -5,7 +5,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace CurioCatalogue.ServerTests;
+namespace CurioCatalogue.TestServer;
 
 /// <summary>
 /// What the tests of books and invoices share: stacks to put into hands and chests, readers of the world's state, and the gestures

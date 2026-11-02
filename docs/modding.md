@@ -244,6 +244,11 @@ Traps, in the order they showed up (each blocked the next):
 
 Not needed: the game's `Lib` on `PATH` (the native libraries load without it, checked 02.11.2026).
 
+**Other mods in the test server** (checked 02.11.2026). A mod zip in a `ModPaths` folder loads as in the game. A code mod's zip is
+unpacked into `<DataPath>\Cache\unpack\…` and its DLL is loaded from there; on Windows a loaded DLL stays locked until the process
+ends, so `Directory.Delete` of the data folder fails with `UnauthorizedAccessException` on it (the zip itself is free). The fixture
+leaves `Cache` and the next run deletes it.
+
 **Our types in the tests** (checked 02.11.2026). The mod loader loads a mod's DLL with `Assembly.UnsafeLoadFrom(path)`
 (`ModAssemblyLoader.LoadFrom`), into the default load context. After that, a reference by name (a test using `ItemLedger`)
 gets that loaded assembly, without asking `AssemblyResolve`: tests and game share one copy. If the test bin holds a copy too

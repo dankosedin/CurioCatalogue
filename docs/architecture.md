@@ -174,7 +174,10 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   server with other mods loaded, so their effects never reach the server tests. Other mods are not in the repo (their licences):
   a pinned list (mod id, version, file URL, SHA-256) is, and the zips come from a folder or a download into it, the same locally
   and on CI; a missing or changed zip fails the run. Rejected: other mods in the server tests' own server; skipping when a mod is
-  missing.
+  missing. **The fixture is shared as source files** (11-02, author, T12): `CurioCatalogue.TestServer/` has no project; its `.cs` files
+  and `TestServer.props` are imported by both test projects, so each test assembly has its own module initializer, which must run
+  before any game type loads. Rejected: a class library referenced by both (its module initializer runs only when one of its types is
+  first touched, possibly after the test assembly has loaded a game type; internal types would need `InternalsVisibleTo`).
 
 ## Part 2. Fitting features into the game
 

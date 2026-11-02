@@ -112,6 +112,10 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   the temp world's `ModConfig` (put back afterwards): corrections are logged as warnings and written back, a good file gets the settings it
   lacked, a broken file stays as it is. The mod's own `Config` is not touched. The warnings the mod logs on purpose are taken out of the log with
   `GameServerFixture.LogMark()` and `Withdraw(mark)`, so `AssetLoadTests` stays clean whatever the order.
+- **`RefusalTests`** (the section "Not reproducible in game" of `functional.md`): `newerversion` (the test raises `v` of a book's or invoice's data above
+  `LedgerStore.Version`: a click in hand, an invoice with the book in the off-hand, the off-hand gesture through the channel, the four window requests and
+  the cancel with a newer book in the off-hand are refused, and the stacks' attributes are the same afterwards) and `nocollection` (an album of a
+  collection the server does not have). `movefailed` stays a unit test: no container of the server accepts only part of what is put in.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand. With other mods, `Cache` stays (their DLLs are loaded from it and locked:

@@ -101,7 +101,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       file; put the file and the mod's `Config` back. Also a broken JSON file: what the mod does then (find out, say it in
       Decisions). Branch: `test/server-tests`. After: T8. Model: sonnet. Author: none.
       Done when: the tests pass; a mutation (the store call dropped, the fixes not logged) fails them; G1 marked ⚙.
-- [ ] **T15. Refusals that the game cannot show.** `newerversion` (a book or invoice whose format version `v` is above this
+- [x] **T15. Refusals that the game cannot show.** `newerversion` (a book or invoice whose format version `v` is above this
       build's: every gesture and window request refused, the stack untouched) and `nocollection` ("Start over" for an album whose
       collection the server does not know) on the server, with the stacks' attributes written by the test. `movefailed` stays a
       unit test (the server has no container that accepts only part; say so in Decisions). Branch: `test/server-tests`.
@@ -368,6 +368,16 @@ T14 (02.11.2026):
 - **Covered:** G1 (corrections logged and written back, a null list, a good file with a missing setting filled in, the broken file).
 - **Mutations:** the store call dropped fails all three; the fixes not logged fails the correction case; the broken file overwritten with defaults fails the broken-file case.
 
+T15 (02.11.2026):
+
+- **`movefailed` stays a unit test:** the server has no container that accepts only part of a stack (a chest takes all or nothing for the
+  items we post), so there is nothing to make the engine refuse half.
+- **Covered (`RefusalTests`, 14 cases):** `newerversion` on every entry the mod has (a book in hand with and without Ctrl, a materials list, an album;
+  a newer invoice; a newer book in the off-hand under an invoice; the off-hand gesture through the channel; rename, clear, cancel and want-list
+  requests; cancel with a newer book in the off-hand), each also checking that the stack's attributes are unchanged; `nocollection`.
+- **Mutations:** each of the four `RefuseNewer` call sites removed (gesture, post, window target, cancel's off-hand) fails its tests; the last one
+  was not caught at first, hence the cancel-with-a-newer-off-hand-book case. `nocollection` not sent fails its test.
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -413,3 +423,4 @@ Before T13 (02.11.2026, author):
 - 02.11.2026: T8 done in the repo: `ci.yml` caches the pinned mods, runs the four projects with durations, uploads `server-logs` on failure (the fixture copies `Logs` when `CURIOCATALOGUE_KEEP_LOGS` is set); `development.md` updated; locally all four pass (98 + 160 + 95 + 15, 1 min). **First run on ubuntu passed** (PR #21, Test step 78 s). Next: T9 (opus, After: T8).
 - 02.11.2026: T13 done: `FakeClient.Join` takes the language; `LanguageTests` (8 cases: refusal, list-made chat line with the invoice's name, post with the sheet back in the album, album taking; `uk` and `en`), expected texts read from `lang/*.json`; mutations checked (`ItemName` → `GetName()` fails the invoice-name case; `Lang.GetL` → `Lang.Get` fails four `uk` cases); T2 marked ⚙. Join also gets the engine's "Welcome …" chat line, which the tests skip. Next: T14–T16 (sonnet) or T17 (opus), all After: T8/T12.
 - 02.11.2026: T14 done: `ConfigFileTests` (3 cases), `GameServerFixture.LogMark/Withdraw`; three mutations checked; all four projects pass (98 + 160 + 106 + 15); `functional.md` G1 ⚙, `development.md` updated. Next: T15 or T16 (sonnet, After: T8), T17 (opus, After: T12).
+- 02.11.2026: T15 done: `RefusalTests` (14 cases: `newerversion` everywhere, `nocollection`); mutations checked; `functional.md`, `development.md` updated. Next: T16 (sonnet, After: T8), T17 (opus, After: T12).

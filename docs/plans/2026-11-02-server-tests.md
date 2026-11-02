@@ -66,7 +66,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       on the floor go to `base` (`docs/critical.md`, "Clicks that are not ours"), the chest opens, the list lies on the ground.
       After: T7. Model: sonnet. Author: none. Done when: each case has a test or a reason in Decisions why not; the covered
       ones are marked ⚙ in `functional.md`; a mutation per group (the config ignored, `base` not called) fails its test.
-- [ ] **T11. Crafting on the server.** Research first: whether stacks put into a real player's crafting grid on the server and
+- [x] **T11. Crafting on the server.** Research first: whether stacks put into a real player's crafting grid on the server and
       the output taken run the game's recipe matching and our crafting hooks as in game (the grid inventory, the output slot,
       `OnCreatedByCrafting`, what the client normally sends). Then C1–C4, C4 being the open bug "a book could not be crafted
       from an old one": a test that reproduces it, if it does. After: T7. Model: opus. Author: decides whether to go on after the
@@ -279,6 +279,20 @@ T10 (02.11.2026):
   `TapestryExclude` ignored fails G3; `LimitName` off fails both A6 cases; `ModLog.Debug` always silent fails G4; the Shift check dropped from `ItemLedger`
   fails I9 (3 rows); the `base` call dropped from `ItemInvoice` fails I10 (the invoice row). Not tried: the same for `ItemLedger`.
 
+T11 (02.11.2026):
+
+- **Possible, with no new means** (research, author: go on). The grid is the player's own inventory on the server, open or not; a stack put into a slot
+  runs the recipe search with our `MatchesForCrafting` and `OnCreatedByCrafting`, and `ActivateSlot` on the output with the mouse slot is what the
+  server does with the client's packet 7, consuming through our `ConsumeCraftingIngredients`. How: `docs/modding.md`, "Crafting on the server".
+  Rejected: sending packet 7 through `FakeClient` (the same call after decoding; only the packet ids would be new to keep up with).
+- **C4 is not reproduced on the server, and needs no fix:** its cause was found and fixed in 0.1.1 (aged covers had no handbook page, so their
+  recipes did not show; `d02759d`). The handbook is the client's; the server tests show that books with entries and aged covers do craft
+  (recolour, recharge, switch mode) with their data and no warning in the log.
+- **Covered, marked ⚙ in `functional.md`:** C1 (normal and aged cover), C2 (both old books; less than a litre makes nothing; the jug keeps the
+  rest), C3 (and no album from a ledger with entries), C4 (`CraftingTests`, 10 cases).
+- **Mutations:** no sheets for the fallback fails C1; the base `ConsumeCraftingIngredients` for recharging and the recharged ledger not written
+  each fail the recharge case; an album from any ledger fails C3; switching a ledger with entries fails the switch case.
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -307,3 +321,4 @@ Before T10 (02.11.2026, author):
 - 02.11.2026: T5 done: `ContainerTests` (18 cases: real chest, trunk, labeled chest, vessel, crate, machines, sign, loot chest, backpack in a chest and on the ground, claims, padlock); four mutations checked; the mocks point to their server twins; `development.md`, `modding.md` updated. All three projects pass (98 + 160 + 38). Next: T7 (sonnet, After: T5, T6, both done); T8 any time.
 - 02.11.2026: T7 done: `BookFlowTests` (24 cases: lists made and posted, album, want list, claims, padlock, reach, stale windows), `TestBlocks`, fixture limits; all three projects pass (98 + 160 + 62); `development.md`, `modding.md`, `functional.md` (⚙) updated. Next: T8 (sonnet, After: T1); T9 (opus) after T8.
 - 02.11.2026: T10 done: `BookEdgeTests` (23 cases) and `BookTestBase` (helpers moved out of `BookFlowTests`); all three projects pass (98 + 160 + 85); eight mutations checked; `functional.md` (⚙), `development.md`, `modding.md` updated. Next: T11 (opus) or T12 (opus, After: T10).
+- 02.11.2026: T11 done: `CraftingTests` (10 cases, C1–C4 through a real player's grid); all three projects pass (98 + 160 + 95); five mutations checked; `functional.md` (⚙), `development.md`, `modding.md` updated. Next: T12 (opus, After: T10).

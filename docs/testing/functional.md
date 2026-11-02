@@ -12,7 +12,7 @@ added it ("Since"). The upgrade between two versions has its own plan per releas
 - Debug build, creative world; switch to survival where a case says so. Config `"Diagnostics": true` (`docs/development.md`).
 - Dev commands (`/curio ...`, branch `dev-commands`) help to fill chests and books; see `docs/development.md`.
 - After a case that changes the config, put the config back.
-- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`; `docs/development.md`, Server tests) that checks the state of the world
+- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`, `CraftingTests`; `docs/development.md`, Server tests) that checks the state of the world
   and the refusals' codes. Check it in game only for what a client shows: texts in the player's language, windows, hints.
 - Logs after the run: no `[CurioCatalogue]` errors, no "Failed to parse grid recipe", no "cannot be resolved".
 - Cases marked **S** also run on the dedicated server (`ServerLanguage "en"`, client in Ukrainian): chat messages and red
@@ -39,10 +39,10 @@ which build, who ran it, and each `❌` with its reason.
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| C1 | 0.1.0 | Vanilla book in the grid's middle, nails above and below, ink and quill to its right | A ledger with 8 sheets and the cover of the book used |
-| C2 | 0.1.0 | A large book from ruins, jug of lime water, ink and quill | A ledger with 32 sheets |
-| C3 | 0.1.0 | An empty ledger and a tapestry piece in the grid | An album; the piece stays |
-| C4 | 0.1.0 | Craft a book out of an old book (one with entries) | Crafts; no stack or attribute error in the log |
+| C1 ⚙ | 0.1.0 | Vanilla book in the grid's middle, nails above and below, ink and quill to its right | A ledger with 8 sheets and the cover of the book used |
+| C2 ⚙ | 0.1.0 | A large book from ruins, jug of lime water, ink and quill | A ledger with 32 sheets |
+| C3 ⚙ | 0.1.0 | An empty ledger and a tapestry piece in the grid | An album; the piece stays |
+| C4 ⚙ | 0.1.0 | Craft a book out of an old book (one with entries) | Crafts; no stack or attribute error in the log |
 | C5 | 0.1.0 | Open the handbook | A Curio Catalogue guide and a page for every book, in both languages |
 | C6 | 0.1.1 | Creative inventory, search "ledger" (and "bill", "album") | Every cover is listed, normal and aged: 24 per kind, 72 books in all |
 | C7 | 0.1.1 | H over an empty aged ledger, and over one with entries (three different aged covers) | The book's own handbook page opens, with "Created by" and "Ingredient for"; not the handbook's main page |

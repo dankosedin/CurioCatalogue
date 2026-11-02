@@ -113,3 +113,9 @@ DLLs; never start the game.
 
 Read-only roles use the `Plan` agent type; the worktree roles bring their tests as diffs, and the main session moves the ones
 the author accepts into the repo.
+
+**A change that is mostly tests** (learned in T18 of the server tests plan, 03.11.2026). The scope in the shared block names the defects
+that matter in test code: a test that passes for the wrong reason (a wait or an assertion that something else satisfies), flakiness
+(timing, test order, state shared through one server), leaks, and CI. The worktree roles check every suspicious wait and assertion by a
+mutation (break the mod, see the test stay green, restore): in T18 only they found the tests that passed for the wrong reason, both of
+them independently. When part of the branch was already squash-merged into `main`, the scope is the diff from where the branch left `main`.

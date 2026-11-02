@@ -29,8 +29,8 @@ docs/                      documentation; docs/plans/ holds the implementation p
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
   Harmless: the next build after closing the game copies it.
-- Tests: `dotnet test curiocatalogue.sln`. All four test projects must pass before a commit. The server tests take about
-  45 s (the server starts in about 10 s), the compatibility tests about 20 s, side by side; alone: `dotnet test CurioCatalogue.ServerTests`,
+- Tests: `dotnet test curiocatalogue.sln`. All four test projects must pass before a commit; how long they take: "How long" below.
+  Alone: `dotnet test CurioCatalogue.ServerTests`,
   `dotnet test CurioCatalogue.CompatTests`.
 
 ## Writing tests
@@ -128,7 +128,7 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - **`VanillaContentTests`**: the server twins of assumptions the adapter tests make about vanilla stacks (a tapestry taken off a wall, a hot ingot).
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
-  `Logs\server-main.log`; delete such folders by hand. With other mods, `Cache` stays (their DLLs are loaded from it and locked:
+  `Logs\server-main.log`; the next run deletes such folders once they are 7 days old. With other mods, `Cache` stays (their DLLs are loaded from it and locked:
   `docs/modding.md`, "A server inside the test process"); the next run of either project deletes folders that hold only `Cache`.
 
 ### Compatibility tests
@@ -233,6 +233,9 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
    otherwise re-check the behaviour and the code that relies on it.
 3. Re-check what was confirmed only in game ("checked in game <date>" in tests and docs) where the changelog touches it.
 4. Update the dev copy of the game, `dependencies.game` in `modinfo.json`, and the version in `docs/onboarding.md`; build and run all tests.
+5. The server tests rest on the decompiled engine, which `check-refs.ps1` does not check: read `docs/modding.md`, "A server inside the test
+   process" and "A player without a client", against the new `VintagestoryLib.dll` (`ilspycmd`); re-check `LogProblems.KnownNoise` (each
+   line names its game version); re-pin `CurioCatalogue.CompatTests/mods.json` to versions of the other mods made for the new game.
 
 ## Commits
 
@@ -256,13 +259,13 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 - CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs all four test
   projects (`dotnet test curiocatalogue.sln`, including the server and the compatibility tests, which start a real server on the
   Linux runner); on `feature/*`, `main`, `release` and on every PR (on the merge result).
-  It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.
-  - **The pinned mods** (`CurioCatalogue.CompatTests/mods/`) are cached with the key `pinned-mods-<hash of mods.json>`; a changed pin
+  It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs (saved right after the download, so a red run does not download it again).
+  - **The pinned mods** (`CurioCatalogue.CompatTests/mods/`) are cached with the key `pinned-mods-<hash of mods.json>`, saved also when a test fails; a changed pin
     downloads again, a wrong hash still fails.
   - **When a test fails**, the step "Server logs of a failed run" uploads the artifact `server-logs` (14 days): the fixture copies the
     `Logs` of each server into the folder named by the environment variable `CURIOCATALOGUE_KEEP_LOGS` (set only in CI) before it
     deletes the temp world; a start that failed or a crash keeps the whole data folder, whose `Logs` are uploaded too.
-  - **How long:** locally the four projects take about 1 minute (server tests 43 s, compatibility tests 6 s); on GitHub (ubuntu, game cached) the Test step took 78 s
+  - **How long:** locally the four projects take about 1.5 minutes (server tests 70 s, compatibility tests 7 s, measured 03.11.2026; the server starts in about 10 s); on GitHub (ubuntu, game cached) the Test step took 78 s
     and the whole job about 2 minutes (first run, 02.11.2026); the Test step prints each project's duration.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release

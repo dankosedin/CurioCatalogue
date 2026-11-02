@@ -126,7 +126,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       the step if small, otherwise lines in `ROADMAP.md`. After: T8, T10, T11, T13–T17. Model: opus. Author: decides on each finding.
       Done when: the review is in Decisions, its findings fixed, moved to `ROADMAP.md` or rejected with a reason; the coverage
       report is kept for T18 (its summary in Decisions).
-- [ ] **T18. Code review of the branch.** A code review round (`docs/review.md`, Code review: five roles in parallel, moderation
+- [x] **T18. Code review of the branch.** A code review round (`docs/review.md`, Code review: five roles in parallel, moderation
       in the main session) of what this plan added: the four test projects, the shared fixture, `ci.yml`, and what changed in the
       mod. No players' round: nothing a player sees changed (if T13–T17 change a mod text, the round takes it). The QA role gets
       T9's coverage report as input and builds its table from it, not anew. Branch: `test/server-tests`. After: T9.
@@ -453,6 +453,37 @@ Before T13 (02.11.2026, author):
   gives the review its data; the review then looks for defects, not for gaps in the tests. Rejected: T9 merged into the review
   (the QA role would build the coverage table and look for defects at once).
 
+T18, code review (03.11.2026; the author decided each finding):
+
+- **Scope:** what the plan added, `git diff 933c40f..HEAD` (where the branch left `main`): T1–T8 had been squash-merged as #21 without a
+  code review, so a two-dot diff against `main` would have left them out. The mod itself did not change. Five roles as `docs/review.md`
+  says; on `da4ac2b` all four projects passed (98 + 161 + 142 + 17). 37 findings after merging duplicates, in five groups.
+- **A, tests that passed for the wrong reason (fixed, all):** the engine's "Welcome" line made four chat waits empty (L1, I1, A2, I4);
+  L5 waited for any "3", which the post's own line has; I2 waited for any custom packet, of which a joining player gets 19; I8 passed
+  with an album that swallows Shift + Ctrl (now an I10 row: the album lies on the ground); W2 had no album in the off-hand; L3 had no pick
+  list by count on the server; exact keys in `OurCodeTests` and `ModdedTapestryTests`; items on the ground counted before and after.
+  Each of the first five shown by a mutation the old test let pass.
+- **B, log checks (fixed):** the asset checks read the log up to their own run, so the order of test classes decided what they saw:
+  now the log until RunGame (`StartupLog`). `Withdraw` took every line after a mark: replaced by `LogSince` and `LogProblems.Since`,
+  which leave out the known noise. Moved to `ROADMAP.md`: a clean log over the whole run; known noise per test project.
+- **C, fixture robustness (fixed, but C10):** the network version and packet ids from the engine's constants; a disconnected fake
+  client fails at once with the reason (a wrong version: 95 ms instead of a 30 s wait per test); the player-name rule and one player per
+  name checked in `Join`; message ids read from the server's channel; `OnMain` inline on the main thread and an abandoned task skipped;
+  cells in a 16 × 16 grid inside the loaded spawn chunks; `WithConfig` by reflection with a JSON copy of the config; clearer fixture
+  errors, kept folders swept after 7 days, named timeouts, a 20-minute CI job timeout. **Rejected:** C10, players never disconnected
+  (not measured; the run takes 70 s locally, 78 s on CI, no slowdown seen).
+- **D, structure (fixed: D1, D2, D5):** `WithClaim`, `ReadBook`, `TakeOurs` in one place each; pointers from the unit tests name a server
+  test class, not a method and a date; `TooltipTests` expect what `en.json` says (`BookTestBase.LangText`). **Rejected:** plan ids out of
+  test names (they tie a test to its `functional.md` case both ways); the smoke tests (cheap, and the first to explain a broken fixture);
+  shorter docs (the plan keeps the history); `PinnedMods` and `tools/coverage.ps1` as overbuilt (decided in T12 and T9); the counts of
+  `CreativeInventoryTests` (a golden table, meant to fail when the tabs change).
+- **E, CI and docs (fixed, but E2):** caches restored and saved apart, so a red run keeps them; the measured durations in one place; the
+  game-update checklist covers the server tests; `functional.md` names every server test class. **Rejected:** E2, the core tests run
+  twice on CI (seconds; listing projects by hand would miss a new one).
+- **What the round taught** (in `docs/review.md`): in a change that is mostly tests, the worst defect is a test that passes for the wrong
+  reason, and only the roles that could run mutations found those (two of them, independently); the read-only roles found order
+  dependence and what breaks on the next game version.
+
 ## Where we stopped
 
 - 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
@@ -479,3 +510,4 @@ Before T13 (02.11.2026, author):
 - 02.11.2026: T16 done: `CreativeInventoryTests` (6 cases); mutation checked; `functional.md` C6 ⚙, `development.md` updated. Next: T17 (opus, After: T12), then T9.
 - 02.11.2026: T17 done: our test mod `cctapestry` (`testmods/`, a JSON patch of `sizes`), `TestMods`, the fixture copies mod folders; `ModdedTapestryTests` (2 cases); mutation checked; all four projects pass (98 + 160 + 126 + 17); `functional.md` A11 ⚙, `development.md`, `modding.md`, `ROADMAP.md` (tapestries of other mods) updated. Next: T9 (opus, After: T8, T10, T11, T13–T17).
 - 03.11.2026: T9 done: coverage measured (`tools/coverage.ps1`, all 68% → 73%, report in Decisions); findings F1–F3, F5–F7 fixed (16 server cases in `BookEdgeTests`, `CraftingTests`, `TooltipTests`, `VanillaContentTests`; `StackKeysTests`), F4 rejected; 16 mutations checked; all four projects pass (98 + 161 + 142 + 17); `development.md`, `modding.md`, `ROADMAP.md` updated. Next: T18 (opus, After: T9).
+- 03.11.2026: T18 done: code review in five roles of `933c40f..HEAD`; 37 findings, fixed but C10, D3, D4, D6, D7 and E2 (rejected with reasons) and two moved to `ROADMAP.md` (Decisions, T18); mutations checked; all four projects pass (98 + 161 + 144 + 17); `development.md`, `modding.md`, `functional.md`, `review.md`, `ci.yml` updated. All steps done: the branch goes to `main` by a pull request.

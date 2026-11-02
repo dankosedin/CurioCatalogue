@@ -30,9 +30,10 @@ jobs:
         id: game
         run: echo "version=$(jq -r '.dependencies.game' curiocatalogue/modinfo.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache the game
+      # Restore and save apart: a plain actions/cache saves only when the whole job passes, so a red run would download again.
+      - name: Restore the game
         id: cache
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: game
           key: vs-server-linux-${{ steps.game.outputs.version }}
@@ -51,13 +52,21 @@ jobs:
           tar -xzf server.tar.gz -C game
           rm server.tar.gz
 
+      - name: Save the game
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: game
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+
       - name: Build
         run: dotnet build curiocatalogue.sln
 
       # The compatibility tests take the pinned mods from this folder or download them there (CurioCatalogue.CompatTests/mods.json);
       # the key changes with the pin; a wrong hash still fails the run.
-      - name: Cache the pinned mods
-        uses: actions/cache@v6
+      - name: Restore the pinned mods
+        id: mods
+        uses: actions/cache/restore@v6
         with:
           path: CurioCatalogue.CompatTests/mods
           key: pinned-mods-${{ hashFiles('CurioCatalogue.CompatTests/mods.json') }}
@@ -68,6 +77,14 @@ jobs:
         env:
           CURIOCATALOGUE_KEEP_LOGS: ${{ runner.temp }}/server-logs
         run: dotnet test curiocatalogue.sln --no-build --logger "console;verbosity=normal"
+
+      # Saved also when a test failed: the tests downloaded the mods and checked their hashes before they ran.
+      - name: Save the pinned mods
+        if: always() && steps.mods.outputs.cache-hit != 'true' && hashFiles('CurioCatalogue.CompatTests/mods/*') != ''
+        uses: actions/cache/save@v6
+        with:
+          path: CurioCatalogue.CompatTests/mods
+          key: ${{ steps.mods.outputs.cache-primary-key }}
 
       # A finished test run deletes its temp world, but the copied logs stay; a start that failed or a crash keeps the whole
       # data folder in the temp directory.

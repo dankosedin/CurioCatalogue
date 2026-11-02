@@ -168,6 +168,12 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   of the item classes now have server tests): the windows (`Gui/`), the hints over containers (`LedgerHintsBehavior`), `HandbookIndexFix` and
   the client side of the gestures run only in game (A1, A8, A9, C7–C9, T1 of `functional.md`). Pull their decisions out into testable code
   first (as the invoice's fate in the 0.1.0 fixes).
+- **A clean log over the whole test run** (code review of the server tests, T18, 03.11.2026): today the server tests check the log of the
+  start and of a few actions; an error the mod logs in the middle of another test (e.g. `InvoicePoster`'s "Planned to move …") goes
+  unseen. A check at the end of the run, with the tests that make the mod log on purpose declaring their lines. First find out how xUnit
+  reports a failure in a collection fixture's `Dispose` and whether `dotnet test` turns red on it.
+- **Known log noise per test project** (the same review): `LogProblems.KnownNoise` is shared by the server and the compatibility tests.
+  When a second pinned mod brings noise of its own, give each fixture its own list, so another mod's pattern cannot hide our warning.
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.

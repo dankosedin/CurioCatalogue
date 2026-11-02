@@ -8,28 +8,12 @@ namespace CurioCatalogue.ServerTests;
 /// <summary>
 /// T2 of <c>docs/testing/functional.md</c>: a dedicated server in English, a client in Ukrainian. The fixture's server speaks
 /// English (<c>Lang.PreLoad(..., "en")</c>); a player who joins with <c>"uk"</c> must get refusals, chat lines and the names of
-/// our items in Ukrainian, an <c>"en"</c> player in English. Unlike the other server tests, the texts are the point here:
+/// our items in Ukrainian, an <c>"en"</c> player in English. The texts are the point here:
 /// the expected ones are read from the mod's own <c>lang/*.json</c>, not written in the tests.
 /// </summary>
 [Collection(ServerCollection.Name)]
 public class LanguageTests(GameServerFixture server) : BookTestBase(server)
 {
-    static readonly Dictionary<string, Dictionary<string, string>> Texts = new();
-
-    /// <summary>The text of a key of our lang file for this language, filled in as <c>Lang</c> fills it (string.Format).</summary>
-    static string Expected(string language, string key, params object[] args)
-    {
-        lock (Texts)
-        {
-            if (!Texts.TryGetValue(language, out var texts))
-            {
-                string file = Path.Combine(TestPaths.ModAssets, "curiocatalogue", "lang", language + ".json");
-                texts = Texts[language] = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(file))!;
-            }
-            return string.Format(texts[CurioCatalogueModSystem.ModId + ":" + key], args);
-        }
-    }
-
     [Theory]
     [InlineData("uk")]
     [InlineData("en")]
@@ -50,7 +34,7 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
 
         Assert.Equal(language, game.OnMain(() => client.Player.LanguageCode));
         var refusal = client.Received.First(p => p.IngameError?.Code == "unsupported").IngameError;
-        Assert.Equal(Expected(language, "ingameerror-unsupported"), refusal.Message);
+        Assert.Equal(LangText(language, "ingameerror-unsupported"), refusal.Message);
     }
 
     [Theory]
@@ -72,7 +56,7 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
         });
         client.WaitFor(() => Chat(client).Count > 0, "the chat line about the new list");
 
-        string expected = Expected(language, "invoice-made", Expected(language, "item-invoice-incoming"), 1, 7, Mod.Config.MaxSheets);
+        string expected = LangText(language, "invoice-made", LangText(language, "item-invoice-incoming"), 1, 7, Mod.Config.MaxSheets);
         Assert.Equal([expected], Chat(client));
     }
 
@@ -97,8 +81,8 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
         client.WaitFor(() => Chat(client).Count > 0, "the chat line about the post");
 
         var told = Assert.Single(Chat(client));
-        Assert.StartsWith(Expected(language, "invoice-posted", 1, 1), told);
-        Assert.EndsWith(Expected(language, "invoice-posted-sheet-album"), told);
+        Assert.StartsWith(LangText(language, "invoice-posted", 1, 1), told);
+        Assert.EndsWith(LangText(language, "invoice-posted-sheet-album"), told);
     }
 
     [Theory]
@@ -122,6 +106,6 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
         });
         client.WaitFor(() => Chat(client).Count > 0, "the chat line about the taking");
 
-        Assert.Equal([Expected(language, "album-collected", 1, missing - 1)], Chat(client));
+        Assert.Equal([LangText(language, "album-collected", 1, missing - 1)], Chat(client));
     }
 }

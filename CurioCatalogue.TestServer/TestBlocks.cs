@@ -1,10 +1,11 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace CurioCatalogue.TestServer;
 
 /// <summary>
-/// Vanilla blocks put into the test world. One counter for all test classes: nothing is removed, so every placement takes a
+/// The test world: blocks put into it, and claims on them. One counter for all test classes: nothing is removed, so every placement takes a
 /// cell of its own near the spawn and no test meets the blocks of an earlier one.
 /// </summary>
 internal static class TestBlocks
@@ -40,5 +41,16 @@ internal static class TestBlocks
         game.Api.World.BlockAccessor.SetBlock(block.BlockId, pos, stack);
         var entity = game.Api.World.BlockAccessor.GetBlockEntity(pos) ?? throw new InvalidOperationException($"{location} has no block entity at {pos}");
         return (pos, entity);
+    }
+
+    /// <summary>Claims the block at <paramref name="pos"/> and its neighbours for <paramref name="owner"/> while <paramref name="check"/> runs (main thread only).</summary>
+    public static T WithClaim<T>(GameServerFixture game, IServerPlayer owner, BlockPos pos, Action<LandClaim> configure, Func<T> check)
+    {
+        var claim = LandClaim.CreateClaim(owner, 1);
+        claim.AddArea(new Cuboidi(pos.X - 1, pos.Y - 1, pos.Z - 1, pos.X + 1, pos.Y + 1, pos.Z + 1));
+        configure(claim);
+        game.Api.World.Claims.Add(claim);
+        try { return check(); }
+        finally { game.Api.World.Claims.Remove(claim); }
     }
 }

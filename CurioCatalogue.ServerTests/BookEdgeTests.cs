@@ -225,8 +225,6 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
 
     // ---- branches the coverage review found untested (T9 of the server tests plan)
 
-    Ledger ReadBook(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
-
     /// <summary>
     /// How many items of ours with this code prefix lie on the ground near the player. Main thread. Every test player stands
     /// at the spawn, so a test compares the count before and after its own click.
@@ -428,7 +426,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     string NameOf(FakeClient client) // runs on the main thread (WaitFor calls it there); outside WaitFor use game.OnMain
     {
         var stack = client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!;
-        return Mod.Store.ReadLedger(stack, ((ItemLedger)stack.Collectible).LedgerMode).Name;
+        return ReadBook(stack).Name;
     }
 
     // ---- clicks that are not ours

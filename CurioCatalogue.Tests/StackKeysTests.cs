@@ -23,7 +23,7 @@ public class StackKeysTests
 
     // Assumption: a tapestry taken off a wall is "game:tapestry-north" with its picture in the string
     // attribute "type" (modding.md, Vanilla content we rely on; vssurvivalmod BlockTapestry.cs).
-    // Real one: ServerTests/VanillaContentTests.A_tapestry_taken_off_a_wall_is_a_north_piece_with_its_picture_and_a_member_of_the_collection.
+    // Real one: ServerTests/VanillaContentTests (a tapestry off the wall).
     private ItemStack Tapestry(string type)
     {
         var stack = new ItemStack(tapestry);
@@ -54,7 +54,7 @@ public class StackKeysTests
         var fresh = new ItemStack(item);
         var used = new ItemStack(item);
         // Assumption: heat lives in the "temperature" subtree (GlobalConstants.IgnoredStackAttributes), wear in "durability".
-        // Real ones: ServerTests/VanillaContentTests.A_hot_ingot_counts_as_the_same_item_as_a_cold_one; BookEdgeTests.G2_ExtraIgnoredAttributes_decides_whether_damaged_and_plain_items_are_the_same.
+        // Real ones: ServerTests/VanillaContentTests (a hot ingot) and ServerTests/BookEdgeTests (G2, damaged items).
         used.Attributes.GetOrAddTreeAttribute("temperature").SetFloat("temperature", 600);
         used.Attributes.SetInt("durability", 10);
         Assert.Equal(keys.KeyOf(fresh), keys.KeyOf(used));

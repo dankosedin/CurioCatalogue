@@ -22,8 +22,12 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
         return text.ToString().Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
     }
 
+    // The expected texts come from en.json (the server's language); the key names without a client are "Shift" and "Ctrl".
+    static string En(string key, params object[] args) => LangText("en", key, args);
+    static string[] EnLines(string key) => En(key, "Shift", "Ctrl").Split('\n');
+
     void Rename(ItemStack book, string name) =>
-        Mod.Store.WriteLedger(book, Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode) with { Name = name });
+        Mod.Store.WriteLedger(book, ReadBook(book) with { Name = name });
 
     [Fact]
     public void A_ledger_says_its_cover_sheets_entries_and_gestures()
@@ -34,14 +38,13 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
             return (book.GetName(), Info(book), Mod.Config.MaxSheets, Mod.Config.SoftEntryLimit);
         });
 
-        Assert.Equal("Ledger", name);
-        Assert.Contains("Cover: teal", info);
-        Assert.Contains($"Sheets: 5 of {max}", info);
-        Assert.Contains($"Entries: 2 (limit {limit})", info);
-        Assert.Contains("Shift + right-click a container: intake list for items not in the ledger.", info);
-        Assert.Contains("Shift + Ctrl + right-click: pick list for items in the ledger, every stack of them.", info);
-        Assert.Contains("Right-click into the air opens it, in your hand or in your off-hand when the main hand is empty.", info);
-        Assert.DoesNotContain("Ledger", info); // the kind line is only for a named book
+        Assert.Equal(En("item-book-ledger-*"), name);
+        Assert.Contains(En("ledger-info-cover", En("cover-teal")), info);
+        Assert.Contains(En("ledger-info-sheets", 5, max), info);
+        Assert.Contains(En("ledger-info-entries", 2, limit), info);
+        Assert.All(EnLines("ledger-info-howto-types"), line => Assert.Contains(line, info));
+        Assert.Contains(En("ledger-info-open"), info);
+        Assert.DoesNotContain(En("item-book-ledger-*"), info); // the kind line is only for a named book
         Assert.DoesNotContain(info, l => l.StartsWith("Pieces"));
     }
 
@@ -56,9 +59,9 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
         });
 
         Assert.Equal("Smithy order", name);
-        Assert.Contains("Bill of materials", info);
-        Assert.Contains("Cover: dark green, aged", info);
-        Assert.Contains("Shift + right-click a container: intake list for what is over the listed counts.", info);
+        Assert.Contains(En("item-book-materials-*"), info);
+        Assert.Contains(En("ledger-info-cover-aged", En("cover-darkgreen")), info);
+        Assert.All(EnLines("ledger-info-howto-counts"), line => Assert.Contains(line, info));
     }
 
     [Fact]
@@ -74,11 +77,11 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
             return (album.GetName(), renamed.GetName(), Info(album), progress);
         });
 
-        Assert.Equal("Album: tapestries", name);
+        Assert.Equal(En("album-name-tapestries"), name);
         Assert.Equal("Grandma's walls", named);
-        Assert.Contains("Album", info); // the kind line: an album always has one, its title is the collection or a name
-        Assert.Contains($"Pieces 0 of {progress.Total} · whole pictures 0 of {progress.GroupsTotal}", info);
-        Assert.Contains(info, l => l.StartsWith("Shift + right-click a container: takes one of each missing item right away"));
+        Assert.Contains(En("item-book-album-*"), info); // the kind line: an album always has one, its title is the collection or a name
+        Assert.Contains(En("ledger-info-album", 0, progress.Total, 0, progress.GroupsTotal), info);
+        Assert.All(EnLines("ledger-info-howto-album"), line => Assert.Contains(line, info));
         Assert.DoesNotContain(info, l => l.StartsWith("Entries:")); // its entries are what it misses, the limit does not matter
     }
 
@@ -87,7 +90,7 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
     {
         var info = game.OnMain(() => Info(new ItemStack(World.GetItem(Adapters.InvoiceMaker.InvoiceCode(InvoiceKind.Incoming)))));
 
-        Assert.Contains("Blank", info);
+        Assert.Contains(En("invoice-info-blank"), info);
         Assert.DoesNotContain(info, l => l.StartsWith("Made on day"));
     }
 
@@ -106,10 +109,10 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
             var spawn = World.DefaultSpawnPosition.AsBlockPos;
             string[] expected =
             [
-                $"Made on day 3 at {10 - spawn.X}, 4, {-20 - spawn.Z}",
-                "1 × Unknown item #987654",
+                En("invoice-info-origin", 3, 10 - spawn.X, 4, -20 - spawn.Z),
+                $"1 × {En("unknown-item", 987654)}",
                 .. stacks.Take(4).Select(s => $"2 × {s.GetName()}"),
-                "…and 2 more",
+                En("invoice-info-more", 2),
             ];
             return (Info(list), expected);
         });

@@ -95,7 +95,7 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   go through `FakeClient.SendToMod` into the real handlers. It checks the world's state (inventory, chest, book, list) and the *codes* of the
   red refusals the fake client received (`Errors(client)`), not their texts. Cases: making intake, pick and by-count lists; posting (moves,
   missing, no room, parchment); the album taking, the want list (made, filled, partly filled, cancelled); claims, a padlock, unsupported
-  containers, reach and stale windows. `TestBlocks` hands out the cells for all test classes.
+  containers, reach and stale windows. `TestBlocks` hands out the cells for all test classes and claims them (`WithClaim`).
   The `functional.md` cases it covers are marked with ⚙ there.
 - **`BookEdgeTests`** (helpers shared with `BookFlowTests` in `BookTestBase`) takes the cases the first one left: a full album, blank lists (post and
   cancel), a 60-character name through the channel, and the clicks that are not ours (a plain click opens the chest, Shift on the floor
@@ -123,7 +123,8 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   collection the server does not have). `movefailed` stays a unit test: no container of the server accepts only part of what is put in.
 - **`CreativeInventoryTests`** (C6): the server fills `CreativeInventoryTabs` of every item from the JSON (`ItemType.GetCreativeTabs`), and the client's creative dialog and the handbook read that field: 24 books per kind (13 normal, 11 aged), 72 in the `general` tab, the three blank lists there too (`ROADMAP.md` wants them out; the test changes then), nothing else of ours.
 - **`TooltipTests`**: the names and tooltips of the books and lists and the "Missing: …" text of a refused post (`ModNetwork.MissingText`, internal, by
-  reflection), in the server's English. The client calls them, but they need no client; the key names fall back to "Shift" and "Ctrl".
+  reflection), in the server's English, expected as `en.json` says (`BookTestBase.LangText`, as in `LanguageTests`). The client calls them,
+  but they need no client; the key names fall back to "Shift" and "Ctrl".
 - **`VanillaContentTests`**: the server twins of assumptions the adapter tests make about vanilla stacks (a tapestry taken off a wall, a hot ingot).
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its

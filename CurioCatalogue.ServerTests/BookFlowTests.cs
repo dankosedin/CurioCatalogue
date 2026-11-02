@@ -485,17 +485,6 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
 
     // ---- access
 
-    /// <summary>Claims the chest's surroundings for <paramref name="owner"/> while <paramref name="check"/> runs.</summary>
-    T WithClaim<T>(IServerPlayer owner, BlockPos pos, Action<LandClaim> configure, Func<T> check)
-    {
-        var claim = LandClaim.CreateClaim(owner, 1);
-        claim.AddArea(new Cuboidi(pos.X - 1, pos.Y - 1, pos.Z - 1, pos.X + 1, pos.Y + 1, pos.Z + 1));
-        configure(claim);
-        World.Claims.Add(claim);
-        try { return check(); }
-        finally { World.Claims.Remove(claim); }
-    }
-
     [Fact]
     public void A_land_claim_refuses_every_gesture_of_the_visitor_until_it_allows_use()
     {
@@ -518,11 +507,11 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
                 return (Inventory(player), Contents(chest));
             }
 
-            var closed = WithClaim(owner.Player, pos, _ => { }, () => (
+            var closed = TestBlocks.WithClaim(game, owner.Player, pos, _ => { }, () => (
                 Make: Try(Book("book-ledger-normal-brickred", 8)),
                 Collect: Try(Album(8)),
                 Post: Try(Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5)))));
-            var shared = WithClaim(owner.Player, pos, c => c.PermittedPlayerUids[player.PlayerUID] = EnumBlockAccessFlags.Use,
+            var shared = TestBlocks.WithClaim(game, owner.Player, pos, c => c.PermittedPlayerUids[player.PlayerUID] = EnumBlockAccessFlags.Use,
                 () => Try(Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5))));
             return (closed, shared);
         });

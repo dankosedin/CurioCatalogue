@@ -18,6 +18,27 @@ public abstract class BookTestBase(GameServerFixture server)
     protected CurioCatalogueModSystem Mod => game.Api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
     protected IWorldAccessor World => game.Api.World;
 
+    // ---- our texts
+
+    static readonly Dictionary<string, Dictionary<string, string>> Texts = new();
+
+    /// <summary>
+    /// The text of a key of our lang file for this language, filled in as <c>Lang</c> fills it (string.Format). Tests of what the
+    /// player reads take the expected text from here, so a change of wording changes no test (a key that is gone fails it).
+    /// </summary>
+    protected static string LangText(string language, string key, params object[] args)
+    {
+        lock (Texts)
+        {
+            if (!Texts.TryGetValue(language, out var texts))
+            {
+                string file = Path.Combine(TestPaths.ModAssets, "curiocatalogue", "lang", language + ".json");
+                texts = Texts[language] = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(file))!;
+            }
+            return string.Format(texts[CurioCatalogueModSystem.ModId + ":" + key], args);
+        }
+    }
+
     // ---- the config on a running server
 
     /// <summary>
@@ -116,8 +137,18 @@ public abstract class BookTestBase(GameServerFixture server)
     protected static ItemStack? FindOurs(IServerPlayer player, string codePrefix) => Slots(player)
         .Select(s => s.Itemstack).FirstOrDefault(st => st is { } x && x.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && x.Collectible.Code.Path.StartsWith(codePrefix));
 
-    protected (int Sheets, int Entries) BookState(ItemStack book) =>
-        ToCounts(Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode));
+    /// <summary>Takes the first stack of ours with this code prefix out of the main inventory, or null.</summary>
+    protected static ItemStack? TakeOurs(IServerPlayer player, string codePrefix)
+    {
+        var stack = FindOurs(player, codePrefix);
+        if (stack != null) Slots(player).First(s => s.Itemstack == stack).Itemstack = null;
+        return stack;
+    }
+
+    /// <summary>The data of a book (ledger, bill of materials or album), read in its own mode.</summary>
+    protected Core.Ledger ReadBook(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
+
+    protected (int Sheets, int Entries) BookState(ItemStack book) => ToCounts(ReadBook(book));
 
     protected static (int Sheets, int Entries) ToCounts(Core.Ledger l) => (l.Sheets, l.Entries.Count);
 

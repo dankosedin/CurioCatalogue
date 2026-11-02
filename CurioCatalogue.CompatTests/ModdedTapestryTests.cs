@@ -46,5 +46,5 @@ public class ModdedTapestryTests(CompatServerFixture server) : BookTestBase(serv
 
     /// <summary>The album's missing pieces: their keys' attributes (a key holds the tapestry's <c>type</c>, e.g. <c>{"type":"ambush1"}</c>).</summary>
     List<string> Missing(ItemStack album) =>
-        Mod.Store.ReadLedger(album, ((ItemLedger)album.Collectible).LedgerMode).Entries.Select(e => e.Key.Attributes).ToList();
+        ReadBook(album).Entries.Select(e => e.Key.Attributes).ToList();
 }

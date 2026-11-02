@@ -30,9 +30,6 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
         }
     }
 
-    // The chat lines of the mod: a joining player is also greeted by the engine ("Welcome ..." in the server language), not ours.
-    static List<string> Told(FakeClient client) => Chat(client).Where(line => !line.StartsWith("Welcome ")).ToList();
-
     [Theory]
     [InlineData("uk")]
     [InlineData("en")]
@@ -73,10 +70,10 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
             Click(player, hand, pos);
             return 0;
         });
-        client.WaitFor(() => Told(client).Count > 0, "the chat line about the new list");
+        client.WaitFor(() => Chat(client).Count > 0, "the chat line about the new list");
 
         string expected = Expected(language, "invoice-made", Expected(language, "item-invoice-incoming"), 1, 7, Mod.Config.MaxSheets);
-        Assert.Equal([expected], Told(client));
+        Assert.Equal([expected], Chat(client));
     }
 
     [Theory]
@@ -97,9 +94,9 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
             Click(player, hand, pos);
             return 0;
         });
-        client.WaitFor(() => Told(client).Count > 0, "the chat line about the post");
+        client.WaitFor(() => Chat(client).Count > 0, "the chat line about the post");
 
-        var told = Assert.Single(Told(client));
+        var told = Assert.Single(Chat(client));
         Assert.StartsWith(Expected(language, "invoice-posted", 1, 1), told);
         Assert.EndsWith(Expected(language, "invoice-posted-sheet-album"), told);
     }
@@ -123,8 +120,8 @@ public class LanguageTests(GameServerFixture server) : BookTestBase(server)
             Click(player, hand, pos);
             return 0;
         });
-        client.WaitFor(() => Told(client).Count > 0, "the chat line about the taking");
+        client.WaitFor(() => Chat(client).Count > 0, "the chat line about the taking");
 
-        Assert.Equal([Expected(language, "album-collected", 1, missing - 1)], Told(client));
+        Assert.Equal([Expected(language, "album-collected", 1, missing - 1)], Chat(client));
     }
 }

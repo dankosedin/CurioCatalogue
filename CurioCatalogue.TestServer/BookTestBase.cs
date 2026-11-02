@@ -95,7 +95,9 @@ public abstract class BookTestBase(GameServerFixture server)
         string.Join(", ", mod.Store.ReadInvoice(invoice, ((ItemInvoice)invoice.Collectible).InvoiceKind).Entries.Select(e => $"{e.Key.Code} x{e.Count}"));
 
     internal static List<string> Errors(FakeClient client) => client.Received.Where(p => p.IngameError != null).Select(p => p.IngameError.Code).ToList();
-    internal static List<string> Chat(FakeClient client) => client.Received.Where(p => p.Chatline != null).Select(p => p.Chatline.Message).ToList();
+    /// <summary>The chat lines the player received, without the engine's greeting at join ("Welcome ...", in the server's language).</summary>
+    internal static List<string> Chat(FakeClient client) => client.Received.Where(p => p.Chatline != null).Select(p => p.Chatline.Message)
+        .Where(line => !line.StartsWith("Welcome ")).ToList();
 
     // ---- acting
 

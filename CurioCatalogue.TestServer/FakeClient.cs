@@ -87,6 +87,19 @@ sealed class FakeClient : NetConnection
         Send(CustomPacket, p => p.CustomPacket = new Packet_CustomPacket { ChannelId = OurChannelId(), MessageId = messageId, Data = data.ToArray() });
     }
 
+    /// <summary>
+    /// The messages of type <typeparamref name="T"/> our channel sent this client, in order. Other channels send custom packets
+    /// too (the vanilla mods, at join), so a test that waits for one of ours must name the channel and the type.
+    /// </summary>
+    public List<T> FromMod<T>()
+    {
+        int messageId = Array.IndexOf(OurMessageTypes, typeof(T));
+        if (messageId < 0) throw new ArgumentException($"{typeof(T).Name} is not one of our message types");
+        int channelId = OurChannelId();
+        return Received.Where(p => p.CustomPacket is { } c && c.ChannelId == channelId && c.MessageId == messageId)
+            .Select(p => ProtoBuf.Serializer.Deserialize<T>(new MemoryStream(p.CustomPacket.Data))).ToList();
+    }
+
     // ModNetwork.Register (internal), in its order; the channel is named after the mod id.
     static readonly Type[] OurMessageTypes =
     [

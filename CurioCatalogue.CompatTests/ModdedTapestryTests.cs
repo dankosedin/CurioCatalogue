@@ -12,6 +12,7 @@ namespace CurioCatalogue.CompatTests;
 public class ModdedTapestryTests(CompatServerFixture server) : BookTestBase(server)
 {
     const string Picture = "cctestpicture";
+    const string PieceKey = "{\"type\":\"" + Picture + "2\"}"; // the key's attributes of the piece the chest holds
 
     [Fact]
     public void The_patched_picture_is_in_the_collection()
@@ -34,16 +35,16 @@ public class ModdedTapestryTests(CompatServerFixture server) : BookTestBase(serv
             ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Tapestry(Picture + "2");
             var hand = player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Album(8);
-            bool missingBefore = Missing(hand.Itemstack).Contains(Picture + "2");
+            bool missingBefore = Missing(hand.Itemstack).Contains(PieceKey);
 
             Click(player, hand, pos);
 
-            return (missingBefore, MissingAfter: Missing(hand.Itemstack).Contains(Picture + "2"), Inventory(player), Contents(chest));
+            return (missingBefore, MissingAfter: Missing(hand.Itemstack).Contains(PieceKey), Inventory(player), Contents(chest));
         });
         Assert.Equal((true, false, $"tapestry-north:{Picture}2 x1", ""), seen);
     }
 
-    /// <summary>The album's missing pieces: their keys' attributes, one per line (a key holds the tapestry's <c>type</c>).</summary>
-    string Missing(ItemStack album) =>
-        string.Join("\n", Mod.Store.ReadLedger(album, ((ItemLedger)album.Collectible).LedgerMode).Entries.Select(e => e.Key.Attributes));
+    /// <summary>The album's missing pieces: their keys' attributes (a key holds the tapestry's <c>type</c>, e.g. <c>{"type":"ambush1"}</c>).</summary>
+    List<string> Missing(ItemStack album) =>
+        Mod.Store.ReadLedger(album, ((ItemLedger)album.Collectible).LedgerMode).Entries.Select(e => e.Key.Attributes).ToList();
 }

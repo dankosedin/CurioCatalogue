@@ -69,7 +69,8 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             return (entries, ListMade: FindOurs(player, "invoice-incoming") != null, Inventory(player));
         }));
         Assert.Equal((3, false, "ingot-copper x5"), seen);
-        client.WaitFor(() => Chat(client).Any(l => l.Contains('3')), "the warning about the limit of 3");
+        // The post's own line has a 3 too ("Book entries: 2 → 3"): look for the warning's words.
+        client.WaitFor(() => Chat(client).Any(l => l.Contains("its limit is 3")), "the warning about the limit of 3");
         client.WaitFor(() => Errors(client).Contains("ledgerfull"), "the refusal 'the book is full'");
     }
 
@@ -195,7 +196,8 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             return (Inventory(player), Contents(chest), BookState(player.Entity.LeftHandItemSlot.Itemstack!).Sheets == max);
         });
         Assert.Equal(("ingot-copper x5, paper-parchment x1", "", true), seen);
-        client.WaitFor(() => Chat(client).Count > 0, "the chat line about the post");
+        int sheets = game.OnMain(() => Mod.Config.MaxSheets);
+        client.WaitFor(() => Chat(client).Any(l => l.Contains($"The album already has {sheets} sheets")), "the chat line 'the album already has N sheets'");
     }
 
     [Theory]
@@ -249,10 +251,13 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
 
     Ledger ReadBook(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
 
-    /// <summary>Whether an item of ours with this code prefix lies on the ground near the player. Main thread.</summary>
-    bool OnGroundNear(IServerPlayer player, string codePrefix) =>
+    /// <summary>
+    /// How many items of ours with this code prefix lie on the ground near the player. Main thread. Every test player stands
+    /// at the spawn, so a test compares the count before and after its own click.
+    /// </summary>
+    int OnGroundNear(IServerPlayer player, string codePrefix) =>
         World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 4, e => e is EntityItem { Itemstack: { } st }
-            && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length > 0;
+            && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length;
 
     /// <summary>
     /// The test players are in creative, where the inventory is never full: <c>TryGiveItemstack</c> puts a stack into any player
@@ -321,19 +326,19 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     public void A5_a_want_list_lands_on_the_ground_when_the_inventory_is_full()
     {
         var client = FakeClient.Join(game, "wanter-full");
-        var fingerprint = game.OnMain(() =>
+        var (fingerprint, onGround) = game.OnMain(() =>
         {
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Album(8);
             AsInSurvival(client.Player);
             client.Player.Entity.LeftHandItemSlot.Itemstack = Vanilla("stick"); // the off-hand would take it too
             FillWithSticks(client.Player);
-            return LedgerStore.Fingerprint(hand.Itemstack);
+            return (LedgerStore.Fingerprint(hand.Itemstack), OnGroundNear(client.Player, "invoice-wantlist"));
         });
 
         client.SendToMod(new MakeWantListRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
 
-        client.WaitFor(() => OnGroundNear(client.Player, "invoice-wantlist"), "the want list on the ground");
+        client.WaitFor(() => OnGroundNear(client.Player, "invoice-wantlist") > onGround, "the want list on the ground");
         Assert.Equal(7, game.OnMain(() => BookState(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Sheets));
     }
 
@@ -362,7 +367,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     public void L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full()
     {
         var client = FakeClient.Join(game, "maker-full");
-        var sheets = game.OnMain(() =>
+        var (sheets, onGround) = game.OnMain(() =>
         {
             var player = client.Player;
             var (pos, chest) = TestBlocks.Place(game, "chest-east");
@@ -372,12 +377,13 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             AsInSurvival(player);
             player.Entity.LeftHandItemSlot.Itemstack = Vanilla("stick"); // the off-hand would take it too
             FillWithSticks(player);
+            int before = OnGroundNear(player, "invoice-incoming");
 
             Click(player, hand, pos);
-            return BookState(hand.Itemstack!).Sheets;
+            return (BookState(hand.Itemstack!).Sheets, before);
         });
         Assert.Equal(7, sheets);
-        client.WaitFor(() => OnGroundNear(client.Player, "invoice-incoming"), "the intake list on the ground");
+        client.WaitFor(() => OnGroundNear(client.Player, "invoice-incoming") > onGround, "the intake list on the ground");
     }
 
     [Fact]
@@ -501,22 +507,24 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Theory]
-    [InlineData("book-ledger-normal-brickred")]
-    [InlineData("invoice-incoming")]
-    public void I10_Shift_on_the_floor_is_the_games_and_the_book_lies_on_the_ground(string item)
+    [InlineData("book-ledger-normal-brickred", false)]
+    [InlineData("invoice-incoming", false)]
+    [InlineData("book-album-normal-brickred", true)] // I8: Shift + Ctrl is no gesture of the album, so it goes to the game too
+    public void I10_Shift_on_the_floor_is_the_games_and_the_book_lies_on_the_ground(string item, bool ctrl)
     {
-        var client = FakeClient.Join(game, "ground-" + item[5..9]);
+        var client = FakeClient.Join(game, "ground-" + item[5..9] + (ctrl ? "-c" : ""));
         var seen = game.OnMain(() =>
         {
             var player = client.Player;
             var pos = TestBlocks.FreePos(game);
             World.BlockAccessor.SetBlock(World.GetBlock(new AssetLocation("game", "rock-granite")).BlockId, pos);
             var hand = player.InventoryManager.ActiveHotbarSlot;
-            hand.Itemstack = item.StartsWith("book") ? Book(item, 8) : Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5));
+            hand.Itemstack = item.StartsWith("book-album") ? Album(8) : item.StartsWith("book") ? Book(item, 8) : Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5));
             Stand(player, pos.UpCopy());
 
             var controls = player.Entity.Controls;
             controls.ShiftKey = true;
+            controls.CtrlKey = ctrl; // the game's ground storage needs only Shift (BehaviorGroundStorable.Interact)
             EnumHandHandling handling;
             try
             {
@@ -524,7 +532,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
                 handling = EnumHandHandling.NotHandled;
                 hand.Itemstack.Collectible.OnHeldInteractStart(hand, player.Entity, selection, null, true, ref handling);
             }
-            finally { controls.ShiftKey = false; }
+            finally { controls.ShiftKey = false; controls.CtrlKey = false; }
 
             var ground = World.BlockAccessor.GetBlockEntity<BlockEntityGroundStorage>(pos.UpCopy());
             return (handling != EnumHandHandling.NotHandled, OnGround: ground?.Inventory.Count(s => !s.Empty));

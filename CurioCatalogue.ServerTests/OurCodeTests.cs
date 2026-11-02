@@ -35,6 +35,6 @@ public class OurCodeTests(GameServerFixture game)
                 ?? throw new InvalidOperationException("no ledger book");
             return new StackKeys(game.Api.World, []).KeyOf(new ItemStack(book));
         });
-        Assert.Equal(new ItemKey(CollectibleKind.Item, "curiocatalogue:book-ledger-normal-brickred", key.Attributes), key);
+        Assert.Equal(new ItemKey(CollectibleKind.Item, "curiocatalogue:book-ledger-normal-brickred", ""), key);
     }
 }

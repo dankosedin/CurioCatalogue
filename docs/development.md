@@ -67,6 +67,9 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line, except the lines of `KnownNoise`
   (empty on 1.22.7: a vanilla line that is not ours goes there with its reason). Server only: textures and shapes are read by the
   client, so a missing one is still found in game.
+- **`RecipeTests`** compares the server's grid recipes of our domain with expected sets written out in the test (output, ingredient
+  codes, counts, tools, shape, group): 1067 recipes in 7 groups. A recipe change in `recipes/grid/ledger.json` is made in two places;
+  a new recipe name fails `All_our_recipes_are_covered_by_a_test_above` until it has a test.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand.

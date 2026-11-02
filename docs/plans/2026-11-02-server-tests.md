@@ -36,7 +36,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       CI job) and which the server makes redundant. After: T1. Model: sonnet. Author: decides what stays in `AssetsTests`.
       Done when: a broken recipe and a broken item JSON (mutations) each fail the test with the log line in the message; the
       "check `server-main.log`" item of `docs/critical.md` says the test does it.
-- [ ] **T3. Our recipes in the game.** Every grid recipe of our assets is in the server's recipe list with the output and the
+- [x] **T3. Our recipes in the game.** Every grid recipe of our assets is in the server's recipe list with the output and the
       ingredients we wrote (codes resolved, wildcards matched, counts), including the book recipes from an old book.
       After: T2. Model: sonnet. Author: none. Done when: one test per recipe file or a table-driven test; a mutation of an
       ingredient fails it.
@@ -168,6 +168,13 @@ T2 (02.11.2026):
   a wrong item class in `invoice.json` fails with "no such class registered" (and the smoke test). Textures and shapes are read by the
   client, so the server does not log a missing one: still an in-game check.
 
+T3 (02.11.2026):
+
+- **Expected sets are written in the test, not read from the JSON** (a copy of the table, so a change of a recipe is made twice and cannot slip by);
+  compared as sets with the diff in the message. The server's count matches the JSON by hand: 1067 = 72 + 2 + 48 + 72 + 48 + 792 + 33.
+- **Mutations:** another leather in one recolour recipe, parchment quantity 2, and a typo in an ingredient code each fail the matching test
+  (a typo drops the recipe: "missing (72)").
+
 ## Where we stopped
 
 - 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
@@ -175,3 +182,4 @@ T2 (02.11.2026):
   nothing written there). CI still runs `dotnet test curiocatalogue.sln`, which now includes the server tests (T8).
 - 02.11.2026: T2 done: `GameServerFixture.LogEntries()` and `AssetLoadTests` (log captured from the start; fails on any warning or error); two mutations checked; `critical.md`, `modding.md`, `development.md` updated. Next: T3 or T4 (both After: T1).
 
+- 02.11.2026: T3 done: `RecipeTests` (8 tests, 1067 recipes of our domain checked against expected sets); three mutations checked; `development.md` updated. Not committed yet (waits for "комічь"). Next: T4 (opus) or T8.

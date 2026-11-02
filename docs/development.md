@@ -223,9 +223,17 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 - Reviews: GitHub does not let anyone approve their own pull request, so the `main` ruleset requires 0 approvals while one
   person has write access; that person reviews before merging. With a second one, set 1 required approval in the `main` ruleset.
   How a change is reviewed (a players' round, then a code review, both by role subagents): `docs/review.md`.
-- CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs both test
-  projects; on `feature/*`, `main`, `release` and on every PR (on the merge result).
+- CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs all four test
+  projects (`dotnet test curiocatalogue.sln`, including the server and the compatibility tests, which start a real server on the
+  Linux runner); on `feature/*`, `main`, `release` and on every PR (on the merge result).
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs.
+  - **The pinned mods** (`CurioCatalogue.CompatTests/mods/`) are cached with the key `pinned-mods-<hash of mods.json>`; a changed pin
+    downloads again, a wrong hash still fails.
+  - **When a test fails**, the step "Server logs of a failed run" uploads the artifact `server-logs` (14 days): the fixture copies the
+    `Logs` of each server into the folder named by the environment variable `CURIOCATALOGUE_KEEP_LOGS` (set only in CI) before it
+    deletes the temp world; a start that failed or a crash keeps the whole data folder, whose `Logs` are uploaded too.
+  - **How long:** locally the four projects take about 1 minute (server tests 43 s, compatibility tests 6 s); the CI time is in the
+    log of the first run (the Test step prints each project's duration).
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the

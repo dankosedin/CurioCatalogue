@@ -226,10 +226,25 @@ public class GameServerFixture : IDisposable
         stopRequested = true;
         if (!thread.Join(StopTimeout)) throw new TimeoutException($"the test server did not stop in {StopTimeout}; its data: {DataPath}");
         if (crash != null) throw new InvalidOperationException($"the test server crashed, see {ServerLog}", crash);
+        KeepLogs();
         DeleteData();
     }
 
     const string DataFolderPrefix = "cc-servertests-";
+
+    /// <summary>
+    /// CI sets <c>CURIOCATALOGUE_KEEP_LOGS</c> to a folder: the server's <c>Logs</c> are copied there (into a subfolder per run) before the
+    /// data folder is deleted, so a failed test leaves its log to upload. A start that failed or a crash keeps the whole data folder anyway.
+    /// </summary>
+    void KeepLogs()
+    {
+        string? target = Environment.GetEnvironmentVariable("CURIOCATALOGUE_KEEP_LOGS");
+        string logs = Path.Combine(DataPath, "Logs");
+        if (string.IsNullOrEmpty(target) || !Directory.Exists(logs)) return;
+        string to = Path.Combine(target, Path.GetFileName(DataPath));
+        Directory.CreateDirectory(to);
+        foreach (string file in Directory.EnumerateFiles(logs)) File.Copy(file, Path.Combine(to, Path.GetFileName(file)), overwrite: true);
+    }
 
     /// <summary>
     /// Deletes the data folder. Another code mod is unpacked into <c>Cache\unpack</c> and its DLL is loaded from there; Windows keeps

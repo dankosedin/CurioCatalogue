@@ -82,10 +82,11 @@ assumptions"), but its source is now the test itself: the engine ran it.
       (the project and the mods' source); `functional.md` K2 marked ⚙. After: T10 (the shared fixture moves code that T10 uses).
       Model: opus. Author: decides how the fixture is shared. Done when: the tests pass from an empty folder (download) and from
       a full one; a mutation (a wrong hash, the mod missing from the list) fails clearly.
-- [ ] **T8. CI.** The `build` job (it has the game server) runs the server tests and the compatibility tests; how long they take;
+- [x] **T8. CI.** The `build` job (it has the game server) runs the server tests and the compatibility tests; how long they take;
       what CI keeps when they fail (the server log of the temp world as an artifact); the mods folder of T12 cached between runs.
       After: T12. Model: sonnet. Author: none.
       Done when: `ci.yml` changed; `docs/development.md` (CI) says so; checked after the push (the author).
+      Done locally 02.11.2026; the run on GitHub is for the author to check (Where we stopped).
 - [ ] **T9. Coverage review.** What the four test projects cover now and what they do not: a coverage report (coverlet is in
       the tests already) per class of the adapters; the mocks left and whether each still needs to be a mock; the cases of
       `functional.md` still only in game; the item classes (`ROADMAP.md`, "Tests for the item classes"). Findings fixed in
@@ -351,3 +352,4 @@ Before T10 (02.11.2026, author):
 - 02.11.2026: T12 done: the fixture shared from `CurioCatalogue.TestServer/`; `CurioCatalogue.CompatTests` with Upgradeable Storage 1.1.9
   (15 cases), from an empty folder (download) and a full one; four mutations checked; all four projects pass (98 + 160 + 95 + 15);
   `development.md`, `architecture.md`, `modding.md`, `functional.md` (K2 ⚙) updated. Next: T8 (sonnet, After: T12).
+- 02.11.2026: T8 done in the repo: `ci.yml` caches the pinned mods, runs the four projects with durations, uploads `server-logs` on failure (the fixture copies `Logs` when `CURIOCATALOGUE_KEEP_LOGS` is set); `development.md` updated; locally all four pass (98 + 160 + 95 + 15, 1 min). **Waits for the author:** push and see the first run on ubuntu (the Linux questions of "Open questions": paths, port, the Linux server archive, the time). Next: T9 (opus, After: T8).

@@ -116,6 +116,7 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   `LedgerStore.Version`: a click in hand, an invoice with the book in the off-hand, the off-hand gesture through the channel, the four window requests and
   the cancel with a newer book in the off-hand are refused, and the stacks' attributes are the same afterwards) and `nocollection` (an album of a
   collection the server does not have). `movefailed` stays a unit test: no container of the server accepts only part of what is put in.
+- **`CreativeInventoryTests`** (C6): the server fills `CreativeInventoryTabs` of every item from the JSON (`ItemType.GetCreativeTabs`), and the client's creative dialog and the handbook read that field: 24 books per kind (13 normal, 11 aged), 72 in the `general` tab, the three blank lists there too (`ROADMAP.md` wants them out; the test changes then), nothing else of ours.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand. With other mods, `Cache` stays (their DLLs are loaded from it and locked:

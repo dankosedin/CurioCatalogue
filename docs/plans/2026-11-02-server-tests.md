@@ -107,7 +107,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       unit test (the server has no container that accepts only part; say so in Decisions). Branch: `test/server-tests`.
       After: T8. Model: sonnet. Author: none. Done when: the tests pass; a mutation per refusal fails its test; the section
       "Not reproducible in game" of `functional.md` says which have a server test.
-- [ ] **T16. The creative inventory (C6).** Research first: whether the server resolves our items' creative inventory stacks
+- [x] **T16. The creative inventory (C6).** Research first: whether the server resolves our items' creative inventory stacks
       (`CreativeInventoryStacks`, the tabs) as the client does. If it does: a test counts our books in the tab (24 per kind,
       normal and aged; 72) and that the blank lists are where `ROADMAP.md` says they are today. If it does not: the reason in
       Decisions, C6 stays in game. Branch: `test/server-tests`. After: T8. Model: sonnet. Author: none.
@@ -378,6 +378,15 @@ T15 (02.11.2026):
 - **Mutations:** each of the four `RefuseNewer` call sites removed (gesture, post, window target, cancel's off-hand) fails its tests; the last one
   was not caught at first, hence the cancel-with-a-newer-off-hand-book case. `nocollection` not sent fails its test.
 
+T16 (02.11.2026):
+
+- **The server resolves the tabs:** `ItemType.GetCreativeTabs` fills `CreativeInventoryTabs` of each item when the items load (vsessentialsmod ItemType.cs:84), and the handbook reads
+  that field (vsapi Collectible.cs:2480). The client's creative dialog is closed code, so what it does with the field is not read here; the field is what decides.
+  `CreativeInventoryStacks` is not used by our JSON (no `creativeinventorystacks`).
+- **Covered (`CreativeInventoryTests`, 6 cases):** 24 books per kind (13 normal, 11 aged) in both tabs `general` and `items`; 72 in `general`; the three blank lists in the tabs
+  today (`ROADMAP.md` wants them out: the test changes with that); nothing else of ours listed. The search box and the drawing stay a game check (C6 text).
+- **Mutation:** `general` narrowed to `*-normal-*` in `book.json` fails four tests (72 expected, 39 found; every kind).
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -424,3 +433,4 @@ Before T13 (02.11.2026, author):
 - 02.11.2026: T13 done: `FakeClient.Join` takes the language; `LanguageTests` (8 cases: refusal, list-made chat line with the invoice's name, post with the sheet back in the album, album taking; `uk` and `en`), expected texts read from `lang/*.json`; mutations checked (`ItemName` → `GetName()` fails the invoice-name case; `Lang.GetL` → `Lang.Get` fails four `uk` cases); T2 marked ⚙. Join also gets the engine's "Welcome …" chat line, which the tests skip. Next: T14–T16 (sonnet) or T17 (opus), all After: T8/T12.
 - 02.11.2026: T14 done: `ConfigFileTests` (3 cases), `GameServerFixture.LogMark/Withdraw`; three mutations checked; all four projects pass (98 + 160 + 106 + 15); `functional.md` G1 ⚙, `development.md` updated. Next: T15 or T16 (sonnet, After: T8), T17 (opus, After: T12).
 - 02.11.2026: T15 done: `RefusalTests` (14 cases: `newerversion` everywhere, `nocollection`); mutations checked; `functional.md`, `development.md` updated. Next: T16 (sonnet, After: T8), T17 (opus, After: T12).
+- 02.11.2026: T16 done: `CreativeInventoryTests` (6 cases); mutation checked; `functional.md` C6 ⚙, `development.md` updated. Next: T17 (opus, After: T12), then T9.

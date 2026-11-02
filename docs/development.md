@@ -41,7 +41,7 @@ docs/                      documentation; docs/plans/ holds the implementation p
   "checked in game <date>". A mock without a source is a hypothesis: confirm it by reading the source, decompiling, or in game.
 - `IPlayer` (and `IServerPlayer`) cannot be mocked or implemented outside the game: it has an `internal` member. Code under test
   only passes the player on, so tests use `null!`. Prefer code that takes what it needs (e.g. a list of player slots, see
-  `InvoicePoster.Post`) over code that takes an `IPlayer`.
+  `InvoicePoster.Post`) over code that takes an `IPlayer`. A real player is in the server tests (`FakeClient`, below).
 - Real slot operations (`TryPutInto`, `MarkDirty`, stack `Equals`) need an api: give inventories `game.Api` (the test helper
   `GameWorld`), call `LateInitialize(id, game.Api)` on inventories made by a block entity constructor; `GameWorld` also sets the
   collectibles' protected `api` field.
@@ -67,8 +67,13 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   inside the test process".
 - **The server log is captured from the start** (`GameServerFixture.LogEntries()`, a subscription to `ServerMain.Logger.EntryAdded`
   made before the mod loader runs). `AssetLoadTests` fails on any Warning, Error or Fatal line, except the lines of `KnownNoise`
-  (empty on 1.22.7: a vanilla line that is not ours goes there with its reason). Server only: textures and shapes are read by the
+  (a vanilla line that is not ours goes there with its reason and game version). Server only: textures and shapes are read by the
   client, so a missing one is still found in game.
+- **A real player without a client:** `FakeClient.Join(game, "name")` joins through a fake socket with the packets a client
+  sends and returns when the player is playing (`IServerPlayer` with inventories, rights, a position); `SendToMod(request)` sends
+  a message to our channel, handled by the server at a later tick (wait with `WaitFor`); `Received` holds what the server sent.
+  The fixture sets `VerifyPlayerAuth = false` for it. `FakeClient.OurMessageTypes` repeats the order of `ModNetwork.Register`:
+  change both together. How and its traps: `docs/modding.md`, "A player without a client".
 - **`RecipeTests`** compares the server's grid recipes of our domain with expected sets written out in the test (output, ingredient
   codes, counts, tools, shape, group): 1067 recipes in 7 groups. A recipe change in `recipes/grid/ledger.json` is made in two places;
   a new recipe name fails `All_our_recipes_are_covered_by_a_test_above` until it has a test.

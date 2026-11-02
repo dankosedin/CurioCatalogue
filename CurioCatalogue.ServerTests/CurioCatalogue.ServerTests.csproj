@@ -35,6 +35,7 @@
     <Reference Include="VintagestoryAPI"><HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="VintagestoryLib"><HintPath>$(VINTAGE_STORY)/VintagestoryLib.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="xplatforminterface"><HintPath>$(VINTAGE_STORY)/Lib/xplatforminterface.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="protobuf-net"><HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Newtonsoft.Json"><HintPath>$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll</HintPath><Private>true</Private></Reference>
   </ItemGroup>
 

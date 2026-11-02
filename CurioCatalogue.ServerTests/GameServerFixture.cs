@@ -88,6 +88,7 @@ public sealed class GameServerFixture : IDisposable
                 WithConfig = JsonSerializer.Serialize(new
                 {
                     ModPaths = new[] { Path.Combine(TestPaths.GameDir, "Mods"), TestPaths.ModsPath },
+                    VerifyPlayerAuth = false,
                     WorldConfig = new { WorldType = "superflat", PlayStyle = "creativebuilding", AllowCreativeMode = true, WorldName = "servertests" },
                 }),
             };

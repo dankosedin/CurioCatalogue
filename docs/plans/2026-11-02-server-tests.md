@@ -49,7 +49,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       and test what our adapters read from it and write into it: the cases that `TestContainers` and `GameWorld` mock today.
       Each mock that a server test now covers is marked or removed. After: T4. Model: sonnet. Author: none.
       Done when: the container cases run on the server; the mocks' "checked in game" notes they replace are updated.
-- [ ] **T6. A player without a client.** `IPlayer` cannot be mocked (`docs/development.md`). Research whether the server can
+- [x] **T6. A player without a client.** `IPlayer` cannot be mocked (`docs/development.md`). Research whether the server can
       give a real `IServerPlayer` without a client (the engine has `DummyNetConnection`, `DummyTcpNetServer`; a player joined
       through them?), with its inventories, rights and position. A research step: no client means no network messages.
       After: T4. Model: opus. Author: decides whether to go on and how. Done when: the answer and the chosen way (or
@@ -190,6 +190,27 @@ T4 (02.11.2026):
   each DLL loaded; `StackKeys.KeyOf` keys a real book. Mutation: a `LoadFile` of our DLL in the test fails it with "curiocatalogue:
   2 copies loaded".
 
+T6 (02.11.2026):
+
+- **Possible, and with network messages too.** A socket of our own in the empty `ServerMain.MainSockets[0]` takes the packets a
+  client sends on join, and the server makes a real `IServerPlayer` through its own join path: playing, in creative, spawned,
+  with hotbar and backpack and the default role's rights. Messages to our channel go the same way and reach the real handlers of
+  `ModNetwork`, so T7 can test the client's requests with the server's checks. How and the traps: `docs/modding.md`, "A player
+  without a client".
+- **Chosen (author): this way**, as the helper `FakeClient` (join, `SendToMod`, the packets received) and `PlayerTests` (a player
+  joins; a rename request through our channel renames a held ledger). The fixture sets `VerifyPlayerAuth = false`; the join's
+  "Server overloaded" warning is in `AssetLoadTests.KnownNoise` (author).
+- Rejected: **a player built by hand** (`ConnectedClient.LoadOrCreatePlayerData` and the steps of the private
+  `FinalizePlayerIdentification` repeated: no join events, no spawn, fragile); **no player** (hands, access and channel requests
+  stay untested).
+- **Costs:** the packet ids and the network version ("1.22.6") are the engine's and change with it (a wrong version fails the
+  join loudly); `FakeClient.OurMessageTypes` repeats the order of `ModNetwork.Register`.
+- **Mutations:** our message types out of order fails the rename test ("waited 30 s for the ledger to be renamed"); auth
+  verification left on fails both tests at identification. A run longer than 10 s after a join first crashed the test process
+  (the UDP check, `docs/modding.md`); the join now sends packet 34 first, and the 30 s mutation runs end cleanly.
+- **Left for T7:** the server's ping timeout (`ClientConnectionTimeout`, 150 s; the fake client does not answer pings) and a
+  player leaving (packet 14), if a test needs a clean server or runs long.
+
 ## Where we stopped
 
 - 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
@@ -200,3 +221,5 @@ T4 (02.11.2026):
 - 02.11.2026: T3 done: `RecipeTests` (8 tests, 1067 recipes of our domain checked against expected sets); three mutations checked; `development.md` updated. Next: T4 (opus) or T8.
 - 02.11.2026: T4 done: tests reference our DLLs without copying them; `OurCodeTests` (2 tests) call our code on the server; all
   three projects pass. Next: T5 (sonnet) or T6 (opus), both After: T4; T8 any time.
+- 02.11.2026: T6 done: `FakeClient` joins a real player without a client and sends requests to our channel; `PlayerTests`
+  (2 tests); all three projects pass (98 + 160 + 20). Next: T5 (sonnet, After: T4); T7 waits for T5; T8 any time.

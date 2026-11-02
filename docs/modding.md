@@ -251,6 +251,26 @@ gets that loaded assembly, without asking `AssemblyResolve`: tests and game shar
 app's own list), so the game runs a file other than the one in `ModPaths`. A real second copy comes only from `LoadFile` or
 another load context.
 
+**A player without a client** (decompiled `VintagestoryLib` 1.22.7, checked 02.11.2026). The server's network classes are public
+(`NetServer`, `NetConnection`, `NetIncomingMessage`, `Packet_Client`, `Packet_ClientSerializer`, `Packet_ServerSerializer`), and
+`ServerMain.MainSockets[0]` is empty on a dedicated server (the singleplayer client's dummy socket goes there). A socket of our own
+put there is read by the server's packet loop like the TCP one: a `Connect` message makes a `ConnectedClient`, then the packets
+a client sends on join make a real `ServerPlayer` through the server's own path (`HandlePlayerIdentification` → events,
+`OnPlayerJoin` of every system, the entity spawned at the world spawn). Packet ids: 34 positions over TCP, 1 identification,
+11 request join, 26 client loaded, 29 player ready; 23 a mod channel message. Traps:
+
+- **`VerifyPlayerAuth`** must be false, or identification waits for the auth server forever. The whitelist is skipped for a local
+  address (127.0.0.1). A non-dummy socket gets the default role (`suplayer`), not the singleplayer's top role.
+- **`NetworkVersion`** in the identification is compared with a constant ("1.22.6" on game 1.22.7); a wrong one disconnects
+  with "disconnect-wrongversion". It changes with game updates.
+- **Packet 34 first.** Without it, `FinalizePlayerIdentification` starts a thread-pool task that checks 10 s later whether UDP
+  came; in the test process it throws a `NullReferenceException` there and kills the process. A real client sends 34 when its UDP
+  does not get through.
+- The server compresses a packet over 5 KB for any socket but `DummyNetConnection` (`Compression.Decompress` reads it).
+- A mod channel's id is internal: the server tells the joining client in packet 56 (`NetworkChannels`, names and ids). A message
+  id is the type's place in the channel's `RegisterMessageType` calls, from 0.
+- The join makes one long tick: "Server overloaded. A tick took …ms" (a warning).
+
 ## C#
 
 - A tuple element cannot be named `Rest` (reserved by `ValueTuple`).

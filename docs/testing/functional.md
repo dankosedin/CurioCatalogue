@@ -12,7 +12,7 @@ added it ("Since"). The upgrade between two versions has its own plan per releas
 - Debug build, creative world; switch to survival where a case says so. Config `"Diagnostics": true` (`docs/development.md`).
 - Dev commands (`/curio ...`, branch `dev-commands`) help to fill chests and books; see `docs/development.md`.
 - After a case that changes the config, put the config back.
-- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`, `CraftingTests`, `UpgradeableStorageTests`; `docs/development.md`, Server tests and Compatibility tests) that checks the state of the world
+- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`, `CraftingTests`, `LanguageTests`, `ConfigFileTests`, `RefusalTests`, `CreativeInventoryTests`, `TooltipTests`, `VanillaContentTests`, `UpgradeableStorageTests`, `ModdedTapestryTests`; `docs/development.md`, Server tests and Compatibility tests) that checks the state of the world
   and the refusals' codes. Check it in game only for what a client shows: texts in the player's language, windows, hints.
 - Logs after the run: no `[CurioCatalogue]` errors, no "Failed to parse grid recipe", no "cannot be resolved".
 - Cases marked **S** also run on the dedicated server (`ServerLanguage "en"`, client in Ukrainian): chat messages and red
@@ -44,7 +44,7 @@ which build, who ran it, and each `❌` with its reason.
 | C3 ⚙ | 0.1.0 | An empty ledger and a tapestry piece in the grid | An album; the piece stays |
 | C4 ⚙ | 0.1.0 | Craft a book out of an old book (one with entries) | Crafts; no stack or attribute error in the log |
 | C5 | 0.1.0 | Open the handbook | A Curio Catalogue guide and a page for every book, in both languages |
-| C6 | 0.1.1 | Creative inventory, search "ledger" (and "bill", "album") | Every cover is listed, normal and aged: 24 per kind, 72 books in all |
+| C6 ⚙ | 0.1.1 | Creative inventory, search "ledger" (and "bill", "album") | Every cover is listed, normal and aged: 24 per kind, 72 books in all. ⚙ `CreativeInventoryTests` checks the tabs on the server (counts and tabs); the game check stays for the search box and the drawing |
 | C7 | 0.1.1 | H over an empty aged ledger, and over one with entries (three different aged covers) | The book's own handbook page opens, with "Created by" and "Ingredient for"; not the handbook's main page |
 | C8 | 0.1.1 | In the guide, click "ages its cover" (English and Ukrainian) | The page of an aged ledger opens |
 | C9 | 0.1.1 | "Ingredient for" on a page of an aged book, then on a normal one | The aged page shows the aged covers' recipes, the normal page the normal covers'; recolouring takes aged books too (`DESIGN.md` 2.5) |
@@ -63,7 +63,7 @@ which build, who ran it, and each `❌` with its reason.
 | A8 | 0.1.0 | Open and close the window ~10 times, some with confirmations | The log line "loaded dialogs: N" does not grow |
 | A9 | 0.1.0 | Open the window, then press a hotbar key or scroll | The window closes |
 | A10 ⚙ | 0.1.0 | Open the window of book 1, switch to book 2, press Clear → Yes | Red "the item in the hand is not the one in the window"; book 2 untouched (or the window closed first: also fine) |
-| A11 | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
+| A11 ⚙ | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
 
 ## Want lists
 
@@ -124,7 +124,7 @@ which build, who ran it, and each `❌` with its reason.
 
 | # | Since | Case | Expected |
 |---|---|---|---|
-| G1 | 0.1.0 | `"MaxSheets": 0`, restart | Server log warning "MaxSheets 0 is below 1, using 1"; the file now says 1. Put back 32 |
+| G1 ⚙ | 0.1.0 | `"MaxSheets": 0`, restart | Server log warning "MaxSheets 0 is below 1, using 1"; the file now says 1. Put back 32 |
 | G2 ⚙ | 0.1.0 | `ExtraIgnoredAttributes`: `[]` and `["durability"]` | Damaged and plain items count as different, or the same |
 | G3 ⚙ | 0.1.0 | `TapestryExclude` / `TapestryAdd` | The collection changes accordingly |
 | G4 ⚙ | 0.1.0 | `Diagnostics` true / false | Debug lines appear / do not |
@@ -134,10 +134,10 @@ which build, who ran it, and each `❌` with its reason.
 | # | Since | Case | Expected |
 |---|---|---|---|
 | T1 | 0.1.0 | Switch the client between English and Ukrainian | All texts of the mod follow, no raw keys |
-| T2 | 0.1.0 | Dedicated server in English, Ukrainian client: A2, A10, I6 | Chat and refusals in Ukrainian; item names in the player's language |
+| T2 ⚙ | 0.1.0 | Dedicated server in English, Ukrainian client: A2, A10, I6 | Chat and refusals in Ukrainian; item names in the player's language |
 
-## Not reproducible in game (unit tests only)
+## Not reproducible in game (unit and server tests only)
 
-- `newerversion`: a book from a newer mod version.
-- `movefailed`: the game accepts only part of the items (the post rolls back).
-- `nocollection`: "Start over" for an album whose collection no longer exists.
+- `newerversion`: a book or invoice from a newer mod version. ⚙ `RefusalTests` (every gesture and window request, the stacks written by the test).
+- `movefailed`: the game accepts only part of the items (the post rolls back). Unit test only: no container of the server accepts part of a stack.
+- `nocollection`: "Start over" for an album whose collection no longer exists. ⚙ `RefusalTests`.

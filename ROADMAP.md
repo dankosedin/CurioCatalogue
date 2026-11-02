@@ -26,6 +26,11 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
 - **Two stale game-source references** (02.11.2026): `tools/check-refs.ps1` fails on `InvoicePoster.cs:371`
   (`Collectible.cs:2558#GetMergableQuantity`) and `InvoicePosterTests.cs:678` (`ItemSlot.cs:222#TryPutInto`): the symbols are not
   on those lines at 1.22.7. Find the lines, re-check that the behaviour cited still holds, fix the references.
+- **A new list vanishes in creative when the inventory is full** (coverage review, 03.11.2026). Making a list (or a want list) with the
+  main hand busy hands it out with `TryGiveItemstack`, else drops it on the ground. In creative the creative inventory swallows the stack:
+  `TryGiveItemstack` returns `false` with the stack at size 0, nothing is dropped, and the list is gone with its sheet (`docs/modding.md`,
+  "A creative player's inventory is never full"). Seen on the test server; check in game, then drop only what is left of the stack, or
+  hand it out in a way that does not reach the creative inventory. Together with the one helper for handing out items (Later, the messages line).
 
 ### 0.2: collections
 
@@ -98,6 +103,11 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   in `tapestryGroups` (lore tapestries: `aid-*`, `glider`, `symptoms` and others). If survival never gives them, "the collection
   is complete" is out of reach, while README promises 88 pieces. Research in game and in the worldgen schematics, together with
   butterflies (Next, 0.2) and decorating a complete album.
+- **Tapestries of other mods** (found 02.11.2026, plan 2026-11-02-server-tests, T17). The album counts what extends `sizes` of
+  `game:tapestry`, but the mods that add tapestries today add blocks of their own, class `BlockTapestry` with their own `sizes`:
+  Craftable Companion (`craftablecompanion:tapestry-*`, one 2×2 picture sold by the artisan) and Astria Porta
+  (`astriaporta:astriaportatapestry-*`, two pictures found in its ruins). Open: count every `BlockTapestry` block (one collection,
+  or one per mod?), what such a stack drops as, and whether players want it. A pinned compatibility test then.
 - **Decorating a complete album:** golden corners or a seal on the cover for a full collection, a decorated page for a complete
   picture, maybe steps (25 / 50 / 100 %). On the book itself it depends on our own book model (see Spin-off ideas); in the window it does not.
 
@@ -154,8 +164,16 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   the data model anyway (README warns that the model may change). Review, 28.10.2026: then also the variant (`book-album-*`) as the
   only sign of an album (today the `album` attribute tree says it too, `docs/architecture.md` rejected two sources), and a typed
   sample instead of `Entry.Sample` as `object` with casts to `ItemStack` all over the adapters.
-- **Tests for the item classes** (review, 28.10.2026): gestures, crafting hooks, tooltips of `ItemLedger` / `ItemInvoice` have
-  none. Pull their decisions out into testable code first (as the invoice's fate in the 0.1.0 fixes).
+- **Tests for the client code** (review, 28.10.2026; narrowed by the coverage review, 03.11.2026: the gestures, crafting hooks and tooltips
+  of the item classes now have server tests): the windows (`Gui/`), the hints over containers (`LedgerHintsBehavior`), `HandbookIndexFix` and
+  the client side of the gestures run only in game (A1, A8, A9, C7–C9, T1 of `functional.md`). Pull their decisions out into testable code
+  first (as the invoice's fate in the 0.1.0 fixes).
+- **A clean log over the whole test run** (code review of the server tests, T18, 03.11.2026): today the server tests check the log of the
+  start and of a few actions; an error the mod logs in the middle of another test (e.g. `InvoicePoster`'s "Planned to move …") goes
+  unseen. A check at the end of the run, with the tests that make the mod log on purpose declaring their lines. First find out how xUnit
+  reports a failure in a collection fixture's `Dispose` and whether `dotnet test` turns red on it.
+- **Known log noise per test project** (the same review): `LogProblems.KnownNoise` is shared by the server and the compatibility tests.
+  When a second pinned mod brings noise of its own, give each fixture its own list, so another mod's pattern cannot hide our warning.
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.

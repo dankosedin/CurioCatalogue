@@ -163,7 +163,7 @@ In this order:
   via `PlayerMessages.Tell` (chat). Both translate on the server with `Lang.GetL(player.LanguageCode, ...)`.
 - **Item names on the server:** `ItemStack.GetName()` gives the *server's* language (`ServerLanguage` in serverconfig), not the
   player's; singleplayer hides this. Our own items: `PlayerMessages.ItemName`. Any other items: send the stacks to the client and let
-  it name them (`ModNetwork.MissingItemsRefusal`). Checked on a dedicated server 27.10.2026.
+  it name them (`ModNetwork.MissingItemsRefusal`). Checked on a dedicated server 27.10.2026; `LanguageTests` check it on the server (a mutation to `GetName()` or `Lang.Get` fails them).
 - **Chat commands:** do not use `Parsers.IntRange`; its error "Number out of range" does not say the range. Parse a plain `Int` and
   check it in the handler with a message that names the range.
 
@@ -195,8 +195,9 @@ In this order:
 - **Tapestries:** block `tapestry-{north|east|south|west}`, the picture is the stack attribute `type` (`blocktypes/cloth/tapestry.json`,
   `BlockTapestry.cs`). Taken off a wall it always drops as `tapestry-north` (`BehaviorHorizontalAttachable`, `dropBlockFace`).
   A rotten tapestry drops nothing (`BlockTapestry.GetDrops`). Large ones are pieces: `ambush` (3×1) = `ambush1..3`, `salvation` (2×2)
-  = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (mods that extend `sizes` are
-  picked up). Not in the creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
+  = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (a mod that extends `sizes` is
+  picked up: `ModdedTapestryTests`; but the mods that add tapestries today add blocks of their own, `ROADMAP.md`). Not in the
+  creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
 - **Books:** empty book `book-normal-<colour>` (2 leather + 8 `paper-parchment`; also `book-aged-*`, `book-rotten-*`); parchment
   stacks to 32; `inkandquill`. A found large book is clutter: block `clutter` with `type: "bookshelves/large-book-closed"` (also
   `-open`, called "Cartography book" in game; `-pile*`, `-standing*`; `-evaporating` is story-only). Clutter is `Reparable`: unless
@@ -217,6 +218,10 @@ In this order:
 - **Carry On 2.0.0-rc.1** cannot lift two-cell trunks even alone. It uses Shift+RMB with empty hands; no conflict with our off-hand
   gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
+- **Tapestries of other mods** (02.11.2026): Craftable Companion 1.5.4 and Astria Porta 0.2.3 add blocks of their own, class
+  `BlockTapestry`, each with its own `sizes`; neither patches `game:tapestry`, so the album does not count their pieces (`ROADMAP.md`).
+- **Every file in a mod's `patches/` is applied, whatever its extension:** a `tapestry-sizes.json.off` still patched (seen in the
+  compatibility tests 02.11.2026). To switch a patch off, move the file out of the folder.
 
 ## A server inside the test process
 
@@ -266,8 +271,9 @@ a client sends on join make a real `ServerPlayer` through the server's own path 
 
 - **`VerifyPlayerAuth`** must be false, or identification waits for the auth server forever. The whitelist is skipped for a local
   address (127.0.0.1). A non-dummy socket gets the default role (`suplayer`), not the singleplayer's top role.
-- **`NetworkVersion`** in the identification is compared with a constant ("1.22.6" on game 1.22.7); a wrong one disconnects
-  with "disconnect-wrongversion". It changes with game updates.
+- **`NetworkVersion`** in the identification is compared with `GameVersion.NetworkVersion` ("1.22.6" on game 1.22.7); a wrong one
+  disconnects with "Incompatible Server Version". `FakeClient` sends the constant of the API it is built against, and fails at once with
+  the reason when the server disconnects it. So does a player name that does not match `^(\w|-){1,16}$`.
 - **Packet 34 first.** Without it, `FinalizePlayerIdentification` starts a thread-pool task that checks 10 s later whether UDP
   came; in the test process it throws a `NullReferenceException` there and kills the process. A real client sends 34 when its UDP
   does not get through.
@@ -298,6 +304,14 @@ waits for the thread it blocks and times out after 30 s; read the world directly
 block) does not use up the item of a creative player: the hand keeps it, and the block entity above the clicked block holds a copy. The
 mod's lazily built parts (`keys ??= …` in `CurioCatalogueModSystem`) read the config when first used, so a config changed on the running
 server reaches them only after they are dropped; in the game that is a restart.
+
+**A creative player's inventory is never full** (decompiled `VintagestoryLib` 1.22.7, checked 03.11.2026). `TryGiveItemstack` puts the stack into
+the best slot of any player inventory the player has opened (`PlayerInventoryManager.GetBestSuitedSlot`); in creative that includes the creative
+inventory, which swallows anything. With the hotbar and backpack full it then returns `false` and leaves the stack at size 0, so our
+"else drop it on the ground" spawns nothing (in game a new list would vanish; `ROADMAP.md`). `CloseInventory` does not close the creative
+inventory while the player is in creative. A test that needs a full inventory switches its own player to survival
+(`WorldData.CurrentGameMode = EnumGameMode.Survival`, then `BroadcastPlayerData(true)`; `BookEdgeTests.AsInSurvival`): then the stack is
+refused whole.
 
 **Crafting on the server** (decompiled `VintagestoryLib` 1.22.7, checked 02.11.2026). The grid is the player's own inventory
 `craftinggrid-<uid>` (`InventoryCraftingGrid`: slots 0–8 row by row, 9 the output), there on the server for a creative player too

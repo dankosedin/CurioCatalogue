@@ -52,9 +52,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
     static string Left(IServerPlayer player) => string.Join(", ", Enumerable.Range(0, OutputSlot)
         .Select(i => Grid(player)[i].Itemstack).Where(s => s != null).Select(s => Describe(s!)).Order());
 
-    Ledger Read(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
-
-    string Entries(ItemStack book) => string.Join(", ", Read(book).Entries.Select(e => $"{e.Key.Code} x{e.Value.Count}").Order());
+    string Entries(ItemStack book) => string.Join(", ", ReadBook(book).Entries.Select(e => $"{e.Key.Code} x{e.Value.Count}").Order());
 
     ItemStack Jug(float litres)
     {
@@ -80,7 +78,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
             var (recipe, output) = Shown(player);
             string? shown = output == null ? null : Describe(output);
             var taken = Take(player);
-            return (recipe, shown, (Describe(taken), Read(taken).Sheets, Read(taken).IsEmpty), Left(player));
+            return (recipe, shown, (Describe(taken), ReadBook(taken).Sheets, ReadBook(taken).IsEmpty), Left(player));
         });
 
         Assert.Equal("ledger-fallback", recipe);
@@ -106,7 +104,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
             var taken = Take(player);
             var jug = Grid(player)[0].Itemstack;
             float litres = jug == null ? -1 : ((BlockLiquidContainerBase)jug.Collectible).GetCurrentLitres(jug);
-            return (recipe, (Describe(taken), Read(taken).Sheets), (Left(player), litres));
+            return (recipe, (Describe(taken), ReadBook(taken).Sheets), (Left(player), litres));
         });
 
         Assert.Equal("ledger-restore", recipe);
@@ -143,7 +141,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
             Put(player, (0, Book("book-ledger-normal-brickred", 12)), (1, Tapestry("ambush1")));
             var recipe = Shown(player).Recipe;
             var taken = Take(player);
-            var album = Read(taken);
+            var album = ReadBook(taken);
             return (recipe, (Describe(taken), album.Sheets, album.Album?.CollectionId, album.Entries.Count), Left(player));
         });
 
@@ -167,23 +165,42 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal((null, null), shown);
     }
 
+    [Fact]
+    public void C3_a_tapestry_that_is_not_in_the_collection_makes_no_album()
+    {
+        // The recipe takes any "game:tapestry-*" (ledger.json), so a piece of another side matches it; such a stack comes only
+        // from the creative pick block and is not a member (CollectionRegistry). The album is not made and the grid shows nothing.
+        var client = FakeClient.Join(game, "c3-east");
+        var shown = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var east = Vanilla("tapestry-east");
+            east.Attributes.SetString("type", "ambush1");
+            Put(player, (0, Book("book-ledger-normal-brickred", 12)), (1, east));
+            var (recipe, output) = Shown(player);
+            return (recipe, output == null ? null : Describe(output));
+        });
+
+        Assert.Equal(("ledger-album", (string?)null), shown);
+    }
+
     // ---- C4: books made from an old book (one with entries)
 
     [Fact]
     public void C4_recolouring_an_aged_ledger_with_entries_keeps_its_entries_sheets_and_name()
     {
         var client = FakeClient.Join(game, "c4-recolour");
-        int logBefore = game.LogEntries().Count;
+        int logBefore = game.LogMark();
         var (recipe, before, after, left) = game.OnMain(() =>
         {
             var player = client.Player;
             var old = Book("book-ledger-aged-darkgreen", 5, Vanilla("ingot-iron", 3), Vanilla("ingot-tin"));
-            Mod.Store.WriteLedger(old, Read(old) with { Name = "Old stock" });
-            var before = (Entries(old), Read(old).Sheets, Read(old).Name);
+            Mod.Store.WriteLedger(old, ReadBook(old) with { Name = "Old stock" });
+            var before = (Entries(old), ReadBook(old).Sheets, ReadBook(old).Name);
             Put(player, (0, old), (1, Vanilla("leather-normal-blue")));
             var recipe = Shown(player).Recipe;
             var taken = Take(player);
-            return (recipe, before, (Describe(taken), (Entries(taken), Read(taken).Sheets, Read(taken).Name)), Left(player));
+            return (recipe, before, (Describe(taken), (Entries(taken), ReadBook(taken).Sheets, ReadBook(taken).Name)), Left(player));
         });
 
         Assert.Equal("ledger-recolor", recipe);
@@ -196,15 +213,15 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
     public void C4_recharging_an_aged_ledger_with_entries_keeps_its_entries_and_uses_only_the_sheets_added()
     {
         var client = FakeClient.Join(game, "c4-recharge");
-        int logBefore = game.LogEntries().Count;
+        int logBefore = game.LogMark();
         var (recipe, shownSheets, after, left) = game.OnMain(() =>
         {
             var player = client.Player;
             Put(player, (0, Book("book-materials-aged-orange", 26, Vanilla("ingot-iron", 3))), (1, Vanilla("paper-parchment", 10)));
             var (recipe, output) = Shown(player);
-            int shownSheets = output == null ? -1 : Read(output).Sheets;
+            int shownSheets = output == null ? -1 : ReadBook(output).Sheets;
             var taken = Take(player);
-            return (recipe, shownSheets, (Describe(taken), Read(taken).Sheets, Entries(taken)), Left(player));
+            return (recipe, shownSheets, (Describe(taken), ReadBook(taken).Sheets, Entries(taken)), Left(player));
         });
 
         Assert.Equal("ledger-recharge", recipe);
@@ -226,7 +243,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
             Grid(player)[4].Itemstack = null;
             Put(player, (4, Book("book-ledger-aged-darkgreen", 5)));
             var taken = Take(player);
-            return (used, (Describe(taken), Read(taken).Sheets, Read(taken).Mode));
+            return (used, (Describe(taken), ReadBook(taken).Sheets, ReadBook(taken).Mode));
         });
 
         Assert.Null(used);
@@ -236,7 +253,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
     /// <summary>C4 asks for "no stack or attribute error in the log": no warning or error since the test's start.</summary>
     void AssertNoProblemsSince(int index)
     {
-        var problems = game.LogEntries().Skip(index).Where(l => l.Type is EnumLogType.Warning or EnumLogType.Error or EnumLogType.Fatal).ToList();
+        var problems = LogProblems.Since(game, index);
         Assert.True(problems.Count == 0, "problems in the log:\n" + string.Join("\n", problems));
     }
 }

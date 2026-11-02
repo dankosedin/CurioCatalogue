@@ -1,5 +1,8 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.Common;
@@ -15,13 +18,24 @@ namespace CurioCatalogue.TestServer;
 /// </summary>
 sealed class FakeClient : NetConnection
 {
-    // Packet_Client ids, as ServerMain.PacketHandlers registers them; Packet_Server 56 is the list of network channels.
-    const int Identification = 1, RequestJoin = 11, ClientLoaded = 26, PlayerReady = 29, CustomPacket = 23, PositionsOverTcp = 34;
-    const int ChannelsPacket = 56;
-    // ServerMain.HandlePlayerIdentification refuses any other network version ("disconnect-wrongversion").
-    const string NetworkVersion = "1.22.6";
+    // The packet ids are the engine's own constants (Packet_ClientIdEnum, Packet_ServerIdEnum), so a new game version brings its own.
+    const int Identification = Packet_ClientIdEnum.PlayerIdentification, RequestJoin = Packet_ClientIdEnum.RequestJoin,
+        ClientLoaded = Packet_ClientIdEnum.ClientLoaded, PlayerReady = Packet_ClientIdEnum.ClientPlaying,
+        CustomPacket = Packet_ClientIdEnum.CustomPacket, PositionsOverTcp = Packet_ClientIdEnum.RequestPositionTCP;
+    const int ChannelsPacket = Packet_ServerIdEnum.NetworkChannels;
 
+    // ServerMain.HandlePlayerIdentification disconnects a player whose name does not match this (and one with another
+    // network version: Join sends GameVersion.NetworkVersion, the constant of the API the tests are built against).
+    static readonly Regex PlayerName = new(@"^(\w|-){1,16}$");
+
+    // A server answer that has not come in this time will not come: a request is handled at the next tick or two (50 ms
+    // each); the margin is for a slow CI runner while a new player's spawn chunks are sent.
     static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(30);
+    // How often a wait asks the main thread: short against the 50 ms tick, long enough not to flood its task queue.
+    static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(20);
+
+    // Every test joins a player of its own, so that no test starts with another one's inventory (one server per process).
+    static readonly HashSet<string> Joined = [];
 
     readonly GameServerFixture game;
     readonly FakeSocket socket;
@@ -43,12 +57,16 @@ sealed class FakeClient : NetConnection
     public IServerPlayer Player => (IServerPlayer)game.Api.World.PlayerByUid(PlayerUid);
 
     /// <summary>
-    /// Joins the server as <paramref name="name"/> and returns when the player is playing. The server must not verify
+    /// Joins the server as <paramref name="name"/> with the client language <paramref name="language"/> (it becomes the player's
+    /// <c>LanguageCode</c>) and returns when the player is playing. The server must not verify
     /// players with the auth server (the fixture sets <c>VerifyPlayerAuth = false</c>); the whitelist is skipped for a
     /// local address (127.0.0.1).
     /// </summary>
-    public static FakeClient Join(GameServerFixture game, string name)
+    public static FakeClient Join(GameServerFixture game, string name, string language = "en")
     {
+        if (!PlayerName.IsMatch(name)) throw new ArgumentException($"the server refuses the player name '{name}': it must match {PlayerName}");
+        lock (Joined)
+            if (!Joined.Add(name)) throw new ArgumentException($"a player '{name}' has already joined: every test needs a player of its own");
         var fake = new FakeClient(game, FakeSocket.Of(game), name + "-uid");
         fake.socket.Connect(fake);
         // Without it, FinalizePlayerIdentification starts a task that checks 10 s later whether UDP came, and that task throws
@@ -58,11 +76,11 @@ sealed class FakeClient : NetConnection
         // NetConnection.client: the server's ConnectedClient for this connection, set when it takes the connect message.
         fake.Send(Identification, p => p.Identification = new Packet_ClientIdentification
         {
-            Playername = name, PlayerUID = fake.PlayerUid, NetworkVersion = NetworkVersion, ShortGameVersion = "",
+            Playername = name, PlayerUID = fake.PlayerUid, NetworkVersion = GameVersion.NetworkVersion, ShortGameVersion = "",
             MdProtocolVersion = "", MpToken = "", ServerPassword = "", ViewDistance = 128,
         });
         fake.WaitFor(() => fake.client?.Player != null, "the server to identify the player");
-        fake.Send(RequestJoin, p => p.RequestJoin = new Packet_ClientRequestJoin { Language = "en" });
+        fake.Send(RequestJoin, p => p.RequestJoin = new Packet_ClientRequestJoin { Language = language });
         fake.WaitFor(() => fake.client!.ServerAssetsSent, "the server to answer the join request");
         fake.Send(ClientLoaded, p => p.ClientPlaying = new Packet_ClientPlaying());
         fake.WaitFor(() => fake.client!.State == EnumClientState.Connected, "the server to take the client as loaded");
@@ -77,21 +95,40 @@ sealed class FakeClient : NetConnection
     /// </summary>
     public void SendToMod<T>(T message)
     {
-        // The message id is the type's place in the registration (NetworkChannelBase.RegisterMessageType counts from 0),
-        // so ModNetwork.Register's order is the source.
-        int messageId = Array.IndexOf(OurMessageTypes, typeof(T));
-        if (messageId < 0) throw new ArgumentException($"{typeof(T).Name} is not one of our message types");
+        int messageId = MessageId<T>();
         using var data = new MemoryStream();
         ProtoBuf.Serializer.Serialize(data, message);
         Send(CustomPacket, p => p.CustomPacket = new Packet_CustomPacket { ChannelId = OurChannelId(), MessageId = messageId, Data = data.ToArray() });
     }
 
-    // ModNetwork.Register (internal), in its order; the channel is named after the mod id.
-    static readonly Type[] OurMessageTypes =
-    [
-        typeof(MakeInvoiceRequest), typeof(RenameLedgerRequest), typeof(ClearLedgerRequest), typeof(CancelInvoiceRequest),
-        typeof(MakeWantListRequest), typeof(MissingItemsRefusal),
-    ];
+    /// <summary>
+    /// The messages of type <typeparamref name="T"/> our channel sent this client, in order. Other channels send custom packets
+    /// too (the vanilla mods, at join), so a test that waits for one of ours must name the channel and the type.
+    /// </summary>
+    public List<T> FromMod<T>()
+    {
+        int messageId = MessageId<T>();
+        int channelId = OurChannelId();
+        return Received.Where(p => p.CustomPacket is { } c && c.ChannelId == channelId && c.MessageId == messageId)
+            .Select(p => ProtoBuf.Serializer.Deserialize<T>(new MemoryStream(p.CustomPacket.Data))).ToList();
+    }
+
+    /// <summary>
+    /// The id of a message type on our channel, as the server's channel registered it (ModNetwork.Register; the channel is named
+    /// after the mod id). Read from the channel itself (decompiled VintagestoryLib 1.22.7: <c>NetworkChannelBase.messageTypes</c>,
+    /// internal), so a change of the registration needs no change here.
+    /// </summary>
+    int MessageId<T>()
+    {
+        var types = game.OnMain(() =>
+        {
+            var channel = (NetworkChannelBase)game.Api.Network.GetChannel(CurioCatalogueModSystem.ModId);
+            var field = typeof(NetworkChannelBase).GetField("messageTypes", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("NetworkChannelBase.messageTypes is gone: see how the engine numbers a channel's messages now");
+            return new Dictionary<Type, int>((Dictionary<Type, int>)field.GetValue(channel)!);
+        });
+        return types.TryGetValue(typeof(T), out int id) ? id : throw new ArgumentException($"{typeof(T).Name} is not one of our message types");
+    }
 
     int OurChannelId()
     {
@@ -108,8 +145,11 @@ sealed class FakeClient : NetConnection
         var until = DateTime.UtcNow + WaitTimeout;
         while (!game.OnMain(done))
         {
+            // A disconnected player gets no answer at all: say why at once instead of waiting it out.
+            if (Received.FirstOrDefault(p => p.Id == Packet_ServerIdEnum.DisconnectPlayer) is { } kicked)
+                throw new InvalidOperationException($"the server disconnected {PlayerUid} while waiting for {what}: {kicked.DisconnectPlayer?.DisconnectReason}");
             if (DateTime.UtcNow > until) throw new TimeoutException($"waited {WaitTimeout} for {what}; the end of the server log:{Environment.NewLine}" + string.Join(Environment.NewLine, game.LogEntries().TakeLast(12)));
-            Thread.Sleep(20);
+            Thread.Sleep(PollInterval);
         }
     }
 

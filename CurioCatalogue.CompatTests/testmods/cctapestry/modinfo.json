@@ -1,0 +1,10 @@
+{
+  "type": "content",
+  "modid": "cctapestry",
+  "name": "Curio Catalogue test: a tapestry from another mod",
+  "description": "Loaded by CurioCatalogue.CompatTests only: adds a picture to the game's tapestry sizes, as a mod that adds tapestries would (functional.md, A11).",
+  "authors": [ "DankoSedin" ],
+  "version": "1.0.0",
+  "side": "Universal",
+  "dependencies": { "game": "" }
+}

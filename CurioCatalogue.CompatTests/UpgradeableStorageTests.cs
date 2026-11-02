@@ -24,7 +24,7 @@ public class UpgradeableStorageTests(CompatServerFixture server) : BookTestBase(
     public void Both_mods_load_without_warnings_or_errors()
     {
         var enabled = game.OnMain(() => (game.Api.ModLoader.IsModEnabled(CurioCatalogueModSystem.ModId), game.Api.ModLoader.IsModEnabled(Domain)));
-        var problems = LogProblems.Of(game);
+        var problems = LogProblems.AtStart(game);
 
         Assert.Equal((true, true), enabled);
         Assert.True(problems.Count == 0, "the server logged problems:\n" + string.Join("\n", problems));
@@ -72,9 +72,9 @@ public class UpgradeableStorageTests(CompatServerFixture server) : BookTestBase(
             hand.Itemstack = ledger;
 
             Click(player, hand, pos);
-            var intake = Take(player, "invoice-incoming");
+            var intake = TakeOurs(player, "invoice-incoming");
             Click(player, hand, pos, ctrl: true);
-            var pick = Take(player, "invoice-outgoing");
+            var pick = TakeOurs(player, "invoice-outgoing");
             var made = (Intake: intake == null ? "" : Lines(Mod, intake), Pick: pick == null ? "" : Lines(Mod, pick).Split(" x")[0], Chest: Contents(container));
 
             player.Entity.LeftHandItemSlot.Itemstack = hand.Itemstack;
@@ -96,15 +96,6 @@ public class UpgradeableStorageTests(CompatServerFixture server) : BookTestBase(
         Assert.Equal(("game:ingot-copper x5", "game:ingot-iron", "ingot-copper x5, ingot-iron x3"), seen.made);
         Assert.Equal(("ingot-copper x5", "ingot-iron x3", 2), seen.posted);
         Assert.Equal(("ingot-copper x5, paper-parchment x1, tapestry-north:ambush1 x1, tapestry-north:ambush2 x1", "ingot-iron x3"), seen.Final);
-    }
-
-    /// <summary>Takes the first stack of ours with this code prefix out of the player's inventory.</summary>
-    static ItemStack? Take(IServerPlayer player, string codePrefix)
-    {
-        var slot = Slots(player).FirstOrDefault(s => s.Itemstack is { } st && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix));
-        var stack = slot?.Itemstack;
-        if (slot != null) slot.Itemstack = null;
-        return stack;
     }
 
     [Fact]

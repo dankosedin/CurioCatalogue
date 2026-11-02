@@ -159,17 +159,6 @@ public class ContainerTests(GameServerFixture game)
         return (access.CanUse(owner, pos), access.CanUse(visitor, pos));
     }
 
-    /// <summary>Claims the cell of <paramref name="pos"/> for the owner while <paramref name="check"/> runs.</summary>
-    T WithClaim<T>(IServerPlayer owner, BlockPos pos, Action<LandClaim> configure, Func<T> check)
-    {
-        var claim = LandClaim.CreateClaim(owner, 1);
-        claim.AddArea(new Cuboidi(pos.X - 1, pos.Y - 1, pos.Z - 1, pos.X + 1, pos.Y + 1, pos.Z + 1));
-        configure(claim);
-        game.Api.World.Claims.Add(claim);
-        try { return check(); }
-        finally { game.Api.World.Claims.Remove(claim); }
-    }
-
     [Fact]
     public void An_unclaimed_unlocked_chest_is_open_to_everyone()
     {
@@ -187,9 +176,9 @@ public class ContainerTests(GameServerFixture game)
         var seen = game.OnMain(() =>
         {
             var pos = Place("chest-east").Pos;
-            var closed = WithClaim(owner.Player, pos, _ => { }, () => CanUse(owner.Player, visitor.Player, pos));
-            var useEveryone = WithClaim(owner.Player, pos, c => c.AllowUseEveryone = true, () => CanUse(owner.Player, visitor.Player, pos));
-            var shared = WithClaim(owner.Player, pos, c => c.PermittedPlayerUids[visitor.Player.PlayerUID] = EnumBlockAccessFlags.Use,
+            var closed = TestBlocks.WithClaim(game, owner.Player, pos, _ => { }, () => CanUse(owner.Player, visitor.Player, pos));
+            var useEveryone = TestBlocks.WithClaim(game, owner.Player, pos, c => c.AllowUseEveryone = true, () => CanUse(owner.Player, visitor.Player, pos));
+            var shared = TestBlocks.WithClaim(game, owner.Player, pos, c => c.PermittedPlayerUids[visitor.Player.PlayerUID] = EnumBlockAccessFlags.Use,
                 () => CanUse(owner.Player, visitor.Player, pos));
             return (closed, useEveryone, shared, After: CanUse(owner.Player, visitor.Player, pos));
         });

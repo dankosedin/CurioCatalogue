@@ -18,6 +18,57 @@ public abstract class BookTestBase(GameServerFixture server)
     protected CurioCatalogueModSystem Mod => game.Api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
     protected IWorldAccessor World => game.Api.World;
 
+    // ---- our texts
+
+    static readonly Dictionary<string, Dictionary<string, string>> Texts = new();
+
+    /// <summary>
+    /// The text of a key of our lang file for this language, filled in as <c>Lang</c> fills it (string.Format). Tests of what the
+    /// player reads take the expected text from here, so a change of wording changes no test (a key that is gone fails it).
+    /// </summary>
+    protected static string LangText(string language, string key, params object[] args)
+    {
+        lock (Texts)
+        {
+            if (!Texts.TryGetValue(language, out var texts))
+            {
+                string file = Path.Combine(TestPaths.ModAssets, "curiocatalogue", "lang", language + ".json");
+                texts = Texts[language] = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(file))!;
+            }
+            return string.Format(texts[CurioCatalogueModSystem.ModId + ":" + key], args);
+        }
+    }
+
+    // ---- the config on a running server
+
+    /// <summary>
+    /// Runs <paramref name="check"/> (on the main thread) with the config changed, and puts the config back. The mod builds its
+    /// services on first use from the config of that moment ("keys ??= ..."), so they are dropped before and after: every private
+    /// field of the mod system whose type is ours, found by reflection, so a service added later is dropped too.
+    /// </summary>
+    protected T WithConfig<T>(Action<CurioCatalogueConfig> change, Func<T> check)
+    {
+        var config = typeof(CurioCatalogueModSystem).GetProperty(nameof(CurioCatalogueModSystem.Config))!;
+        // A copy through JSON, as the game stores the config: every setting, also one added later.
+        var saved = Newtonsoft.Json.JsonConvert.SerializeObject(Mod.Config);
+        change(Mod.Config);
+        ForgetServices();
+        try { return check(); }
+        finally
+        {
+            config.SetValue(Mod, Newtonsoft.Json.JsonConvert.DeserializeObject<CurioCatalogueConfig>(saved));
+            ForgetServices();
+        }
+    }
+
+    void ForgetServices()
+    {
+        var ours = new[] { typeof(CurioCatalogueModSystem).Assembly, typeof(ItemKey).Assembly };
+        foreach (var field in typeof(CurioCatalogueModSystem).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic))
+            if (ours.Contains(field.FieldType.Assembly) && field.FieldType != typeof(CurioCatalogueConfig))
+                field.SetValue(Mod, null);
+    }
+
     // ---- stacks
 
     protected ItemStack Vanilla(string code, int size = 1) =>
@@ -86,8 +137,18 @@ public abstract class BookTestBase(GameServerFixture server)
     protected static ItemStack? FindOurs(IServerPlayer player, string codePrefix) => Slots(player)
         .Select(s => s.Itemstack).FirstOrDefault(st => st is { } x && x.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && x.Collectible.Code.Path.StartsWith(codePrefix));
 
-    protected (int Sheets, int Entries) BookState(ItemStack book) =>
-        ToCounts(Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode));
+    /// <summary>Takes the first stack of ours with this code prefix out of the main inventory, or null.</summary>
+    protected static ItemStack? TakeOurs(IServerPlayer player, string codePrefix)
+    {
+        var stack = FindOurs(player, codePrefix);
+        if (stack != null) Slots(player).First(s => s.Itemstack == stack).Itemstack = null;
+        return stack;
+    }
+
+    /// <summary>The data of a book (ledger, bill of materials or album), read in its own mode.</summary>
+    protected Core.Ledger ReadBook(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
+
+    protected (int Sheets, int Entries) BookState(ItemStack book) => ToCounts(ReadBook(book));
 
     protected static (int Sheets, int Entries) ToCounts(Core.Ledger l) => (l.Sheets, l.Entries.Count);
 
@@ -95,7 +156,9 @@ public abstract class BookTestBase(GameServerFixture server)
         string.Join(", ", mod.Store.ReadInvoice(invoice, ((ItemInvoice)invoice.Collectible).InvoiceKind).Entries.Select(e => $"{e.Key.Code} x{e.Count}"));
 
     internal static List<string> Errors(FakeClient client) => client.Received.Where(p => p.IngameError != null).Select(p => p.IngameError.Code).ToList();
-    internal static List<string> Chat(FakeClient client) => client.Received.Where(p => p.Chatline != null).Select(p => p.Chatline.Message).ToList();
+    /// <summary>The chat lines the player received, without the engine's greeting at join ("Welcome ...", in the server's language).</summary>
+    internal static List<string> Chat(FakeClient client) => client.Received.Where(p => p.Chatline != null).Select(p => p.Chatline.Message)
+        .Where(line => !line.StartsWith("Welcome ")).ToList();
 
     // ---- acting
 

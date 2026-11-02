@@ -85,6 +85,39 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
+    public void A_bill_of_materials_makes_a_pick_list_by_count_and_shrinks_as_it_is_filled()
+    {
+        // L3, the other gesture: the book wants 4 iron, the chest has 3: the pick list says 3. Filled with the book in the
+        // off-hand, the book still wants 1 and gets its sheet back.
+        var client = FakeClient.Join(game, "shrinker");
+        var seen = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("ingot-iron", 3);
+            ((IBlockEntityContainer)chest).Inventory[1].Itemstack = Vanilla("ingot-copper", 5);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Book("book-materials-normal-brickred", 8, Vanilla("ingot-iron", 4));
+
+            Click(player, hand, pos, ctrl: true);
+            var listSlot = Slots(player).First(s => s.Itemstack?.Collectible is ItemInvoice);
+            var list = listSlot.Itemstack!;
+            listSlot.Itemstack = null;
+            string lines = Lines(Mod, list);
+
+            var offhand = player.Entity.LeftHandItemSlot;
+            offhand.Itemstack = hand.Itemstack;
+            hand.Itemstack = list;
+            Click(player, hand, pos);
+
+            var book = Mod.Store.ReadLedger(offhand.Itemstack!, LedgerMode.Counts);
+            return (lines, Book: (string.Join(", ", book.Entries.Values.Select(e => $"{e.Key.Code} x{e.Count}")), book.Sheets),
+                Inventory(player), Contents(chest));
+        });
+        Assert.Equal(("game:ingot-iron x3", ("game:ingot-iron x1", 8), "ingot-iron x3", "ingot-copper x5"), seen);
+    }
+
+    [Fact]
     public void A_ledger_from_the_off_hand_makes_the_list_in_the_empty_hand_through_the_channel()
     {
         // The off-hand gesture: the client's request, checked again on the server (hands, reach, access).
@@ -178,7 +211,16 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
         });
         Assert.Equal(("", "ingot-copper x5", true), seen);
         // The refusal names the lacking items, so the client can name them in its language (ModNetwork.MissingItemsRefusal).
-        client.WaitFor(() => client.Received.Any(p => p.CustomPacket != null), "the refusal naming the missing items");
+        client.WaitFor(() => client.FromMod<MissingItemsRefusal>().Count > 0, "the refusal naming the missing items");
+        var refusal = Assert.Single(client.FromMod<MissingItemsRefusal>());
+        var named = game.OnMain(() => refusal.Stacks.Select((bytes, i) =>
+        {
+            var stack = new ItemStack(bytes);
+            stack.ResolveBlockOrItem(World);
+            return $"{stack.Collectible.Code.Path} x{refusal.Counts[i]}";
+        }).ToList());
+        Assert.Equal(["ingot-tin x1"], named);
+        Assert.Equal(0, refusal.More);
     }
 
     [Fact]
@@ -295,7 +337,7 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
     [Fact]
     public void Shift_and_Ctrl_with_an_album_is_left_to_the_game()
     {
-        // I8: the album has no such action; it takes nothing.
+        // I8: the album has no such action; it takes nothing. That the click goes on to the game: I10, the album row.
         var client = FakeClient.Join(game, "ctrl-album");
         var seen = game.OnMain(() =>
         {
@@ -335,7 +377,8 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
     [Fact]
     public void A_want_list_is_filled_from_two_chests_and_then_becomes_parchment()
     {
-        // W1, W2: what a chest has moves and the list gets shorter; the chest with the rest finishes it.
+        // W1, W2: what a chest has moves and the list gets shorter; the chest with the rest finishes it. The album in the
+        // off-hand does not take the finished list's sheet (a want list goes back into no book).
         var client = FakeClient.Join(game, "friend");
         var seen = game.OnMain(() =>
         {
@@ -345,16 +388,17 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
             ((IBlockEntityContainer)firstChest).Inventory[1].Itemstack = Vanilla("ingot-iron");
             var (second, secondChest) = TestBlocks.Place(game, "chest-east");
             ((IBlockEntityContainer)secondChest).Inventory[0].Itemstack = Tapestry("ambush2");
+            player.Entity.LeftHandItemSlot.Itemstack = Album(7);
             var hand = player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Invoice(InvoiceKind.WantList, Tapestry("ambush1"), Tapestry("ambush2"));
 
             Click(player, hand, first);
             var afterFirst = (Inventory(player), Contents(firstChest), Left: Lines(Mod, hand.Itemstack!).Split(", ").Length);
             Click(player, hand, second);
-            return (afterFirst, Inventory(player), Contents(secondChest));
+            return (afterFirst, Inventory(player), Contents(secondChest), AlbumSheets: BookState(player.Entity.LeftHandItemSlot.Itemstack!).Sheets);
         });
         Assert.Equal((("tapestry-north:ambush1 x1", "ingot-iron x1", 1),
-            "paper-parchment x1, tapestry-north:ambush1 x1, tapestry-north:ambush2 x1", ""), seen);
+            "paper-parchment x1, tapestry-north:ambush1 x1, tapestry-north:ambush2 x1", "", 7), seen);
     }
 
     [Fact]
@@ -441,17 +485,6 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
 
     // ---- access
 
-    /// <summary>Claims the chest's surroundings for <paramref name="owner"/> while <paramref name="check"/> runs.</summary>
-    T WithClaim<T>(IServerPlayer owner, BlockPos pos, Action<LandClaim> configure, Func<T> check)
-    {
-        var claim = LandClaim.CreateClaim(owner, 1);
-        claim.AddArea(new Cuboidi(pos.X - 1, pos.Y - 1, pos.Z - 1, pos.X + 1, pos.Y + 1, pos.Z + 1));
-        configure(claim);
-        World.Claims.Add(claim);
-        try { return check(); }
-        finally { World.Claims.Remove(claim); }
-    }
-
     [Fact]
     public void A_land_claim_refuses_every_gesture_of_the_visitor_until_it_allows_use()
     {
@@ -474,11 +507,11 @@ public class BookFlowTests(GameServerFixture server) : BookTestBase(server)
                 return (Inventory(player), Contents(chest));
             }
 
-            var closed = WithClaim(owner.Player, pos, _ => { }, () => (
+            var closed = TestBlocks.WithClaim(game, owner.Player, pos, _ => { }, () => (
                 Make: Try(Book("book-ledger-normal-brickred", 8)),
                 Collect: Try(Album(8)),
                 Post: Try(Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5)))));
-            var shared = WithClaim(owner.Player, pos, c => c.PermittedPlayerUids[player.PlayerUID] = EnumBlockAccessFlags.Use,
+            var shared = TestBlocks.WithClaim(game, owner.Player, pos, c => c.PermittedPlayerUids[player.PlayerUID] = EnumBlockAccessFlags.Use,
                 () => Try(Invoice(InvoiceKind.Incoming, Vanilla("ingot-copper", 5))));
             return (closed, shared);
         });

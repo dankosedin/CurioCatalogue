@@ -23,6 +23,9 @@ in `docs/plans/`, replace its line with a link. Priorities follow playtests and 
   creative tab are blank and useless; hide them (`creativeinventory` empty) and keep their handbook pages with `handbook.include`
   (`docs/modding.md`, Handbook: a page exists only for what the creative inventory lists, unless included). Check in game that
   the pages, the guide's links and "Created by" still work. Books stay in the creative inventory.
+- **Two stale game-source references** (02.11.2026): `tools/check-refs.ps1` fails on `InvoicePoster.cs:371`
+  (`Collectible.cs:2558#GetMergableQuantity`) and `InvoicePosterTests.cs:678` (`ItemSlot.cs:222#TryPutInto`): the symbols are not
+  on those lines at 1.22.7. Find the lines, re-check that the behaviour cited still holds, fix the references.
 
 ### 0.2: collections
 

@@ -12,6 +12,7 @@ curiocatalogue/            the mod: game glue (items, adapters, GUI, network); a
 CurioCatalogue.Core/       domain core: sets and multisets of items; never references game DLLs
 CurioCatalogue.Core.Tests/ xUnit tests of the core
 CurioCatalogue.Tests/      xUnit tests of the adapters, against the game API with mocks
+CurioCatalogue.ServerTests/ xUnit tests against a real game server started inside the test process
 CakeBuild/, build.ps1      release zip (from the official mod template)
 tools/                     scripts that generate assets (see below)
 docs/                      documentation; docs/plans/ holds the implementation plans
@@ -26,7 +27,8 @@ docs/                      documentation; docs/plans/ holds the implementation p
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
   Harmless: the next build after closing the game copies it.
-- Tests: `dotnet test curiocatalogue.sln`. Both test projects must pass before a commit.
+- Tests: `dotnet test curiocatalogue.sln`. All three test projects must pass before a commit. The server tests take about
+  15 s more (the server starts in about 10 s); alone: `dotnet test CurioCatalogue.ServerTests`.
 
 ## Writing tests
 
@@ -47,6 +49,23 @@ docs/                      documentation; docs/plans/ holds the implementation p
   recipe arrays) without starting the game. A new trap of this kind gets a test there.
 - Concrete game classes without virtual members (e.g. `ModSystemBlockReinforcement`) cannot be mocked: wrap them behind a small
   interface of our own.
+
+### Server tests
+
+`CurioCatalogue.ServerTests` starts the real game server (no client) inside the test process: a superflat creative world in a
+throwaway folder `%TEMP%\cc-servertests-…`, with the game's mods and ours. What the engine does there needs no source comment:
+the engine ran it. How it works and its traps: `docs/modding.md`, "A server inside the test process".
+
+- **One server per process**, shared by every test through `[Collection(ServerCollection.Name)]` (`GameServerFixture`); a second
+  instance throws. `dotnet test` runs each test project in its own process, so a second project with a server would work.
+- Game code runs on the server's main thread: `game.OnMain(() => …)`, as in the game.
+- It needs the game in `$(VINTAGE_STORY)` and builds the mod first. The paths (the game, the built mod, its assets) are written
+  into the test assembly at build time from MSBuild (target `TestPathsAsMetadata`), not hard-coded.
+- The test project does not reference our DLL: the game's mod loader loads the built one (calling our code from a test is step T4
+  of `docs/plans/2026-11-02-server-tests.md`).
+- The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
+- After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
+  `Logs\server-main.log`; delete such folders by hand.
 
 ## Exhaustive `switch`
 

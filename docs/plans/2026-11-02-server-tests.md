@@ -20,7 +20,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
 
 ## Steps
 
-- [ ] **T1. The project and the fixture in the repo.** A new project `CurioCatalogue.ServerTests` built from the skeleton
+- [x] **T1. The project and the fixture in the repo.** A new project `CurioCatalogue.ServerTests` built from the skeleton
       (Findings, "Skeleton"): the fixture, its guards, the three smoke tests (our mod is enabled; our items are registered; a
       book goes into a real slot). It is in `curiocatalogue.sln`, so `dotnet test curiocatalogue.sln` runs it; it builds the mod
       first (a project reference with `ReferenceOutputAssembly=false`) and takes the mod's paths from MSBuild, not hard-coded.
@@ -69,10 +69,9 @@ assumptions"), but its source is now the test itself: the engine ran it.
 
 ## Open questions (for the steps that name them)
 
-- **Parallel runs** (T1, T8): one server per process (static state). Two test projects with a server would need separate
-  processes; xUnit runs assemblies in parallel by default. Today only one project has a server.
-- **The port** (T1): the fixture binds a TCP/UDP port (42432 in the skeleton). A free port at start, or a fixed one?
-- **Native libraries on `PATH`** (T1): the skeleton puts the game's `Lib` on `PATH`; not proven necessary.
+- **Parallel runs** (T8): answered for local runs in T1 (Decisions); CI runs the solution the same way, still to see there.
+- **Linux** (T8): CI runs on ubuntu with the Linux server archive. The fixture builds paths with `Path` and the config with a
+  JSON serializer, but it has run only on Windows.
 
 ## Findings (02.11.2026)
 
@@ -142,6 +141,24 @@ Before the plan (02.11.2026):
 - **In-process server** for the start (Findings): no stdin or log protocol between processes, the tests use the server API
   directly, one start per run.
 
+T1 (02.11.2026):
+
+- **A free port** chosen at start (a `TcpListener` on port 0), passed as `ServerProgramArgs.Port`, rather than a fixed one: a game
+  or a server running on this machine does not get in the way. Rejected: a fixed port (clashes; 42420 is the game's default).
+- **Parallel runs:** one server per process; the fixture throws on a second instance. `dotnet test` runs each test project in
+  its own process, so a second project with a server would get its own server (and its own free port).
+- **No `PATH` change:** the server starts and runs without the game's `Lib` on `PATH`.
+- **The guard checks `GamePaths.DataPath` itself**, after setting it and before the logger writes: decompiled `ServerMain` reads
+  only that static, not `ServerProgramArgs.DataPath`.
+- **The fixture checks our mod is enabled** after start, so a wrong mod path fails every test with the list of loaded mods,
+  not only the smoke test. Our assets still load from the origin without the mod (modding.md, A server inside the test process).
+- **Paths from MSBuild as assembly metadata:** the target `TestPathsAsMetadata` asks the mod project for its `TargetPath`
+  (`GetTargetPath`) and writes the game folder, the mod's DLL and its `assets` into `AssemblyMetadata` attributes.
+- **On a failed start the temp folder stays** for diagnosis (the error names its log); after a passing run it is deleted, and a
+  failure to delete fails the run.
+
 ## Where we stopped
 
-- 02.11.2026: the research done and the plan written (not yet committed); T1 is next.
+- 02.11.2026: T1 done: the project, the fixture and three smoke tests (six cases) pass in about 13 s; mutations checked (a
+  wrong mod path: "our mod is not enabled; mods: …"; `GamePaths.DataPath` not set: "the data path is …\VintagestoryData",
+  nothing written there). CI still runs `dotnet test curiocatalogue.sln`, which now includes the server tests (T8).

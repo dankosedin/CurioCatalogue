@@ -218,6 +218,32 @@ In this order:
   gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
 
+## A server inside the test process
+
+`CurioCatalogue.ServerTests` (`docs/development.md`, Server tests) starts the dedicated server the way `ServerProgram.Main` does
+(VintagestoryLib 1.22.7, decompiled 02.11.2026): `ServerMain.xPlatInterface`, `ServerMain.Logger = new ServerLogger(args)`,
+`Lang.PreLoad`, `new ServerMain(null, [], args, isDedicatedServer: true)`, `exitState`, `Standalone`, `PreLaunch()`, `Launch()`,
+then `Process()` in a loop on its own thread until asked to stop, then `Stop` and `Dispose` on the same thread. `ServerProgramArgs`
+takes the command-line options (`Port`, `AddOrigin`, `WithConfig` with any `serverconfig.json` value, e.g. `ModPaths`, `WorldConfig`).
+Traps, in the order they showed up (each blocked the next):
+
+1. **`GamePaths.DataPath` defaults to `%AppData%\VintagestoryData`**, the author's main game (`GamePaths.cs:16-27#GamePaths`).
+   `ServerMain` reads only this static, not `ServerProgramArgs.DataPath`. Set it first and check it before anything is written
+   (`ServerLogger` creates its files).
+2. **Two Newtonsoft.Json.** The test SDK brings 13.0.3, the game needs 13.0.4; both have assembly version 13.0.0.0 and only one is
+   loaded (`MissingMethodException: JToken.WriteTo` in `ServerConfig.Save`). The project copies the game's DLL over its output.
+3. **The base directory.** `GamePaths.Binaries`, `AssetsPath`, the game's `AssemblyResolver` and `ModCompilationContext`
+   ("Referenced library not found: SkiaSharp.dll") start from `AppDomain.BaseDirectory`, the test bin. Fix: in a
+   `[ModuleInitializer]`, `AppContext.SetData("APP_CONTEXT_BASE_DIRECTORY", <game folder with a trailing separator>)` before any
+   game type is touched. This also makes `RuntimeEnv.IsDevEnvironment` false, as for the real exe.
+4. **The current directory.** Mono.Cecil, which the mod loader reads mod DLLs with, resolves `VintagestoryAPI` from the current
+   directory; without it "Failed to resolve assembly", then "game - Missing" and a null reference in the playstyle. Set
+   `Environment.CurrentDirectory` to the game folder.
+5. **Our assets.** The Debug build has no assets: add our `assets` folder with `AddOrigin`, as the launch profiles do. An origin
+   is not a mod: with our mod missing, our item JSON still loads, without our classes.
+
+Not needed: the game's `Lib` on `PATH` (the native libraries load without it, checked 02.11.2026).
+
 ## C#
 
 - A tuple element cannot be named `Rest` (reserved by `ValueTuple`).

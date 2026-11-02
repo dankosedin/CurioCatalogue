@@ -164,6 +164,12 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - **Harmony in tests is closer to a mock than to a patch** (10-28, author): like PowerMock or `mockito-inline` for final and static
   methods. It never reaches players, so the conflict risk is gone, but it still encodes our understanding of the engine: it needs a
   source comment like any mock. Try a small wrapper interface of our own first; it is cheaper and more explicit.
+- **A real game server inside the test process** (11-02, plan `2026-11-02-server-tests.md`): a third test project starts the
+  dedicated server on a thread of the test process, in a throwaway superflat world, and the tests use `ICoreServerAPI` directly
+  on its main thread. One server per process (the engine keeps state in statics), shared by all tests of the project. Rejected:
+  `VintagestoryServer.exe` as a separate process (it started, but stopping it through stdin was unreliable, and the tests could
+  talk to it only through the log or a test mod); a client as well as the server (tests stay headless, what needs a client stays
+  in game checks).
 
 ## Part 2. Fitting features into the game
 

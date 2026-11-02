@@ -89,6 +89,11 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   missing, no room, parchment); the album taking, the want list (made, filled, partly filled, cancelled); claims, a padlock, unsupported
   containers, reach and stale windows. `TestBlocks` hands out the cells for all test classes.
   The `functional.md` cases it covers are marked with ⚙ there.
+- **`BookEdgeTests`** (helpers shared with `BookFlowTests` in `BookTestBase`) takes the cases the first one left: a full album, blank lists (post and
+  cancel), a 60-character name through the channel, and the clicks that are not ours (a plain click opens the chest, Shift on the floor
+  lays the book on the ground). The config is changed on the running server by `WithConfig` and put back in `finally`; it also drops the mod's
+  lazily built caches (`keys`, `store`, `invoiceMaker`, `invoicePoster`, `collections`) by reflection, because they take the config when first used.
+  `Diagnostics` is tested through the flag of `ModLog` (internal, by reflection), not through the config.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; delete such folders by hand.

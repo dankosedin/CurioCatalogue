@@ -58,7 +58,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       the want list, each "all or nothing" (`docs/critical.md`) on real inventories, and the access checks (claims,
       reinforcement). After: T5, T6. Model: sonnet. Author: none (or splits the step if large).
       Done when: the cases of `docs/testing/functional.md` that need no client have a server test, marked there.
-- [ ] **T10. The cases T7 left that need no new means.** With the fixture, `FakeClient` and the gestures of T7: I4 (a full
+- [x] **T10. The cases T7 left that need no new means.** With the fixture, `FakeClient` and the gestures of T7: I4 (a full
       album), I11 (blank lists: "Nothing to fill", Cancel with and without a book); L5, W3, G2, G4 with the config changed in
       the test and put back (`CurioCatalogueConfig` has setters, the poster reads it through lambdas); G3 if the collection is
       built after start (find out; if at start only, say so in Decisions); A6 on the server's side (a 60-character name through
@@ -262,6 +262,23 @@ T5 (02.11.2026):
   argument: each fails exactly one server test.
 - Not covered (still mocks): `MayBeStorage` (a type check, no engine).
 
+T10 (02.11.2026):
+
+- **Covered, marked ⚙ in `functional.md`:** I4, I9, I10, I11 (post and cancel, three kinds), L5, W3, G2, G3, G4, A6 (`BookEdgeTests`, 23 cases). The
+  helpers of `BookFlowTests` moved to `BookTestBase`.
+- **Config on a running server:** `SoftEntryLimit` and `ConsumeSheets` are read live (lambdas), the test sets and restores them. `ExtraIgnoredAttributes`,
+  `TapestryExclude`, `TapestryAdd` are read when `Keys` and `Collections` are first used (G3 answer: **built on first use, after the world loads, not at
+  start**; a change counts after a restart), so `WithConfig` drops the mod's cached parts by reflection and drops them again afterwards.
+  Rejected: building `StackKeys` and `CollectionRegistry` by hand in the test (does not check the mod's wiring of the config).
+- **G4 is partly covered:** the flag in `ModLog` is set by the test (reflection, `ModLog` is internal), so lines appear or not; the wiring
+  `Config.Diagnostics -> ModLog.DebugEnabled` in `Start` runs once at start and is not tested. Rejected: `InternalsVisibleTo` for the server tests.
+- **I9, I10:** the engine's order is called by hand (the item first, the block's `OnBlockInteractStart` only if the item left the click): the chest is in
+  `OpenedInventories`, the list lies in `BlockEntityGroundStorage` above a granite block. A creative player keeps the item in the hand (ground storage
+  does not use it up), so the hand is not checked.
+- **Mutations:** `SoftEntryLimit` ignored fails L5; `ConsumeSheets` ignored fails W3 and the intake case; `ExtraIgnoredAttributes` ignored fails G2;
+  `TapestryExclude` ignored fails G3; `LimitName` off fails both A6 cases; `ModLog.Debug` always silent fails G4; the Shift check dropped from `ItemLedger`
+  fails I9 (3 rows); the `base` call dropped from `ItemInvoice` fails I10 (the invoice row). Not tried: the same for `ItemLedger`.
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -289,3 +306,4 @@ Before T10 (02.11.2026, author):
   (2 tests); all three projects pass (98 + 160 + 20). Next: T5 (sonnet, After: T4); T7 waits for T5; T8 any time.
 - 02.11.2026: T5 done: `ContainerTests` (18 cases: real chest, trunk, labeled chest, vessel, crate, machines, sign, loot chest, backpack in a chest and on the ground, claims, padlock); four mutations checked; the mocks point to their server twins; `development.md`, `modding.md` updated. All three projects pass (98 + 160 + 38). Next: T7 (sonnet, After: T5, T6, both done); T8 any time.
 - 02.11.2026: T7 done: `BookFlowTests` (24 cases: lists made and posted, album, want list, claims, padlock, reach, stale windows), `TestBlocks`, fixture limits; all three projects pass (98 + 160 + 62); `development.md`, `modding.md`, `functional.md` (⚙) updated. Next: T8 (sonnet, After: T1); T9 (opus) after T8.
+- 02.11.2026: T10 done: `BookEdgeTests` (23 cases) and `BookTestBase` (helpers moved out of `BookFlowTests`); all three projects pass (98 + 160 + 85); eight mutations checked; `functional.md` (⚙), `development.md`, `modding.md` updated. Next: T11 (opus) or T12 (opus, After: T10).

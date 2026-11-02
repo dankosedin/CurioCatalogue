@@ -288,6 +288,12 @@ real player (`FakeClient`). Land claims and padlocks work for the fake players, 
 out (`TestAccess`), and `TryLock` locks a chest against them. An `[InlineData]` argument of a type from our DLL (an enum) is read at
 discovery, before the module initializer can find the DLL ("Could not load file or assembly 'curiocatalogue'"): pass a string.
 
+**More traps of the tests** (checked 02.11.2026). `FakeClient.WaitFor(done, …)` runs `done` on the server's main thread: a `game.OnMain` inside it
+waits for the thread it blocks and times out after 30 s; read the world directly there. Ground storage (`GroundStorable`, Shift + click on a
+block) does not use up the item of a creative player: the hand keeps it, and the block entity above the clicked block holds a copy. The
+mod's lazily built parts (`keys ??= …` in `CurioCatalogueModSystem`) read the config when first used, so a config changed on the running
+server reaches them only after they are dropped; in the game that is a restart.
+
 ## C#
 
 - A tuple element cannot be named `Rest` (reserved by `ValueTuple`).

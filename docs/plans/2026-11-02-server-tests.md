@@ -124,7 +124,15 @@ assumptions"), but its source is now the test itself: the engine ran it.
       the tests already) per class of the adapters; the mocks left and whether each still needs to be a mock; the cases of
       `functional.md` still only in game; the item classes (`ROADMAP.md`, "Tests for the item classes"). Findings fixed in
       the step if small, otherwise lines in `ROADMAP.md`. After: T8, T10, T11, T13–T17. Model: opus. Author: decides on each finding.
-      Done when: the review is in Decisions, its findings fixed, moved to `ROADMAP.md` or rejected with a reason.
+      Done when: the review is in Decisions, its findings fixed, moved to `ROADMAP.md` or rejected with a reason; the coverage
+      report is kept for T18 (its summary in Decisions).
+- [ ] **T18. Code review of the branch.** A code review round (`docs/review.md`, Code review: five roles in parallel, moderation
+      in the main session) of what this plan added: the four test projects, the shared fixture, `ci.yml`, and what changed in the
+      mod. No players' round: nothing a player sees changed (if T13–T17 change a mod text, the round takes it). The QA role gets
+      T9's coverage report as input and builds its table from it, not anew. Branch: `test/server-tests`. After: T9.
+      Model: opus (the moderation; the roles' models as `review.md` says). Author: decides the scope (the branch's diff against
+      `main`, or the whole mod) and on each finding. Done when: each finding fixed, moved to `ROADMAP.md` or rejected with a
+      reason; what the round taught about the procedure in Decisions and `review.md`.
 
 ## Open questions (for the steps that name them)
 
@@ -372,6 +380,9 @@ Before T13 (02.11.2026, author):
   config file), T15 (`newerversion`, `nocollection`), T16 (C6, research first), T17 (A11, another mod's tapestry); T9 after them.
   Stay in game, as before: A1, A8, A9 (windows), C5, C7–C9 (the handbook, client), T1, K3 (Carry On, client input), K4 (Better
   Crates, not supported).
+- **T9 stays a step of its own, then a code review (T18).** T9 is narrow and mechanical (coverage, mocks, the item classes) and
+  gives the review its data; the review then looks for defects, not for gaps in the tests. Rejected: T9 merged into the review
+  (the QA role would build the coverage table and look for defects at once).
 
 ## Where we stopped
 

@@ -95,9 +95,9 @@ assumptions"), but its source is now the test itself: the engine ran it.
 
 ## Open questions (for the steps that name them)
 
-- **Parallel runs** (T8): answered for local runs in T1 (Decisions); CI runs the solution the same way, still to see there.
-- **Linux** (T8): CI runs on ubuntu with the Linux server archive. The fixture builds paths with `Path` and the config with a
-  JSON serializer, but it has run only on Windows.
+- **Parallel runs** (T8): answered for local runs in T1 (Decisions); CI runs the solution the same way and it passed (02.11.2026).
+- **Linux** (T8): answered 02.11.2026: the first run on ubuntu with the Linux server archive passed all four projects with no change
+  to the fixture (Test step 78 s, the job about 2 minutes).
 
 ## Findings (02.11.2026)
 
@@ -352,4 +352,4 @@ Before T10 (02.11.2026, author):
 - 02.11.2026: T12 done: the fixture shared from `CurioCatalogue.TestServer/`; `CurioCatalogue.CompatTests` with Upgradeable Storage 1.1.9
   (15 cases), from an empty folder (download) and a full one; four mutations checked; all four projects pass (98 + 160 + 95 + 15);
   `development.md`, `architecture.md`, `modding.md`, `functional.md` (K2 ⚙) updated. Next: T8 (sonnet, After: T12).
-- 02.11.2026: T8 done in the repo: `ci.yml` caches the pinned mods, runs the four projects with durations, uploads `server-logs` on failure (the fixture copies `Logs` when `CURIOCATALOGUE_KEEP_LOGS` is set); `development.md` updated; locally all four pass (98 + 160 + 95 + 15, 1 min). **Waits for the author:** push and see the first run on ubuntu (the Linux questions of "Open questions": paths, port, the Linux server archive, the time). Next: T9 (opus, After: T8).
+- 02.11.2026: T8 done in the repo: `ci.yml` caches the pinned mods, runs the four projects with durations, uploads `server-logs` on failure (the fixture copies `Logs` when `CURIOCATALOGUE_KEEP_LOGS` is set); `development.md` updated; locally all four pass (98 + 160 + 95 + 15, 1 min). **First run on ubuntu passed** (PR #21, Test step 78 s). Next: T9 (opus, After: T8).

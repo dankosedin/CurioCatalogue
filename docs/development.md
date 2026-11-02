@@ -232,8 +232,8 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   - **When a test fails**, the step "Server logs of a failed run" uploads the artifact `server-logs` (14 days): the fixture copies the
     `Logs` of each server into the folder named by the environment variable `CURIOCATALOGUE_KEEP_LOGS` (set only in CI) before it
     deletes the temp world; a start that failed or a crash keeps the whole data folder, whose `Logs` are uploaded too.
-  - **How long:** locally the four projects take about 1 minute (server tests 43 s, compatibility tests 6 s); the CI time is in the
-    log of the first run (the Test step prints each project's duration).
+  - **How long:** locally the four projects take about 1 minute (server tests 43 s, compatibility tests 6 s); on GitHub (ubuntu, game cached) the Test step took 78 s
+    and the whole job about 2 minutes (first run, 02.11.2026); the Test step prints each project's duration.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the

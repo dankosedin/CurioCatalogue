@@ -1,0 +1,8 @@
+[
+  {
+    "op": "add",
+    "path": "/attributes/sizes/cctestpicture",
+    "value": "2x1",
+    "file": "game:blocktypes/cloth/tapestry.json"
+  }
+]

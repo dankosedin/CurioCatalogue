@@ -112,7 +112,7 @@ assumptions"), but its source is now the test itself: the engine ran it.
       normal and aged; 72) and that the blank lists are where `ROADMAP.md` says they are today. If it does not: the reason in
       Decisions, C6 stays in game. Branch: `test/server-tests`. After: T8. Model: sonnet. Author: none.
       Done when: the answer is in Decisions; the test with a mutation (an aged cover dropped from the item's JSON), or the reason why not.
-- [ ] **T17. A tapestry from another mod (A11).** The album's collection comes from the `sizes` attribute of `game:tapestry-north`
+- [x] **T17. A tapestry from another mod (A11).** The album's collection comes from the `sizes` attribute of `game:tapestry-north`
       (`CollectionRegistry`), so another mod's tapestry counts only if it patches that attribute. Find out first: which mods add
       tapestries and how (`notes`: none listed yet; a mod that adds them is an integration target, not a competitor; ask if
       unsure). Then a compatibility test: such a mod pinned (T12's list) or, if none fits, a tiny test mod of our own (a JSON
@@ -387,6 +387,22 @@ T16 (02.11.2026):
   today (`ROADMAP.md` wants them out: the test changes with that); nothing else of ours listed. The search box and the drawing stay a game check (C6 text).
 - **Mutation:** `general` narrowed to `*-normal-*` in `book.json` fails four tests (72 expected, 39 found; every kind).
 
+T17 (02.11.2026):
+
+- **No real mod patches `sizes` of `game:tapestry`** (the mod database cache: descriptions of 9291 mods, file lists of 4408): the mods that
+  add tapestries on 1.22.7 add blocks of their own, class `BlockTapestry` with their own `sizes` (Craftable Companion 1.5.4, Astria Porta
+  0.2.3; neither a competitor). The album does not count those, and `TapestryAdd` cannot help (it names pieces of `game:tapestry-north`).
+  Creative Tapestries patched the game's file, but is abandoned (up to 1.19).
+- **Chosen (author): our test mod only**, `cctapestry` in `CurioCatalogue.CompatTests/testmods/` (a content mod: `modinfo.json` and one
+  JSON patch adding a 2×1 picture to `sizes`), loaded with the pinned mods: `TestMods` reads the folders, the fixture copies a folder as
+  it copies a zip. The other mods' own blocks are a line in `ROADMAP.md`, not tested. Rejected: pinning Craftable Companion to show
+  that its pieces are not counted (a test of a limit, not of a promise); widening the collection to every `BlockTapestry` block first
+  (a change for the player, `DESIGN.md`).
+- **Covered (`ModdedTapestryTests`, 2 cases):** the patched pieces are in the collection; a new album misses one and takes it from a
+  chest. The clean-log test of the compatibility tests covers the patch too. A11 marked ⚙.
+- **Mutation:** the patch moved out of the mod fails both. Renamed to `.json.off` in place it still applied: the game applies every
+  file in `patches/` (`docs/modding.md`, Other mods).
+
 Before T10 (02.11.2026, author):
 
 - **More of `functional.md` on the server.** T7's "not covered" list was made before the fixture could do what it does now; T10 takes
@@ -434,3 +450,4 @@ Before T13 (02.11.2026, author):
 - 02.11.2026: T14 done: `ConfigFileTests` (3 cases), `GameServerFixture.LogMark/Withdraw`; three mutations checked; all four projects pass (98 + 160 + 106 + 15); `functional.md` G1 ⚙, `development.md` updated. Next: T15 or T16 (sonnet, After: T8), T17 (opus, After: T12).
 - 02.11.2026: T15 done: `RefusalTests` (14 cases: `newerversion` everywhere, `nocollection`); mutations checked; `functional.md`, `development.md` updated. Next: T16 (sonnet, After: T8), T17 (opus, After: T12).
 - 02.11.2026: T16 done: `CreativeInventoryTests` (6 cases); mutation checked; `functional.md` C6 ⚙, `development.md` updated. Next: T17 (opus, After: T12), then T9.
+- 02.11.2026: T17 done: our test mod `cctapestry` (`testmods/`, a JSON patch of `sizes`), `TestMods`, the fixture copies mod folders; `ModdedTapestryTests` (2 cases); mutation checked; all four projects pass (98 + 160 + 126 + 17); `functional.md` A11 ⚙, `development.md`, `modding.md`, `ROADMAP.md` (tapestries of other mods) updated. Next: T9 (opus, After: T8, T10, T11, T13–T17).

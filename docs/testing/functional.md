@@ -63,7 +63,7 @@ which build, who ran it, and each `❌` with its reason.
 | A8 | 0.1.0 | Open and close the window ~10 times, some with confirmations | The log line "loaded dialogs: N" does not grow |
 | A9 | 0.1.0 | Open the window, then press a hotbar key or scroll | The window closes |
 | A10 ⚙ | 0.1.0 | Open the window of book 1, switch to book 2, press Clear → Yes | Red "the item in the hand is not the one in the window"; book 2 untouched (or the window closed first: also fine) |
-| A11 | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
+| A11 ⚙ | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
 
 ## Want lists
 

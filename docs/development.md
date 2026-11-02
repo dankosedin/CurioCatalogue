@@ -126,7 +126,12 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 
 `CurioCatalogue.CompatTests` runs the server of the server tests (`CompatServerFixture`, a `GameServerFixture` given the other mods) with
 other mods loaded, so their effects never reach the server tests. Now: Upgradeable Storage (`UpgradeableStorageTests`: both mods load with a
-clean log; its six kinds of storage are supported; every gesture of K1 on each; the off-hand gesture; a padlock).
+clean log; its six kinds of storage are supported; every gesture of K1 on each; the off-hand gesture; a padlock), and our test mod
+`cctapestry` (`ModdedTapestryTests`: a picture patched into the game's tapestry `sizes` is in the collection, and the album takes it).
+
+- **Test mods of our own** stand in for a kind of mod no real one fits: a folder each in `CurioCatalogue.CompatTests/testmods/` (in the
+  repo) with its `modinfo.json`. `TestMods` lists them; the fixture copies each folder into the temp world's `Mods` and checks it is
+  enabled with its version, as for the pinned mods. A new one needs only its folder.
 
 - **The mods are not in the repo** (their licences). `CurioCatalogue.CompatTests/mods.json` pins each one: `modid`, `version`, `file`, `url`,
   `sha256`. `PinnedMods` takes the file from `CurioCatalogue.CompatTests/mods/` (git-ignored) or downloads it there from `url`; a wrong hash

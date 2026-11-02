@@ -195,8 +195,9 @@ In this order:
 - **Tapestries:** block `tapestry-{north|east|south|west}`, the picture is the stack attribute `type` (`blocktypes/cloth/tapestry.json`,
   `BlockTapestry.cs`). Taken off a wall it always drops as `tapestry-north` (`BehaviorHorizontalAttachable`, `dropBlockFace`).
   A rotten tapestry drops nothing (`BlockTapestry.GetDrops`). Large ones are pieces: `ambush` (3×1) = `ambush1..3`, `salvation` (2×2)
-  = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (mods that extend `sizes` are
-  picked up). Not in the creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
+  = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (a mod that extends `sizes` is
+  picked up: `ModdedTapestryTests`; but the mods that add tapestries today add blocks of their own, `ROADMAP.md`). Not in the
+  creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
 - **Books:** empty book `book-normal-<colour>` (2 leather + 8 `paper-parchment`; also `book-aged-*`, `book-rotten-*`); parchment
   stacks to 32; `inkandquill`. A found large book is clutter: block `clutter` with `type: "bookshelves/large-book-closed"` (also
   `-open`, called "Cartography book" in game; `-pile*`, `-standing*`; `-evaporating` is story-only). Clutter is `Reparable`: unless
@@ -217,6 +218,10 @@ In this order:
 - **Carry On 2.0.0-rc.1** cannot lift two-cell trunks even alone. It uses Shift+RMB with empty hands; no conflict with our off-hand
   gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
+- **Tapestries of other mods** (02.11.2026): Craftable Companion 1.5.4 and Astria Porta 0.2.3 add blocks of their own, class
+  `BlockTapestry`, each with its own `sizes`; neither patches `game:tapestry`, so the album does not count their pieces (`ROADMAP.md`).
+- **Every file in a mod's `patches/` is applied, whatever its extension:** a `tapestry-sizes.json.off` still patched (seen in the
+  compatibility tests 02.11.2026). To switch a patch off, move the file out of the folder.
 
 ## A server inside the test process
 

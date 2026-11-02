@@ -65,7 +65,7 @@ public class GameServerFixture : IDisposable
         SweepLeftCaches();
         Directory.CreateDirectory(DataPath);
         Directory.CreateDirectory(OtherModsPath);
-        foreach (var mod in otherMods) File.Copy(mod.File, Path.Combine(OtherModsPath, Path.GetFileName(mod.File)));
+        foreach (var mod in otherMods) CopyMod(mod.File, Path.Combine(OtherModsPath, Path.GetFileName(mod.File)));
 
         thread = new Thread(Run) { Name = "TestServerMain", IsBackground = true };
         thread.Start();
@@ -81,6 +81,18 @@ public class GameServerFixture : IDisposable
             stopRequested = true;
             thread.Join(StopTimeout);
             throw new InvalidOperationException($"the test server failed to start, see {ServerLog}: {e.Message}", e);
+        }
+    }
+
+    /// <summary>A mod's zip, or a mod folder with all it holds.</summary>
+    static void CopyMod(string from, string to)
+    {
+        if (!Directory.Exists(from)) { File.Copy(from, to); return; }
+        foreach (string file in Directory.EnumerateFiles(from, "*", SearchOption.AllDirectories))
+        {
+            string target = Path.Combine(to, Path.GetRelativePath(from, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target);
         }
     }
 
@@ -296,7 +308,7 @@ public class GameServerFixture : IDisposable
     }
 }
 
-/// <summary>A mod loaded besides the game's and ours: its id and version (checked after start) and its file (a zip).</summary>
+/// <summary>A mod loaded besides the game's and ours: its id and version (checked after start) and its file (a zip) or folder.</summary>
 public sealed record OtherMod(string Id, string Version, string File);
 
 /// <summary>One line of the server log: its level and its text as written.</summary>

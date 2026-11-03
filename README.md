@@ -12,7 +12,7 @@ Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 >
 > **Back up your world** before installing the mod or a new version of it.
 
-![The album window: 3 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.en.png)
+![The album window: 6 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.en.png)
 
 ## What's inside
 
@@ -112,7 +112,7 @@ give players the same file: otherwise the album and the tooltips show the client
 - Needs Vintage Story 1.22.7. Install it on the server and on every client.
 - Mods that add tapestries to the game's tapestry list are picked up by the album.
 - Tested with Upgradeable Storage and Carry On.
-- **Better Crates** is not supported: its crates refuse our lists, and they draw our lists dark and our books back side out.
+- **Better Crates** is not supported: its crates refuse our lists, and show lists and books wrongly (dark, turned around).
 - Our books and lists do not go into a vanilla crate: Shift + right click on a container is ours.
 - With `ConsumeSheets` on, the handbook's "the sheet comes back" does not apply.
 - Supported containers: chests, trunks, labeled chests, stationary baskets, storage vessels, crates, backpacks and baskets placed on

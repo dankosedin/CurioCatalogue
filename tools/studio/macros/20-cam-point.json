@@ -3,6 +3,7 @@
   "Code": "cam-point",
   "Name": "Studio: add a camera point and copy all",
   "Commands": [
+    "/gamemode creative",
     ".resolution 1080p",
     ".cam p",
     ".cam save"

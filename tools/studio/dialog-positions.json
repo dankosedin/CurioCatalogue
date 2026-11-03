@@ -1,5 +1,8 @@
 {
   "title": {
     "curiocatalogue-ledger": { "X": 78, "Y": 197 }
+  },
+  "first-ledger": {
+    "inventory-backpack": { "X": 717, "Y": 333 }
   }
 }

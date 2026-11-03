@@ -100,9 +100,9 @@ shot's point; the window, the hands and the gesture are done by hand, as the tab
 | Alt+2 | `album-window` | the album | right click into the air | the album's window in the middle: name, progress line, "Missing" |
 | Alt+3 | `album-chest` | the copy of the album | Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
 | Alt+4 | `wantlist` | the want list | right click into the air | the want list's window |
-| Alt+5 | `ledger-intake` | the intake list, the ledger in the off-hand | open the basket (right click), then right click into the air | the list's window beside the basket's: the same items |
-| Alt+6 | `materials` | the bill of materials | right click into the air | its window with counts |
-| Alt+7 | `first-ledger` | — | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid | the inventory, the first ledger's recipe in the grid and the ledger as the result |
+| Alt+5 | `ledger-intake` | the ledger's intake list, the ledger in the off-hand | right click into the air | the list's window (tapestries), the chest behind it |
+| Alt+6 | `materials` | the bill of materials' intake list, the book in the off-hand | right click into the air | the list's window with counts (planks, resin), the basket behind it |
+| Alt+7 | `first-ledger` | — | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid; F12 after the chat is gone (15 s: the game mode messages come after `.clearchat`) | the inventory, the first ledger's recipe in the grid and the ledger as the result |
 
 Alt+0 is the rebuild, Alt+9 the point-finding macro. Ctrl+1 … Ctrl+4 are taken by the game (the bag slots of the
 inventory). On the author's machine the macros that give tapestry pieces are on Ctrl+Shift+1 … Ctrl+Shift+9.
@@ -110,6 +110,8 @@ inventory). On the author's machine the macros that give tapestry pieces are on 
 **Finding the points:** Alt+9 (`20-cam-point.json`) sets 1080p, adds a camera point where you stand (`.cam p`) and copies
 all the points to the clipboard (`.cam save`). Start with `.cam clear`, then for each shot in the table's order: frame it,
 Alt+9, F12 for a draft. The last clipboard text has every point, in the order of the shots; the shot macros are made from it.
+The list lives for the game session and `.cam p` appends to it. A `.cam` command in survival mode fails and the clipboard
+keeps the old text, so Alt+9 switches to creative first.
 `.cam save` writes `1,` (a version) and six numbers per point: x, y, z ×100, pitch, yaw, roll ×1000. The shot macros load
 the whole list and go to their own point, so the list in every macro is the same.
 
@@ -128,6 +130,9 @@ centres the window. A container's window is placed by its block, not by this lis
   for `title` would move `album-window` and `materials` too. It is kept in `tools/studio/dialog-positions.json`; the
   script of P3 writes it into `clientsettings.json` (the client closed) before the `title` shots and removes it before
   the others, and `title` is shot last in each language. Until the script exists, do the same by hand.
+- The inventory (`inventory-backpack`) opens on the right on "auto"; for `first-ledger` it is dragged to the centre, and
+  that position is in the same file. The inventory is in no other shot, so it may stay.
+- "auto" in the ☰ menu writes `null` for the window in `dialogPositions`.
 - A window dragged by mistake: "auto" in its ☰ menu, or remove its entry from `dialogPositions` with the client closed.
 
 ## Camera points

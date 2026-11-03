@@ -18,6 +18,9 @@ The game closed:
 (`en` or `uk`.) It copies the macros and the studio into the data folder and sets the window positions and the game's
 language.
 
+If PowerShell says "running scripts is disabled on this system", allow scripts for this window only (nothing changes on the
+machine): `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, then run the command again.
+
 ## 2. The studio
 
 1. Start the game. Create a new world: **creative**, world type **superflat**.

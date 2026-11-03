@@ -119,3 +119,13 @@ that matter in test code: a test that passes for the wrong reason (a wait or an 
 (timing, test order, state shared through one server), leaks, and CI. The worktree roles check every suspicious wait and assertion by a
 mutation (break the mod, see the test stay green, restore): in T18 only they found the tests that passed for the wrong reason, both of
 them independently. When part of the branch was already squash-merged into `main`, the scope is the diff from where the branch left `main`.
+
+## To weigh at the next players' round
+
+Proposals from the round on the mod page (P9 of the mod page plan, 04.11.2026), not adopted yet: the next round, with more
+content to judge, decides on them.
+
+- **A round on the mod page:** the newcomer meets the mod on ModDB and decides in a minute whether to install it; two passes,
+  the first screen (title card, hook, the row of buttons) and the whole page, then the page's words against the in-game texts.
+- **Telling the roles what the mod has and has not yet** (most findings of that round were about content not there yet, and the
+  author rejected them as early-stage noise). Against it: whatever we tell the roles passes our blind spots on to them.

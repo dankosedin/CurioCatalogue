@@ -50,15 +50,11 @@ Close the game.
 ## 4. After the game
 
 ```
-.\tools\screenshots.ps1 -Action Collect -Lang uk -Ribbon "<text>"
+.\tools\screenshots.ps1 -Action Collect -Lang uk
 ```
 
-The ribbon's text on the first shot, for now a placeholder until the page's texts are decided:
-
-| Language | `-Ribbon` |
-|---|---|
-| en | `Possess them ALL!!!` |
-| uk | `Заволодіти ВСІМА!!!` |
+The ribbon's text on the first shot is read from `tools/studio/ribbons.json` (`{"en": "...", "uk": "..."}`); a translator adds a line for
+their language there before shooting. `-Ribbon "<text>"` overrides it for one run.
 
 It writes `docs/images/<shot>.<lang>.png` (the first shot `title.<lang>.jpg`, with the ribbon) and prints which frame
 went to which shot. **Open the seven files and look:** each must show what its row above says. Then:

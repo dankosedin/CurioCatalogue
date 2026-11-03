@@ -201,5 +201,4 @@ person are in `tools/studio/README.md`; here, why the script works as it does:
 - `-Action Check` lists missing shots and files over the limit.
 
 **Format and ribbon (03.11.2026):** `title` is a JPEG (0.5 MB; as PNG with the ribbon it is 2.1 MB, over the limit), the other
-shots are PNG (1.4–1.9 MB). The ribbon, as a placeholder until P5 decides the text and font:
-`-Corner BottomRight -Angle 25 -Ribbon "Possess them ALL!!!"`, font Georgia; the slope follows the floor boards.
+shots are PNG (1.4–1.9 MB). The ribbon (text from `tools/studio/ribbons.json`, decided in P5): `-Corner BottomRight -Angle 25`, font Georgia; the slope follows the floor boards.

@@ -1,4 +1,4 @@
-# Helper for the mod page's screenshots: the steps for a person are in tools/studio/README.md, the reasons in
+﻿# Helper for the mod page's screenshots: the steps for a person are in tools/studio/README.md, the reasons in
 # docs/screenshots.md, the plan in docs/plans/2026-11-01-mod-page.md (P3).
 # Run from the repo root in PowerShell. Windows PowerShell 5.1 is enough (System.Drawing).
 #
@@ -6,9 +6,9 @@
 #       copies the macros (tools\studio\macros) and the studio (tools\studio\studio.json) into the data folder,
 #       writes the window positions of tools\studio\dialog-positions.json and the client's language into
 #       clientsettings.json (backup: clientsettings.json.bak)
-#   .\tools\screenshots.ps1 -Action Collect -Lang uk -Ribbon "<text>"
+#   .\tools\screenshots.ps1 -Action Collect -Lang uk
 #       takes the newest seven frames of Pictures\Vintagestory, in the order of the shot list (title first), checks
-#       1920x1080, draws the ribbon on title and writes docs\images\<shot>.<lang>.<png|jpg>; title is a JPEG, the others
+#       1920x1080, draws the ribbon (the text of the language from tools\studio\ribbons.json; -Ribbon overrides it) on title and writes docs\images\<shot>.<lang>.<png|jpg>; title is a JPEG, the others
 #       PNG (decided in P3: with the ribbon a PNG title is over 2 MB). Prints which frame went to which shot.
 #   .\tools\screenshots.ps1 -Action Check
 #       checks every docs\images\<shot>.<lang>.<ext>: 1920x1080, at most 2 MB, both languages present
@@ -178,7 +178,11 @@ function Test-Frame([string]$path) {
 
 function Invoke-Collect {
     if (-not $Lang) { throw '-Lang is required (en or uk)' }
-    if (-not $Ribbon) { throw 'The title needs -Ribbon "<text>" (tools/studio/README.md gives the current text)' }
+    if (-not $Ribbon) {
+        $ribbons = Get-Content (Join-Path $PSScriptRoot "studio\ribbons.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+        $Ribbon = $ribbons.$Lang
+        if (-not $Ribbon) { throw "tools/studio/ribbons.json has no text for '$Lang': add one" }
+    }
     $frames = @(Get-ChildItem $pictures -Filter *.png | Sort-Object LastWriteTime | Select-Object -Last $shots.Count)
     if ($frames.Count -lt $shots.Count) { throw "Only $($frames.Count) screenshots in $pictures, the list has $($shots.Count)" }
     # Check every frame before writing any, so that a wrong frame leaves docs\images as it was.

@@ -12,21 +12,46 @@ Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 >
 > **Back up your world** before installing the mod or a new version of it.
 
-![An album on a table in a room with tapestries, shelves and display cases](tools/modicon-source.png)
+![The album window: 3 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.en.png)
 
-## What it does
+## What's inside
 
-- **The album** knows your whole collection and shows what you are still missing. Click a chest with it and it takes one of each
-  missing piece into your inventory; duplicates stay in the chest. The first collection is **tapestries**: 88 pieces in 31 pictures.
-- **Want lists** come out of the album: give one to a friend, and it gathers what you still miss from their chests.
-- **The ledger** notes which kinds of items there are; **the bill of materials** how many of each, as a shopping list for a project
-  that shrinks by itself as you take what you need from chests.
-- Books compare themselves with a chest and write **lists**: an **intake list** (what the chest has that the book lacks) and a **pick list** (what the chest has of the book's entries). Fill a list from a chest and the
-  items move into your inventory, all of them or none.
+- **The album:** a collector's catalogue that knows what you are still missing, and takes one of each missing piece from a chest. The first collection is tapestries: 88 pieces in 31 pictures.
+- **The want list:** made by the album; give it to a friend and it gathers what you miss from their chests.
+- **The ledger:** a book that notes which kinds of items you have, by type.
+- **The bill of materials:** a book that notes how many of each, a shopping list for a project that shrinks as you take what you need from chests.
+- **The intake list:** what a chest has that the book lacks; fill it from the chest and the items move into your inventory.
+- **The pick list:** what a chest has of the book's entries; it moves them all, or none.
 
 Books and lists are ordinary items. They hold their data themselves, so you can hand them over, put them on a shelf or lose them.
 
-![The album window: 3 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.png)
+### What it does not do
+
+- **No remote access, no storage network.** Items move only where you stand: you walk to the chest, click it and see the items move.
+- **No automatic sorting.** You decide what goes where; the books help to see and to move.
+- **No prices.** Trading stays between players; the mod only makes carrying things easier and more tangible.
+
+### What may come next
+
+Not promised, roughly in this order (details in `ROADMAP.md`):
+
+- a view of the whole album, collected pieces in their slots and missing ones as dim cells;
+- more collections: butterflies, ore crystals, seashells;
+- recipes put into a bill of materials;
+- collections of your own.
+
+### Similar mods
+
+Curio Catalogue is about collections you keep and carry by hand: books and lists are items, and you walk to the chest and see the items move. Other mods overlap with it a little; if one suits you better, use it.
+
+- **[Infinitum Collections](https://mods.vintagestory.at/infinitumcollections)** by unicorn_ares is a journal of discoveries (fish,
+  mushrooms, butterflies) with links to the handbook. Curio Catalogue's album tracks what you actually keep, in chests or on
+  display, and takes the missing pieces from there. It also makes want lists for other players.
+- **[Bookkeeper](https://mods.vintagestory.at/show/mod/43155)** and **[Quartermaster](https://mods.vintagestory.at/show/mod/57459)**
+  by Feyd manage storage: finding items in nearby containers and, with Quartermaster, taking and depositing them remotely. They
+  care about what is stored, not about what is missing from a collection.
+
+Thanks to these authors: their work makes the game's mod community richer.
 
 ## Getting started
 
@@ -34,7 +59,7 @@ Books and lists are ordinary items. They hold their data themselves, so you can 
    its right: a ledger with 8 sheets and the cover of the book you used. Anything written in that book is lost. A large book found
    in ruins can be restored with a jug of lime water and ink and quill: that ledger has 32 sheets.
 
-   ![The first ledger in the crafting grid, with its tooltip](docs/images/first-ledger.png)
+   ![The first ledger in the crafting grid, with its tooltip](docs/images/first-ledger.en.png)
 
 2. **The album.** An empty ledger and any tapestry piece in the crafting grid; the piece stays.
 3. **Collect.** Hold the album, or keep it in your off-hand with the main hand empty, and press **Shift + right click** on a chest.
@@ -45,7 +70,7 @@ The in-game handbook has a Curio Catalogue guide and a page for every book.
 
 ## Gestures
 
-![An album over a chest: Shift + right click takes new items for the collection](docs/images/album-chest.png)
+![An album over a chest: Shift + right click takes new items for the collection](docs/images/album-chest.en.png)
 
 With a book in hand, or in your off-hand with the main hand empty:
 
@@ -59,6 +84,8 @@ the sheet comes back (an album only takes the sheet); without one the list becom
 way: it takes what it lists, and a finished one becomes parchment.
 
 Plain right click and Ctrl + right click open containers as usual.
+
+![A ledger's intake list: the tapestries a chest has and the book lacks](docs/images/ledger-intake.en.png)
 
 ## Fair play on servers
 
@@ -104,20 +131,7 @@ English and Ukrainian. Translations are welcome: see `CONTRIBUTING.md`.
 
 ## Contributing
 
-Bug reports, ideas, code and translations: see `CONTRIBUTING.md`. What may come next: `ROADMAP.md`.
-
-## Similar mods
-
-Curio Catalogue is about collections. Other mods overlap with it a little; if one suits you better, use it.
-
-- **[Infinitum Collections](https://mods.vintagestory.at/infinitumcollections)** by unicorn_ares is a journal of discoveries (fish,
-  mushrooms, butterflies) with links to the handbook. Curio Catalogue's album tracks what you actually keep, in chests or on
-  display, and takes the missing pieces from there. It also makes want lists for other players.
-- **[Bookkeeper](https://mods.vintagestory.at/show/mod/43155)** and **[Quartermaster](https://mods.vintagestory.at/show/mod/57459)**
-  by Feyd manage storage: finding items in nearby containers and, with Quartermaster, taking and depositing them remotely. They
-  care about what is stored, not about what is missing from a collection.
-
-Thanks to these authors: their work makes the game's mod community richer.
+Bug reports, ideas, code and translations: see `CONTRIBUTING.md`. What may come next: see "What's inside" above and `ROADMAP.md`.
 
 ## AI and human work
 

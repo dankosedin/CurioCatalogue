@@ -273,11 +273,13 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
   with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
   ModDB by hand (it has no release API). This is the job `release` in `ci.yml`, after `build`.
-- **ModDB** (https://mods.vintagestory.at/curiocatalogue) takes HTML, not Markdown: paste it in the editor's source code mode
-  (`<>`). The description is `README.md` with `README.uk.md` inside a spoiler
-  (`<div class="spoiler"><div class="spoiler-toggle">Caption </div><div class="spoiler-text">…</div></div>`), images from raw
-  GitHub at the release tag, relative links made absolute. The release's changelog is the `CHANGELOG.md` section. Screenshots
-  and their size limits: `docs/screenshots.md`.
+- **ModDB** (https://mods.vintagestory.at/curiocatalogue) takes HTML, not Markdown: paste the generated `moddb.html` in the editor's source
+  code mode (`<>`). The description is generated from the two READMEs (below): the English page with the whole Ukrainian version
+  in one accordion; images from raw GitHub at the release tag (or a SHA), relative links made absolute. The release's changelog is
+  the `CHANGELOG.md` section. Screenshots and their size limits: `docs/screenshots.md`.
+  - **The gallery** (uploaded by the author on the mod's page, not generated): the first image is the title card (`title.en.jpg`,
+    the gallery's first place decides what a player sees without scrolling); then, in this order, `album-window`, `album-chest`,
+    `wantlist`, `ledger-intake`, `materials`, `first-ledger` (the shot list of `docs/screenshots.md`); the `en` files (the `uk` ones are used by `README.uk.md`).
   - **The generator** (shape: "The generator's shape" in `docs/plans/2026-11-01-mod-page.md`): the CakeBuild task `ModDbPage`,
     `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage` (`.\build.ps1 --target=ModDbPage` does the same where
     the execution policy allows scripts). It reads `README.md`, `README.uk.md`, `modinfo.json`, `lang/*.json` and the template
@@ -288,7 +290,7 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
     Arguments (`--name=value`):
     - `ref`: the tag or SHA that images and links point to on GitHub; default `v<version>`, so before a release the images 404:
       a page between releases uses the SHA of the merge commit on `main`;
-    - `moddbLinks=true`: Source and Report a bug in the row of buttons (ModDB's own card has them too; the author picks by the look);
+    - `moddbLinks` (default `true`, the author chose it 03.11.2026): Source and Report a bug in the row of buttons; `false` leaves them out;
     - `out`: the output file; `rawBase`, `blobBase`: other places for images and links, e.g.
       `--rawBase=file:///C:/Projects/VintageStory/CurioCatalogue/` to look at a page before the files are on GitHub;
       `readme`, `readmeUk`: other READMEs.

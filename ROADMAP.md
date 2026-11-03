@@ -3,39 +3,23 @@
 What may come after 0.1.0, and roughly when. Why the mod exists and what it will not do: `DESIGN.md`.
 
 **Horizons:**
-- **Next:** what we work on, grouped by release (planned 31.10.2026), in this order within a release.
+- **Next:** what we work on, grouped by release, in this order within a release.
 - **Later:** wanted; order not decided.
 - **Maybe:** ideas without promises, often because the design space or the research is too large to judge yet.
 - **When pigs fly:** ideas we would rather not build; only on strong demand.
+- **Done:** at the very bottom; what was released, with links to its plans.
 
 **Update** when an idea comes up (put it under a horizon, with a line on why) or a decision moves it. When an idea gets its own plan
-in `docs/plans/`, replace its line with a link. Priorities follow playtests and players' feedback.
+in `docs/plans/`, replace its line with a link. When a release or a plan is done, move its section to Done. Priorities follow
+playtests and players' feedback.
 
 ## Next
 
-### 0.1.1: fixes
-
-[The 0.1.1 plan](docs/plans/2026-10-31-release-0.1.1.md): the aged covers' handbook pages, English names of the invoices, small fixes.
-
-### 0.1.x or with 0.2
-
-- **Lists out of the creative inventory, still in the handbook** (31.10.2026). Intake lists, pick lists and want lists from the
-  creative tab are blank and useless; hide them (`creativeinventory` empty) and keep their handbook pages with `handbook.include`
-  (`docs/modding.md`, Handbook: a page exists only for what the creative inventory lists, unless included). Check in game that
-  the pages, the guide's links and "Created by" still work. Books stay in the creative inventory.
-- **Two stale game-source references** (02.11.2026): `tools/check-refs.ps1` fails on `InvoicePoster.cs:371`
-  (`Collectible.cs:2558#GetMergableQuantity`) and `InvoicePosterTests.cs:678` (`ItemSlot.cs:222#TryPutInto`): the symbols are not
-  on those lines at 1.22.7. Find the lines, re-check that the behaviour cited still holds, fix the references.
-- **A new list vanishes in creative when the inventory is full** (coverage review, 03.11.2026). Making a list (or a want list) with the
-  main hand busy hands it out with `TryGiveItemstack`, else drops it on the ground. In creative the creative inventory swallows the stack:
-  `TryGiveItemstack` returns `false` with the stack at size 0, nothing is dropped, and the list is gone with its sheet (`docs/modding.md`,
-  "A creative player's inventory is never full"). Seen on the test server; check in game, then drop only what is left of the stack, or
-  hand it out in a way that does not reach the creative inventory. Together with the one helper for handing out items (Later, the messages line).
-
 ### 0.2: collections
 
-Butterflies were promised for 0.2 on the ModDB page (29.10.2026); ore crystals "maybe in 0.2". Crystals and seashells come in
-0.2 if the release has room for them, else in 0.2.x: after the registry of definitions (item 1) each is a small step.
+Order decided 04.11.2026: the risky and heavy work first, the tails last. Each item below becomes a plan of its own, planned
+separately when its turn comes. Code review comes after a feature that changes code (as the last step of
+its plan) or once at the end of the release; each plan says which. Butterflies were promised for 0.2 on the ModDB page (29.10.2026).
 
 1. **Butterflies, the second collection.** Collected by a player on the author's server. A second collection tests how general the
    core is. Different from tapestries: the species is the item's variant (`butterfly-dead-<type>`), not an attribute; 169 types; two
@@ -45,23 +29,42 @@ Butterflies were promised for 0.2 on the ModDB page (29.10.2026); ore crystals "
    `Collections.Get` is called in three places), and the registry as a list of collection definitions, not tapestries only.
    Measure the cost of reading a book first: tooltips and crafting checks read the whole book, the window hashes its whole
    data every 500 ms; fine for 88 tapestries, maybe not for 169 butterflies.
-2. **Stamp-album view.** The album window shows the whole collection: collected pieces in their slots, missing ones as dim empty
-   cells, grouped by picture. Today it shows only what is missing.
-3. **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three times,
-   since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line. Show the
-   piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
-4. **Ore crystals, the third collection** (29.10.2026). Players on the author's server collect them. The item is
+2. **Ore crystals, the third collection** (29.10.2026). Players on the author's server collect them. The item is
    `crystalizedore-{grade}-{ore}-{rock}` (assumed to be what players mean; check with them): 4 grades (poor … bountiful), 18 ores,
    17 rocks, about 400 allowed combinations in vanilla (`itemtypes/resource/crystalizedore-graded.json`). Unlike tapestries and
    butterflies, a piece has three dimensions. Open: what counts as one piece and how the album starts: by ore only (18), by ore and
    grade (~70), or every combination (~400); or the player chooses when making the album. First step: ask the
    collectors on the author's server what one piece is for them (ore, grade, rock). Needs the album to be told its
    dimensions, which fits the resolver and the registry as definitions (item 1) and may come with custom collections (after 0.2).
-5. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
+3. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
    6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and
    whether a picked-up shell is an item stack in a chest.
-6. **Screenshots taken again with the stamp-album view,** by the process of [the mod page plan](docs/plans/2026-11-01-mod-page.md)
-   (studio, macros, shot list); this also checks how reproducible that process is.
+4. **Stamp-album view.** The album window shows the whole collection: collected pieces in their slots, missing ones as dim empty
+   cells, grouped by picture. Today it shows only what is missing.
+5. **Every vanilla collection, polished in the album:** back to tapestries, butterflies, ore crystals and seashells, each one's look
+   in the stamp-album view (grouping, order, names), and its album recipe if it needs a change. Among them:
+   - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
+     times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.
+     Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
+   - **Screenshots taken again with the stamp-album view,** by the process of [the mod page plan](docs/plans/2026-11-01-mod-page.md)
+     (studio, macros, shot list); this also checks how reproducible that process is.
+6. **Fixes,** one plan for all of them:
+   - **Lists out of the creative inventory, still in the handbook** (31.10.2026). Intake lists, pick lists and want lists from the
+     creative tab are blank and useless; hide them (`creativeinventory` empty) and keep their handbook pages with `handbook.include`
+     (`docs/modding.md`, Handbook: a page exists only for what the creative inventory lists, unless included). Check in game that
+     the pages, the guide's links and "Created by" still work. Books stay in the creative inventory.
+   - **Two stale game-source references** (02.11.2026): `tools/check-refs.ps1` fails on `InvoicePoster.cs:371`
+     (`Collectible.cs:2558#GetMergableQuantity`) and `InvoicePosterTests.cs:678` (`ItemSlot.cs:222#TryPutInto`): the symbols are not
+     on those lines at 1.22.7. Find the lines, re-check that the behaviour cited still holds, fix the references.
+   - **A new list vanishes in creative when the inventory is full** (coverage review, 03.11.2026). Making a list (or a want list)
+     with the main hand busy hands it out with `TryGiveItemstack`, else drops it on the ground. In creative the creative inventory
+     swallows the stack: `TryGiveItemstack` returns `false` with the stack at size 0, nothing is dropped, and the list is gone with
+     its sheet (`docs/modding.md`, "A creative player's inventory is never full"). Seen on the test server; check in game, then drop
+     only what is left of the stack, or hand it out in a way that does not reach the creative inventory. Together with the one
+     helper for handing out items (Later, the messages line).
+7. **Docs for players, then the players' round,** before the release: both READMEs (the ModDB page is generated from them),
+   `CHANGELOG.md` and the lang texts brought up to the release; then a players' round (`docs/review.md`) of the release as a
+   player gets it. Fixes from the round go into this item.
 
 ### After 0.2
 
@@ -119,7 +122,7 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **Books from the creative inventory** (review, 28.10.2026). They have no data: a book has 0 sheets, an album follows no
   collection and says "the collection is complete". Defaults with sheets would break how the handbook shows the recipes, so 0.1.0
   leaves it as it is. Open: hide them from the creative inventory, or defaults that keep the handbook working. Lists: see Next,
-  0.1.x (a blank list is refused and cancels to nothing since 0.1.1).
+  0.2, item 6 (a blank list is refused and cancels to nothing since 0.1.1).
 
 **Containers**
 - **More vanilla containers** for invoices: cabinets, shelves and other blocks with an inventory that we now refuse as "not supported yet".
@@ -217,3 +220,10 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   attributes cached on the client (as vanilla `ItemShield`). Collectors love looks, and books that players use earn them; a separate
   mod gives them to players who write books too, and keeps model risks (other mods' rendering) out of this mod, which can pick the
   model up. Would also let the cover colour become an attribute (`docs/architecture.md`, Assets).
+
+## Done
+
+### 0.1.1: fixes
+
+[The 0.1.1 plan](docs/plans/2026-10-31-release-0.1.1.md): the aged covers' handbook pages, English names of the invoices, small fixes.
+Released 01.11.2026.

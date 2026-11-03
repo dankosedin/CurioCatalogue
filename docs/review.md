@@ -1,10 +1,17 @@
 # Review
 
-How a change is reviewed before it reaches `main`: first by **players**, then by **code reviewers**. Both rounds are run by
+How the mod is reviewed: by **players** and by **code reviewers**. Both rounds are run by
 role subagents in parallel and moderated by the main session; the author decides on every finding.
 
-The players' round comes first: there is no point reviewing the code of something that does not fit the mod. As a rule a round
-looks at one change (a pull request); before a release it may look at the whole mod.
+The order depends on where the change comes from (decided 04.11.2026):
+- **A pull request from someone else:** players first, then code. The docs and what the change does in game tell us whether it
+  fits the mod at all; there is no point reviewing the code of something that does not.
+- **Our own work:** code first, then players. We start from an idea, make the code, then the docs; the players' round needs
+  the docs and does not suit reviewing a bare idea yet.
+  - **Code review:** after a feature that changes code, as the last step of its plan, or once at the end of a release over
+    what the release changed. Each plan says which.
+  - **Players' round:** once per release, after the docs for players (both READMEs, `CHANGELOG.md`, the lang texts) are
+    brought up to the release; it looks at the release as a player gets it.
 
 ## Common to both rounds
 

@@ -15,7 +15,9 @@ CurioCatalogue.Tests/      xUnit tests of the adapters, against the game API wit
 CurioCatalogue.ServerTests/ xUnit tests against a real game server started inside the test process
 CurioCatalogue.CompatTests/ the same server with other mods loaded (compatibility tests)
 CurioCatalogue.TestServer/ what both share: the fixture, the fake client, test helpers, TestServer.props (no project of its own)
-CakeBuild/, build.ps1      release zip (from the official mod template)
+CurioCatalogue.PageGen/    the ModDB page generator (Markdig, Scriban, PreMailer.Net); no game DLLs
+CurioCatalogue.PageGen.Tests/ xUnit tests of the generator (no game needed)
+CakeBuild/, build.ps1      release zip (from the official mod template) and the task ModDbPage
 tools/                     scripts that generate assets (see below)
 docs/                      documentation; docs/plans/ holds the implementation plans
 ```
@@ -29,7 +31,7 @@ docs/                      documentation; docs/plans/ holds the implementation p
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
   Harmless: the next build after closing the game copies it.
-- Tests: `dotnet test curiocatalogue.sln`. All four test projects must pass before a commit; how long they take: "How long" below.
+- Tests: `dotnet test curiocatalogue.sln`. All the test projects must pass before a commit; how long they take: "How long" below.
   Alone: `dotnet test CurioCatalogue.ServerTests`,
   `dotnet test CurioCatalogue.CompatTests`.
 
@@ -276,6 +278,20 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   (`<div class="spoiler"><div class="spoiler-toggle">Caption </div><div class="spoiler-text">…</div></div>`), images from raw
   GitHub at the release tag, relative links made absolute. The release's changelog is the `CHANGELOG.md` section. Screenshots
   and their size limits: `docs/screenshots.md`.
+  - **The generator** (shape: "The generator's shape" in `docs/plans/2026-11-01-mod-page.md`): the CakeBuild task `ModDbPage`,
+    `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage` (`.\build.ps1 --target=ModDbPage` does the same where
+    the execution policy allows scripts). It reads `README.md`, `README.uk.md`, `modinfo.json`, `lang/*.json` and the template
+    `docs/moddb/template.html` (the page's look: its CSS in one `<style>`, Scriban); the code is `CurioCatalogue.PageGen`.
+    It writes `Releases/moddb.html` (the file to paste) and `Releases/moddb.preview.html` (the same with a charset, to look at in
+    a browser). It fails with the list of every contract break, and when the template's CSS cannot be inlined (`@media`,
+    `:hover`, pseudo-elements: ModDB drops `<style>`); the output has no `<style>`, no comments, no relative links.
+    Arguments (`--name=value`):
+    - `ref`: the tag or SHA that images and links point to on GitHub; default `v<version>`, so before a release the images 404:
+      a page between releases uses the SHA of the merge commit on `main`;
+    - `moddbLinks=true`: Source and Report a bug in the row of buttons (ModDB's own card has them too; the author picks by the look);
+    - `out`: the output file; `rawBase`, `blobBase`: other places for images and links, e.g.
+      `--rawBase=file:///C:/Projects/VintageStory/CurioCatalogue/` to look at a page before the files are on GitHub;
+      `readme`, `readmeUk`: other READMEs.
   - **The README contract** (for the generated page, `docs/plans/2026-11-01-mod-page.md`; the generator fails with a clear
     message when it is broken). Both READMEs keep it, together:
     - **The head** (everything before the first `##`): the `#` title, the hook as the first paragraph, any README-only lines

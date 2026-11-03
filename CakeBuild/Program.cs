@@ -1,11 +1,13 @@
 using System;
 using System.IO;
+using System.Linq;
 using Cake.Common;
 using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Clean;
 using Cake.Common.Tools.DotNet.Publish;
 using Cake.Core;
+using Cake.Core.Diagnostics;
 using Cake.Frosting;
 using Cake.Json;
 using Newtonsoft.Json;
@@ -118,4 +120,59 @@ public sealed class PackageTask : FrostingTask<BuildContext>
 [IsDependentOn(typeof(PackageTask))]
 public sealed class DefaultTask : FrostingTask
 {
+}
+
+/// <summary>
+/// The ModDB description from README.md, README.uk.md and docs/moddb/template.html (docs/development.md, "ModDB").
+/// Arguments: --ref=&lt;tag or SHA&gt; (default v&lt;version&gt;), --moddbLinks=true (Source and Report a bug in the buttons),
+/// --out=&lt;file&gt; (default Releases/moddb.html), --rawBase / --blobBase (to look at the page before the files are on GitHub,
+/// e.g. file:///C:/Projects/.../), --readme / --readmeUk (other READMEs).
+/// </summary>
+[TaskName("ModDbPage")]
+public sealed class ModDbPageTask : FrostingTask<BuildContext>
+{
+    const string Repo = "dankosedin/CurioCatalogue";
+
+    public override void Run(BuildContext context)
+    {
+        var modInfo = JObject.Parse(File.ReadAllText($"../{BuildContext.ProjectName}/modinfo.json"));
+        var langs = Directory.GetFiles($"../{BuildContext.ProjectName}/assets/{BuildContext.ProjectName}/lang", "*.json")
+            .Select(f => Path.GetFileNameWithoutExtension(f)!).OrderBy(c => c, StringComparer.Ordinal).ToList();
+        var gitRef = context.Argument("ref", $"v{context.Version}");
+        var input = new CurioCatalogue.PageGen.PageInput
+        {
+            ReadmeEn = File.ReadAllText(context.Argument("readme", "../README.md")),
+            ReadmeUk = File.ReadAllText(context.Argument("readmeUk", "../README.uk.md")),
+            Template = File.ReadAllText("../docs/moddb/template.html"),
+            Version = context.Version,
+            GameVersion = (string?)modInfo["dependencies"]?["game"] ?? throw new Exception("modinfo.json has no dependencies.game"),
+            Side = Capitalize((string?)modInfo["side"] ?? "universal"),
+            LangCodes = langs,
+            RawBase = context.Argument("rawBase", $"https://raw.githubusercontent.com/{Repo}/{gitRef}/"),
+            BlobBase = context.Argument("blobBase", $"https://github.com/{Repo}/blob/{gitRef}/"),
+            RepoUrl = $"https://github.com/{Repo}",
+            ModDbLinks = context.Argument("moddbLinks", false),
+        };
+
+        string html;
+        try
+        {
+            html = CurioCatalogue.PageGen.ModDbPage.Generate(input);
+        }
+        catch (CurioCatalogue.PageGen.ContractException ex)
+        {
+            throw new Exception(ex.Message, ex);
+        }
+
+        var output = context.Argument("out", "../Releases/moddb.html");
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
+        File.WriteAllText(output, html);
+        // For looking at it in a browser (a bare fragment has no charset); the file to paste is the one above.
+        File.WriteAllText(Path.ChangeExtension(output, ".preview.html"),
+            "<!doctype html>\n<html><head><meta charset=\"utf-8\"><title>Curio Catalogue (preview)</title></head>\n" +
+            "<body style=\"margin: 0; padding: 24px; background: #888\">\n" + html + "</body></html>\n");
+        context.Log.Information("ModDB page for {0} at {1}: {2} ({3} KB)", context.Version, gitRef, Path.GetFullPath(output), html.Length / 1024);
+    }
+
+    static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..].ToLowerInvariant();
 }

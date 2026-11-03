@@ -62,6 +62,11 @@ jobs:
       - name: Build
         run: dotnet build curiocatalogue.sln
 
+      # The page generator fails on a broken README contract (docs/development.md, ModDB). Images point to this commit, so the
+      # uploaded page can be looked at before the merge; the page of a release is made again in the job `release`.
+      - name: ModDB page
+        run: dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=$GITHUB_SHA
+
       # The compatibility tests take the pinned mods from this folder or download them there (CurioCatalogue.CompatTests/mods.json);
       # the key changes with the pin; a wrong hash still fails the run.
       - name: Restore the pinned mods
@@ -85,6 +90,13 @@ jobs:
         with:
           path: CurioCatalogue.CompatTests/mods
           key: ${{ steps.mods.outputs.cache-primary-key }}
+
+      - name: Upload the ModDB page
+        uses: actions/upload-artifact@v7
+        with:
+          name: moddb-page
+          path: Releases/moddb.html
+          retention-days: 14
 
       # A finished test run deletes its temp world, but the copied logs stay; a start that failed or a crash keeps the whole
       # data folder in the temp directory.
@@ -166,11 +178,15 @@ jobs:
       - name: Release zip (CakeBuild)
         run: dotnet run --project CakeBuild/CakeBuild.csproj
 
+      # After the zip: the images point to the tag `v<version>` that the next step creates.
+      - name: ModDB page (CakeBuild)
+        run: dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage
+
       - name: Tag and GitHub Release
         env:
           VERSION: ${{ steps.mod.outputs.version }}
           NAME: ${{ steps.mod.outputs.name }}
           MODID: ${{ steps.mod.outputs.modid }}
         run: |
-          gh release create "v$VERSION" "Releases/${MODID}_$VERSION.zip" \
+          gh release create "v$VERSION" "Releases/${MODID}_$VERSION.zip" Releases/moddb.html \
             --target "$GITHUB_SHA" --title "$NAME $VERSION" --notes-file notes.md

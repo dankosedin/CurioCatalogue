@@ -191,6 +191,13 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   contents (as baskets, `IHeldBag`) in boats, display blocks and other mods.
 - **Losing the sheet with a lost invoice** (hardcore, on top of `ConsumeSheets`).
 - **Items lying on the ground** as a container: nothing to click on, each item entity has its own access check; little use.
+- **Books in schematics: research, not a planned change** (03.11.2026, while building the screenshot studio). A book's
+  entries are item stacks in a tree array (`entries: [ {stack, count} ]`, also the album's `members`); when a schematic is
+  pasted (WorldEdit, worldgen structures, perhaps other mods' blueprints), the game remaps item ids only in nested trees,
+  not in arrays (vsapi `Collectible.OnLoadCollectibleMappings`). So a book carried in a schematic into a world with
+  another mod set may point at other items. Checked only with the same mods (it works). To find out: does it happen in
+  game with a different mod set; which ways of moving blocks between worlds players use; whether `ItemLedger` and
+  `ItemInvoice` should remap their own entries (`OnStore`/`OnLoadCollectibleMappings`) or store them otherwise.
 
 ## When pigs fly
 

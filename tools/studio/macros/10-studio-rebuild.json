@@ -1,0 +1,22 @@
+{
+  "Index": 10,
+  "Code": "studio-rebuild",
+  "Name": "Studio: rebuild in a new world",
+  "Commands": [
+    "/we mark =512010 =3 =512010 =512010 =3 =512010",
+    "/we import studio",
+    "/we cs",
+    "/time set lunch",
+    "/time stop",
+    "/weather setprecip -1",
+    "/weather acp"
+  ],
+  "KeyCombination": {
+    "KeyCode": 109,
+    "SecondKeyCode": null,
+    "Ctrl": false,
+    "Alt": true,
+    "Shift": false,
+    "OnKeyUp": false
+  }
+}

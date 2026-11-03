@@ -276,6 +276,18 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   (`<div class="spoiler"><div class="spoiler-toggle">Caption </div><div class="spoiler-text">…</div></div>`), images from raw
   GitHub at the release tag, relative links made absolute. The release's changelog is the `CHANGELOG.md` section. Screenshots
   and their size limits: `docs/screenshots.md`.
+  - **The README contract** (for the generated page, `docs/plans/2026-11-01-mod-page.md`; the generator fails with a clear
+    message when it is broken). Both READMEs keep it, together:
+    - **The head** (everything before the first `##`): the `#` title, the hook as the first paragraph, any README-only lines
+      (dropped from the page), the early-development warning as one blockquote, one image (the hero's).
+    - **Sections `##`:** each has a key, the slug of its English title (`getting-started`); the template knows every key, and an
+      unknown one is an error, so a new section is not lost silently. Renaming an English title changes its key: change the
+      template with it.
+    - **Both languages:** the same sections in the same order (Ukrainian ones are matched to English ones by position), the same
+      `###` in "What's inside".
+    - **"What's inside":** a list of exactly six items, one thing each, in the order of the icons (album, want list, ledger,
+      bill of materials, intake list, pick list), then a paragraph, then `###` subsections (each a nested accordion).
+    - **No HTML** in README; images and links by relative paths; screenshots with the language suffix (`*.en.png`, `*.uk.png`).
 - **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
   release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
   the date in `CHANGELOG.md` and the version in both READMEs' early-development warning. A fresh Fendragon invite in both READMEs'

@@ -149,7 +149,7 @@ centres the window. A container's window is placed by its block, not by this lis
 - The editor wraps long lines and saves them wrapped, which breaks `.cam load …`. Write long commands into
   `VintageStory-DevData\Macros\<n>-<code>.json` while the editor is closed, then restart the client.
 - The source of the macros is `tools/studio/macros/`; they are copied into `VintageStory-DevData\Macros` with the client
-  closed (the script comes with P3).
+  closed by `tools/screenshots.ps1 -Action Install`.
 
 ## World, time, weather
 
@@ -184,3 +184,19 @@ centres the window. A container's window is placed by its block, not by this lis
 - The file name has no variant of the cover, so the next export overwrites it: take the file at once.
 - The books' textures (`textures/item/book-*.png`) are only the label on the cover, so book icons come from this export;
   the lists' textures are whole.
+
+## The script
+
+`tools/screenshots.ps1` (PowerShell 5.1, `System.Drawing`; the header of the file has the options). Per language:
+
+1. Client closed: `-Action Install` (macros into the data folder), `-Action Dialogs -Shot none` (windows on "auto").
+2. Start the client, shoot the shots one by one (the table above), `title` last; after each frame, at once:
+   `-Action Collect -Shot <shot> -Lang <en|uk>` takes the newest frame of `Pictures\Vintagestory`, checks 1920×1080 and
+   writes `docs/images/<shot>.<lang>.<ext>`, with the 2 MB check. For `title`: client closed, `-Action Dialogs -Shot title`,
+   shoot, then `-Action Collect -Shot title -Lang <l> -Ribbon "<text>"` draws the slanted ribbon in the chosen corner.
+3. `-Action Check` lists missing shots and files over the limit. `-Format jpeg` (quality 90) when PNG is over 2 MB:
+   on a test frame the album window is 1.4 MB as PNG and 0.5 MB as JPEG.
+
+**Format and ribbon (03.11.2026):** `title` is a JPEG (0.5 MB; as PNG with the ribbon it is 2.1 MB, over the limit), the other
+shots are PNG (1.4–1.9 MB). The ribbon, as a placeholder until P5 decides the text and font:
+`-Corner BottomRight -Angle 25 -Ribbon "Possess them ALL!!!"`, font Georgia; the slope follows the floor boards.

@@ -261,6 +261,8 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 - CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs all four test
   projects (`dotnet test curiocatalogue.sln`, including the server and the compatibility tests, which start a real server on the
   Linux runner); on `feature/*`, `main`, `release` and on every PR (on the merge result).
+  After the build it runs the generator `ModDbPage` (`--ref` is the commit): a README that breaks the contract fails CI; the page is
+  uploaded as the artifact `moddb-page` (14 days), so it can be looked at before a merge.
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs (saved right after the download, so a red run does not download it again).
   - **The pinned mods** (`CurioCatalogue.CompatTests/mods/`) are cached with the key `pinned-mods-<hash of mods.json>`, saved also when a test fails; a changed pin
     downloads again, a wrong hash still fails.
@@ -271,7 +273,7 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
     and the whole job about 2 minutes (first run, 02.11.2026); the Test step prints each project's duration.
 - **Release:** `release` only moves forward to a commit of `main` (`git push origin main:release`, by the author). CI then builds,
   tests, makes the zip (CakeBuild), tags `vX.Y.Z` from `modinfo.json` (fails if the tag exists) and creates a GitHub Release
-  with the zip; the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
+  with the zip and `moddb.html` (the page for that tag, made by `ModDbPage` in the job); the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
   ModDB by hand (it has no release API). This is the job `release` in `ci.yml`, after `build`.
 - **ModDB** (https://mods.vintagestory.at/curiocatalogue) takes HTML, not Markdown: paste the generated `moddb.html` in the editor's source
   code mode (`<>`). The description is generated from the two READMEs (below): the English page with the whole Ukrainian version

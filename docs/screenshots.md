@@ -75,18 +75,16 @@ starts from a rebuilt world, so a shot that changes a prop (taking new, filling 
 - **One cover for every book:** `darkgreen`, which exists both normal and aged (teal and purple have no aged variant);
   the icons of P4 use the same cover. The vanilla book of `first-ledger` is `game:book-normal-darkgreen`, so the
   ledger it makes has that cover too.
-- A prop that a shot changes has its own copy (the album of `album-chest`), so the shots can be taken in any order.
-
-| Trunk (bottom = 1) | Props |
-|---|---|
-| 1 | the album (`title`, `album-window`); a copy of it (`album-chest`) |
-| 2 | the want list; the ledger and its intake list (`ledger-intake`); the bill of materials (`materials`) |
-| 3 | the first ledger's ingredients: `game:book-normal-darkgreen`, nails and strips, ink and quill (`first-ledger`) |
+- In the schematic (exported 03.11.2026, 17:05): the album, the ledger, the bill of materials, a want list and the first
+  ledger's ingredients. The shots are taken in the order of the list, so a shot that changes a prop (`album-chest` adds
+  pieces to the album) comes after the shots that need it unchanged. The intake lists of `ledger-intake` and
+  `materials` are made during the run (`tools/studio/README.md`).
 
 The album has taken every piece on the tapestry wall, so its "Missing" grid has the frames' pieces among the rest.
-The studio's **chest** holds duplicates of pieces on the wall, three or four pieces the album lacks (what `album-chest`
-takes) and nothing else. The ledger's intake list is made from a **handbasket** on the cabinet with items that are not tapestries
-(planks and resin in the draft), so `ledger-intake` shows a book of another kind than the album.
+The studio's **chest** holds duplicates of pieces on the wall and a few pieces the album lacks (what `album-chest` takes);
+the ledger's intake list (`ledger-intake`) is made from it. The **handbasket** on the cabinet holds planks and resin: the
+bill of materials' intake list (`materials`) is made from it. The bill of materials itself is empty (nothing posted into
+it yet), so `materials` shows its intake list, not its window.
 
 ## Shot list
 
@@ -98,7 +96,7 @@ shot's point; the window, the hands and the gesture are done by hand, as the tab
 |---|---|---|---|---|
 | Alt+1 | `title` | the album | right click into the air | the album's window on the left (its position from `tools/studio/dialog-positions.json`), the tapestry wall on the right: the frames on the wall are pieces in its "Missing" grid; one corner of plain brick for the slanted ribbon of two or three words (drawn by the script, P3) |
 | Alt+2 | `album-window` | the album | right click into the air | the album's window in the middle: name, progress line, "Missing" |
-| Alt+3 | `album-chest` | the copy of the album | Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
+| Alt+3 | `album-chest` | the album | Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
 | Alt+4 | `wantlist` | the want list | right click into the air | the want list's window |
 | Alt+5 | `ledger-intake` | the ledger's intake list, the ledger in the off-hand | right click into the air | the list's window (tapestries), the chest behind it |
 | Alt+6 | `materials` | the bill of materials' intake list, the book in the off-hand | right click into the air | the list's window with counts (planks, resin), the basket behind it |
@@ -127,9 +125,9 @@ centres the window. A container's window is placed by its block, not by this lis
 - Every shot keeps its windows on "auto" (centred), so `en` and `uk` frames match, except `title`: there the album's
   window is on the left and the tapestry wall on the right (a centred window covers the wall).
 - All our books share one dialog name, `curiocatalogue-ledger` (the lists: `curiocatalogue-invoice`), so the position
-  for `title` would move `album-window` and `materials` too. It is kept in `tools/studio/dialog-positions.json`; the
-  script of P3 writes it into `clientsettings.json` (the client closed) before the `title` shots and removes it before
-  the others, and `title` is shot last in each language. Until the script exists, do the same by hand.
+  for `title` would move `album-window` too. It is kept in `tools/studio/dialog-positions.json` and written by
+  `tools/screenshots.ps1 -Action Prepare`; `title` is shot first, then "auto" in the album window's ☰ menu puts it back
+  in the centre for the rest of the run.
 - The inventory (`inventory-backpack`) opens on the right on "auto"; for `first-ledger` it is dragged to the centre, and
   that position is in the same file. The inventory is in no other shot, so it may stay.
 - "auto" in the ☰ menu writes `null` for the window in `dialogPositions`.
@@ -149,7 +147,7 @@ centres the window. A container's window is placed by its block, not by this lis
 - The editor wraps long lines and saves them wrapped, which breaks `.cam load …`. Write long commands into
   `VintageStory-DevData\Macros\<n>-<code>.json` while the editor is closed, then restart the client.
 - The source of the macros is `tools/studio/macros/`; they are copied into `VintageStory-DevData\Macros` with the client
-  closed by `tools/screenshots.ps1 -Action Install`.
+  closed by `tools/screenshots.ps1 -Action Prepare`.
 
 ## World, time, weather
 
@@ -187,15 +185,20 @@ centres the window. A container's window is placed by its block, not by this lis
 
 ## The script
 
-`tools/screenshots.ps1` (PowerShell 5.1, `System.Drawing`; the header of the file has the options). Per language:
+`tools/screenshots.ps1` (PowerShell 5.1, `System.Drawing`; the header of the file has the options). The steps for a
+person are in `tools/studio/README.md`; here, why the script works as it does:
 
-1. Client closed: `-Action Install` (macros into the data folder), `-Action Dialogs -Shot none` (windows on "auto").
-2. Start the client, shoot the shots one by one (the table above), `title` last; after each frame, at once:
-   `-Action Collect -Shot <shot> -Lang <en|uk>` takes the newest frame of `Pictures\Vintagestory`, checks 1920×1080 and
-   writes `docs/images/<shot>.<lang>.<ext>`, with the 2 MB check. For `title`: client closed, `-Action Dialogs -Shot title`,
-   shoot, then `-Action Collect -Shot title -Lang <l> -Ribbon "<text>"` draws the slanted ribbon in the chosen corner.
-3. `-Action Check` lists missing shots and files over the limit. `-Format jpeg` (quality 90) when PNG is over 2 MB:
-   on a test frame the album window is 1.4 MB as PNG and 0.5 MB as JPEG.
+- **One run per language, three commands:** `Prepare` before the game (macros, the studio, the window positions, the
+  client's language), the seven shots in game, `Collect` after it. Rejected (03.11.2026): a `Collect` after every frame
+  and closing the client before `title` to write its window position (the author went back and forth between the game
+  and the terminal).
+- **`Collect` takes the seven newest frames** of `Pictures\Vintagestory` in the order of the list, so the run takes
+  exactly seven frames in that order; a frame retaken at once keeps the order. It checks all seven before writing any.
+- **Both window positions are written before the game:** `title` comes first, then the album's window goes back to
+  "auto" in its ☰ menu, and the inventory (`first-ledger`) is in no other shot.
+- **The language is written into `clientsettings.json`** (`stringSettings.language`), so the client starts in it;
+  switching in game restarts the client. To check on the first `uk` run.
+- `-Action Check` lists missing shots and files over the limit.
 
 **Format and ribbon (03.11.2026):** `title` is a JPEG (0.5 MB; as PNG with the ribbon it is 2.1 MB, over the limit), the other
 shots are PNG (1.4–1.9 MB). The ribbon, as a placeholder until P5 decides the text and font:

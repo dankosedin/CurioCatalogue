@@ -124,7 +124,7 @@ public sealed class DefaultTask : FrostingTask
 
 /// <summary>
 /// The ModDB description from README.md, README.uk.md and docs/moddb/template.html (docs/development.md, "ModDB").
-/// Arguments: --ref=&lt;tag or SHA&gt; (default v&lt;version&gt;), --moddbLinks=true (Source and Report a bug in the buttons),
+/// Arguments: --ref=&lt;tag or SHA&gt; (default v&lt;version&gt;), --moddbLinks=false (leave Source and Report a bug out of the buttons; default true),
 /// --out=&lt;file&gt; (default Releases/moddb.html), --rawBase / --blobBase (to look at the page before the files are on GitHub,
 /// e.g. file:///C:/Projects/.../), --readme / --readmeUk (other READMEs).
 /// </summary>
@@ -151,7 +151,7 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
             RawBase = context.Argument("rawBase", $"https://raw.githubusercontent.com/{Repo}/{gitRef}/"),
             BlobBase = context.Argument("blobBase", $"https://github.com/{Repo}/blob/{gitRef}/"),
             RepoUrl = $"https://github.com/{Repo}",
-            ModDbLinks = context.Argument("moddbLinks", false),
+            ModDbLinks = context.Argument("moddbLinks", true),
         };
 
         string html;

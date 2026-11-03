@@ -66,20 +66,69 @@ Change it in the rebuilt world, then export it again from the same import point:
 The end mark is one block past the studio on each axis (the end is exclusive); grow it if the studio grows. Copy the file
 back into `tools/studio/` and check that the answer counts the blocks you expect.
 
+## Props
+
+The player's inventory is not in the schematic, so everything the shots hold lives in the studio's **props trunks** (the
+stack of four beside the floor) and goes into the schematic with them. A rebuilt world has the props ready; each language
+starts from a rebuilt world, so a shot that changes a prop (taking new, filling a list) finds it fresh.
+
+- **One cover for every book:** `darkgreen`, which exists both normal and aged (teal and purple have no aged variant);
+  the icons of P4 use the same cover. The vanilla book of `first-ledger` is `game:book-normal-darkgreen`, so the
+  ledger it makes has that cover too.
+- A prop that a shot changes has its own copy (the album of `album-chest`), so the shots can be taken in any order.
+
+| Trunk (bottom = 1) | Props |
+|---|---|
+| 1 | the album (`title`, `album-window`); a copy of it (`album-chest`) |
+| 2 | the want list; the ledger and its intake list (`ledger-intake`); the bill of materials (`materials`) |
+| 3 | the first ledger's ingredients: `game:book-normal-darkgreen`, nails and strips, ink and quill (`first-ledger`) |
+
+The album has taken every piece on the tapestry wall, so its "Missing" grid has the frames' pieces among the rest.
+The studio's **chest** holds duplicates of pieces on the wall, three or four pieces the album lacks (what `album-chest`
+takes) and nothing else. The ledger's intake list is made from a **handbasket** on the cabinet with items that are not tapestries
+(planks and resin in the draft), so `ledger-intake` shows a book of another kind than the album.
+
 ## Shot list
 
-Each shot in `en` and `uk`, as `<shot>.<lang>.<ext>` (P3 of the plan). The macro of each shot (camera point, resolution,
-HUD) comes with its test frame.
+Each shot in `en` and `uk`, as `<shot>.<lang>.<ext>` (P3 of the plan). A shot's macro (Alt+1 … Alt+7, the files
+`tools/studio/macros/11-shot-<shot>.json` … `17-…`) sets the resolution, hides the HUD parts and moves the camera to the
+shot's point; the window, the hands and the gesture are done by hand, as the table says.
 
-| Shot | In the hands | In the frame |
-|---|---|---|
-| `title` | the album | the album's window moved aside, the tapestry wall beside it: the frames on the wall are pieces in its "Missing" grid; a third of the frame free for the title text (drawn by the script, P3) |
-| `album-window` | the album | the album's window in the middle: name, progress line, "Missing" |
-| `album-chest` | the album | looking at the chest, the Shift hint at the bottom; in the chat the message of a "take new" just done (shoot within 15 s) |
-| `wantlist` | a want list | the want list's window |
-| `ledger-intake` | an intake list, the ledger in the off-hand | the list's window, the chest behind it |
-| `materials` | a bill of materials | its window with counts, sorted by count |
-| `first-ledger` | — | the inventory, the first ledger's recipe in the 3×3 grid (vanilla book, nails and strips, ink and quill) and the ledger as the result |
+| Key | Shot | In the hands | By hand after the macro | In the frame |
+|---|---|---|---|---|
+| Alt+1 | `title` | the album | right click into the air | the album's window on the left (its position from `tools/studio/dialog-positions.json`), the tapestry wall on the right: the frames on the wall are pieces in its "Missing" grid; one corner of plain brick for the slanted ribbon of two or three words (drawn by the script, P3) |
+| Alt+2 | `album-window` | the album | right click into the air | the album's window in the middle: name, progress line, "Missing" |
+| Alt+3 | `album-chest` | the copy of the album | Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
+| Alt+4 | `wantlist` | the want list | right click into the air | the want list's window |
+| Alt+5 | `ledger-intake` | the intake list, the ledger in the off-hand | open the basket (right click), then right click into the air | the list's window beside the basket's: the same items |
+| Alt+6 | `materials` | the bill of materials | right click into the air | its window with counts |
+| Alt+7 | `first-ledger` | — | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid | the inventory, the first ledger's recipe in the grid and the ledger as the result |
+
+Alt+0 is the rebuild, Alt+9 the point-finding macro. Ctrl+1 … Ctrl+4 are taken by the game (the bag slots of the
+inventory). On the author's machine the macros that give tapestry pieces are on Ctrl+Shift+1 … Ctrl+Shift+9.
+
+**Finding the points:** Alt+9 (`20-cam-point.json`) sets 1080p, adds a camera point where you stand (`.cam p`) and copies
+all the points to the clipboard (`.cam save`). Start with `.cam clear`, then for each shot in the table's order: frame it,
+Alt+9, F12 for a draft. The last clipboard text has every point, in the order of the shots; the shot macros are made from it.
+`.cam save` writes `1,` (a version) and six numbers per point: x, y, z ×100, pitch, yaw, roll ×1000. The shot macros load
+the whole list and go to their own point, so the list in every macro is the same.
+
+The shot macros end with `.clearchat`, so a frame has no chat unless the shot makes a message (`album-chest`).
+`.cam` works only in creative mode: the macro of `first-ledger` switches to creative for the camera and back to survival.
+
+## Window positions
+
+Checked in vsapi `GuiElementDialogTitleBar.cs` (1.22.7): a window dragged by its title bar is remembered by its dialog name
+in `clientsettings.json`, `dialogPositions`, and opens there again; "auto" in the ☰ menu of the title bar forgets it and
+centres the window. A container's window is placed by its block, not by this list.
+
+- Every shot keeps its windows on "auto" (centred), so `en` and `uk` frames match, except `title`: there the album's
+  window is on the left and the tapestry wall on the right (a centred window covers the wall).
+- All our books share one dialog name, `curiocatalogue-ledger` (the lists: `curiocatalogue-invoice`), so the position
+  for `title` would move `album-window` and `materials` too. It is kept in `tools/studio/dialog-positions.json`; the
+  script of P3 writes it into `clientsettings.json` (the client closed) before the `title` shots and removes it before
+  the others, and `title` is shot last in each language. Until the script exists, do the same by hand.
+- A window dragged by mistake: "auto" in its ☰ menu, or remove its entry from `dialogPositions` with the client closed.
 
 ## Camera points
 

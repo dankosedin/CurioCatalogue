@@ -1,0 +1,24 @@
+{
+  "Index": 17,
+  "Code": "shot-first-ledger",
+  "Name": "Shot: first-ledger",
+  "Commands": [
+    ".resolution 1080p",
+    ".cf showMinimapHud false",
+    ".cf showCoordinateHud false",
+    ".cf showBlockInfoHud false",
+    ".cam load 1,51202546,400,51202053,3260,13753,0,51202487,403,51202228,3129,14089,0,51202643,400,51202240,3492,7864,0,51202553,400,51202237,3054,7802,0,51202528,400,51202215,3060,7797,0,51202643,400,51202246,3506,7845,0,51202584,400,51202156,3161,7663,0,51202537,400,51202175,3105,7759,0,51202540,400,51202202,3167,7807,0,51202483,400,51202248,3098,7857,0",
+    "/gamemode creative",
+    ".cam goto 9",
+    "/gamemode survival",
+    ".clearchat"
+  ],
+  "KeyCombination": {
+    "KeyCode": 116,
+    "SecondKeyCode": null,
+    "Ctrl": false,
+    "Alt": true,
+    "Shift": false,
+    "OnKeyUp": false
+  }
+}

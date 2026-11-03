@@ -1,0 +1,18 @@
+{
+  "Index": 20,
+  "Code": "cam-point",
+  "Name": "Studio: add a camera point and copy all",
+  "Commands": [
+    ".resolution 1080p",
+    ".cam p",
+    ".cam save"
+  ],
+  "KeyCombination": {
+    "KeyCode": 118,
+    "SecondKeyCode": null,
+    "Ctrl": false,
+    "Alt": true,
+    "Shift": false,
+    "OnKeyUp": false
+  }
+}

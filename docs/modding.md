@@ -193,6 +193,7 @@ In this order:
 - **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
   `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`GridDialog.Watch`) and name the
   item in its requests (`ShownItem`).
+- **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
 
 ## Config and logging
 

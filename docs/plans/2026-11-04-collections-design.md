@@ -63,7 +63,7 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       Branch: `docs/collections-design`. After: the plan's own commit. Model: opus. Author: chooses among the options.
       Done when: Decisions has the options with their costs and the author's choice; `docs/architecture.md` gets the decision
       when it is made in C7.
-- [ ] **C6. The cost of reading a book.** Measured, not guessed: a tooltip, the crafting checks and the window's hash every
+- [x] **C6. The cost of reading a book.** Measured, not guessed: a tooltip, the crafting checks and the window's hash every
       500 ms (`ROADMAP.md`, 0.2) on an album of 88, 169 and ~400 members, on the server and on the client side where the test
       server allows. A probe or a test that stays if it is cheap to keep.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: sonnet. Author: none.
@@ -396,6 +396,35 @@ Decided (the author, 04.11.2026):
   file `ModConfig/curiocatalogue.json`, each value at a stable path (`Collections/<id>/<field>`); no `version` key; the parts
   built from the config can be rebuilt on a running game, or at least nothing in their structure forbids it.
 
+### The cost of reading a book (C6)
+
+Final. Measured 04.11.2026 by `CurioCatalogue.ServerTests/ReadingCostTests.cs` (stays: a loose budget of 100 ms catches a read that
+turns quadratic). The collection grows by the config's `TapestryAdd` (88 real pieces + made-up names), so the path is the real one
+(registry, store, core). Median of 100-200 runs on the server's main thread, **Debug build**, this laptop; milliseconds per call.
+An album of all members missing unless marked.
+
+| Members | Album's data | Read (`ReadLedger`) | Read, half collected | Tooltip text (`GetHeldItemInfo`) | `Fingerprint` | `Clone` of the stack | Grid change with the album in it |
+|---|---|---|---|---|---|---|---|
+| 88 | 8 KB | 0.17 | 0.11 | 0.49 | 0.09 | 0.06 | 0.91 (empty ledger 0.05) |
+| 169 | 15 KB | 0.26 | 0.17 | 0.64 | 0.15 | 0.05 | 0.73 |
+| 400 | 37 KB | 0.69 | 0.45 | 1.16 | 0.17 | 0.11 | 1.99 (empty ledger 0.06) |
+
+- Everything grows about linearly with the members, and 400 is under 2 ms for any single operation. The window's hash every
+  500 ms is 0.2 ms at worst (0.04% of a core); a read when the data changed 0.7 ms; crafting checks (a grid change with the album in
+  it: several recipes ask `MatchesForCrafting`, each a full read) 2 ms at 400, once per click on the grid.
+- **Verdict: fine as is for the sizes planned.** The core needs no change for reading cost. The only thing worth keeping in
+  mind for the core: `RefreshIfStale` builds a key set per read (inside the numbers above).
+- **Not measured (the test server has no client):** the window's recompose (`GridDialog.Refresh` → `Compose`: 400 slots, textures;
+  A1 of the album view plan) and the tooltip's drawing.
+- **A finding, checked in game 04.11.2026: the tooltip recomposes at frame rate for a moment.** The game's tooltip calls
+  `GuiElementItemstackInfo.SetSourceSlot` on every frame the stack is hovered (vsapi `ItemstackComponentBase.cs:67-81`, `RenderItemstackTooltip`),
+  which recomposes (`AsyncRecompose`, calling `GetHeldItemInfo`) unless `ItemStack.Equals` says the stack equals its copy
+  (`GuiElementItemstackInfo.cs:252-258`). `ArrayAttribute.Equals` compares the elements with `a[i].Equals(b[i])`
+  (vsapi `Other/ArrayAttribute.cs:26`) and `TreeAttribute` has no `Equals(object)`, so a tree array (our `entries`, `members`)
+  never equals even its own clone. The server test shows it: `full.Equals(world, full.Clone(), IgnoredStackAttributes)` is false at
+  88, 169 and 400. Result (a probe line in `GetHeldItemInfo`, dev client, the author hovering an album and a ledger in the inventory and on the ground): the text is built **every frame (~60 per second)** in runs of 72-73 calls (~1.2 s) each time the tooltip appears, then no more while the cursor stays; items on the ground are asked every 500 ms (the block info). So the rebuild is real, but short (at most ~75 builds per hover, ~1 ms each at 400 members, asynchronous): **not a problem**; no change in the core. The reason for the stop after ~1.2 s is not known (not looked for). The probe is removed.
+- Not measured, by reasoning: the inventory slot names (`GetHeldItemName`) read only the name, cheaply (`LedgerStore.ReadName`).
+
 ## Where we stopped
 
 - 04.11.2026: C1 done (final): the facts, the author's answers and the open points in Decisions, "Ore crystals (C1)". Next: C2
@@ -411,3 +440,6 @@ Decided (the author, 04.11.2026):
   `Exclude`, `Add`, `Disabled`; the two tapestry keys migrate; ConfigLib in Next); the `"side": "server"` trap in
   `docs/modding.md`; ConfigLib in `ROADMAP.md`, After 0.2. `docs/architecture.md` gets the decision in C7. Next: C6 (sonnet);
   C7 (opus) after it.
+- 04.11.2026: C6 done (final): the numbers and the verdict (fine as is) in Decisions, "The cost of reading a book (C6)"; the test
+  `ReadingCostTests` stays. The tooltip check in game is done and harmless (see there). Next: C7
+  (opus, After: C1–C6).

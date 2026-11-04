@@ -98,7 +98,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 **Albums and collections**
 - **Exhibits:** record a collection where it is displayed, without moving it: tapestries on walls, butterflies on shelves and in
   display cases, other wall-hung things, and mods that add display blocks. A lot of work: many block kinds. Pieces displayed by
-  others count too: the collection is the items, the album only a way to look at it.
+  others count too: the collection is the items, the album only a way to look at it. Butterflies lie mostly in such blocks: a
+  collector on the author's server keeps them both in chests and on wall plaques (Butterfly Displays, 04.11.2026); vanilla shelves,
+  display cases and all three butterfly display mods are `BlockEntityDisplay` inventories (the collections design plan, C3).
 - **More collections,** from players' feedback. Noted by the author (31.10.2026): **fish**, **fruit trees** and **berry
   bushes**. Open for each: what one piece is (a species? a fruit or a sapling?) and whether it can lie in a chest at all.
 - **Can the tapestry collection be completed?** (review, 28.10.2026) Some pieces in the game's `sizes` have index `-1` and are not
@@ -192,6 +194,12 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 
 - **Rarity in the album:** a frame by rarity in the stamp-album view, as real stamp and coin catalogues show it. Large design space:
   computed from the game (loot table weights, butterfly spawn by climate; needs research) or set in the collection's config.
+  Rarity is a property of a cell, not a dimension; perhaps a sort key. Several tiers (e.g. rare, epic, legendary), decided with
+  the feature (the author, 04.11.2026). Butterflies carry it in their assets: six steps of spawn chance (the collections design
+  plan, C3).
+- **Catch and Release: Butterflies** (integration target): an album of live butterflies, `game:creature-butterfly-{type}`, which
+  that mod's net gives and its cages hold. A collection of its own, never mixed with the dead one (the collections design plan,
+  Decisions). Not on the author's server (04.11.2026).
 - **Parcels:** our own container, in several sizes. Posting an invoice packs the items into it instead of the inventory, and the
   invoice goes with the parcel; at the destination a book posts it and unpacks. Put on a cart or into a boat, trade becomes physical.
   A strong idea; the priority is for later. The mod still sets no prices: trading stays between players. Research: an item with

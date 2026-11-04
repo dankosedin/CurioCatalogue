@@ -38,7 +38,7 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       colour; groups.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: opus. Author: answers; the in-game check if needed.
       Done when: as C1.
-- [ ] **C3. Butterflies.** The same for `butterfly-dead-{type}` (169 types; Decisions, "Butterflies: dead only"): which types
+- [x] **C3. Butterflies.** The same for `butterfly-dead-{type}` (169 types; Decisions, "Butterflies: dead only"): which types
       a player can catch in survival (the entity's spawn conditions by climate), the forms of a type (male, female, colour,
       season) and whether a species can be told from the code alone; how the display mods keep a butterfly (Butterfly
       Displays, Butterfly Cases - Reborn, Catch and Release: Butterflies; integration targets) and whether any of them adds
@@ -228,9 +228,104 @@ Open points of C2:
 - That land gives any of 42 in practice: the author has not noticed (04.11.2026). An in-game look at a temperate lake beach
   (sundial, conch or darkpurple among the shells) when convenient; the code is clear, so nothing waits on it.
 
+### Butterflies (C3)
+
+Facts, game 1.22.7, read 04.11.2026 (assets under `VintageStory-Dev/assets/survival/`, code in `game-src`, the engine's
+`ServerSystemEntitySpawner` decompiled):
+
+- **The item** `butterfly-dead-{type}` (`itemtypes/creature/creature-butterfly-dead.json`, class `ItemDeadButterfly`): 169 types,
+  no `allowedVariants`; stack 64, `shelvable`, `displaycaseable`; one handbook page for all (`handbook.groupBy`). No recipe, trader,
+  loot table or schematic gives or uses one: a collected butterfly is never used up, unlike crystals and shells.
+- **How a player gets one: only the bug net** (`recipes/grid/butterflynet.json`, `bugnet-copper`). A hit on a butterfly kills it
+  and gives the item named by the entity's `netCaughtItemCode`, `butterfly-dead-{type}` (`entities/animal/invertebrate/butterfly.json:10`,
+  `ItemBugnet.cs:49-51`).
+- **The entity has 170 types, the item 169: `reedbutterfly` has no item** (nor a name in lang; it has a texture). Its spawn
+  conditions have a climate but no `chanceByType` or `maxQuantityByType` entry, so the defaults apply (`Chance` 1, `MaxQuantity` 20,
+  `SpawnConditions.cs:265,273`; a `*ByType` with no matching key is dropped, `RegistryObjectType.cs:306#solveByType`): it spawns
+  more readily than any other type in its climate. Caught, it dies first, then `new ItemStack(null)` throws (`ItemBugnet.cs:49-51`,
+  `ItemStack.cs:225`): the player gets nothing. Not checked in game.
+- **Spawning: at runtime only** (no worldgen spawn), `group: "passive"`, on the surface, inside a `flower-*` or `tallgrass-*` block,
+  full daylight (`butterfly.json:275-286`). Per type a climate box, `spawnconditions.climateByType`:
+  - temperature and rain are the yearly worldgen values, taken at a fixed height of 1.09 × sea level, not at the spawn point
+    (decompiled `GetSuitableClimateTemperatureRainfall`); forest at the spawn point; `minY`/`maxY` at the spawn point, 0..1 below
+    sea level, 1..2 from sea level to the top of the world;
+  - also, the current temperature at the spawn point (season, time of day) must be ≥ 0 °C, or the spawn is refused
+    (`EntityButterfly.cs:36`) and a loaded butterfly removed (`EntityButterfly.cs:73`). The seasonal swing grows with latitude,
+    up to 65 °C near the poles (`Temperature.cs:75`): butterflies of a −20..−10 °C climate fly on warm summer days only.
+- **Rarity is in the assets:** `chanceByType` in six steps, and `maxQuantityByType` follows it (1 to 12): 0.03 (55 types), 0.02 (44),
+  0.01 (38), 0.003 (19), 0.0003 (7), 0.00003 (6: apollo female and male, two *Ornithoptera priamus* and Queen Victoria's and
+  Wallace's golden birdwing). The rarest is a thousand times rarer than the commonest. All butterflies together are capped at 20
+  (`maxQuantityByGroup`, ×0.4 per extra player).
+- **Which types a player can catch in survival:** all 169 in principle; by climate box (types share 24 boxes):
+  - most boxes overlap the climate of a flower or tall grass patch (`worldgen/blockpatches/flower.json`, `grass.json`, the
+    `tallgrass` layer of `worldgen/blocklayers.json`);
+  - **cold desert** (−5..5 °C, rain ≤ 0.1, forest ≤ 0.2; 24 types, plus `reedbutterfly`): no flower grows there and the tall grass
+    layer needs rain ≥ 0.2; only the tall grass patches of `grass.json:92,103` (rain ≥ 0.12) fit. A patch's rain is taken at its own
+    height and rises near sea level (`Climate.cs:38#GetRainFall`), while the butterfly's is taken at 1.09 × sea level, so these
+    types can spawn on low ground a few blocks above sea level, or high up at the wetter edge of the box: rare by place, whatever
+    their chance;
+  - **hot desert** (`africanmapwing`, 35..45 °C, rain ≤ 0.1): worldgen temperature tops at 40 °C (`Climate.cs:62`), so only the
+    hottest deserts; tall grass patch `grass.json` 20..40 °C, rain 0.1..0.15, and the orange mallow fit;
+  - **the top of the world** (`africancloudedyellowmale`, `minY` 1.9: the top tenth of the height above sea level, hot and semi-arid):
+    only on the highest peaks; `acmonblue*` (1.6..1.9) and eleven others (1.5..1.8) are mountain butterflies;
+  - **players can make a place:** a planted flower is a `flower-*` block, so a flower on soil in the right climate (and height) is a
+    spawn point. Not checked in game; whether the surface map counts a planted flower was not read.
+  - The analysis compares boxes, not a world; nothing was checked in game.
+- **Forms of a type** (the code and the English name): sex (59 types end in `female`, 52 in `male`, 58 have neither), female colour
+  morphs (blood-red glider pale/red, Aega morpho blue/brown, dawn clouded white/yellow, southern dogface white/yellow, orange-barred
+  sulphur *thalestris* red/yellow, large orange sulphur white), seasonal forms (chocolate albatross and tropical white dry/wet season,
+  map butterfly spring/summer, eastern comma summer form) and named forms (lemon emigrant *alcmeone*/*hilaria*). **Seasonal forms are
+  not seasonal in game:** the spring and summer map butterfly have the same spawn conditions; nothing in the spawn depends on season.
+- **The species cannot be told from the code:** suffixes are irregular (`bloodredgliderpalefemale` vs `bloodredglidermale`; `comma`,
+  `commaabdilutus`, `easterncommasummerform` and `falsecomma` are three species). **The Latin name is in lang:**
+  `itemdesc-creature-butterfly-{type}` (`game/lang/en.json` from line 12063; shown in the tooltip, `ItemDeadButterfly.cs:21`) holds
+  the binomial, the same in `uk.json`: 117 distinct names, 110 species by genus and species (the 7 extra are subspecies and
+  aberrations: *ab. dilutus*, *ab. schmidtii*, *Miokensis*, *euphorion*, *thalestris*, *maxima*, *cornelia*, *belides*), 75 genera.
+  By the 117 names: 72 have one type, 37 two, 8 three. A source for a grouping, read from the assets, not at runtime from lang:
+  a translation may change it.
+- **Names:** "Dead {name} ({form})" (`item-deadbutterfly`, `ItemDeadButterfly.cs:14`), all 169 distinct in `en` and `uk`, the forms
+  in brackets ("Map Butterfly (male, spring form)"). Unlike crystals, the name tells the piece.
+- **Where collected butterflies lie: displays more than chests.** Vanilla shelves and display cases, and all three display mods
+  (integration targets; the latest files from ModDB, or the author's `ModsByServer`, on a scratch copy 04.11.2026) keep the vanilla
+  `game:butterfly-dead-*` item in a `BlockEntityDisplay` (a `BlockEntityContainer`) inventory, one butterfly per slot. Today the books
+  read none of these (`docs/domain.md`, "not supported yet"):
+  - **Butterfly Displays 1.2.1** (modid `butteflydisplay`, name "Butterfly Plaques", on the author's server): plaques of 4 slots,
+    any item with `displayplaqueable`, which it patches onto `butterfly-dead`;
+  - **Butterfly Cases - Reborn 1.0.4**: dome, wall and slanted cases of 1 or 4 slots, any `displaycaseable` item;
+  - **Catch and Release: Butterflies 2.1.2** (with Catch and Release LIB 1.1.5): **the net then gives a live butterfly**, the vanilla
+    item `game:creature-butterfly-{type}` (patch of `netCaughtItemCode`); it perishes into `butterfly-dead-{type}` after 48 hours
+    (its config `LiveButterflyPerishHours`), or a one-ingredient grid recipe makes it dead at once. Cages and terrariums keep live
+    items (`validItems: game:creature-butterfly-*`) in a `BlockEntityDisplay` and show a caged entity. Whether perishing stops in a
+    cage was not read. With this mod a collector holds live butterflies first: "dead only" (Decisions) means the album sees them once
+    they die or are crafted.
+  - Not read: Butterfly display frame, Dusiulka's Butterfly Pin Board, the optimization patch of Catch and Release (ModDB search
+    04.11.2026).
+
+The author's answers (04.11.2026):
+
+- **Every type that has an item is in the album,** the hard-to-reach ones too (cold desert, hot desert, the top of the world).
+  `reedbutterfly` has no item, so it cannot be a member.
+- **Rarity is a property of a cell, not a dimension;** perhaps a key to sort by. Marked in several tiers (e.g. rare, epic,
+  legendary), decided with the rarity feature (`ROADMAP.md`, Maybe), not here. As for seashells (C2): the shape needs per-member
+  attributes beside its dimensions (C7).
+- **Players on the author's server collect butterflies:** one collector keeps them both in chests and on wall plaques
+  (Butterfly Displays). So reading display blocks (`ROADMAP.md`, Exhibits) matters for this collection; for C7 to weigh.
+- **Catch and Release is not on the author's server** (not in `ModsByServer`, 04.11.2026). An album of live butterflies with it:
+  `ROADMAP.md`, Maybe.
+
+Open points of C3:
+- Grouping by species (Decisions, "Butterflies last"): the Latin names give 110 species or 117 names; whether the grouping is
+  built from them (read from the assets at build time) or written by hand.
+- `reedbutterfly`: report to the game's developers? A fix would add a 170th item, and the album would need it (C5, C7: members
+  from the loaded items, not a fixed list).
+- In game, when convenient: catch a cold-desert type near sea level; whether a planted flower becomes a spawn point.
+
 ## Where we stopped
 
 - 04.11.2026: C1 done (final): the facts, the author's answers and the open points in Decisions, "Ore crystals (C1)". Next: C2
   (opus, After: the plan's own commit).
 - 04.11.2026: C2 done (final): the facts, the author's answers and the open points in Decisions, "Seashells (C2)"; the land
   placement surprise in `docs/modding.md`. Next: C3 (opus, After: the plan's own commit).
+- 04.11.2026: C3 done (final): the facts, the author's answers and the open points in Decisions, "Butterflies (C3)"; the
+  `*ByType` default surprise in `docs/modding.md`; two lines in `ROADMAP.md` (rarity, Catch and Release) and one to Exhibits.
+  Next: C4 (opus, After: C1–C3) or C5 (opus) or C6 (sonnet).

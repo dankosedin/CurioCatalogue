@@ -224,6 +224,11 @@ In this order:
   `BlockSeashell.TryPlaceBlockForWorldGen` (`BlockShell.cs:45`) draws its own type and colour, so the loose-shell patches that
   name only clam and turritella give any of the 42; under water the patch's list holds. Before trusting `blockCodes` of a
   patch, check whether the block class overrides the placement.
+- **Butterflies** `butterfly-dead-{type}` (04.11.2026, details in the collections design plan, C3): 169 types, only from the bug net.
+  The entity has a 170th, `reedbutterfly`, with no item: catching it kills it and gives nothing. **A `*ByType` with no matching
+  key falls back to the C# default, not to "absent":** `reedbutterfly` has no `chanceByType` entry, so its `Chance` is 1, the
+  highest of all (`RegistryObjectType.cs:306#solveByType`, `SpawnConditions.cs:265`). The species is not in the code but in the
+  Latin name, lang `itemdesc-creature-butterfly-{type}`.
 
 ## Other mods
 

@@ -32,7 +32,7 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       what makes a group complete.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: opus. Author: answers the questions.
       Done when: Decisions has the facts with sources and the author's answers; the open points are named.
-- [ ] **C2. Seashells.** The same for `seashell-{type}-{color}` (block `BlockSeashell`, 7 × 6 = 42): every source (worldgen
+- [x] **C2. Seashells.** The same for `seashell-{type}-{color}` (block `BlockSeashell`, 7 × 6 = 42): every source (worldgen
       patches, trader, loot, schematics); whether a picked-up shell is a stack that lies in a chest, and with what code
       (check in game if the sources do not say); lang names. Questions for the author: one piece is the type or type and
       colour; groups.
@@ -167,7 +167,70 @@ Open points of C1:
 - Combinations that never generate: excluded by a default list in the config (as `TapestryExclude` today), or computed from the
   loaded deposits at startup (a mod adding uranium deposits would then bring them in): C5 and C7.
 
+### Seashells (C2)
+
+Facts, game 1.22.7, read 04.11.2026 (assets under `VintageStory-Dev/assets/survival/`, code in `game-src`):
+
+- **The block** `seashell-{type}-{color}` (`blocktypes/aquatic/seashell.json`, class `BlockSeashell`): 7 types (scallop, sundial,
+  turritella, clam, conch, seastar, volute) × 6 colours (latte, plain, seafoam, darkpurple, cinnamon, turquoise) = 42, no
+  `allowedVariants`. A block "kept for backwards compatibility" (the file's comment): `Unplaceable`, `GroundStorable` (4 to a
+  spot), `RightClickPickup`, `shelvable`, `displaycaseable`. The handbook has one page per type (`handbook.groupBy`).
+- **In the hand and in a chest:** picked up by a right click with an empty hand (or a hand holding the same stack), or broken;
+  either way the stack is the block itself, `game:seashell-{type}-{color}` (`BehaviorRightClickPickup.cs:48`, `Block.cs:1340#OnPickBlock`),
+  up to 64 (`Collectible.cs:63`, not overridden). A block stack lies in a chest as any other; tapestries are block stacks too.
+  Not checked in game: the sources say it.
+- **Under water: the patch's list, uniform** (`BlockPatch.cs:253`, `BlockShell.cs:18#TryPlaceBlockForWorldGenUnderwater` places
+  the block it is given). `worldgen/blockpatches/aquatic.json:241-288`, depth 2..16, rain ≥ 0.3, chance 0.2 per chunk:
+  - tropics (11..40 °C), sea water: all 42;
+  - tropics, fresh water: clam and turritella, any colour (12);
+  - temperate (-20..11 °C), sea water: clam, scallop, seastar, turritella, volute in plain, latte, cinnamon (15);
+  - temperate, fresh water: clam and turritella in plain, latte, cinnamon (6).
+- **On land: any of 42, whatever the patch lists.** Four `NearWater` patches (`aquatic.json:289-328`, ≥ -5 °C, dry and wet
+  climates, chance 0.1..2) name only clam and turritella in plain and latte, but `BlockShell.cs:45#TryPlaceBlockForWorldGen`
+  ignores the code it was given and draws a new one: the type uniform of 7, the colour latte, plain, darkpurple or cinnamon
+  (92%, each 23%) or seafoam or turquoise (8%, each 4%). Placed only on sand or gravel (`HasBeachyGround`), around a point of
+  fresh water (`BlockPatchConfig.cs:46`, Gauss offset σ 5, `BlockPatch.cs:73`). So every combination occurs in a world
+  without tropics, sundial and conch included; one of a rare colour is ≈ 0.6% of loose shells, a common one ≈ 3.3%.
+  Likely not what the patch's author meant (its comments); a game update may narrow it.
+- **Never generated: none.** All 42 occur in survival. Rarity differs: tropical sea and rare colours.
+- **Other sources:** none. No trader sells or buys shells (`villager-liga.json` sells two shell bracelets and necklaces, items
+  of their own); no loot table or panning gives them. Seven schematics hold 8 placed shells, all of the rarer kind
+  (`resoarchive`, `tobiascave` 3, `treasurehunter`, `cathedral-of-tyrons-basement`, `monastery-of-fishing`, `trader/treehouse/hut1`,
+  `underground/lakes/small9`): darkpurple conch and volute, seafoam sundial and scallop, turquoise turritella.
+- **Used up by:** the quern (2 lime, `grindingProps`), a seashell headband and necklace (`recipes/grid/clothes/face.json:112`,
+  `neck.json:244`, any shell). A collected piece can be used up, as a crystal.
+- **Names** (`game/lang/en.json:7265-7306`): "{Type} ({Colour})", one per combination, all distinct; the description is
+  "Sea shell". In `uk.json` scallop darkpurple is named as seafoam ("водянистого", line 6794): two codes share a name
+  in Ukrainian, a vanilla translation bug. Unlike crystals, the name tells the piece.
+- **Mods that give shells** (sources, not competitors; not on the author's server; the latest files from ModDB read on a
+  scratch copy 04.11.2026): both give the vanilla codes, so their shells fill the album as they are, and neither knows of
+  rarity.
+  - **She Pans Seashells 2.0.0** (content mod, game 1.22.0+): one patch (`patches/shellspanning.json`) adds all 42
+    `game:seashell-*` to the panning drops of sand, gravel and wavy sand, each at 0.001 per pan (≈ 4% for any shell).
+  - **Seashell Ore 1.0.0** (code mod, game 1.19.8, "To be reworked", last release 27.06.2024): a deposit of its own block
+    `ore-seashell-{rock}` in 7 sedimentary rocks near the surface; broken, it drops one `game:seashell-{type}-{color}`, the type
+    and colour drawn from all 42 alike (decompiled `BlockSeashellOre.GetDrops`); a rare `seashell-conch-plain` on the deposit's
+    surface. Whether it still loads on 1.22 was not checked.
+
+The author's answers (04.11.2026):
+
+- **Two levels:** 1. **the type**, 7 pieces, each filled by a shell of that type in any of its 6 colours (a member filled by any
+  of several codes, as level 1 of the crystals); 2. **type and colour**, 42 pieces.
+- **Dimensions:** type and colour (Cartesian, all 42 points allowed). No "tropical" dimension: every shell generates anywhere
+  (on land).
+- **Rarity is a property of a piece, not a group:** the question is "is this shell rare", shown on its cell (a mark, a frame),
+  not "which shells are rare" as a section of the album. The shape needs per-member attributes beside its dimensions (C7, A2).
+- **What players do with shells** (the author's server): everything: collect, grind to lime, make jewellery.
+
+Open points of C2:
+- What "rare" is: the game's own split is the colour (seafoam and turquoise, `BlockShell.cs:13`, a constant in code, not in
+  assets); the tropical sea and the schematics make some rarer still. A default in the definition, changeable by config? C5, C7.
+- That land gives any of 42 in practice: the author has not noticed (04.11.2026). An in-game look at a temperate lake beach
+  (sundial, conch or darkpurple among the shells) when convenient; the code is clear, so nothing waits on it.
+
 ## Where we stopped
 
 - 04.11.2026: C1 done (final): the facts, the author's answers and the open points in Decisions, "Ore crystals (C1)". Next: C2
   (opus, After: the plan's own commit).
+- 04.11.2026: C2 done (final): the facts, the author's answers and the open points in Decisions, "Seashells (C2)"; the land
+  placement surprise in `docs/modding.md`. Next: C3 (opus, After: the plan's own commit).

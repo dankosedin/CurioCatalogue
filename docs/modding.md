@@ -219,6 +219,11 @@ In this order:
 - **Ore crystals** `crystalizedore-{grade}-{ore}-{rock}` (04.11.2026, details in the collections design plan, C1): 407 allowed,
   but 54 never generate (uranium and stibnite have no deposits at all in 1.22.7); only mining gives them, never an explosion.
   The name has no rock ("Poor crystallized chunk of {ore}"), only the tooltip and the icon do: two codes, one name.
+- **Seashells** `seashell-{type}-{color}` (04.11.2026, details in the collections design plan, C2): a block, 42 combinations, a
+  picked-up shell is a block stack of the same code. **A block patch's list is not always what generates:** on land
+  `BlockSeashell.TryPlaceBlockForWorldGen` (`BlockShell.cs:45`) draws its own type and colour, so the loose-shell patches that
+  name only clam and turritella give any of the 42; under water the patch's list holds. Before trusting `blockCodes` of a
+  patch, check whether the block class overrides the placement.
 
 ## Other mods
 

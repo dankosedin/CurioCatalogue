@@ -49,20 +49,9 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
    - **Screenshots taken again with the stamp-album view,** by the process of [the mod page plan](docs/plans/2026-11-01-mod-page.md)
      (studio, macros, shot list); this also checks how reproducible that process is.
-7. **Fixes,** one plan for all of them:
-   - **Lists out of the creative inventory, still in the handbook** (31.10.2026). Intake lists, pick lists and want lists from the
-     creative tab are blank and useless; hide them (`creativeinventory` empty) and keep their handbook pages with `handbook.include`
-     (`docs/modding.md`, Handbook: a page exists only for what the creative inventory lists, unless included). Check in game that
-     the pages, the guide's links and "Created by" still work. Books stay in the creative inventory.
-   - **Two stale game-source references** (02.11.2026): `tools/check-refs.ps1` fails on `InvoicePoster.cs:371`
-     (`Collectible.cs:2558#GetMergableQuantity`) and `InvoicePosterTests.cs:678` (`ItemSlot.cs:222#TryPutInto`): the symbols are not
-     on those lines at 1.22.7. Find the lines, re-check that the behaviour cited still holds, fix the references.
-   - **A new list vanishes in creative when the inventory is full** (coverage review, 03.11.2026). Making a list (or a want list)
-     with the main hand busy hands it out with `TryGiveItemstack`, else drops it on the ground. In creative the creative inventory
-     swallows the stack: `TryGiveItemstack` returns `false` with the stack at size 0, nothing is dropped, and the list is gone with
-     its sheet (`docs/modding.md`, "A creative player's inventory is never full"). Seen on the test server; check in game, then drop
-     only what is left of the stack, or hand it out in a way that does not reach the creative inventory. Together with the one
-     helper for handing out items (Later, the messages line).
+7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for
+   every reference), one helper for handing out items (a new list no longer vanishes in creative), lists out of the creative
+   inventory but still in the handbook (last, after the recipes of the collections).
 8. **Docs for players, the upgrade pass, then the players' round,** before the release: both READMEs (the ModDB page is
    generated from them), `CHANGELOG.md` and the lang texts brought up to the release; then the upgrade pass
    (`docs/testing/upgrade-0.1-to-0.2.md`, the release zip on the v0.1.1 fixture world, in single player and on the dedicated

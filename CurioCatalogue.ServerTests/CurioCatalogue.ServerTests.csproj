@@ -4,4 +4,12 @@
        the references and the build steps are shared with CurioCatalogue.CompatTests through this import. -->
   <Import Project="..\CurioCatalogue.TestServer\TestServer.props" />
 
+  <!-- Where the golden sets are (UpgradeTests, docs/development.md, Golden stacks): read from the source folder, not copied. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>GoldenRoot</_Parameter1>
+      <_Parameter2>$(MSBuildProjectDirectory)\Golden</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

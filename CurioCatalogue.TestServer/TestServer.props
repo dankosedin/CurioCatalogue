@@ -17,9 +17,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <!-- The fixture's one file that uses our types (TestServer.Game.props leaves it out). -->
+  <!-- The fixture's files that use our types, or are only for the tests of our code (TestServer.Game.props leaves them out). -->
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)BookTestBase.cs" Link="TestServer\%(Filename)%(Extension)" />
+    <Compile Include="$(MSBuildThisFileDirectory)BookTestBase.cs;$(MSBuildThisFileDirectory)GoldenStacks.cs" Link="TestServer\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Tests compile against our DLLs but do not copy them: the game's mod loader loads them from the mod's output

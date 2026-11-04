@@ -45,7 +45,7 @@ exact steps written by the agent.
       Branch: `test/golden-stacks`. After: B1. Model: opus. Author: none.
       Done when: a run writes the files; a second run writes the same files but the dates (or the differences are explained);
       `docs/development.md` says what the project is, how to run it, and why CI skips it.
-- [ ] **B3. The golden tests.** The reader `GoldenStacks` in `CurioCatalogue.TestServer` (a file into stacks of the test world,
+- [x] **B3. The golden tests.** The reader `GoldenStacks` in `CurioCatalogue.TestServer` (a file into stacks of the test world,
       ids replaced by code, Decisions "Ids") and `UpgradeTests` in `CurioCatalogue.ServerTests`: every golden stack read by the
       current code, the expected values from B2's inputs, never from what the current code reads (Decisions, "Expected"):
       - each book: its mode, sheets, name, cover (the item's code), the entries (codes and counts), not newer (`v` 1);
@@ -149,6 +149,19 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
   `ModConfig`; `Logs`), and the spike leaves the book in a chest. Whether the game client opens it with the 0.1.1 zip is the
   author's check (B4).
 
+### B3: the golden tests (04.11.2026)
+
+- **Reader** `GoldenStacks` (`CurioCatalogue.TestServer`, compiled only by `TestServer.props`, like `BookTestBase`; the capture has its own twin records in
+  `Golden.cs`: it compiles against 0.1.1's types). The set's folder reaches the test assembly as the metadata `GoldenRoot` (`CurioCatalogue.ServerTests.csproj`).
+- **`UpgradeTests`**: reading and the config are data-driven (a new set under `Golden/` is picked up); the four actions name 0.1.1 stacks. Expected values:
+  the capture's inputs, as text; the posted intake list gives the ledger 9 sheets (8 + the sheet back), written from `domain.md`, not read from the code.
+- **Added beyond the plan**: an album of 0.1.1 over a collection that grew (`TapestryAdd`). The album's `members` (the snapshot) cannot be seen on an unchanged
+  collection (the mutation "members not read" survived the first version), so this case is the one that guards it.
+- **The config test**: the golden file holds only 0.1.1's defaults, so comparing values cannot catch a renamed setting. It checks that every key the file has is
+  still in the file after the mod's write-back with the same value.
+- **Mutations** (all caught, then restored): `sheets` key renamed in `LedgerStore.ReadLedger` (every book fails); `members` not read (the grown-collection case);
+  a nested id not replaced by the reader (the lists and books with entries); `MaxSheets` renamed (the config test).
+
 ### B2: the capture (04.11.2026)
 
 - **The set of 0.1.1** (`docs/development.md`, Golden stacks): `ledger`, `intake-list`, `pick-list`, `materials`, `recoloured` (the
@@ -168,3 +181,5 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
 - 04.11.2026: B1 done: the spike, the answers above (approved), `docs/modding.md`, the props split. Next: B2 (opus, After: B1).
 - 04.11.2026: B2 done: `CurioCatalogue.GoldenCapture` writes the final 0.1.1 set (`CurioCatalogue.ServerTests/Golden/v0.1.1/`,
   11 stacks and the config; not a draft: never captured again). Next: B3 (sonnet, After: B2); B4 can go in parallel.
+- 04.11.2026: B3 done (final, in `UpgradeTests` and `GoldenStacks`): all five test projects pass locally; CI runs after the push (the author's).
+  Next: B4 (sonnet, After: B2, the author's look in game) and B5 (After: B3, B4).

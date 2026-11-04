@@ -25,27 +25,24 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    Golden stacks made by the v0.1.1 code in the test server and read by the server tests in CI; the fixture world for the
    manual pass (`docs/testing/upgrade-0.1-to-0.2.md`). Each later plan of 0.2 that changes stored data, recipes, item codes,
    config or lang fills that file's table "Changes in 0.2.0 that need a case".
-2. **Butterflies, the second collection.** Collected by a player on the author's server. A second collection tests how general the
-   core is. Different from tapestries: the species is the item's variant (`butterfly-dead-<type>`), not an attribute; 169 types; two
-   forms, live (`creature-butterfly-*`) and dead (`butterfly-dead-*`, goes on shelves and into display cases); males and females are
-   separate types. Open: which form counts, and how to group (by species?). Ask the player who collects them.
-   Before it (review, 28.10.2026): one collection resolver used by the store, the items and the network (today
-   `Collections.Get` is called in three places), and the registry as a list of collection definitions, not tapestries only.
-   Measure the cost of reading a book first: tooltips and crafting checks read the whole book, the window hashes its whole
-   data every 500 ms; fine for 88 tapestries, maybe not for 169 butterflies.
-3. **Ore crystals, the third collection** (29.10.2026). Players on the author's server collect them. The item is
-   `crystalizedore-{grade}-{ore}-{rock}` (assumed to be what players mean; check with them): 4 grades (poor … bountiful), 18 ores,
-   17 rocks, about 400 allowed combinations in vanilla (`itemtypes/resource/crystalizedore-graded.json`). Unlike tapestries and
-   butterflies, a piece has three dimensions. Open: what counts as one piece and how the album starts: by ore only (18), by ore and
-   grade (~70), or every combination (~400); or the player chooses when making the album. First step: ask the
-   collectors on the author's server what one piece is for them (ore, grade, rock). Needs the album to be told its
-   dimensions, which fits the resolver and the registry as definitions (item 2) and may come with custom collections (after 0.2).
-4. **Seashells, the fourth collection** (asked on the ModDB page, 30.10.2026). Vanilla block `seashell-{type}-{color}`: 7 types,
-   6 colors, 42 combinations, two dimensions like ore crystals. Open: what counts as one piece (type or type and color), and
-   whether a picked-up shell is an item stack in a chest.
+2. **Collections designed first:** [the plan](docs/plans/2026-11-04-collections-design.md) (04.11.2026). Ore crystals,
+   seashells and butterflies on paper, the config of mods researched, the cost of reading a book measured; the result is the
+   shape of a collection and the plan of the core (item 3), so that the core is built once.
+3. **The core of collections,** a plan written at the end of item 2. Known before it (review, 28.10.2026): one collection
+   resolver used by the store, the items and the network (today `Collections.Get` is called in three places), and the
+   registry as a list of collection definitions, not tapestries only; the config of collections (item 2 decides its form);
+   whatever the measurement of reading a book asks (tooltips and crafting checks read the whole book, the window hashes its
+   whole data every 500 ms; fine for 88 tapestries, maybe not for 169 butterflies). Fills the upgrade table.
+4. **The collections of 0.2,** in this order, by what they give the core (item 2, Decisions); each fills the upgrade table:
+   - **Ore crystals** (29.10.2026, players on the author's server collect them): `crystalizedore-{grade}-{ore}-{rock}`, 4 grades,
+     18 ores, 17 rocks, about 400 allowed combinations in vanilla; a piece has three dimensions.
+   - **Seashells** (asked on the ModDB page, 30.10.2026): block `seashell-{type}-{color}`, 7 types, 6 colors, 42 combinations.
+   - **Butterflies** (collected by a player on the author's server; promised for 0.2 on the ModDB page, 29.10.2026):
+     `butterfly-dead-<type>`, 169 types, the species is the item's variant; dead only, live ones of other mods would be another
+     collection. Last, since grouping 169 types by species is decided in item 6.
 5. **Stamp-album view.** The album window shows the whole collection: collected pieces in their slots, missing ones as dim empty
    cells, grouped by picture. Today it shows only what is missing.
-6. **Every vanilla collection, polished in the album:** back to tapestries, butterflies, ore crystals and seashells, each one's look
+6. **Every vanilla collection, polished in the album:** back to tapestries, ore crystals, seashells and butterflies (last), each one's look
    in the stamp-album view (grouping, order, names), and its album recipe if it needs a change. Among them:
    - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
      times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.

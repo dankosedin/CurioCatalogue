@@ -70,7 +70,7 @@ exact steps written by the agent.
       (what each covers), and the rule for the table "Changes in 0.2.0 that need a case"; `docs/development.md`: at each
       release, a new golden set made by the capture project with that release's zip (`v0.2.0/` next to `v0.1.1/`), old sets
       never re-captured or edited; a change of the stored format raises `LedgerStore.Version` and keeps every old set green.
-      `ROADMAP.md`: items 2–4 say "fills the upgrade table".
+      `ROADMAP.md`: items 3 and 4 say "fills the upgrade table" (written so 04.11.2026; check it still holds).
       Branch: `test/golden-stacks`. After: B3, B4. Model: sonnet. Author: approves the texts.
       Done when: the docs are committed.
 - [ ] **B6. Code review, and an experiment with the architect.** The five roles of `docs/review.md` on the branch, the

@@ -236,6 +236,8 @@ In this order:
 - **Upgradeable Storage** works.
 - **Len's Gemology 1.0.15** (04.11.2026, from its assets) crafts vanilla ore crystals: a crystal breaks into shards, shards +
   stone + nuggets make `game:crystalizedore-*` of nearly any combination. A crafted crystal is the same item as a mined one.
+- **Terra Prety 7.11.2-pre.1** (04.11.2026, assets and decompiled dll) changes terrain only (landforms, oceans, rivers, upheaval,
+  trees, surface layers), not deposits, ores or rock strata: which ore occurs in which rock and grade is vanilla's.
 - **Tapestries of other mods** (02.11.2026): Craftable Companion 1.5.4 and Astria Porta 0.2.3 add blocks of their own, class
   `BlockTapestry`, each with its own `sizes`; neither patches `game:tapestry`, so the album does not count their pieces (`ROADMAP.md`).
 - **Every file in a mod's `patches/` is applied, whatever its extension:** a `tapestry-sizes.json.off` still patched (seen in the

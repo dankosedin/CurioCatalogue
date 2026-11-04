@@ -132,6 +132,10 @@ Facts, game 1.22.7, read 04.11.2026 (assets under `VintageStory-Dev/assets/survi
   uranium and stibnite too (their nuggets still come from nowhere in vanilla). Its own blocks (crystals growing in 4 stages per
   ore, a decorative glass per ore) are other items; it does not change worldgen. With it, a crystal of any rock is craftable once
   the player has the nuggets and the stone: "collected" no longer means "found", and the album cannot tell the two apart (same code).
+- **Terra Prety 7.11.2-pre.1** (the only release tagged 1.22.7; checked 04.11.2026 in its assets and decompiled dll): patches
+  landforms, oceans, rivers, upheaval, trees and surface block layers; nothing of deposits, ore blocks, rock strata or geologic
+  provinces. It may change how often ores are met (deposits follow the surface), not which ore, rock and grade occur: the 353
+  combinations hold.
 
 The author's answers (04.11.2026):
 

@@ -200,6 +200,10 @@ In this order:
   JSON) otherwise throws `FormatException` and the line is lost.
 - The game writes the mod config back after loading it and drops comments: example settings cannot live as comments in the config file.
 - Config is read on each side: tooltip limits come from the client's own config, which may differ from the server's.
+- **Assets in `config/` are read on both sides, and a JSON patch with `"side": "server"` changes only the server's copy**
+  (`AssetCategory.cs:16`, `JsonPatchLoader.cs:254`): a definition read by the client then differs from the server's. Clients get
+  the server's mods (`ModsByServer`), so a universal patch reaches them. `blocktypes` and `itemtypes` load on the server only
+  (`AssetCategory.cs:11-12`); the client gets them, attributes included, from the server's registry.
 - Every launch moves the previous logs to `Logs\Archive`. Red in-game errors are **not** logged. The server audit log names bag
   inventories `blockcontainedbaginv-…`, which tells which position was a bag.
 

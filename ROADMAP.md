@@ -92,6 +92,13 @@ sent to clients, messages built by the client), then recipes into a bill of mate
    is a block position everywhere (the network request, `InvoiceMaker` / `InvoicePoster`, `ContainerAccess`, hints as a
    `BlockBehavior`, the invoice's saved position). First a `ContainerTarget` (block | entity) behind `ContainerReader` and
    `ContainerAccess`; the access rule for an entity's inventory needs research.
+5. **Settings in ConfigLib's window** (the author, 04.11.2026; research in the collections design plan, C5). A soft integration
+   with no code dependency: an asset `config/configlib-patches.json` with `"file": "curiocatalogue.json"` (ConfigLib edits our
+   file in place), the scalars first (`MaxSheets`, `SoftEntryLimit`, `ConsumeSheets`, `Diagnostics`), and a listener on the game's
+   event bus (`configlib:curiocatalogue:config-saved`) that rebuilds what the config feeds. After the server's config sent to
+   clients (Later, Technical): ConfigLib does not change the file a client reads. A test that every path in the asset exists in
+   the config class. To check first: two writers of one file (our write-back on start, ConfigLib's) and what ConfigLib does
+   with a file that does not parse.
 
 ## Later
 

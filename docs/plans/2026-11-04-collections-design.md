@@ -52,7 +52,7 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       the shape does not exclude them, not to plan them.
       Branch: `docs/collections-design`. After: C1–C3. Model: opus. Author: none.
       Done when: a short table in Decisions: collection, one piece, what it needs from the shape.
-- [ ] **C5. Configs of mods.** How Vintage Story mods are configured in practice, so that we adopt what is common rather than
+- [x] **C5. Configs of mods.** How Vintage Story mods are configured in practice, so that we adopt what is common rather than
       invent: the game's own (`api.LoadModConfig` / `StoreModConfig`, JSON in `ModConfig`, no sync to clients), config
       libraries players and admins already use (in-game editing, server-to-client sync; which, how widespread, a hard or
       soft dependency), and data as assets (definitions in JSON assets that other mods and admins change with JSON
@@ -340,6 +340,62 @@ shared by two collections (butterflies dead and live); members that perish (fish
 C1–C3: a member filled by a rule on an attribute** (berry bushes: a trait in `traits`), next to members filled by several codes
 (C1, C2). The rest needs no more than C1–C3 asked for: dimensions Cartesian or hierarchical, attributes per member.
 
+### Configs of mods (C5)
+
+Game 1.22.7 (`game-src`), ConfigLib 1.13.2 (an integration target, read decompiled, 04.11.2026), ModDB cache of 02.11.2026
+(the latest cached release of each of 9238 mods).
+
+How mods are configured:
+- **The game's own** (`api.LoadModConfig` / `StoreModConfig`, JSON in `ModConfig`): each side keeps its own copy, never synced
+  (`vsapi ICoreAPI.cs:139-173`: "synchronize it via network packet"). Ours today.
+- **World config** (`worldconfig.json` at the mod's root, `Mod.cs:30`): stored in the world, set at world creation or by
+  `/worldconfig`, seen by clients (`capi.World.Config`, `GuiDialogTrader.cs:46`). Scalars only (`WorldConfiguration.cs:15`:
+  bool, numbers, string, dropdown), no lists. Rare: 19 of 9238 mods.
+- **ConfigLib** (Maltiez): 712 000 downloads, the next config library 97 000 (Auto Config Lib, built on ConfigLib); on the
+  author's server with `vsimgui`. 346 mods ship a `configlib-patches.json` (of about 4300 with a DLL). A soft dependency by
+  design: without it the defaults in the assets apply. ConfigKit (5 000) reads the same files and refuses to run beside ConfigLib.
+  - It edits **the mod's own JSON file in place** when its asset says `"file": "<name>.json"` (`ConfigLibModSystem.cs:399-404`),
+    else its own `ModConfig/<domain>.yaml`. A setting's code is a path into the file, `/`-separated (`JsonObjectPath.cs:18`); it
+    reads by path, a missing key gives the default (`Config.cs:998`), and writes only the paths it knows, the rest kept
+    (`Config.cs:973`). In JSON mode no `version` check resets values (YAML only, `Config.cs:918`).
+  - Server settings reach clients through a recipe registry (synced on join, `ConfigRegistry.cs:35,54`) into ConfigLib's own
+    objects; on a multiplayer client it writes only `clientSide` settings to the file (`Config.cs:256-263`), so **a mod reading
+    its file on the client still sees the client's values**. Only `controlserver` changes server settings (`ConfigLibModSystem.cs:556`).
+  - It pushes `configlib:<domain>:config-saved` and `:setting-changed` on the game's event bus (`ConfigLibModSystem.cs:448,501`):
+    a mod can listen by name, with no reference to ConfigLib's DLL.
+  - Types: bool, integer, float, string, colour, other (`ConfigSettingType.cs`); how its window edits a list (other) not checked.
+- **Data as assets**, the game's own way: `config/*.json` (`farming.json`, `traits.json`, `tradelists/`, `handbook/`) read by
+  `Assets.Get` / `GetMany`, the latter across all domains; other mods and admins change them by JSON patches (4318 of 9238 mods
+  have `patches/`). The `config` category is universal (`AssetCategory.cs:16`) and clients download the server's mods
+  (`ModsByServer`), so both sides read the same definitions; a patch with `"side": "server"` does not reach the client
+  (`JsonPatchLoader.cs:254`). `blocktypes` and `itemtypes` load on the server only (`AssetCategory.cs:11-12`) and reach the
+  client through the registry.
+
+Options for the settings of collections, with their costs:
+- A. Flat keys per collection (`CrystalExclude`, `SeashellRare`…): keys grow as collections × settings; no room for other mods'
+  collections.
+- B. A dictionary by collection id in `curiocatalogue.json`, definitions in code: scales, but another mod cannot bring a collection.
+- C. Definitions as assets (`config/` of any domain), changed by JSON patches: as the game does, the same on both sides with no
+  packet, other mods bring collections without our release; but every change by an admin needs a patch mod.
+- D. C, plus a dictionary of overrides by collection id in `curiocatalogue.json`: one file for the admin; the packet on join
+  (`ROADMAP.md`, Later) carries this file only.
+
+Decided (the author, 04.11.2026):
+- **D.** Collection definitions are assets in `config/` (a folder of ours, read from every domain); their format is C7's. Defaults
+  of the open points of C1–C3 go into the definition: combinations that never occur (crystals), what is rare (seashells),
+  members from the loaded items (butterflies). The admin overrides in `ModConfig/curiocatalogue.json`, under `Collections`, by id:
+  ```json
+  "Collections": { "tapestry": { "Exclude": ["aid-*"], "Add": [] }, "seashells": { "Disabled": true } }
+  ```
+  An open set of fields: an older version ignores a field it does not know. **In 0.2: `Exclude`, `Add`, `Disabled`.** What a
+  disabled collection does to its album recipe and to albums already made is C7's (the player sees it).
+- **`TapestryExclude` and `TapestryAdd` migrate** into `Collections.tapestry` in 0.2: read once, moved, removed from the file;
+  a line in `CHANGELOG.md` and the READMEs' config section; a case in the upgrade table (`docs/testing/upgrade-0.1-to-0.2.md`).
+  The golden config test then checks this documented outcome for these two keys (B, "What does not survive goes into the changelog").
+- **ConfigLib: not in 0.2, in Next** (`ROADMAP.md`, After 0.2). 0.2 must not stand in its way: the settings stay in one JSON
+  file `ModConfig/curiocatalogue.json`, each value at a stable path (`Collections/<id>/<field>`); no `version` key; the parts
+  built from the config can be rebuilt on a running game, or at least nothing in their structure forbids it.
+
 ## Where we stopped
 
 - 04.11.2026: C1 done (final): the facts, the author's answers and the open points in Decisions, "Ore crystals (C1)". Next: C2
@@ -351,3 +407,7 @@ C1–C3: a member filled by a rule on an attribute** (berry bushes: a trait in `
   Next: C4 (opus, After: C1–C3) or C5 (opus) or C6 (sonnet).
 - 04.11.2026: C4 done (final): the table in Decisions, "Beyond 0.2, a glance (C4)", with the author's answer on berry bushes;
   `ROADMAP.md`: plants in Exhibits, "An album that improves" in Maybe. Next: C5 (opus) or C6 (sonnet); C7 after both.
+- 04.11.2026: C5 done (final): the research, the options and the author's choice in Decisions, "Configs of mods (C5)" (D;
+  `Exclude`, `Add`, `Disabled`; the two tapestry keys migrate; ConfigLib in Next); the `"side": "server"` trap in
+  `docs/modding.md`; ConfigLib in `ROADMAP.md`, After 0.2. `docs/architecture.md` gets the decision in C7. Next: C6 (sonnet);
+  C7 (opus) after it.

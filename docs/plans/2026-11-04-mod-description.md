@@ -18,7 +18,7 @@ As in the previous plans: one step per short session with the project skill `/st
 says **Branch**, **After**, **Model**, **Author** (a decision or in-game work only the author can do; "none" means the session
 goes ahead on its own) and **Done when**. A session that stops in the middle writes one line under "Where we stopped".
 
-The agent does not run the game and publishes nothing: a test page on the draft mod is pasted by the author, after a "yes" to
+The agent does not run the game and publishes nothing: a test page on a draft mod is pasted by the author, after a "yes" to
 its exact text (global rule). Screenshots are the author's, with the steps written by the agent (`tools/studio/README.md`).
 
 ## Steps
@@ -41,7 +41,8 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       `:hover` is impossible, and scripts are not expected to survive (check once). The candidate: a row of frames with
       `overflow-x: auto` and `scroll-snap-type` inline, `scroll-snap-align` on each frame, `<figure>` and `<figcaption>`
       under it; the fallbacks if ModDB drops them: a table of frames with a caption row, or frames one under another. A
-      hand-written test page with a sequence of three of today's shots; the author pastes it into the draft mod (desktop
+      hand-written test page with a sequence of three of today's shots; the author pastes it into a draft mod, made for the probe (its name and
+      link stay out of tracked files; desktop
       Chrome and Firefox, the phone). Also how GitHub shows the source of a sequence in G1's format.
       Branch: `docs/mod-description`. After: G1. Model: sonnet. Author: approves the test page, pastes it, looks on the phone.
       Done when: Decisions says which markup survives, how it scrolls on the desktop and the phone, and the chosen shape of

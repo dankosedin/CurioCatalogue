@@ -68,7 +68,9 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       server allows. A probe or a test that stays if it is cheap to keep.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: sonnet. Author: none.
       Done when: the numbers and how they were taken are in Decisions, with a verdict: fine as is, or what the core must change.
-- [ ] **C7. The shape and the core's plan.** From C1–C6 and what the album view needs (`2026-11-04-album-view.md`, A2): the
+- [ ] **C7. The shape and the core's plan.** From C1–C6 and what the album view needs (`2026-11-04-album-view.md`, A2: which
+      dimensions turn pages and make tables, the order and names of their values, a group's layout, levels, the code that
+      filled a member, per-member attributes; A2 decides the player's side of levels and of a disabled collection): the
       shape of a collection (members and their keys, dimensions, groups, order, names, the definition's source, its settings;
       hierarchical and Cartesian dimensions, the levels of ore crystals as one album or three collections, members filled by
       any of several codes: Decisions, C1) and the changes to the core: the one collection resolver used by
@@ -76,7 +78,8 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       config, what C6 asks. Each change with the collection that needs it. What changes stored data, recipes, item codes,
       config or lang is named for the upgrade table (`docs/testing/upgrade-0.1-to-0.2.md`). Then `ROADMAP.md`, 0.2, item 3
       becomes a link to the new plan of the core, and item 4 gets what each collection needs.
-      Branch: `docs/collections-design`. After: C1–C6. Model: opus. Author: approves the shape and the core's plan.
+      Branch: `docs/collections-design`. After: C1–C6, A2 of the album view (merged into `main`). Model: opus. Author:
+      approves the shape and the core's plan.
       Done when: the shape is in `docs/architecture.md` (Part 1, with the alternatives); the core's plan is written; the
       branch goes to `main` by a pull request.
 
@@ -443,3 +446,5 @@ An album of all members missing unless marked.
 - 04.11.2026: C6 done (final): the numbers and the verdict (fine as is) in Decisions, "The cost of reading a book (C6)"; the test
   `ReadingCostTests` stays. The tooltip check in game is done and harmless (see there). Next: C7
   (opus, After: C1–C6).
+- 04.11.2026: C7 waits for A2 of the album view (its `After:` now says so); A1 and A2 were updated by C1–C6 (album view plan,
+  Decisions). Next here: C7 (opus, After: A2 merged into `main`).

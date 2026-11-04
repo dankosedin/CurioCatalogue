@@ -21,14 +21,10 @@ Order decided 04.11.2026: the risky and heavy work first, the tails last. Each i
 separately when its turn comes. Code review comes after a feature that changes code (as the last step of
 its plan) or once at the end of the release; each plan says which. Butterflies were promised for 0.2 on the ModDB page (29.10.2026).
 
-1. **Backward compatibility, before anything changes the stored data** (04.11.2026). Items 2–4 rework the collection registry
-   and the album's data, and today only the format version `v` is tested. **Golden stacks:** real items saved by the latest
-   release players have (v0.1.1): the three books, an album with a partly full and a full collection, a want list, invoices of
-   both kinds, a custom name, a non-default cover colour, spent sheets; and its `ModConfig\curiocatalogue.json` with non-default
-   values. A server test reads them with the current code and checks the entries, the collection counts, the names and the
-   sheets, so every pull request of 0.2 checks them in CI. With the same v0.1.1 zip, the **fixture world** for the manual pass
-   (`docs/testing/upgrade-0.1-to-0.2.md`). Each later plan of 0.2 that changes stored data, recipes, item codes, config or lang
-   fills that file's table "Changes in 0.2.0 that need a case".
+1. **Backward compatibility, before anything changes the stored data:** [the plan](docs/plans/2026-11-04-backward-compat.md).
+   Golden stacks made by the v0.1.1 code in the test server and read by the server tests in CI; the fixture world for the
+   manual pass (`docs/testing/upgrade-0.1-to-0.2.md`). Each later plan of 0.2 that changes stored data, recipes, item codes,
+   config or lang fills that file's table "Changes in 0.2.0 that need a case".
 2. **Butterflies, the second collection.** Collected by a player on the author's server. A second collection tests how general the
    core is. Different from tapestries: the species is the item's variant (`butterfly-dead-<type>`), not an attribute; 169 types; two
    forms, live (`creature-butterfly-*`) and dead (`butterfly-dead-*`, goes on shelves and into display cases); males and females are

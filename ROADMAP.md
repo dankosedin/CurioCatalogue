@@ -47,16 +47,16 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
      times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.
      Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
-   - **Screenshots taken again with the stamp-album view,** by the process of [the mod page plan](docs/plans/2026-11-01-mod-page.md)
-     (studio, macros, shot list); this also checks how reproducible that process is.
+   - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
+     the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
 7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for
    every reference), one helper for handing out items (a new list no longer vanishes in creative), lists out of the creative
    inventory but still in the handbook (last, after the recipes of the collections).
-8. **Docs for players, the upgrade pass, then the players' round,** before the release: both READMEs (the ModDB page is
-   generated from them), `CHANGELOG.md` and the lang texts brought up to the release; then the upgrade pass
-   (`docs/testing/upgrade-0.1-to-0.2.md`, the release zip on the v0.1.1 fixture world, in single player and on the dedicated
-   server); then a players' round (`docs/review.md`) of the release as a player gets it. Fixes from the pass and the round go
-   into this item.
+8. **The release,** two plans (04.11.2026):
+   - [the description plan](docs/plans/2026-11-04-mod-description.md), started early: the ModDB description as a document of
+     its own instead of the READMEs, sequences of screenshots with captions, the shot list of 0.2;
+   - [the release plan](docs/plans/2026-11-04-release-0.2.md), at the end: code review, texts for players, screenshots, the
+     release zip in game (functional and upgrade), a players' round, the release.
 
 ### After 0.2
 

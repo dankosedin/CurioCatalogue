@@ -46,7 +46,7 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       will need.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: opus. Author: answers.
       Done when: as C1.
-- [ ] **C4. Beyond 0.2, a glance.** Not designed, only checked against the shape: fish, fruit trees, berry bushes, tapestries
+- [x] **C4. Beyond 0.2, a glance.** Not designed, only checked against the shape: fish, fruit trees, berry bushes, tapestries
       of other mods (`BlockTapestry` blocks with their own `sizes`), custom collections (the collection in the item), live
       butterflies of other mods. For each: what one piece would be and what the shape would need from it. The point is to see
       the shape does not exclude them, not to plan them.
@@ -320,6 +320,26 @@ Open points of C3:
   from the loaded items, not a fixed list).
 - In game, when convenient: catch a cold-desert type near sea level; whether a planted flower becomes a spawn point.
 
+### Beyond 0.2, a glance (C4)
+
+Not designed: only what one piece would be and what the shape would need from it. Game 1.22.7, read 04.11.2026 (assets under
+`VintageStory-Dev/assets/survival/`, code in `game-src/vssurvivalmod`).
+
+| Collection | One piece | What it needs from the shape |
+|---|---|---|
+| **Fish** | A species: `{habitat}-{type}-{species}`, 56 allowed (`itemtypes/resource/taxidermy-fish.json`, `allowedVariants`). A catch is `fishraw-{habitat}-{type}-{species}-{age}`, adult or juvenile by the spot's abundance (`EntityBobber.cs:338`), and rots (fresh 36 h, `fishraw.json:661`); the lasting form is the trophy `taxidermy-fish-…-adult` (barrel with borax or zinc sulfate, `recipes/barrel/taxidermy-fish.json`), 56 codes, stack 4..64. `creature-fish-*` (live, `ItemCreature`) has no source in survival assets. | Members by code, as crystals. Habitat and type are dimensions (Cartesian, only some points allowed). Which form counts (the trophy only, or a raw fish too: one member filled by several codes, C1) is the collection's choice. A piece that rots in a chest: the album recorded it, the item is gone (as crystals crushed, C1). |
+| **Fruit trees** | A tree type: the cutting, block `fruittree-cutting` with attribute `type` (12 types, `fruittreebranch.json:6-20,273-284`; drops set it, `BlockFruitTreeBranch.cs:197#GetDrops`; a dead tree's cutting drops as firewood). The fruit (`fruit-{fruit}`) rots and is shared with other plants. | Members by code **and attribute**, as tapestry pieces (`tapestry-north` + `type`): today's `ItemKey` holds it. The list comes from the block's `worldgen` attribute or the creative stacks, not from variants. Climate per type is in the asset (a rarity source, as butterflies). A planted tree is "a cutting on the wall" (`ROADMAP.md`, Exhibits; the author). |
+| **Berry bushes** | **A bush type with a good trait** (the author, 04.11.2026): 10 types × 4 = 40 pieces. The cutting `fruitingbushcutting-{type}-free` (10 types, all in `worldgen/blockpatches/berrybush.json`) carries the bush's traits in the attribute `traits`, comma-joined in the order of the pairs (`BEBehaviorFruitingBush.cs:606#SetHarvested`). Four pairs, bad / good: shybearer / heavybearer, thinskinnedfruit / thickskinnedfruit, weakrooted / strongrooted, weakclusteredberries / strongclusteredberries (`FruitingBush.cs:33`). Only a wild bush draws them: each pair 15%, then bad 60% or good 40% (`BEBehaviorFruitingBush.cs:314#genTraits`); a given good trait ≈ 6% of wild bushes (with no bad trait beside it ≈ 4.5%), two ≈ 0.4%, all four ≈ 1 in 77 000. A bush grown from a cutting inherits its traits (`BEBehaviorFruitingBushCutting.cs:32`); no crossing in vanilla. The cutting perishes into sticks after 360 h (`fruitingbushcutting.json:84`); the berry `fruit-{type}` rots. Legacy `bigberrybush`/`smallberrybush` are not in creative or worldgen. | **A member as a rule on an attribute:** "blueberry, strongrooted" is filled by any blueberry cutting whose `traits` holds `strongrooted` and no bad trait (other good ones may be there; the author, 04.11.2026); today's `ItemKey` tells the cuttings apart, the match from key to member is new. Dimensions: type × good trait (Cartesian). A second level of the same collection: type × the full set of traits, reachable with genetics mods (the author). The best specimen per type is another album, one that improves (`ROADMAP.md`, Maybe). A planted bush is "a cutting on the wall" (`ROADMAP.md`, Exhibits): whether cuttings perish in a chest does not matter now. |
+| **Tapestries of other mods** | A piece, as vanilla: a `BlockTapestry` block of its own code (`craftablecompanion:tapestry-*`, `astriaporta:astriaportatapestry-*`; `ROADMAP.md`, Later) with its own `sizes`. | The definition read from **every block of a class**, not from one code; members of several domains. One collection or one per mod (a group per mod, or a dimension "mod"): the shape takes both. |
+| **Custom collections** | Whatever the player lists (`ROADMAP.md`, Next, 3): any item key. | The definition's source is **the book item**, not the registry: the resolver takes a book (stack), not only an id. No dimensions, or a flat group the player names; order as written. Settings in the item, not in the config. |
+| **Live butterflies** (Catch and Release) | `game:creature-butterfly-{type}`, the same 169 types (C3), given by that mod's net. | A collection of its own (Decisions, "Butterflies: dead only") over a second family of codes with the **same dimensions and groups** as the dead one: the grouping is defined once and applied to both. Its members perish into members of the other collection (48 h, C3). Members exist only with the mod: the definition is built from the loaded items. |
+
+What the shape must not exclude, from this table: members keyed by code and attributes (fruit trees, as tapestries); a definition
+read from a class of blocks across domains (tapestries of other mods); a definition held in the book (custom); a grouping
+shared by two collections (butterflies dead and live); members that perish (fish, cuttings, live butterflies). **New beyond
+C1–C3: a member filled by a rule on an attribute** (berry bushes: a trait in `traits`), next to members filled by several codes
+(C1, C2). The rest needs no more than C1–C3 asked for: dimensions Cartesian or hierarchical, attributes per member.
+
 ## Where we stopped
 
 - 04.11.2026: C1 done (final): the facts, the author's answers and the open points in Decisions, "Ore crystals (C1)". Next: C2
@@ -329,3 +349,5 @@ Open points of C3:
 - 04.11.2026: C3 done (final): the facts, the author's answers and the open points in Decisions, "Butterflies (C3)"; the
   `*ByType` default surprise in `docs/modding.md`; two lines in `ROADMAP.md` (rarity, Catch and Release) and one to Exhibits.
   Next: C4 (opus, After: C1–C3) or C5 (opus) or C6 (sonnet).
+- 04.11.2026: C4 done (final): the table in Decisions, "Beyond 0.2, a glance (C4)", with the author's answer on berry bushes;
+  `ROADMAP.md`: plants in Exhibits, "An album that improves" in Maybe. Next: C5 (opus) or C6 (sonnet); C7 after both.

@@ -73,7 +73,7 @@ exact steps written by the agent.
       `ROADMAP.md`: items 3 and 4 say "fills the upgrade table" (written so 04.11.2026; check it still holds).
       Branch: `test/golden-stacks`. After: B3, B4. Model: sonnet. Author: approves the texts.
       Done when: the docs are committed.
-- [ ] **B6. Code review, and an experiment with the architect.** The five roles of `docs/review.md` on the branch, the
+- [x] **B6. Code review, and an experiment with the architect.** The five roles of `docs/review.md` on the branch, the
       "mostly tests" scope. The experiment (hypothesis: the architect finds more, or proves more, when it may build and
       write): two architects in parallel on the same scope and prompt, one read-only (`Plan`, as today), one in its own
       worktree that may build, run tests and write probes as diffs. Compared by the moderation: findings each found alone,
@@ -216,3 +216,5 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
 - 04.11.2026: B5 done (texts waiting for the author's yes, then committed): `docs/testing/upgrade-0.1-to-0.2.md` (golden stacks next to the fixture, the rule for the table), `docs/development.md` ("At each release"); `ROADMAP.md` items 1, 3, 4 still say "fills the upgrade table": no change. Next: B6 (opus, After: B5).
 - 04.11.2026: B6 almost done: the review, the fixes and the experiment (Decisions, B6), committed; all projects pass (one known flaky
   server test, green alone). Left: the author pushes and opens the pull request; B6 is ticked when CI is green and it is merged.
+- 04.11.2026: B6 done: PR #30 merged, CI green (so `dotnet test --no-build` on ubuntu was not broken by the unbuilt capture,
+  "Left to CI" in Decisions, B6). The plan is closed.

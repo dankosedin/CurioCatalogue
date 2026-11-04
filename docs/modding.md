@@ -216,6 +216,9 @@ In this order:
   `-open`, called "Cartography book" in game; `-pile*`, `-standing*`; `-evaporating` is story-only). Clutter is `Reparable`: unless
   repaired with glue, it breaks into nothing.
 - Iron parts: `metalnailsandstrips-<metal>`; vanilla has 14 metals.
+- **Ore crystals** `crystalizedore-{grade}-{ore}-{rock}` (04.11.2026, details in the collections design plan, C1): 407 allowed,
+  but 54 never generate (uranium and stibnite have no deposits at all in 1.22.7); only mining gives them, never an explosion.
+  The name has no rock ("Poor crystallized chunk of {ore}"), only the tooltip and the icon do: two codes, one name.
 
 ## Other mods
 
@@ -231,6 +234,8 @@ In this order:
 - **Carry On 2.0.0-rc.1** cannot lift two-cell trunks even alone. It uses Shift+RMB with empty hands; no conflict with our off-hand
   gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
+- **Len's Gemology 1.0.15** (04.11.2026, from its assets) crafts vanilla ore crystals: a crystal breaks into shards, shards +
+  stone + nuggets make `game:crystalizedore-*` of nearly any combination. A crafted crystal is the same item as a mined one.
 - **Tapestries of other mods** (02.11.2026): Craftable Companion 1.5.4 and Astria Porta 0.2.3 add blocks of their own, class
   `BlockTapestry`, each with its own `sizes`; neither patches `game:tapestry`, so the album does not count their pieces (`ROADMAP.md`).
 - **Every file in a mod's `patches/` is applied, whatever its extension:** a `tapestry-sizes.json.off` still patched (seen in the

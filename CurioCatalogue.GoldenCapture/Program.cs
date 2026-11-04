@@ -25,9 +25,15 @@ try
     // The config as the release wrote it on its first start, before anything could change it (Decisions, "The scenario").
     byte[] config = File.ReadAllBytes(Path.Combine(dataPath, "ModConfig", Golden.ConfigFile));
 
-    var stacks = new Scenario(server).Run();
+    var scenario = new Scenario(server);
+    var stacks = scenario.Run();
     Golden.Write(outDir, server, stacks, config);
     Console.WriteLine($"{stacks.Count} stacks and the config written to {outDir}");
+
+    // The fixture world of the manual upgrade pass: the items laid out where a player leaves them; the world is kept (B4).
+    string layout = new Fixture(server, scenario.Made).Lay(release.Version);
+    File.WriteAllText(Path.Combine(dataPath, "fixture-layout.txt"), layout);
+    Console.Write(layout);
 }
 finally
 {

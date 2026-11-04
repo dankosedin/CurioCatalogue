@@ -8,7 +8,7 @@ config key or a lang key, add its case here in the same PR (the changelog's sect
 
 ## Fixture: the 0.1.1 world
 
-Made once with the **0.1.1 release zip** (not a dev build), then kept untouched; every pass starts from a fresh copy of it.
+Made by `CurioCatalogue.GoldenCapture` with the **0.1.1 release zip** (not a dev build), then kept untouched; every pass starts from a fresh copy of it.
 0.1.1, the latest release players have, not 0.1.0: the stored data is the same in both (`upgrade-0.1.0-to-0.1.1.md`), and
 0.1.1 adds the item codes and texts players have now (the author, 04.11.2026).
 
@@ -18,13 +18,16 @@ the game, the dedicated server.
 
 Keep it as a backup outside the game's data folder (copy it in for a pass, never open the original). It holds:
 
-- one ledger, one bill of materials and one album, each with entries; the album with some tapestries collected, a partly full
-  one and a full one (32 sheets);
-- a want list made from the album, and invoices of each kind (incoming, outgoing) lying in a chest, on a shelf and in the inventory;
-- a book with a custom name, and one with a non-default cover colour;
-- a book with `ConsumeSheets` spent (fewer sheets than the maximum);
-- a chest with tapestries and mixed items to post invoices on;
-- `ModConfig\curiocatalogue.json` of 0.1.1, with a few non-default values (`MaxSheets`, `ExtraIgnoredAttributes`, `TapestryAdd`).
+- the books (all in one chest, as the capture player's inventory cannot be kept): a ledger that learnt a chest, a bill of materials, the same
+  book recoloured with black leather, a ledger aged with acid, a ledger of 32 sheets with 3 spent, one named `Комора № 1`, an album with
+  3 tapestries collected, an album with every piece (88);
+- the invoices of each kind (an intake list, a pick list, a want list of the partly full album), each in a chest, on a shelf and on the
+  ground (ground items despawn after a while: look soon after loading);
+- a chest with copper, tin and iron ingots, sticks and planks to post the invoices on;
+- `ModConfig\curiocatalogue.json` as 0.1.1 wrote it on its first start, with no changes (the defaults: `MaxSheets` 32, `ConsumeSheets` false);
+  the same file is in the golden set, so U2 checks that one.
+
+The places of the blocks are in `fixture-layout.txt` next to the world (blocks float 6 above the spawn: fly there in creative).
 
 If the fixture is lost, make it again with the 0.1.1 zip from the GitHub release `v0.1.1` and write down here what was in it.
 

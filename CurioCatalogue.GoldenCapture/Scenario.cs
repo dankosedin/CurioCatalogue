@@ -24,6 +24,9 @@ sealed class Scenario(GameServerFixture game)
 
     readonly List<GoldenStack> stacks = [];
 
+    /// <summary>The made items by name, as the golden set names them: <see cref="Fixture"/> lays them out in the world.</summary>
+    public Dictionary<string, ItemStack> Made { get; } = [];
+
     CurioCatalogueModSystem Mod => game.Api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
     IWorldAccessor World => game.Api.World;
 
@@ -244,6 +247,7 @@ sealed class Scenario(GameServerFixture game)
         if (stack == null) throw new InvalidOperationException($"{name}: not made");
         Check(name, stack, inputs);
         stacks.Add(Golden.Of(World, name, stack.Clone(), inputs));
+        Made[name] = stack.Clone();
         Console.WriteLine($"  {name}: {stack.Collectible.Code}");
     }
 

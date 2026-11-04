@@ -59,7 +59,7 @@ exact steps written by the agent.
       Done when: all four projects pass locally and in CI; mutations checked (a stored key renamed in `LedgerStore`, the album's
       `members` not read, a nested id not replaced by the reader, a config key renamed); `docs/testing/functional.md` (⚙ where
       a case is now automatic) and `docs/development.md` (what golden stacks are) updated.
-- [ ] **B4. The fixture world** (if B1 says it can be kept). The capture run lays the fixture out (invoices in a chest, on a
+- [x] **B4. The fixture world** (if B1 says it can be kept). The capture run lays the fixture out (invoices in a chest, on a
       shelf, on the ground; a chest to post on) and keeps its world; the author opens it in game with the 0.1.1 zip once, to see
       that it is a world a player could have, and keeps a backup outside the game's data folder. Otherwise the author makes it
       by hand with the 0.1.1 zip, by the list in `upgrade-0.1-to-0.2.md`. Either way the fixture's list there loses the
@@ -183,3 +183,8 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
   11 stacks and the config; not a draft: never captured again). Next: B3 (sonnet, After: B2); B4 can go in parallel.
 - 04.11.2026: B3 done (final, in `UpgradeTests` and `GoldenStacks`): all five test projects pass locally; CI runs after the push (the author's).
   Next: B4 (sonnet, After: B2, the author's look in game) and B5 (After: B3, B4).
+- 04.11.2026: B4 half done: `Fixture.cs` in the capture lays the fixture out (chests, shelf, ground) and the world is kept; the candidate
+  (world, layout, config) lies in `C:\Projects\VintageStory\fixture-0.1.1-candidate\` (a draft until the author has looked at it in game).
+  The fixture list in `upgrade-0.1-to-0.2.md` is written.
+- 04.11.2026: B4 done: the author opened the world in game with the 0.1.1 zip, all as expected (the invoices on the ground
+  were found on the chest, one of them on the ground: fine). The backup: `VintageStory-Fixtures\0.1.1\` (final, in `CLAUDE.local.md`). Next: B5.

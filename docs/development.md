@@ -185,6 +185,8 @@ what players have (plan `docs/plans/2026-11-04-backward-compat.md`). A set per r
   the current build's types, is compiled only by `TestServer.props`. The items are made the way a player makes them (the grid, the
   gestures, the release's own network requests), and the run stops if the release does not read an item back as its inputs say.
 - **Run it by hand**, once per release: `dotnet run --project CurioCatalogue.GoldenCapture` (about 40 s) writes the set of its
+  It then lays the made items out as the fixture world of the manual upgrade pass (`Fixture.cs`; chests, a shelf, the ground) and writes
+  `fixture-layout.txt` into the kept data folder. Since the set already exists, run it with `--out <scratch>` to get that world.
   `ReleaseVersion`; it refuses to write over a set that exists (`--out <folder>` writes elsewhere, e.g. to compare two runs). Two
   runs differ only in `created` of the three invoices (the game's time when the list was made) and in the date. The run keeps its
   world (`%TEMP%\cc-servertests-…`, the path is printed).

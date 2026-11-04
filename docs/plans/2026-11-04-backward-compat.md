@@ -66,7 +66,7 @@ exact steps written by the agent.
       "non-default values" of the config (Decisions, "The scenario"); U2 checks the file 0.1.1 wrote.
       Branch: `test/golden-stacks`. After: B2. Model: sonnet (the steps). Author: the look in game.
       Done when: the fixture's contents are written in `upgrade-0.1-to-0.2.md`; the backup's place is in `CLAUDE.local.md`.
-- [ ] **B5. The process for the next plans.** `docs/testing/upgrade-0.1-to-0.2.md`: the golden stacks named next to the fixture
+- [x] **B5. The process for the next plans.** `docs/testing/upgrade-0.1-to-0.2.md`: the golden stacks named next to the fixture
       (what each covers), and the rule for the table "Changes in 0.2.0 that need a case"; `docs/development.md`: at each
       release, a new golden set made by the capture project with that release's zip (`v0.2.0/` next to `v0.1.1/`), old sets
       never re-captured or edited; a change of the stored format raises `LedgerStore.Version` and keeps every old set green.
@@ -188,3 +188,4 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
   The fixture list in `upgrade-0.1-to-0.2.md` is written.
 - 04.11.2026: B4 done: the author opened the world in game with the 0.1.1 zip, all as expected (the invoices on the ground
   were found on the chest, one of them on the ground: fine). The backup: `VintageStory-Fixtures\0.1.1\` (final, in `CLAUDE.local.md`). Next: B5.
+- 04.11.2026: B5 done (texts waiting for the author's yes, then committed): `docs/testing/upgrade-0.1-to-0.2.md` (golden stacks next to the fixture, the rule for the table), `docs/development.md` ("At each release"); `ROADMAP.md` items 1, 3, 4 still say "fills the upgrade table": no change. Next: B6 (opus, After: B5).

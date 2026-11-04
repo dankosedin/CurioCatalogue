@@ -29,6 +29,24 @@ Keep it as a backup outside the game's data folder (copy it in for a pass, never
 
 The places of the blocks are in `fixture-layout.txt` next to the world (blocks float 6 above the spawn: fly there in creative).
 
+The golden stacks of 0.1.1 (`CurioCatalogue.ServerTests/Golden/v0.1.1/`) are the same items as the fixture's, one per line, and what each covers:
+
+| Golden stack | The fixture's item | Covers |
+|---|---|---|
+| `ledger` | the ledger that learnt a chest | entries by type; the intake action (posting an intake list gives 9 sheets) |
+| `intake-list`, `pick-list` | the invoices of each kind | an invoice's kind and lines; posting on a chest |
+| `materials` | the bill of materials | entries by count |
+| `recoloured` | the book recoloured with black leather | the cover (the item's code) |
+| `aged` | the ledger aged with acid | the aged cover |
+| `spent` | the ledger of 32 sheets with 3 spent | sheets below the maximum; recharging in the grid |
+| `named` | `Комора № 1` | a custom name, Cyrillic |
+| `album-partial`, `want-list` | the album with 3 tapestries and its want list | the collection id, collected and missing counts; `members` (a collection that grew); a want list posted on a chest |
+| `album-full` | the album with every piece (88) | full album |
+| `curiocatalogue.json` | `ModConfig\curiocatalogue.json` | the config file 0.1.1 wrote, through the mod's loader |
+
+The golden stacks cover the data of the items; the fixture covers the world around them. A case in the table below goes to the golden
+set when it is about the data of an item, and stays a manual case when it is about the world (drawing, lying in a chest, the server).
+
 If the fixture is lost, make it again with the 0.1.1 zip from the GitHub release `v0.1.1` and write down here what was in it.
 
 ## Run
@@ -64,6 +82,12 @@ Fill in while 0.2.0 is made. Take each line from the changelog or the PR and say
 | Change | Touches stored data, recipes, item codes, config or lang? | Case |
 |---|---|---|
 | | | |
+
+**The rule for the table:** a change that touches stored data, a recipe, an item code, a config key or a lang key gets its line in the same PR as
+the change, and each line names a case. If the case is about an item's data, it is also made automatic: a stack of the golden set (the old sets are
+never edited; a new item kind appears in the set of the release that has it) and a check in `UpgradeTests`, marked ⚙ above. A format change raises
+`LedgerStore.Version` and keeps every old set green (`docs/development.md`, Golden stacks). The table is read at the release: an empty
+line is a change nobody covered.
 
 ## Outcome
 

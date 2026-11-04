@@ -194,6 +194,17 @@ what players have (plan `docs/plans/2026-11-04-backward-compat.md`). A set per r
   solution never build it: its build downloads the release, and a set is made once, not on every run. The sets it made are read by
   the server tests (`UpgradeTests`), which CI runs.
 
+**At each release** (the process for every later plan):
+
+- **A new set per release.** After the release zip is on GitHub, run the capture with that zip (`ReleaseVersion` and the zip's hash set for it;
+  its helpers rewritten against the release's types), which writes `Golden/v0.2.0/` next to `v0.1.1/`. `UpgradeTests` picks the new set up by itself;
+  its actions are added for the stacks the release changed.
+- **Old sets are never re-captured or edited.** They are what players have; a set made again by newer code would test nothing. If an old set
+  turns red, the code is wrong, or the change goes to `CHANGELOG.md` as something that does not survive (and the test then checks that outcome).
+- **A change of the stored format raises `LedgerStore.Version` and keeps every old set green:** the new code reads `v` 1 (and every older
+  version) and converts; a book of a newer version is refused, not wiped (`RefusalTests`). Whoever changes stored data, recipes, item codes,
+  config or lang adds the line to the upgrade plan's table "Changes in … that need a case" in the same PR (`docs/testing/upgrade-*.md`).
+
 ## Exhaustive `switch`
 
 The closed hierarchies of records (`TransferPlan`, `CreateInvoiceResult`, `MakeInvoiceResult`, `PostInvoiceResult`, `CollectResult`,

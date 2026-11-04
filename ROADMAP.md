@@ -92,13 +92,24 @@ sent to clients, messages built by the client), then recipes into a bill of mate
    is a block position everywhere (the network request, `InvoiceMaker` / `InvoicePoster`, `ContainerAccess`, hints as a
    `BlockBehavior`, the invoice's saved position). First a `ContainerTarget` (block | entity) behind `ContainerReader` and
    `ContainerAccess`; the access rule for an entity's inventory needs research.
+5. **Settings in ConfigLib's window** (the author, 04.11.2026; research in the collections design plan, C5). A soft integration
+   with no code dependency: an asset `config/configlib-patches.json` with `"file": "curiocatalogue.json"` (ConfigLib edits our
+   file in place), the scalars first (`MaxSheets`, `SoftEntryLimit`, `ConsumeSheets`, `Diagnostics`), and a listener on the game's
+   event bus (`configlib:curiocatalogue:config-saved`) that rebuilds what the config feeds. After the server's config sent to
+   clients (Later, Technical): ConfigLib does not change the file a client reads. A test that every path in the asset exists in
+   the config class. To check first: two writers of one file (our write-back on start, ConfigLib's) and what ConfigLib does
+   with a file that does not parse.
 
 ## Later
 
 **Albums and collections**
 - **Exhibits:** record a collection where it is displayed, without moving it: tapestries on walls, butterflies on shelves and in
   display cases, other wall-hung things, and mods that add display blocks. A lot of work: many block kinds. Pieces displayed by
-  others count too: the collection is the items, the album only a way to look at it.
+  others count too: the collection is the items, the album only a way to look at it. Butterflies lie mostly in such blocks: a
+  collector on the author's server keeps them both in chests and on wall plaques (Butterfly Displays, 04.11.2026); vanilla shelves,
+  display cases and all three butterfly display mods are `BlockEntityDisplay` inventories (the collections design plan, C3).
+  Plants too: a planted berry bush or fruit tree is "a cutting on the wall", it keeps the cutting's type and traits (the author,
+  04.11.2026; the collections design plan, C4).
 - **More collections,** from players' feedback. Noted by the author (31.10.2026): **fish**, **fruit trees** and **berry
   bushes**. Open for each: what one piece is (a species? a fruit or a sapling?) and whether it can lie in a chest at all.
 - **Can the tapestry collection be completed?** (review, 28.10.2026) Some pieces in the game's `sizes` have index `-1` and are not
@@ -192,6 +203,15 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 
 - **Rarity in the album:** a frame by rarity in the stamp-album view, as real stamp and coin catalogues show it. Large design space:
   computed from the game (loot table weights, butterfly spawn by climate; needs research) or set in the collection's config.
+  Rarity is a property of a cell, not a dimension; perhaps a sort key. Several tiers (e.g. rare, epic, legendary), decided with
+  the feature (the author, 04.11.2026). Butterflies carry it in their assets: six steps of spawn chance (the collections design
+  plan, C3).
+- **An album that improves:** one cell per kind holding the best specimen, with a quality order: e.g. per berry bush type the
+  cutting with the most good traits and no bad ones; a better one found replaces the one kept (the author, 04.11.2026). Another
+  kind of album beside "is it collected"; the berry bush traits in the collections design plan, C4.
+- **Catch and Release: Butterflies** (integration target): an album of live butterflies, `game:creature-butterfly-{type}`, which
+  that mod's net gives and its cages hold. A collection of its own, never mixed with the dead one (the collections design plan,
+  Decisions). Not on the author's server (04.11.2026).
 - **Parcels:** our own container, in several sizes. Posting an invoice packs the items into it instead of the inventory, and the
   invoice goes with the parcel; at the destination a book posts it and unpacks. Put on a cart or into a boat, trade becomes physical.
   A strong idea; the priority is for later. The mod still sets no prices: trading stays between players. Research: an item with

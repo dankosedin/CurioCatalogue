@@ -37,12 +37,32 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
         "27"), an icon with a number, a progress bar (vanilla's `GuiElementStatbar` or as the handbook draws one), hover
         tooltips on such elements;
       - how much fits without a scrollbar: the window's height on the smallest screen the game supports at the default GUI
-        scale, against today's 6 visible rows.
+        scale, against today's 6 visible rows;
+      - a mark drawn over a slot (a frame or a small icon in a corner), for rarity (collections plan, Decisions, C2, C3);
+      - a slot whose icon cycles through several stacks, as the handbook may show a recipe ingredient that takes any of several
+        items, for a member filled by any of several codes (collections plan, C1 level 1, C2 level 1, C4 berry bushes);
+      - a table: a slot grid with row and column headings (text or icons), for a page of two Cartesian dimensions (ore
+        crystals: rock × grade, seashells: type × colour; collections plan, C1, C2).
       Branch: `docs/album-view`. After: the plan's own commit. Model: opus. Author: none.
       Done when: Decisions has the answers with sources; `docs/modding.md` has what surprised us; the open points for A2 are named.
-- [ ] **A2. The view on paper.** Mockups of a page for tapestries and for ore crystals, seashells and butterflies as C1–C3
-      describe them (or as far as they have got). The author decides:
+- [ ] **A2. The view on paper.** The input is the collections plan's Decisions, C1–C5 (final, 04.11.2026): collections have
+      **dimensions**, hierarchical (tapestries: picture → piece, the picture's size) or Cartesian (ore crystals: ore × rock ×
+      grade, only some points allowed; seashells: type × colour), **levels** (crystals 16 / 118 / 353, seashells 7 / 42),
+      **members filled by any of several codes** (level 1 of both) or by a rule on an attribute (C4, berry bushes),
+      **per-member attributes** such as rarity, and flat collections with no dimensions (custom, C4). Mockups of a page for
+      tapestries, for ore crystals at levels 1 and 3, for seashells at both levels and for a flat collection; butterflies only as
+      a list too long for a page (their grouping is decided later, collections plan, "Butterflies last"). The author decides:
       - what a page holds: one group or several, by what rule; a group too large for a page (butterflies);
+      - a Cartesian collection: which dimension turns the pages and which two make the table on a page (e.g. a page per ore,
+        rock × grade on it); whether the player can switch the dimension, and what the default is;
+      - levels: one album with a switch of level, or a level chosen when the album is made (then fixed); the player's side of
+        C1's open question "one album or three collections";
+      - a member filled by any of several codes: its silhouette (one icon, or cycling ones), its tooltip ("bountiful native
+        copper, any rock"), and whether a collected one shows the stack actually put in (the album then remembers that code:
+        a change of stored data, for C7 and the upgrade table);
+      - the mark of a per-member attribute (rarity) on a cell, with no tiers decided yet (`ROADMAP.md`, Maybe);
+      - what the player sees of a collection disabled by the config (`Collections.<id>.Disabled`, collections plan, C5) in an
+        album already made;
       - the page header and the progress (whole album, this page, this group), a mark on a complete group;
       - navigation: buttons, a list of groups, jumping to the first page with something missing;
       - what stays of today's window: search (jumps to a page?), sorting (no: the collection's order), a filter "missing only";
@@ -51,8 +71,10 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
       - the header by "Compact window": the name and its edit button, the kind of book, the sheets as parchment with a count,
         the progress as elements; what stays as text at all; the sizes of text;
       - whether the ledger and the bill of materials get the same header now (the window is shared, `LedgerDialog`) or later.
-      Then **what the view needs from the shape of a collection**, written as input for C7: groups and their order, a group's
-      name and layout, a member's place in it.
+      Then **what the view needs from the shape of a collection**, written as input for C7 in the words of dimensions: which
+      dimensions turn pages and make tables, the order and the names of a dimension's values (and their icons, if headings
+      are icons), a group's layout (a tapestry picture's width and height), a member's place in it, levels, the code that
+      filled a member, per-member attributes.
       Branch: `docs/album-view`. After: A1. Model: opus. Author: decides; must be done before C7.
       Done when: Decisions has the agreed view with its mockups; C7 of the collections plan names A2's list as an input;
       `docs/domain.md` (Windows) describes the album window as agreed; the branch goes to `main` by a pull request.
@@ -94,7 +116,15 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
 - **Only the view** (the author, 04.11.2026). Telling tapestry pieces apart in lists ("Nightfall, 2 of 3") and each
   collection's look stay in `ROADMAP.md`, 0.2, item 6.
 - **No change to stored data expected:** the view reads what the album already keeps. If A2 or A3 changes that, the change
-  goes into the upgrade table (`docs/testing/upgrade-0.1-to-0.2.md`).
+  goes into the upgrade table (`docs/testing/upgrade-0.1-to-0.2.md`). One known candidate: remembering the code that filled
+  a member filled by any of several codes (A2 decides whether the view shows it).
+- **A1 and A2 updated by the results of C1–C6** (the author, 04.11.2026): written before the collections research, they spoke
+  of groups only. The order stays (A1, A2, then C7): what A2 owes C7 changed, it did not go away; levels and the code shown for
+  a collected member are the player's side and are decided in A2. Rejected: C7 first, with the view adapting later (the shape
+  would guess the player's side).
 - **Step letter A** (album view); B, C and P are taken by open plans.
 
 ## Where we stopped
+
+- 04.11.2026: A1 (three more GUI questions) and A2 (dimensions, levels, members of several codes, rarity marks, flat and
+  disabled collections) updated by C1–C6 (Decisions). Next: A1 (opus, After: the plan's own commit).

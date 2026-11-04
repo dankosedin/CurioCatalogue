@@ -193,6 +193,7 @@ In this order:
 - **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
   `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`GridDialog.Watch`) and name the
   item in its requests (`ShownItem`).
+- **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
 
 ## Config and logging
 
@@ -200,6 +201,10 @@ In this order:
   JSON) otherwise throws `FormatException` and the line is lost.
 - The game writes the mod config back after loading it and drops comments: example settings cannot live as comments in the config file.
 - Config is read on each side: tooltip limits come from the client's own config, which may differ from the server's.
+- **Assets in `config/` are read on both sides, and a JSON patch with `"side": "server"` changes only the server's copy**
+  (`AssetCategory.cs:16`, `JsonPatchLoader.cs:254`): a definition read by the client then differs from the server's. Clients get
+  the server's mods (`ModsByServer`), so a universal patch reaches them. `blocktypes` and `itemtypes` load on the server only
+  (`AssetCategory.cs:11-12`); the client gets them, attributes included, from the server's registry.
 - Every launch moves the previous logs to `Logs\Archive`. Red in-game errors are **not** logged. The server audit log names bag
   inventories `blockcontainedbaginv-…`, which tells which position was a bag.
 
@@ -216,6 +221,19 @@ In this order:
   `-open`, called "Cartography book" in game; `-pile*`, `-standing*`; `-evaporating` is story-only). Clutter is `Reparable`: unless
   repaired with glue, it breaks into nothing.
 - Iron parts: `metalnailsandstrips-<metal>`; vanilla has 14 metals.
+- **Ore crystals** `crystalizedore-{grade}-{ore}-{rock}` (04.11.2026, details in the collections design plan, C1): 407 allowed,
+  but 54 never generate (uranium and stibnite have no deposits at all in 1.22.7); only mining gives them, never an explosion.
+  The name has no rock ("Poor crystallized chunk of {ore}"), only the tooltip and the icon do: two codes, one name.
+- **Seashells** `seashell-{type}-{color}` (04.11.2026, details in the collections design plan, C2): a block, 42 combinations, a
+  picked-up shell is a block stack of the same code. **A block patch's list is not always what generates:** on land
+  `BlockSeashell.TryPlaceBlockForWorldGen` (`BlockShell.cs:45`) draws its own type and colour, so the loose-shell patches that
+  name only clam and turritella give any of the 42; under water the patch's list holds. Before trusting `blockCodes` of a
+  patch, check whether the block class overrides the placement.
+- **Butterflies** `butterfly-dead-{type}` (04.11.2026, details in the collections design plan, C3): 169 types, only from the bug net.
+  The entity has a 170th, `reedbutterfly`, with no item: catching it kills it and gives nothing. **A `*ByType` with no matching
+  key falls back to the C# default, not to "absent":** `reedbutterfly` has no `chanceByType` entry, so its `Chance` is 1, the
+  highest of all (`RegistryObjectType.cs:306#solveByType`, `SpawnConditions.cs:265`). The species is not in the code but in the
+  Latin name, lang `itemdesc-creature-butterfly-{type}`.
 
 ## Other mods
 
@@ -231,6 +249,10 @@ In this order:
 - **Carry On 2.0.0-rc.1** cannot lift two-cell trunks even alone. It uses Shift+RMB with empty hands; no conflict with our off-hand
   gesture, though `EmptyHandGesture` swallows RMB for 500 ms after ours (longer while held).
 - **Upgradeable Storage** works.
+- **Len's Gemology 1.0.15** (04.11.2026, from its assets) crafts vanilla ore crystals: a crystal breaks into shards, shards +
+  stone + nuggets make `game:crystalizedore-*` of nearly any combination. A crafted crystal is the same item as a mined one.
+- **Terra Prety 7.11.2-pre.1** (04.11.2026, assets and decompiled dll) changes terrain only (landforms, oceans, rivers, upheaval,
+  trees, surface layers), not deposits, ores or rock strata: which ore occurs in which rock and grade is vanilla's.
 - **Tapestries of other mods** (02.11.2026): Craftable Companion 1.5.4 and Astria Porta 0.2.3 add blocks of their own, class
   `BlockTapestry`, each with its own `sizes`; neither patches `game:tapestry`, so the album does not count their pieces (`ROADMAP.md`).
 - **Every file in a mod's `patches/` is applied, whatever its extension:** a `tapestry-sizes.json.off` still patched (seen in the

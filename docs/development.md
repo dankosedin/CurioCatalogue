@@ -15,6 +15,7 @@ CurioCatalogue.Tests/      xUnit tests of the adapters, against the game API wit
 CurioCatalogue.ServerTests/ xUnit tests against a real game server started inside the test process
 CurioCatalogue.CompatTests/ the same server with other mods loaded (compatibility tests)
 CurioCatalogue.TestServer/ what both share: the fixture, the fake client, test helpers, TestServer.props (no project of its own)
+CurioCatalogue.GoldenCapture/ makes the golden stacks of a release (run by hand, not built with the solution)
 CurioCatalogue.PageGen/    the ModDB page generator (Markdig, Scriban, PreMailer.Net); no game DLLs
 CurioCatalogue.PageGen.Tests/ xUnit tests of the generator (no game needed)
 CakeBuild/, build.ps1      release zip (from the official mod template) and the task ModDbPage
@@ -64,8 +65,10 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - **One server per process**, shared by every test through `[Collection(ServerCollection.Name)]` (`GameServerFixture`); a second
   instance throws. `dotnet test` runs each test project in its own process, so the compatibility tests get a server of their own.
 - **The fixture is shared, not copied:** `CurioCatalogue.TestServer/` holds the fixture, `GameAssemblies`, `FakeClient`, `TestBlocks`,
-  `BookTestBase`, `LogProblems` and `TestServer.props` (the references, the Newtonsoft copy, `TestPathsAsMetadata`, and those `.cs` files as
-  links). Each test project imports the props, so each test assembly compiles its own copy, with its own module initializer and paths.
+  `BookTestBase`, `GoldenStacks`, `LogProblems` and two props: `TestServer.Game.props` (the game's references, the Newtonsoft copy, `GameDir`, and those
+  `.cs` files as links) and `TestServer.props` (it, plus xUnit, our mod's current build, `TestPathsAsMetadata`, and the two files that use our types or only test them: `BookTestBase`, `GoldenStacks`). Each test project imports
+  `TestServer.props`, so each test assembly compiles its own copy, with its own module initializer and paths. `CurioCatalogue.GoldenCapture`
+  imports only the game's side (without those two) and takes our mod from a release zip ("Golden stacks" below).
   Each project declares its own `[CollectionDefinition]`.
 - Game code runs on the server's main thread: `game.OnMain(() => …)`, as in the game.
 - It needs the game in `$(VINTAGE_STORY)` and builds the mod first. The paths (the game, the built mod, its assets) are written
@@ -128,6 +131,21 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   reflection), in the server's English, expected as `en.json` says (`BookTestBase.LangText`, as in `LanguageTests`). The client calls them,
   but they need no client; the key names fall back to "Shift" and "Ctrl".
 - **`VanillaContentTests`**: the server twins of assumptions the adapter tests make about vanilla stacks (a tapestry taken off a wall, a hot ingot).
+- **`UpgradeTests`** (the golden stacks, "Golden stacks" below): every stack of every set under `Golden/v<version>/` is read by `GoldenStacks` (the reader in
+  `CurioCatalogue.TestServer`: the bytes into a stack, each numeric id replaced by the id its code has in the test world, in the stack, in nested stacks and in
+  tree arrays) and read by the current code (`LedgerStore`), and what it reads must equal the set's **inputs** (mode, sheets, name, entries, the album's
+  collection and progress, the invoice's kind and lines; never what the current code reads from the stack: that would test nothing) and be "not newer"
+  than `LedgerStore.Version`. An album's inputs give what was collected; what is missing and the total follow the collection of the test world, as a player's
+  album follows its collection, so a game that adds a tapestry does not turn a correct read red. The reader resolves only the stack itself, as a world does;
+  the nested stacks are left for the current code to resolve. The same stacks read the same with every id moved out of the test world's range (the tapestry
+  block has the same id in both worlds, so without the move a block id left unreplaced would pass); an invoice's origin and time of making read as the
+  bytes hold them (not in the 0.1.1 inputs). The set's records refuse a field they do not know, so a new input of a later capture is never skipped.
+  One action each on the 0.1.1 stacks, so that "read" also means "works": an intake list posted on a real chest into the 0.1.1 ledger, a pick list into the
+  0.1.1 bill of materials, a want list filled
+  from a chest, an album taking a new tapestry, a ledger with spent sheets recharged in the grid; an album of 0.1.1 over a collection that grew (the stored
+  `members` tell a new piece from a collected one). The config file the release wrote goes through the mod's loader (as `ConfigFileTests`): no problem in the
+  log, every key it wrote is still a setting with its value (a renamed setting loses its key at the write-back), a setting the file lacks has its default,
+  and every stack reads the same with that config. A new set under `Golden/` is picked up by the data-driven tests with no change; the actions name the 0.1.1 stacks.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
 - After a passing run the temp folder is deleted. If the server fails to start, the folder stays and the error names its
   `Logs\server-main.log`; the next run deletes such folders once they are 7 days old. With other mods, `Cache` stays (their DLLs are loaded from it and locked:
@@ -153,6 +171,51 @@ clean log; its six kinds of storage are supported; every gesture of K1 on each; 
   PowerShell), a line in `mods.json`, and a test class of its own. A block of another mod is placed with its domain:
   `TestBlocks.Place(game, "upgradablestorage:chest-east")`.
 - Every mod in the list is loaded for every compatibility test: two mods that conflict with each other would need a project each.
+
+### Golden stacks
+
+Items made by a released version of the mod, kept in the repo, so the server tests can check that the current code still reads
+what players have (plan `docs/plans/2026-11-04-backward-compat.md`). A set per release: `CurioCatalogue.ServerTests/Golden/v<version>/`.
+
+- **What a set holds:** `stacks.json`: the game's and the mod's versions, the release zip's SHA-256, the date, and per stack its name,
+  code, bytes (`ItemStack.ToBytes`, base64, with the numeric ids of the capture's world), the code of every id it holds (`"item:4505"`,
+  `"block:2053"`; nested stacks and those in tree arrays too), its attributes as text for people (never parsed), and its **inputs**: what
+  went into it (mode, sheets, name, entries; an album's collected pieces; an invoice's lines), the expected values of the golden tests.
+  `curiocatalogue.json`: the config the release wrote on its first start, untouched. `.gitattributes` keeps the folder byte for byte.
+- **The 0.1.1 set:** a ledger that learnt a chest, an intake list and a pick list it made, a bill of materials and the same book
+  recoloured, a ledger aged with acid, one of 32 sheets with 3 spent, one renamed in Cyrillic, an album with 3 pieces and its want list,
+  an album with every piece.
+- **`CurioCatalogue.GoldenCapture`** makes a set: a console program that starts the test server with our mod of the **release zip**
+  (the GitHub release's asset, downloaded by its build into `obj/release/` and checked by its hash), not the current build. It compiles
+  against that zip's DLLs, so it uses only the release's types: it has its own helpers (`Scenario`), and `BookTestBase`, which uses
+  the current build's types, is compiled only by `TestServer.props`. The items are made the way a player makes them (the grid, the
+  gestures, the release's own network requests), and the run stops if the release does not read an item back as its inputs say.
+- **Run it by hand**, once per release: `dotnet run --project CurioCatalogue.GoldenCapture` (about 40 s). It makes the items, lays
+  them out as the fixture world of the manual upgrade pass (`Fixture.cs`; chests, a shelf, the ground; `fixture-layout.txt` in the
+  data folder), and last writes the set of its `ReleaseVersion` (a run that fails earlier leaves no set). It refuses to write over a
+  set that exists: run again with `--out <folder outside the repo>` to compare two runs or to get the world once more. Two runs
+  differ only in `created` of the three invoices (the game's time when the list was made) and in the date. The run keeps its world
+  in `%TEMP%\cc-golden-…` (the path is printed; the test runs' sweep of `cc-servertests-…` leaves it alone); copy it out to
+  `VintageStory-Fixtures\<version>\` at once, as the backup of the fixture.
+- **Its build** downloads the release zip into `obj/release/` and checks its hash; a zip that does not match is deleted, so the next
+  build downloads it again. It shares the fixture's files named in `TestServer.Game.props` (they use the game's types only):
+  after a change to one of them, `dotnet build CurioCatalogue.GoldenCapture` checks that the capture still compiles.
+- **Why `dotnet test` and CI skip it:** it is in `curiocatalogue.sln` without a Build entry, so `dotnet build` and `dotnet test` of the
+  solution never build it: its build downloads the release, and a set is made once, not on every run. The sets it made are read by
+  the server tests (`UpgradeTests`), which CI runs.
+
+**At each release** (the process for every later plan):
+
+- **A new set per release.** After the release zip is on GitHub, run the capture with that zip (`ReleaseVersion` and the zip's hash set for it;
+  its helpers rewritten against the release's types), which writes `Golden/v0.2.0/` next to `v0.1.1/`. `UpgradeTests` picks the new set up by itself;
+  its actions are added for the stacks the release changed.
+- **Old sets are never re-captured or edited.** They are what players have; a set made again by newer code would test nothing. If an old set
+  turns red, the code is wrong, or the change goes to `CHANGELOG.md` as something that does not survive (and the test then checks that outcome).
+  The reader fails on a code the test world lacks, and the config test on a setting that lost its key: a release that removes or renames an
+  item code or a setting decides then how the reader maps it (a world shows a removed item as "unknown") and keeps a table of renamed keys.
+- **A change of the stored format raises `LedgerStore.Version` and keeps every old set green:** the new code reads `v` 1 (and every older
+  version) and converts; a book of a newer version is refused, not wiped (`RefusalTests`). Whoever changes stored data, recipes, item codes,
+  config or lang adds the line to the upgrade plan's table "Changes in … that need a case" in the same PR (`docs/testing/upgrade-*.md`).
 
 ## Exhaustive `switch`
 

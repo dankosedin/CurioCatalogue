@@ -1,16 +1,10 @@
 <Project>
 
   <!-- What every test project with a real game server shares (docs/development.md, Server tests): imported by
-       CurioCatalogue.ServerTests and CurioCatalogue.CompatTests. Not a project of its own: the .cs files of this folder are
-       compiled into each test assembly, so each has its own module initializer (GameAssemblies), which must run before any
-       game type is loaded, and its own paths written by MSBuild (TestPaths). One server per process either way. -->
+       CurioCatalogue.ServerTests and CurioCatalogue.CompatTests. The game's side (DLLs, the fixture's sources) is
+       TestServer.Game.props; this file adds xUnit and our mod from its current build. -->
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)TestServer.Game.props" />
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
@@ -21,8 +15,11 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <Using Include="CurioCatalogue.TestServer" />
-    <Compile Include="$(MSBuildThisFileDirectory)*.cs" Link="TestServer\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- The fixture's files that use our types, or are only for the tests of our code (TestServer.Game.props leaves them out). -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BookTestBase.cs;$(MSBuildThisFileDirectory)GoldenStacks.cs" Link="TestServer\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Tests compile against our DLLs but do not copy them: the game's mod loader loads them from the mod's output
@@ -34,27 +31,9 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\CurioCatalogue.Core\CurioCatalogue.Core.csproj" Private="false" />
   </ItemGroup>
 
-  <!-- Game DLLs are not copied: GameAssemblies (a module initializer) loads them from the game folder, so there is one copy
-       of each, the one the game and its mods use. -->
-  <ItemGroup>
-    <Reference Include="VintagestoryAPI"><HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="VSSurvivalMod"><HintPath>$(VINTAGE_STORY)/Mods/VSSurvivalMod.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="VSEssentials"><HintPath>$(VINTAGE_STORY)/Mods/VSEssentials.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="VintagestoryLib"><HintPath>$(VINTAGE_STORY)/VintagestoryLib.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="xplatforminterface"><HintPath>$(VINTAGE_STORY)/Lib/xplatforminterface.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="protobuf-net"><HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="Newtonsoft.Json"><HintPath>$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll</HintPath><Private>true</Private></Reference>
-  </ItemGroup>
-
-  <!-- The test SDK brings Newtonsoft.Json 13.0.3; the game is built against 13.0.4. Both have assembly version 13.0.0.0 and
-       only one is loaded: with the SDK's, ServerConfig.Save throws MissingMethodException (JToken.WriteTo). Use the game's. -->
-  <Target Name="UseGameNewtonsoft" AfterTargets="Build">
-    <Copy SourceFiles="$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll" DestinationFolder="$(OutDir)" />
-  </Target>
-
-  <!-- The paths the fixture needs, from MSBuild rather than hard-coded: the game folder the tests are built against, the
-       built mod's DLL (its grandparent folder is a ModPaths entry, as addModPath in the launch profiles) and the mod's
-       assets (an extra origin, as addOrigin there: a Debug build has no assets of its own). Read back by TestPaths. -->
+  <!-- The paths of our mod the fixture needs, from MSBuild rather than hard-coded: the built mod's DLL (its grandparent folder
+       is a ModPaths entry, as addModPath in the launch profiles) and the mod's assets (an extra origin, as addOrigin there: a
+       Debug build has no assets of its own). Read back by TestPaths. -->
   <Target Name="TestPathsAsMetadata" BeforeTargets="GetAssemblyAttributes">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\curiocatalogue\curiocatalogue.csproj" Targets="GetTargetPath" RemoveProperties="TargetFramework;RuntimeIdentifier;SelfContained">
       <Output TaskParameter="TargetOutputs" ItemName="_ModTargetPath" />
@@ -64,10 +43,6 @@
       <_ModProjectDir>@(_ModTargetPath->'%(MSBuildSourceProjectFile)'->DirectoryName())</_ModProjectDir>
     </PropertyGroup>
     <ItemGroup>
-      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-        <_Parameter1>GameDir</_Parameter1>
-        <_Parameter2>$([System.IO.Path]::GetFullPath('$(VINTAGE_STORY)'))</_Parameter2>
-      </AssemblyAttribute>
       <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
         <_Parameter1>ModDll</_Parameter1>
         <_Parameter2>$(_ModDll)</_Parameter2>

@@ -12,7 +12,7 @@ added it ("Since"). The upgrade between two versions has its own plan per releas
 - Debug build, creative world; switch to survival where a case says so. Config `"Diagnostics": true` (`docs/development.md`).
 - Dev commands (`/curio ...`, branch `dev-commands`) help to fill chests and books; see `docs/development.md`.
 - After a case that changes the config, put the config back.
-- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`, `CraftingTests`, `LanguageTests`, `ConfigFileTests`, `RefusalTests`, `CreativeInventoryTests`, `TooltipTests`, `VanillaContentTests`, `UpgradeableStorageTests`, `ModdedTapestryTests`; `docs/development.md`, Server tests and Compatibility tests) that checks the state of the world
+- A case marked ⚙ also has a server test (`BookFlowTests`, `BookEdgeTests`, `ContainerTests`, `CraftingTests`, `LanguageTests`, `ConfigFileTests`, `RefusalTests`, `CreativeInventoryTests`, `TooltipTests`, `VanillaContentTests`, `UpgradeTests`, `UpgradeableStorageTests`, `ModdedTapestryTests`; `docs/development.md`, Server tests and Compatibility tests) that checks the state of the world
   and the refusals' codes. Check it in game only for what a client shows: texts in the player's language, windows, hints.
 - Logs after the run: no `[CurioCatalogue]` errors, no "Failed to parse grid recipe", no "cannot be resolved".
 - Cases marked **S** also run on the dedicated server (`ServerLanguage "en"`, client in Ukrainian): chat messages and red

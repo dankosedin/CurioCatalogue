@@ -1,0 +1,11 @@
+{
+  "TapestryExclude": [],
+  "TapestryAdd": [],
+  "MaxSheets": 32,
+  "SoftEntryLimit": 500,
+  "ExtraIgnoredAttributes": [
+    "durability"
+  ],
+  "ConsumeSheets": false,
+  "Diagnostics": false
+}

@@ -25,6 +25,13 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    Golden stacks made by the v0.1.1 code in the test server and read by the server tests in CI; the fixture world for the
    manual pass (`docs/testing/upgrade-0.1-to-0.2.md`). Each later plan of 0.2 that changes stored data, recipes, item codes,
    config or lang fills that file's table "Changes in 0.2.0 that need a case".
+   Left by its code review (B6, 04.11.2026), for the capture of 0.2.0:
+   - **One file for the golden format:** the capture's records and id walk (`Golden.cs`) and the reader's (`GoldenStacks.cs`)
+     use only the game's types, so they can be one shared file; decided when the capture is rewritten for 0.2.0 and the format changes.
+   - **The tooltip of every golden stack** built by a test (`GetHeldItemInfo`, as `TooltipTests`): today U3 and U4 check the data
+     the tooltip and the window show, not that they are built from an old item without an error.
+   - **The capture built by CI** (not run): one cached download of the release zip, so that a change to a shared fixture file
+     that breaks the capture shows in the pull request, not at the release.
 2. **Collections designed first:** [the plan](docs/plans/2026-11-04-collections-design.md) (04.11.2026). Ore crystals,
    seashells and butterflies on paper, the config of mods researched, the cost of reading a book measured; the result is the
    shape of a collection and the plan of the core (item 3), so that the core is built once.
@@ -169,6 +176,11 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   reports a failure in a collection fixture's `Dispose` and whether `dotnet test` turns red on it.
 - **Known log noise per test project** (the same review): `LogProblems.KnownNoise` is shared by the server and the compatibility tests.
   When a second pinned mod brings noise of its own, give each fixture its own list, so another mod's pattern cannot hide our warning.
+- **A flaky server test** (plan backward-compat, B1, 04.11.2026): one `dotnet test curiocatalogue.sln` run had 2 failures in
+  `CurioCatalogue.ServerTests` (2 min 22 s instead of 1 min 21 s, the compatibility tests running alongside); the next runs, alone
+  and of the whole solution, were green. Which tests failed was not seen. Next time: keep the output (a `trx` logger) and look for a
+  timeout under load. Seen again in B6 (04.11.2026): `BookEdgeTests.L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full`
+  failed after 30 s in a whole-solution run (server tests 1 min 41 s instead of 1 min 12 s); green alone right after.
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.

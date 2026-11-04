@@ -10,3 +10,6 @@
 *.png binary
 *.dll binary
 *.zip binary
+
+# Golden stacks (docs/development.md): kept byte for byte as the capture wrote them, the game's config file included.
+CurioCatalogue.ServerTests/Golden/** -text

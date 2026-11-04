@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurioCatalogue.PageGen", "C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurioCatalogue.PageGen.Tests", "CurioCatalogue.PageGen.Tests\CurioCatalogue.PageGen.Tests.csproj", "{67A37055-8294-4505-B989-087652408348}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurioCatalogue.GoldenCapture", "CurioCatalogue.GoldenCapture\CurioCatalogue.GoldenCapture.csproj", "{0743AE59-A3AF-468B-864A-BF835BB29127}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +141,12 @@ Global
 		{67A37055-8294-4505-B989-087652408348}.Release|x64.Build.0 = Release|Any CPU
 		{67A37055-8294-4505-B989-087652408348}.Release|x86.ActiveCfg = Release|Any CPU
 		{67A37055-8294-4505-B989-087652408348}.Release|x86.Build.0 = Release|Any CPU
+		{0743AE59-A3AF-468B-864A-BF835BB29127}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0743AE59-A3AF-468B-864A-BF835BB29127}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0743AE59-A3AF-468B-864A-BF835BB29127}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0743AE59-A3AF-468B-864A-BF835BB29127}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0743AE59-A3AF-468B-864A-BF835BB29127}.Release|x64.ActiveCfg = Release|Any CPU
+		{0743AE59-A3AF-468B-864A-BF835BB29127}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

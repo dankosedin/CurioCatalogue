@@ -32,7 +32,7 @@ exact steps written by the agent.
       Branch: `test/golden-stacks`. After: the plan's own commit. Model: opus. Author: approves the format and the way of capture.
       Done when: a spike shows the 0.1.1 mod enabled in the test server with a book made by a gesture; Decisions has the
       answers with their sources; `docs/modding.md` has the engine findings that surprised us.
-- [ ] **B2. The capture project.** `CurioCatalogue.GoldenCapture`, in the solution but skipped by `dotnet test curiocatalogue.sln`
+- [x] **B2. The capture project.** `CurioCatalogue.GoldenCapture`, in the solution but skipped by `dotnet test curiocatalogue.sln`
       and by CI (run by name, by hand). It makes, by the game's API and 0.1.1's own requests:
       - a ledger, a bill of materials, an album with some tapestries (partly full), an album with every piece (full);
       - a want list made from the partly full album; an incoming and an outgoing invoice;
@@ -149,7 +149,22 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
   `ModConfig`; `Logs`), and the spike leaves the book in a chest. Whether the game client opens it with the 0.1.1 zip is the
   author's check (B4).
 
+### B2: the capture (04.11.2026)
+
+- **The set of 0.1.1** (`docs/development.md`, Golden stacks): `ledger`, `intake-list`, `pick-list`, `materials`, `recoloured` (the
+  same book with black leather), `aged` (`ledger-age`, sulfuric acid), `spent` (`ledger-restore`, 32 sheets, three lists made: 29),
+  `named` (`Комора № 1`, through the rename request), `album-partial` (3 pieces, then its want list: 7 sheets), `want-list`, `album-full`
+  (all 88 pieces). Each stack's inputs are written by the scenario and checked against what 0.1.1 itself reads; a mismatch stops the run.
+- **Two runs** give the same files except `created` of the three invoices (the game's time of making, which moves with the real time
+  of the run) and the date. Accepted: B3 does not compare `created`.
+- **The album takes what fits the inventory**: a player without bags has 9 free hotbar slots (the backpack's slots take only bags),
+  creative or not; the scenario clicks each chest until it is empty, emptying the inventory in between.
+- **Not built with the solution** (no Build entry in `curiocatalogue.sln`), so neither `dotnet build` nor `dotnet test` nor CI
+  downloads the release; run by name. A set is never written over (`--out` for another folder).
+- **`.gitattributes`**: the golden folder is `-text`, kept byte for byte (the game's config file as it wrote it).
+
 ## Where we stopped
 
 - 04.11.2026: B1 done: the spike, the answers above (approved), `docs/modding.md`, the props split. Next: B2 (opus, After: B1).
-
+- 04.11.2026: B2 done: `CurioCatalogue.GoldenCapture` writes the final 0.1.1 set (`CurioCatalogue.ServerTests/Golden/v0.1.1/`,
+  11 stacks and the config; not a draft: never captured again). Next: B3 (sonnet, After: B2); B4 can go in parallel.

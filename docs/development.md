@@ -15,6 +15,7 @@ CurioCatalogue.Tests/      xUnit tests of the adapters, against the game API wit
 CurioCatalogue.ServerTests/ xUnit tests against a real game server started inside the test process
 CurioCatalogue.CompatTests/ the same server with other mods loaded (compatibility tests)
 CurioCatalogue.TestServer/ what both share: the fixture, the fake client, test helpers, TestServer.props (no project of its own)
+CurioCatalogue.GoldenCapture/ makes the golden stacks of a release (run by hand, not built with the solution)
 CurioCatalogue.PageGen/    the ModDB page generator (Markdig, Scriban, PreMailer.Net); no game DLLs
 CurioCatalogue.PageGen.Tests/ xUnit tests of the generator (no game needed)
 CakeBuild/, build.ps1      release zip (from the official mod template) and the task ModDbPage
@@ -67,7 +68,7 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   `BookTestBase`, `LogProblems` and two props: `TestServer.Game.props` (the game's references, the Newtonsoft copy, `GameDir`, and those
   `.cs` files as links) and `TestServer.props` (it, plus xUnit, our mod's current build and `TestPathsAsMetadata`). Each test project imports
   `TestServer.props`, so each test assembly compiles its own copy, with its own module initializer and paths. `CurioCatalogue.GoldenCapture`
-  imports only the game's side and takes our mod from a release zip (plan backward-compat).
+  imports only the game's side (without `BookTestBase`) and takes our mod from a release zip ("Golden stacks" below).
   Each project declares its own `[CollectionDefinition]`.
 - Game code runs on the server's main thread: `game.OnMain(() => …)`, as in the game.
 - It needs the game in `$(VINTAGE_STORY)` and builds the mod first. The paths (the game, the built mod, its assets) are written
@@ -155,6 +156,32 @@ clean log; its six kinds of storage are supported; every gesture of K1 on each; 
   PowerShell), a line in `mods.json`, and a test class of its own. A block of another mod is placed with its domain:
   `TestBlocks.Place(game, "upgradablestorage:chest-east")`.
 - Every mod in the list is loaded for every compatibility test: two mods that conflict with each other would need a project each.
+
+### Golden stacks
+
+Items made by a released version of the mod, kept in the repo, so the server tests can check that the current code still reads
+what players have (plan `docs/plans/2026-11-04-backward-compat.md`). A set per release: `CurioCatalogue.ServerTests/Golden/v<version>/`.
+
+- **What a set holds:** `stacks.json`: the game's and the mod's versions, the release zip's SHA-256, the date, and per stack its name,
+  code, bytes (`ItemStack.ToBytes`, base64, with the numeric ids of the capture's world), the code of every id it holds (`"item:4505"`,
+  `"block:2053"`; nested stacks and those in tree arrays too), its attributes as text for people (never parsed), and its **inputs**: what
+  went into it (mode, sheets, name, entries; an album's collected pieces; an invoice's lines), the expected values of the golden tests.
+  `curiocatalogue.json`: the config the release wrote on its first start, untouched. `.gitattributes` keeps the folder byte for byte.
+- **The 0.1.1 set:** a ledger that learnt a chest, an intake list and a pick list it made, a bill of materials and the same book
+  recoloured, a ledger aged with acid, one of 32 sheets with 3 spent, one renamed in Cyrillic, an album with 3 pieces and its want list,
+  an album with every piece.
+- **`CurioCatalogue.GoldenCapture`** makes a set: a console program that starts the test server with our mod of the **release zip**
+  (the GitHub release's asset, downloaded by its build into `obj/release/` and checked by its hash), not the current build. It compiles
+  against that zip's DLLs, so it uses only the release's types: it has its own helpers (`Scenario`), and `BookTestBase`, which uses
+  the current build's types, is compiled only by `TestServer.props`. The items are made the way a player makes them (the grid, the
+  gestures, the release's own network requests), and the run stops if the release does not read an item back as its inputs say.
+- **Run it by hand**, once per release: `dotnet run --project CurioCatalogue.GoldenCapture` (about 40 s) writes the set of its
+  `ReleaseVersion`; it refuses to write over a set that exists (`--out <folder>` writes elsewhere, e.g. to compare two runs). Two
+  runs differ only in `created` of the three invoices (the game's time when the list was made) and in the date. The run keeps its
+  world (`%TEMP%\cc-servertests-…`, the path is printed).
+- **Why `dotnet test` and CI skip it:** it is in `curiocatalogue.sln` without a Build entry, so `dotnet build` and `dotnet test` of the
+  solution never build it: its build downloads the release, and a set is made once, not on every run. The sets it made are read by
+  the server tests (`UpgradeTests`, B3 of the plan), which CI runs.
 
 ## Exhaustive `switch`
 

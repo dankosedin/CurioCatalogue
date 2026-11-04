@@ -17,7 +17,9 @@
 
   <ItemGroup>
     <Using Include="CurioCatalogue.TestServer" />
-    <Compile Include="$(MSBuildThisFileDirectory)*.cs" Link="TestServer\%(Filename)%(Extension)" />
+    <!-- BookTestBase uses our types of the current build, so only TestServer.props compiles it; a release's capture has its own
+         helpers, written against that release's types. -->
+    <Compile Include="$(MSBuildThisFileDirectory)*.cs" Exclude="$(MSBuildThisFileDirectory)BookTestBase.cs" Link="TestServer\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Game DLLs are not copied: GameAssemblies (a module initializer) loads them from the game folder, so there is one copy

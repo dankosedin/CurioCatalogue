@@ -1,0 +1,1596 @@
+{
+  "about": "Golden stacks: items made by this release of the mod in a test server, read by UpgradeTests (docs/development.md, Golden stacks). Bytes: ItemStack.ToBytes, base64, with the numeric ids of the capture's world; Ids: the code of each of them. Inputs: what went into each item, the expected values. Attributes: for people only. Never edit or capture a set again.",
+  "gameVersion": "1.22.7",
+  "modVersion": "0.1.1",
+  "zipSha256": "7ae7bf83c3b6f8a97108d0109bdc9243a18d178c712e47a4761845fca84c06c2",
+  "captured": "2026-11-04",
+  "stacks": [
+    {
+      "name": "ledger",
+      "code": "curiocatalogue:book-ledger-normal-teal",
+      "bytes": "AQAAAJkRAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAABBnNoZWV0cwgAAAAOB2VudHJpZXMDAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUHYW1idXNoMQABBWNvdW50AQAAAAAHBXN0YWNrAAEAAADSBwAAAQAAAAABBWNvdW50AQAAAAAHBXN0YWNrAAEAAADWBwAAAQAAAAABBWNvdW50AQAAAAAAAA==",
+      "ids": {
+        "block:2053": "game:tapestry-north",
+        "item:2002": "game:ingot-copper",
+        "item:2006": "game:ingot-iron",
+        "item:4505": "curiocatalogue:book-ledger-normal-teal"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 8, \"entries\": [{ \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"item\", code: \"ingot-copper\"}, \"count\": 1 }, { \"stack\": { \"type\": \"item\", code: \"ingot-iron\"}, \"count\": 1 }] } }",
+      "inputs": {
+        "made": "ledger-fallback from game:book-normal-teal (8 sheets); an intake list of a chest with 5 copper ingots, a tapestry and 3 iron ingots, posted with the book in the off-hand (the sheet back)",
+        "code": "curiocatalogue:book-ledger-normal-teal",
+        "book": {
+          "mode": "Types",
+          "sheets": 8,
+          "name": "",
+          "entries": [
+            {
+              "code": "game:ingot-copper",
+              "count": 1
+            },
+            {
+              "code": "game:ingot-iron",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "ambush1",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "intake-list",
+      "code": "curiocatalogue:invoice-incoming",
+      "bytes": "AQAAAL0RAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAADB2NyZWF0ZWQ5kFdcqypCQAYDcG9zAQF4CNAHAAEBeQkAAAABAXoA0AcAAA4HZW50cmllcwIAAAAHBXN0YWNrAAEAAADfBwAAAQAAAAABBWNvdW50AwAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQdhbWJ1c2gyAAEFY291bnQBAAAAAAAA",
+      "ids": {
+        "block:2053": "game:tapestry-north",
+        "item:2015": "game:ingot-tin",
+        "item:4541": "curiocatalogue:invoice-incoming"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"created\": 36.333354513888885, \"pos\": { \"x\": 512008, \"y\": 9, \"z\": 512000 }, \"entries\": [{ \"stack\": { \"type\": \"item\", code: \"ingot-tin\"}, \"count\": 3 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush2\" }}, \"count\": 1 }] } }",
+      "inputs": {
+        "made": "Shift + RMB with the ledger above on a chest with 3 tin ingots and a tapestry it lacks; kept, not posted",
+        "code": "curiocatalogue:invoice-incoming",
+        "invoice": {
+          "kind": "Incoming",
+          "lines": [
+            {
+              "code": "game:ingot-tin",
+              "count": 3
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "ambush2",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "pick-list",
+      "code": "curiocatalogue:invoice-outgoing",
+      "bytes": "AQAAAL4RAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAADB2NyZWF0ZWQ5kFdcqypCQAYDcG9zAQF4DNAHAAEBeQkAAAABAXoA0AcAAA4HZW50cmllcwIAAAAHBXN0YWNrAAEAAADSBwAAAQAAAAABBWNvdW50AgAAAAAHBXN0YWNrAAEAAADWBwAAAQAAAAABBWNvdW50AQAAAAAAAA==",
+      "ids": {
+        "item:2002": "game:ingot-copper",
+        "item:2006": "game:ingot-iron",
+        "item:4542": "curiocatalogue:invoice-outgoing"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"created\": 36.333354513888885, \"pos\": { \"x\": 512012, \"y\": 9, \"z\": 512000 }, \"entries\": [{ \"stack\": { \"type\": \"item\", code: \"ingot-copper\"}, \"count\": 2 }, { \"stack\": { \"type\": \"item\", code: \"ingot-iron\"}, \"count\": 1 }] } }",
+      "inputs": {
+        "made": "Shift + Ctrl + RMB with the same ledger on a chest with 2 copper ingots, 4 sticks and an iron ingot; kept, not posted",
+        "code": "curiocatalogue:invoice-outgoing",
+        "invoice": {
+          "kind": "Outgoing",
+          "lines": [
+            {
+              "code": "game:ingot-copper",
+              "count": 2
+            },
+            {
+              "code": "game:ingot-iron",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "materials",
+      "code": "curiocatalogue:book-materials-normal-brickred",
+      "bytes": "AQAAAHYRAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAABBnNoZWV0cwgAAAAOB2VudHJpZXMCAAAABwVzdGFjawABAAAA0gcAAAEAAAAAAQVjb3VudAIAAAAABwVzdGFjawABAAAA1gcAAAEAAAAAAQVjb3VudAQAAAAAAAA=",
+      "ids": {
+        "item:2002": "game:ingot-copper",
+        "item:2006": "game:ingot-iron",
+        "item:4470": "curiocatalogue:book-materials-normal-brickred"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 8, \"entries\": [{ \"stack\": { \"type\": \"item\", code: \"ingot-copper\"}, \"count\": 2 }, { \"stack\": { \"type\": \"item\", code: \"ingot-iron\"}, \"count\": 4 }] } }",
+      "inputs": {
+        "made": "ledger-fallback from game:book-normal-brickred, then ledger-switchmode (8 sheets); an intake list of a chest with 4 iron and 2 copper ingots, posted with the book in the off-hand",
+        "code": "curiocatalogue:book-materials-normal-brickred",
+        "book": {
+          "mode": "Counts",
+          "sheets": 8,
+          "name": "",
+          "entries": [
+            {
+              "code": "game:ingot-copper",
+              "count": 2
+            },
+            {
+              "code": "game:ingot-iron",
+              "count": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "recoloured",
+      "code": "curiocatalogue:book-materials-normal-darkgray",
+      "bytes": "AQAAAH8RAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAABBnNoZWV0cwgAAAAOB2VudHJpZXMCAAAABwVzdGFjawABAAAA0gcAAAEAAAAAAQVjb3VudAIAAAAABwVzdGFjawABAAAA1gcAAAEAAAAAAQVjb3VudAQAAAAAAAA=",
+      "ids": {
+        "item:2002": "game:ingot-copper",
+        "item:2006": "game:ingot-iron",
+        "item:4479": "curiocatalogue:book-materials-normal-darkgray"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 8, \"entries\": [{ \"stack\": { \"type\": \"item\", code: \"ingot-copper\"}, \"count\": 2 }, { \"stack\": { \"type\": \"item\", code: \"ingot-iron\"}, \"count\": 4 }] } }",
+      "inputs": {
+        "made": "the bill of materials above and game:leather-normal-black in the grid (ledger-recolor)",
+        "code": "curiocatalogue:book-materials-normal-darkgray",
+        "book": {
+          "mode": "Counts",
+          "sheets": 8,
+          "name": "",
+          "entries": [
+            {
+              "code": "game:ingot-copper",
+              "count": 2
+            },
+            {
+              "code": "game:ingot-iron",
+              "count": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "aged",
+      "code": "curiocatalogue:book-ledger-aged-orange",
+      "bytes": "AQAAALQRAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAABBnNoZWV0cwgAAAAOB2VudHJpZXMAAAAAAAA=",
+      "ids": {
+        "item:4532": "curiocatalogue:book-ledger-aged-orange"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 8, \"entries\": [] } }",
+      "inputs": {
+        "made": "ledger-fallback from game:book-normal-orange (8 sheets), then ledger-age with a jug of 1.5 l of sulfuric acid",
+        "code": "curiocatalogue:book-ledger-aged-orange",
+        "book": {
+          "mode": "Types",
+          "sheets": 8,
+          "name": "",
+          "entries": []
+        }
+      }
+    },
+    {
+      "name": "spent",
+      "code": "curiocatalogue:book-ledger-normal-darkgreen",
+      "bytes": "AQAAAIERAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAABBnNoZWV0cx0AAAAOB2VudHJpZXMAAAAAAAA=",
+      "ids": {
+        "item:4481": "curiocatalogue:book-ledger-normal-darkgreen"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 29, \"entries\": [] } }",
+      "inputs": {
+        "made": "ledger-restore from game:clutter bookshelves/large-book-closed, a jug of 1.5 l of lime water and ink (32 sheets); three intake lists made of a chest with a copper ingot and thrown away",
+        "code": "curiocatalogue:book-ledger-normal-darkgreen",
+        "book": {
+          "mode": "Types",
+          "sheets": 29,
+          "name": "",
+          "entries": []
+        }
+      }
+    },
+    {
+      "name": "named",
+      "code": "curiocatalogue:book-ledger-normal-purple",
+      "bytes": "AQAAAJMRAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAABBnNoZWV0cwgAAAAFBG5hbWUS0JrQvtC80L7RgNCwIOKEliAxDgdlbnRyaWVzAAAAAAAA",
+      "ids": {
+        "item:4499": "curiocatalogue:book-ledger-normal-purple"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 8, \"name\": \"Комора № 1\", \"entries\": [] } }",
+      "inputs": {
+        "made": "ledger-fallback from game:book-normal-purple (8 sheets), renamed \"Комора № 1\" in its window",
+        "code": "curiocatalogue:book-ledger-normal-purple",
+        "book": {
+          "mode": "Types",
+          "sheets": 8,
+          "name": "Комора № 1",
+          "entries": []
+        }
+      }
+    },
+    {
+      "name": "album-partial",
+      "code": "curiocatalogue:book-album-normal-olive",
+      "bytes": "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AQAAAAUEdHlwZQpyb3RiZWFzdDIxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQpyb3RiZWFzdDIyAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24xMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGULc2FsdmF0aW9uMTIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlC3NhbHZhdGlvbjIxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24yMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWExMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWExMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWEyMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWEyMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIxMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIxMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIyMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIyMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUTc2NoZW1hdGljLWMtYmxvb2R5MQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUTc2NoZW1hdGljLWMtYmxvb2R5MgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUMc2NoZW1hdGljLWMxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQxzY2hlbWF0aWMtYzIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMTEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMTIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMjEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1k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",
+      "ids": {
+        "block:2053": "game:tapestry-north",
+        "item:4492": "curiocatalogue:book-album-normal-olive"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 7, \"album\": { \"id\": \"tapestries\", \"members\": [{ \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate4\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"notice-blackguard\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator22\" }} }] }, \"entries\": [{ \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate4\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"notice-blackguard\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator22\" }}, \"count\": 1 }] } }",
+      "inputs": {
+        "made": "ledger-fallback from game:book-normal-olive, then ledger-album with a tapestry (8 sheets); Shift + RMB on a chest with the pieces ambush1, ambush2, ambush3 (and a second ambush1, left there); then a want list made in its window (a sheet spent)",
+        "code": "curiocatalogue:book-album-normal-olive",
+        "book": {
+          "mode": "Album",
+          "sheets": 7,
+          "name": "",
+          "entries": [
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-arm1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-arm2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-head1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-head2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-leg1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-leg2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "contracts1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "contracts2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "diet1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "diet2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "eidolon1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "eidolon2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "forlorn1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "forlorn2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate4",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "glider1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "glider2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "glider3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "holy1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "holy2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "nightfall1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "nightfall2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "nightfall3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "notice-blackguard",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "oldworld1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "oldworld2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "oldworld3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "return1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "return2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rickbat1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rickbat2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rot1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rot2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rot3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c-bloody1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c-bloody2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "seraphim1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "seraphim2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "seraphim3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "temporality1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "temporality2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "themorning1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "themorning2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "themorning3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator22",
+              "count": 1
+            }
+          ],
+          "album": {
+            "collection": "tapestries",
+            "collected": [
+              {
+                "code": "game:tapestry-north",
+                "type": "ambush1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "ambush2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "ambush3",
+                "count": 1
+              }
+            ],
+            "full": false
+          }
+        }
+      }
+    },
+    {
+      "name": "want-list",
+      "code": "curiocatalogue:invoice-wantlist",
+      "bytes": "AQAAAL8RAAABAAAABg5jdXJpb2NhdGFsb2d1ZQEBdgEAAAADB2NyZWF0ZWTuffs6sCpCQAYDcG9zAQF4GNAHAAEBeQkAAAABAXoB0AcAAA4HZW50cmllc1UAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQpuaWdodGZhbGwxAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCm5pZ2h0ZmFsbDIAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUKbmlnaHRmYWxsMwABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQVob2x5MQABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQVob2x5MgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24xMQABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24xMgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24yMQABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24yMgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQRyb3QxAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlBHJvdDIAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUEcm90MwABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQt0aGVtb3JuaW5nMQABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQt0aGVtb3JuaW5nMgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQt0aGVtb3JuaW5nMwABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQ1zY2hlbWF0aWMtYTExAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1hMTIAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWEyMQABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQ1zY2hlbWF0aWMtYTIyAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1iMTEAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIxMgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQ1zY2hlbWF0aWMtYjIxAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1iMjIAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUMc2NoZW1hdGljLWMxAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDHNjaGVtYXRpYy1jMgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZRNzY2hlbWF0aWMtYy1ibG9vZHkxAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlE3NjaGVtYXRpYy1jLWJsb29keTIAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWQxMQABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQ1zY2hlbWF0aWMtZDEyAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMjEAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWQyMgABBWNvdW50AQAAAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQpyb3RiZWFzdDExAAEFY291bnQBAAAAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCnJvdGJlYXN0MTIAAQVjb3VudAEAAAAABwVzdGFjawAAAAAABQgAAAEAAAAF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",
+      "ids": {
+        "block:2053": "game:tapestry-north",
+        "item:4543": "curiocatalogue:invoice-wantlist"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"created\": 36.33350312499884, \"pos\": { \"x\": 512024, \"y\": 9, \"z\": 512001 }, \"entries\": [{ \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate4\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider3\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"notice-blackguard\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat1\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat2\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm22\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator11\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator12\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator21\" }}, \"count\": 1 }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator22\" }}, \"count\": 1 }] } }",
+      "inputs": {
+        "made": "the want list of the album above, made in its window; kept, not posted",
+        "code": "curiocatalogue:invoice-wantlist",
+        "invoice": {
+          "kind": "WantList",
+          "lines": [
+            {
+              "code": "game:tapestry-north",
+              "type": "nightfall1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "nightfall2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "nightfall3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "holy1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "holy2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "salvation22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rot1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rot2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rot3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "themorning1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "themorning2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "themorning3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-a22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-b22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c-bloody1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-c-bloody2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "schematic-d22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rotbeast22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "seraphim1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "seraphim2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "seraphim3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "blackguard22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "forlorn1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "forlorn2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "gate4",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "diet1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "diet2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "oldworld1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "oldworld2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "oldworld3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "temporality1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "temporality2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-arm1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-arm2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-head1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-head2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-leg1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "aid-leg2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "contracts1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "contracts2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "eidolon1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "eidolon2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "glider1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "glider2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "glider3",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "notice-blackguard",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "return1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "return2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rickbat1",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "rickbat2",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "symptoms22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "tempstorm22",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator11",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator12",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator21",
+              "count": 1
+            },
+            {
+              "code": "game:tapestry-north",
+              "type": "translocator22",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "album-full",
+      "code": "curiocatalogue:book-album-normal-gray",
+      "bytes": "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AQAAAAUEdHlwZQpyb3RiZWFzdDIxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQpyb3RiZWFzdDIyAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24xMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGULc2FsdmF0aW9uMTIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlC3NhbHZhdGlvbjIxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQtzYWx2YXRpb24yMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWExMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWExMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWEyMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWEyMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIxMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIxMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIyMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUNc2NoZW1hdGljLWIyMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUTc2NoZW1hdGljLWMtYmxvb2R5MQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUTc2NoZW1hdGljLWMtYmxvb2R5MgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUMc2NoZW1hdGljLWMxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQxzY2hlbWF0aWMtYzIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMTEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMTIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMjEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDXNjaGVtYXRpYy1kMjIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCXNlcmFwaGltMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUJc2VyYXBoaW0yAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQlzZXJhcGhpbTMAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCnN5bXB0b21zMTEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCnN5bXB0b21zMTIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCnN5bXB0b21zMjEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlCnN5bXB0b21zMjIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDHRlbXBvcmFsaXR5MQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUMdGVtcG9yYWxpdHkyAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQt0ZW1wc3Rvcm0xMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGULdGVtcHN0b3JtMTIAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlC3RlbXBzdG9ybTIxAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQt0ZW1wc3Rvcm0yMgAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGULdGhlbW9ybmluZzEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlC3RoZW1vcm5pbmcyAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQt0aGVtb3JuaW5nMwAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUOdHJhbnNsb2NhdG9yMTEAAAcFc3RhY2sAAAAAAAUIAAABAAAABQR0eXBlDnRyYW5zbG9jYXRvcjEyAAAHBXN0YWNrAAAAAAAFCAAAAQAAAAUEdHlwZQ50cmFuc2xvY2F0b3IyMQAABwVzdGFjawAAAAAABQgAAAEAAAAFBHR5cGUOdHJhbnNsb2NhdG9yMjIAAAAOB2VudHJpZXMAAAAAAAA=",
+      "ids": {
+        "block:2053": "game:tapestry-north",
+        "item:4489": "curiocatalogue:book-album-normal-gray"
+      },
+      "attributes": "{ \"curiocatalogue\": { \"v\": 1, \"sheets\": 8, \"album\": { \"id\": \"tapestries\", \"members\": [{ \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-arm2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-head2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"aid-leg2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"ambush3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"blackguard22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"contracts2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"diet2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"eidolon2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"forlorn2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"gate4\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"glider3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"holy2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"nightfall3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"notice-blackguard\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"oldworld3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"return2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rickbat2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rot3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"rotbeast22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"salvation22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-a22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-b22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c-bloody2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-c2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"schematic-d22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"seraphim3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"symptoms22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"temporality2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"tempstorm22\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning1\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning2\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"themorning3\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator11\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator12\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator21\" }} }, { \"stack\": { \"type\": \"block\", \"code\": \"tapestry-north\", \"attributes\": { \"type\": \"translocator22\" }} }] }, \"entries\": [] } }",
+      "inputs": {
+        "made": "ledger-fallback from game:book-normal-gray, then ledger-album with a tapestry (8 sheets); Shift + RMB on chests with all 88 pieces, 16 a chest, each clicked until empty (the inventory emptied in between)",
+        "code": "curiocatalogue:book-album-normal-gray",
+        "book": {
+          "mode": "Album",
+          "sheets": 8,
+          "name": "",
+          "entries": [],
+          "album": {
+            "collection": "tapestries",
+            "collected": [
+              {
+                "code": "game:tapestry-north",
+                "type": "aid-arm1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "aid-arm2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "aid-head1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "aid-head2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "aid-leg1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "aid-leg2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "ambush1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "ambush2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "ambush3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "blackguard11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "blackguard12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "blackguard21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "blackguard22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "contracts1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "contracts2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "diet1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "diet2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "eidolon1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "eidolon2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "forlorn1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "forlorn2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "gate1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "gate2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "gate3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "gate4",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "glider1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "glider2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "glider3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "holy1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "holy2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "nightfall1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "nightfall2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "nightfall3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "notice-blackguard",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "oldworld1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "oldworld2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "oldworld3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "return1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "return2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rickbat1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rickbat2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rot1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rot2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rot3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rotbeast11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rotbeast12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rotbeast21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "rotbeast22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "salvation11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "salvation12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "salvation21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "salvation22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-a11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-a12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-a21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-a22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-b11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-b12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-b21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-b22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-c-bloody1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-c-bloody2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-c1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-c2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-d11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-d12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-d21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "schematic-d22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "seraphim1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "seraphim2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "seraphim3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "symptoms11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "symptoms12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "symptoms21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "symptoms22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "temporality1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "temporality2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "tempstorm11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "tempstorm12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "tempstorm21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "tempstorm22",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "themorning1",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "themorning2",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "themorning3",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "translocator11",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "translocator12",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "translocator21",
+                "count": 1
+              },
+              {
+                "code": "game:tapestry-north",
+                "type": "translocator22",
+                "count": 1
+              }
+            ],
+            "full": true
+          }
+        }
+      }
+    }
+  ]
+}

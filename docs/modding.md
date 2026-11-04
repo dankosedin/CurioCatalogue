@@ -92,6 +92,19 @@ In this order:
   `IgnoredStackAttributes`, but behaviors and items may override it (vssurvivalmod `ItemEgg.cs:12` ignores "chick"). It knows
   nothing of our config, so a worn and a fresh ingot share our key (durability ignored) and still need two slots. Plan moves by
   merge classes (`InvoicePoster.MergeClasses`), not by keys.
+- **A stack's bytes** (`ItemStack.cs:329#ToBytes`): int32 class (0 block, 1 item), int32 numeric id, int32 stack size, then the
+  attribute tree. A stack inside the attributes (`ItemstackAttribute`, attribute id 7, `ItemstackAttribute.cs:49#ToBytes`) is a
+  bool "is null" and then the same layout, so every nested stack carries its own numeric id. No codes anywhere.
+- **A world keeps its numeric ids for ever** (decompiled `VintagestoryLib` 1.22.7, `ServerSystemItemIdRemapper.RemapItems`, the
+  same for blocks; checked 04.11.2026). The save holds the code of every id (`SaveGame` data `ItemIDs`, `BlockIDs`). On load the
+  registry is remapped so that each known code gets its stored id back; a new code gets a new id; a code no longer there becomes a
+  placeholder item "unknown" that keeps the id. Stacks are never rewritten: a book's bytes stay valid in its own world through game
+  and mod updates. Another world (a test server, a schematic pasted elsewhere) has other ids.
+- **The schematic remap skips arrays** (`Collectible.cs:3458#OnLoadCollectibleMappings`, `Collectible.cs:3499#OnStoreCollectibleMappings`):
+  it walks nested trees and `ItemstackAttribute`, not `TreeArrayAttribute`, where our entries and album members are. Seen
+  04.11.2026 on a ledger made by 0.1.1 (plan backward-compat, B1): the store walk recorded the book's own id only, not the copper
+  ingot or the tapestry in its entries (`ROADMAP.md`, Maybe, books in schematics).
+- `ToJsonToken()` of an attribute tree is for people, not a parser: it writes some keys unquoted (`code: "ingot-copper"`).
 - `new ItemStack()` has stack size 0, and our storage code drops it as empty: set the size in tests.
 - **Numbers from JSON** (recipe output, `/giveitem`) land in item attributes as longs: read them with `GetAsInt`, not `GetInt`.
 
@@ -253,6 +266,12 @@ Not needed: the game's `Lib` on `PATH` (the native libraries load without it, ch
 unpacked into `<DataPath>\Cache\unpack\…` and its DLL is loaded from there; on Windows a loaded DLL stays locked until the process
 ends, so `Directory.Delete` of the data folder fails with `UnauthorizedAccessException` on it (the zip itself is free). The fixture
 leaves `Cache` and the next run deletes it.
+
+**Our mod from a release zip** (checked 04.11.2026, plan backward-compat, B1). The zip in a `ModPaths` folder and no `AddOrigin`:
+the server loads it as any mod zip ("External Origins … mod@curiocatalogue_0.1.1.zip"), and a program compiled against the zip's
+DLLs (not copied) binds to the loaded ones by name, as the tests do with the build. On its first start the mod writes its default
+config to `<DataPath>\ModConfig\curiocatalogue.json`; the stop saves the world to `<DataPath>\Saves\default.vcdbs` (a superflat
+world: about 4 MB).
 
 **Our types in the tests** (checked 02.11.2026). The mod loader loads a mod's DLL with `Assembly.UnsafeLoadFrom(path)`
 (`ModAssemblyLoader.LoadFrom`), into the default load context. After that, a reference by name (a test using `ItemLedger`)

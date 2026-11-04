@@ -1,0 +1,51 @@
+<Project>
+
+  <!-- The game's side of a project with a real game server inside its process (docs/development.md, Server tests): the game's
+       DLLs and the fixture's sources, without our mod. Imported by TestServer.props (the test projects: our mod from its current
+       build) and by CurioCatalogue.GoldenCapture (our mod from a release zip). Not a project of its own: the .cs files of this
+       folder are compiled into each assembly, so each has its own module initializer (GameAssemblies), which must run before
+       any game type is loaded, and its own paths written by MSBuild (TestPaths). One server per process either way.
+       The importer says where our mod comes from: it references our DLLs (Private=false) and writes the assembly metadata
+       ModDll and ModAssets (read by TestPaths). -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="CurioCatalogue.TestServer" />
+    <Compile Include="$(MSBuildThisFileDirectory)*.cs" Link="TestServer\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Game DLLs are not copied: GameAssemblies (a module initializer) loads them from the game folder, so there is one copy
+       of each, the one the game and its mods use. -->
+  <ItemGroup>
+    <Reference Include="VintagestoryAPI"><HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="VSSurvivalMod"><HintPath>$(VINTAGE_STORY)/Mods/VSSurvivalMod.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="VSEssentials"><HintPath>$(VINTAGE_STORY)/Mods/VSEssentials.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="VintagestoryLib"><HintPath>$(VINTAGE_STORY)/VintagestoryLib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="xplatforminterface"><HintPath>$(VINTAGE_STORY)/Lib/xplatforminterface.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="protobuf-net"><HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+
+  <!-- The test SDK brings Newtonsoft.Json 13.0.3; the game is built against 13.0.4. Both have assembly version 13.0.0.0 and
+       only one is loaded: with the SDK's, ServerConfig.Save throws MissingMethodException (JToken.WriteTo). Use the game's. -->
+  <Target Name="UseGameNewtonsoft" AfterTargets="Build">
+    <Copy SourceFiles="$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll" DestinationFolder="$(OutDir)" />
+  </Target>
+
+  <!-- The game folder the assembly is built against, from MSBuild rather than hard-coded. Read back by TestPaths. -->
+  <Target Name="GamePathAsMetadata" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>GameDir</_Parameter1>
+        <_Parameter2>$([System.IO.Path]::GetFullPath('$(VINTAGE_STORY)'))</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+</Project>

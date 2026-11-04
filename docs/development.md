@@ -64,8 +64,10 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - **One server per process**, shared by every test through `[Collection(ServerCollection.Name)]` (`GameServerFixture`); a second
   instance throws. `dotnet test` runs each test project in its own process, so the compatibility tests get a server of their own.
 - **The fixture is shared, not copied:** `CurioCatalogue.TestServer/` holds the fixture, `GameAssemblies`, `FakeClient`, `TestBlocks`,
-  `BookTestBase`, `LogProblems` and `TestServer.props` (the references, the Newtonsoft copy, `TestPathsAsMetadata`, and those `.cs` files as
-  links). Each test project imports the props, so each test assembly compiles its own copy, with its own module initializer and paths.
+  `BookTestBase`, `LogProblems` and two props: `TestServer.Game.props` (the game's references, the Newtonsoft copy, `GameDir`, and those
+  `.cs` files as links) and `TestServer.props` (it, plus xUnit, our mod's current build and `TestPathsAsMetadata`). Each test project imports
+  `TestServer.props`, so each test assembly compiles its own copy, with its own module initializer and paths. `CurioCatalogue.GoldenCapture`
+  imports only the game's side and takes our mod from a release zip (plan backward-compat).
   Each project declares its own `[CollectionDefinition]`.
 - Game code runs on the server's main thread: `game.OnMain(() => …)`, as in the game.
 - It needs the game in `$(VINTAGE_STORY)` and builds the mod first. The paths (the game, the built mod, its assets) are written

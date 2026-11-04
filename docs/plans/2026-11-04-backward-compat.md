@@ -21,7 +21,7 @@ exact steps written by the agent.
 
 ## Steps
 
-- [ ] **B1. The release's code in the test server.** Research and a spike, kept only if it works: answer the open questions of
+- [x] **B1. The release's code in the test server.** Research and a spike, kept only if it works: answer the open questions of
       Decisions ("Capture", "Format", "Ids") in the engine (vsapi, decompiled `VintagestoryLib.dll` with `ilspycmd`) and by
       trying. The fixture loads the mod from the v0.1.1 zip (`Releases/curiocatalogue_0.1.1.zip`, the same file as the GitHub
       release `v0.1.1`); the capture project compiles against that zip's DLLs, not the current build (the tests bind to the
@@ -115,5 +115,41 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
   `CHANGELOG.md` (and in the READMEs when a player must do something); the golden test then checks the documented outcome.
 - **Step letter B** (backward compatibility); P, S and T are taken.
 
+### B1: the answers (04.11.2026; format and way of capture approved by the author the same day)
+
+- **The spike works.** `CurioCatalogue.GoldenCapture` (a console program, not yet in the solution) starts the test server with
+  the 0.1.1 zip as our mod (`GameServerFixture` with `ourRelease` and `keepData`; version checked after start), crafts a ledger
+  in a real player's grid (8 sheets, by 0.1.1's `OnCreatedByCrafting`), makes an intake list from a chest by Shift + RMB, posts
+  it with the book in the off-hand, and prints the book's bytes, ids and JSON. Start to stop about 35 s. The props are split:
+  `TestServer.Game.props` (the game's DLLs, the fixture's sources) and `TestServer.props` (it plus xUnit and the current build).
+- **Which zip.** The asset of the GitHub release `v0.1.1` (sha256 `7ae7bf83…c06c2`, built by CI on ubuntu), downloaded by the
+  capture project's build and checked by its hash, then unpacked into `obj`. The local `Releases/curiocatalogue_0.1.1.zip` is
+  **not** the same file: another build of the same tag (assets with CRLF, other DLL bytes; the same content). ModDB most likely got
+  the GitHub one (the author); the capture uses it either way. The download is cached in `obj/release/` (git-ignored) and checked
+  by its hash.
+- **Sharing with the tests.** Of the fixture's files only `BookTestBase` uses our types; `GameServerFixture`, `FakeClient`,
+  `TestBlocks`, `GameAssemblies`, `LogProblems` do not. The spike reuses `BookTestBase` because the mod's code has not changed
+  since `v0.1.1`. Once 0.2 changes it, `BookTestBase` will not compile against 0.1.1, so (B2): `BookTestBase` moves to the
+  current build's side (compiled by `TestServer.props` only), and the capture keeps its own small helpers (the grid, the click)
+  written against the release's types. The capture's code is frozen with its set: at the next release it is rewritten for that
+  release's types, and the old one stays in git history.
+- **Format** (for B2): `CurioCatalogue.ServerTests/Golden/v0.1.1/stacks.json` with the game's version, the mod's version, the zip's
+  sha256, and per stack: a name, its code, its bytes (`ItemStack.ToBytes`, base64), the code of each id it holds (`"item:4505":
+  "curiocatalogue:book-ledger-normal-teal"`, `"block:2053": "game:tapestry-north"`; blocks too: a tapestry is a block), the
+  attributes as `ToJsonToken()` text for people (a string, never parsed: it is not strict JSON), and the inputs. Next to it
+  `curiocatalogue.json`, the config 0.1.1 wrote, untouched (the spike's: the defaults, `MaxSheets` 32, `ConsumeSheets` false).
+- **Ids, checked** (`docs/modding.md`, Stacks and item identity): every nested stack carries its own numeric id in the bytes, and
+  a world keeps the ids for ever (the save holds `ItemIDs` and `BlockIDs`; the registry is remapped on load, stacks never). So the
+  test reads the bytes into an `ItemStack`, walks it (the stack, nested trees, tree arrays, `ItemstackAttribute`), replaces each
+  (class, id) by the id of its code in the test world, and only then lets the current code read it. Replaced on the parsed
+  stack, not in the bytes. The spike's walker (`Ids` in `Program.cs`) is the start of `GoldenStacks`.
+- **The schematic remap skips arrays, confirmed**: the engine's store walk on the 0.1.1 ledger recorded only the book's own id,
+  not the copper ingot or the tapestry in its entries. The rejection of the schematic export stands.
+- **The world can be kept**: with `keepData` the data folder stays (`Saves/default.vcdbs`, about 4 MB, saved by the stop;
+  `ModConfig`; `Logs`), and the spike leaves the book in a chest. Whether the game client opens it with the 0.1.1 zip is the
+  author's check (B4).
+
 ## Where we stopped
+
+- 04.11.2026: B1 done: the spike, the answers above (approved), `docs/modding.md`, the props split. Next: B2 (opus, After: B1).
 

@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Golden stacks (docs/plans/2026-11-04-backward-compat.md): the test server with our mod of a release, not the current build.
+       A console program, run by hand once per release, so `dotnet test` and CI never run it. It compiles against the release's
+       DLLs, taken from the zip of the GitHub release (checked by its hash), so it may use only the types that release has.
+       B1 spike: makes one ledger by the game's own ways and writes what it holds. -->
+  <Import Project="..\CurioCatalogue.TestServer\TestServer.Game.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ReleaseVersion>0.1.1</ReleaseVersion>
+    <!-- The asset of the GitHub release v0.1.1, built by CI (the local Releases/ zip is a different build of the same tag). -->
+    <ReleaseUrl>https://github.com/dankosedin/CurioCatalogue/releases/download/v$(ReleaseVersion)/curiocatalogue_$(ReleaseVersion).zip</ReleaseUrl>
+    <ReleaseSha256>7AE7BF83C3B6F8A97108D0109BDC9243A18D178C712E47A4761845FCA84C06C2</ReleaseSha256>
+    <ReleaseFolder>$(MSBuildProjectDirectory)\$(BaseIntermediateOutputPath)release\</ReleaseFolder>
+    <ReleaseZip>$(ReleaseFolder)curiocatalogue_$(ReleaseVersion).zip</ReleaseZip>
+    <ReleaseUnpacked>$(ReleaseFolder)unpacked-$(ReleaseVersion)\</ReleaseUnpacked>
+  </PropertyGroup>
+
+  <!-- Compiled against, never copied: the game's mod loader loads them from the zip it unpacks, and this program binds to that
+       loaded copy by name (TestServer.props says why a copy in the bin would break it). -->
+  <ItemGroup>
+    <Reference Include="curiocatalogue"><HintPath>$(ReleaseUnpacked)curiocatalogue.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="CurioCatalogue.Core"><HintPath>$(ReleaseUnpacked)CurioCatalogue.Core.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <Target Name="FetchRelease" BeforeTargets="ResolveAssemblyReferences;GetAssemblyAttributes" Condition="!Exists('$(ReleaseUnpacked)curiocatalogue.dll')">
+    <DownloadFile SourceUrl="$(ReleaseUrl)" DestinationFolder="$(ReleaseFolder)" Condition="!Exists('$(ReleaseZip)')" />
+    <VerifyFileHash File="$(ReleaseZip)" Hash="$(ReleaseSha256)" Algorithm="SHA256" />
+    <Unzip SourceFiles="$(ReleaseZip)" DestinationFolder="$(ReleaseUnpacked)" />
+  </Target>
+
+  <!-- Read back by TestPaths: ModDll and ModAssets as the fixture expects them (here the unpacked release's), and the zip the
+       server loads. -->
+  <Target Name="ReleasePathsAsMetadata" BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModDll</_Parameter1>
+        <_Parameter2>$(ReleaseUnpacked)curiocatalogue.dll</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModAssets</_Parameter1>
+        <_Parameter2>$(ReleaseUnpacked)assets</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ReleaseZip</_Parameter1>
+        <_Parameter2>$(ReleaseZip)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ReleaseVersion</_Parameter1>
+        <_Parameter2>$(ReleaseVersion)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+</Project>

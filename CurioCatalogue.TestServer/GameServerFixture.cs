@@ -49,6 +49,12 @@ public class GameServerFixture : IDisposable
     /// <summary>The mods besides the game's and ours, as given to the constructor.</summary>
     public IReadOnlyList<OtherMod> OtherMods { get; }
 
+    /// <summary>Our mod from a release zip instead of the current build (the golden capture), or null.</summary>
+    public OtherMod? OurRelease { get; }
+
+    /// <summary>The data folder (the world, the config, the logs) is kept after the stop instead of deleted.</summary>
+    public bool KeepData { get; }
+
     /// <summary>The folder the other mods' files are copied into, a ModPaths entry of its own.</summary>
     string OtherModsPath => Path.Combine(DataPath, "Mods");
 
@@ -59,20 +65,35 @@ public class GameServerFixture : IDisposable
     /// The game's mods, ours and <paramref name="otherMods"/>: their files are copied into the data folder's <c>Mods</c>, so
     /// only the files given load (not a whole folder); each must be enabled after start, with the version given.
     /// </summary>
-    protected GameServerFixture(IReadOnlyList<OtherMod> otherMods)
+    protected GameServerFixture(IReadOnlyList<OtherMod> otherMods) : this(otherMods, ourRelease: null, keepData: false) { }
+
+    /// <summary>
+    /// As above, but our mod comes from the release zip <paramref name="ourRelease"/> (its version checked after start) instead of
+    /// the current build, and the data folder is kept after the stop if <paramref name="keepData"/>. The assembly that runs this
+    /// must be built against that release's DLLs (CurioCatalogue.GoldenCapture): it binds to the loaded ones by name.
+    /// </summary>
+    protected GameServerFixture(IReadOnlyList<OtherMod> otherMods, OtherMod? ourRelease, bool keepData)
     {
         if (Interlocked.Increment(ref instances) != 1)
             throw new InvalidOperationException("a second game server in one process: the engine's state is static, so a process "
                 + "runs one server once. Share the fixture through one [Collection]; to run the tests again, restart the test host.");
         OtherMods = otherMods;
-        if (!File.Exists(TestPaths.ModDll))
+        OurRelease = ourRelease;
+        KeepData = keepData;
+        if (ourRelease != null)
+        {
+            if (ourRelease.Id != ModId) throw new ArgumentException($"our release must have the id {ModId}, not {ourRelease.Id}");
+            if (!File.Exists(ourRelease.File)) throw new InvalidOperationException($"our release is not at {ourRelease.File}");
+        }
+        else if (!File.Exists(TestPaths.ModDll))
             throw new InvalidOperationException($"our mod is not built at {TestPaths.ModDll}");
-        if (!Directory.Exists(TestPaths.ModAssets))
+        else if (!Directory.Exists(TestPaths.ModAssets))
             throw new InvalidOperationException($"our assets are not at {TestPaths.ModAssets}");
         SweepLeftCaches();
         Directory.CreateDirectory(DataPath);
         Directory.CreateDirectory(OtherModsPath);
         foreach (var mod in otherMods) CopyMod(mod.File, Path.Combine(OtherModsPath, Path.GetFileName(mod.File)));
+        if (ourRelease != null) CopyMod(ourRelease.File, Path.Combine(OtherModsPath, Path.GetFileName(ourRelease.File)));
 
         thread = new Thread(Run) { Name = "TestServerMain", IsBackground = true };
         thread.Start();
@@ -108,6 +129,8 @@ public class GameServerFixture : IDisposable
     {
         var problems = new List<string>();
         if (!Api.ModLoader.IsModEnabled(ModId)) problems.Add("our mod is not enabled");
+        else if (OurRelease != null && Api.ModLoader.GetMod(ModId).Info.Version != OurRelease.Version)
+            problems.Add($"our mod is {Api.ModLoader.GetMod(ModId).Info.Version}, expected the release {OurRelease.Version}");
         foreach (var other in OtherMods)
         {
             var mod = Api.ModLoader.GetMod(other.Id);
@@ -135,10 +158,13 @@ public class GameServerFixture : IDisposable
             {
                 DataPath = DataPath,
                 Port = Port.ToString(),
-                AddOrigin = [TestPaths.ModAssets],
+                // A release zip has its assets inside; the current build has them only in the project (a Debug build).
+                AddOrigin = OurRelease == null ? [TestPaths.ModAssets] : [],
                 WithConfig = JsonSerializer.Serialize(new
                 {
-                    ModPaths = new[] { Path.Combine(TestPaths.GameDir, "Mods"), TestPaths.ModsPath, OtherModsPath },
+                    ModPaths = OurRelease == null
+                        ? new[] { Path.Combine(TestPaths.GameDir, "Mods"), TestPaths.ModsPath, OtherModsPath }
+                        : new[] { Path.Combine(TestPaths.GameDir, "Mods"), OtherModsPath },
                     VerifyPlayerAuth = false,
                     // Every test joins its own player and none leaves: the default 16 clients would run out, and a fake client
                     // that never answers pings would be dropped after 150 s (ServerConfig.MaxClients, ClientConnectionTimeout).
@@ -271,7 +297,7 @@ public class GameServerFixture : IDisposable
             throw new TimeoutException($"the test server did not stop in {StopTimeout}; its data: {DataPath}", crash); // a crash may be why
         if (crash != null) throw new InvalidOperationException($"the test server crashed, see {ServerLog}", crash);
         KeepLogs();
-        DeleteData();
+        if (!KeepData) DeleteData();
     }
 
     const string DataFolderPrefix = "cc-servertests-";
@@ -301,7 +327,7 @@ public class GameServerFixture : IDisposable
         foreach (string dir in Directory.EnumerateDirectories(DataPath).Where(d => d != cache)) Directory.Delete(dir, recursive: true);
         foreach (string file in Directory.EnumerateFiles(DataPath)) File.Delete(file);
         try { Directory.Delete(DataPath, recursive: true); }
-        catch (UnauthorizedAccessException) when (OtherMods.Count > 0) { }
+        catch (UnauthorizedAccessException) when (OtherMods.Count > 0 || OurRelease != null) { }
     }
 
     /// <summary>

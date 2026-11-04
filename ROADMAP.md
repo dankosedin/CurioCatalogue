@@ -40,8 +40,8 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    - **Butterflies** (collected by a player on the author's server; promised for 0.2 on the ModDB page, 29.10.2026):
      `butterfly-dead-<type>`, 169 types, the species is the item's variant; dead only, live ones of other mods would be another
      collection. Last, since grouping 169 types by species is decided in item 6.
-5. **Stamp-album view.** The album window shows the whole collection: collected pieces in their slots, missing ones as dim empty
-   cells, grouped by picture. Today it shows only what is missing.
+5. **Stamp-album view:** [the plan](docs/plans/2026-11-04-album-view.md) (04.11.2026). Pages by group, collected pieces in place,
+   missing ones as dim silhouettes. Designed before the shape of collections (C7 of item 2), built after the core (item 3).
 6. **Every vanilla collection, polished in the album:** back to tapestries, ore crystals, seashells and butterflies (last), each one's look
    in the stamp-album view (grouping, order, names), and its album recipe if it needs a change. Among them:
    - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three

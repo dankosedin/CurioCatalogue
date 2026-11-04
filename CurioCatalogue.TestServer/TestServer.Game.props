@@ -17,9 +17,11 @@
 
   <ItemGroup>
     <Using Include="CurioCatalogue.TestServer" />
-    <!-- BookTestBase uses our types of the current build, so only TestServer.props compiles it; a release's capture has its own
-         helpers, written against that release's types. -->
-    <Compile Include="$(MSBuildThisFileDirectory)*.cs" Exclude="$(MSBuildThisFileDirectory)BookTestBase.cs;$(MSBuildThisFileDirectory)GoldenStacks.cs" Link="TestServer\%(Filename)%(Extension)" />
+    <!-- The files a release's capture shares, named one by one: they use the game's types only, never ours, because the capture
+         compiles against an old release's DLLs. A new file goes here only if it keeps to that; otherwise into TestServer.props
+         (with BookTestBase and GoldenStacks, which use the current build's types). Nothing builds the capture on every change,
+         so a file listed here that starts using our types breaks it unnoticed: `dotnet build CurioCatalogue.GoldenCapture` checks. -->
+    <Compile Include="$(MSBuildThisFileDirectory)GameServerFixture.cs;$(MSBuildThisFileDirectory)FakeClient.cs;$(MSBuildThisFileDirectory)TestBlocks.cs;$(MSBuildThisFileDirectory)GameAssemblies.cs;$(MSBuildThisFileDirectory)LogProblems.cs" Link="TestServer\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Game DLLs are not copied: GameAssemblies (a module initializer) loads them from the game folder, so there is one copy

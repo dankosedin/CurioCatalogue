@@ -122,7 +122,7 @@ sealed class FakeClient : NetConnection
     {
         var types = game.OnMain(() =>
         {
-            var channel = (NetworkChannelBase)game.Api.Network.GetChannel(CurioCatalogueModSystem.ModId);
+            var channel = (NetworkChannelBase)game.Api.Network.GetChannel(GameServerFixture.ModId);
             var field = typeof(NetworkChannelBase).GetField("messageTypes", BindingFlags.Instance | BindingFlags.NonPublic)
                 ?? throw new InvalidOperationException("NetworkChannelBase.messageTypes is gone: see how the engine numbers a channel's messages now");
             return new Dictionary<Type, int>((Dictionary<Type, int>)field.GetValue(channel)!);
@@ -134,8 +134,8 @@ sealed class FakeClient : NetConnection
     {
         // The server tells a joining client the ids of its channels (NetworkAPI.SendChannelsPacket).
         var channels = Received.First(p => p.Id == ChannelsPacket).NetworkChannels;
-        int index = Array.IndexOf(channels.GetChannelNames(), CurioCatalogueModSystem.ModId);
-        if (index < 0) throw new InvalidOperationException($"the server has no channel {CurioCatalogueModSystem.ModId}");
+        int index = Array.IndexOf(channels.GetChannelNames(), GameServerFixture.ModId);
+        if (index < 0) throw new InvalidOperationException($"the server has no channel {GameServerFixture.ModId}");
         return channels.GetChannelIds()[index];
     }
 

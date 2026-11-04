@@ -5,8 +5,8 @@ using Vintagestory.API.Datastructures;
 namespace CurioCatalogue.TestServer;
 
 // The reader of a golden set (docs/development.md, Golden stacks; plan backward-compat, Decisions "Ids"). The format is the one
-// CurioCatalogue.GoldenCapture/Golden.cs writes; the records here are its twin (the capture compiles against a release's types,
-// this file against the current build, so they cannot be one file).
+// CurioCatalogue.GoldenCapture/Golden.cs writes; the records here are its twin. Both use only the game's types, so they could be one
+// file; kept apart until the capture is rewritten for 0.2 shows what the format needs (ROADMAP.md). An unknown field fails the load.
 
 /// <summary>One golden set: the stacks of one release, and what they were made with.</summary>
 internal sealed record GoldenSet(string About, string GameVersion, string ModVersion, string ZipSha256, string Captured, IReadOnlyList<GoldenStack> Stacks);
@@ -32,7 +32,12 @@ internal sealed record GoldenEntry(string Code, string? Type, int Count)
 
 internal static class GoldenStacks
 {
-    static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
+    // Disallow: a field a later capture writes (a new input) and these records do not know fails the load instead of going unchecked.
+    static readonly JsonSerializerOptions Json = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow,
+    };
 
     /// <summary>The folder of the sets (<c>CurioCatalogue.ServerTests/Golden</c>), written into the test assembly by its project file.</summary>
     static string Root => TestPaths.Get("GoldenRoot");
@@ -59,6 +64,9 @@ internal static class GoldenStacks
     {
         var stack = new ItemStack(Convert.FromBase64String(golden.Bytes));
         Replace(world, stack, golden.Ids, golden.Name);
+        // Only the stack itself is resolved, as a world resolves a slot's stack when it loads (vsapi InventoryBase.cs:290); the
+        // stacks nested in its attributes stay unresolved, as the game leaves them (TreeAttribute.cs:736): the current code must resolve them.
+        stack.ResolveBlockOrItem(world);
         return stack;
     }
 
@@ -70,7 +78,6 @@ internal static class GoldenStacks
         CollectibleObject collectible = (stack.Class == EnumItemClass.Block ? world.GetBlock(location) : (CollectibleObject?)world.GetItem(location))
             ?? throw new InvalidOperationException($"{name}: {code} ({key}) is not in this world");
         stack.Id = collectible.Id;
-        stack.ResolveBlockOrItem(world);
         InTree(world, stack.Attributes, ids, name);
     }
 

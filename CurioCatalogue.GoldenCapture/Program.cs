@@ -27,13 +27,21 @@ try
 
     var scenario = new Scenario(server);
     var stacks = scenario.Run();
-    Golden.Write(outDir, server, stacks, config);
-    Console.WriteLine($"{stacks.Count} stacks and the config written to {outDir}");
 
     // The fixture world of the manual upgrade pass: the items laid out where a player leaves them; the world is kept (B4).
     string layout = new Fixture(server, scenario.Made).Lay(release.Version);
     File.WriteAllText(Path.Combine(dataPath, "fixture-layout.txt"), layout);
     Console.Write(layout);
+
+    // The set last: a run that fails before this leaves no set behind, so the next run is not refused.
+    Golden.Write(outDir, server, stacks, config);
+    Console.WriteLine($"{stacks.Count} stacks and the config written to {outDir}");
+}
+catch (Exception e)
+{
+    // Printed here: a failing stop in finally would otherwise replace it.
+    Console.Error.WriteLine(e);
+    throw;
 }
 finally
 {

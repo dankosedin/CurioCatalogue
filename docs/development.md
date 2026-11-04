@@ -134,8 +134,14 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 - **`UpgradeTests`** (the golden stacks, "Golden stacks" below): every stack of every set under `Golden/v<version>/` is read by `GoldenStacks` (the reader in
   `CurioCatalogue.TestServer`: the bytes into a stack, each numeric id replaced by the id its code has in the test world, in the stack, in nested stacks and in
   tree arrays) and read by the current code (`LedgerStore`), and what it reads must equal the set's **inputs** (mode, sheets, name, entries, the album's
-  collection and progress, the invoice's kind and lines; never what the current code reads from the stack: that would test nothing) and be "not newer" (`v` 1).
-  One action each on the 0.1.1 stacks, so that "read" also means "works": an intake list posted on a real chest into the 0.1.1 ledger, a want list filled
+  collection and progress, the invoice's kind and lines; never what the current code reads from the stack: that would test nothing) and be "not newer"
+  than `LedgerStore.Version`. An album's inputs give what was collected; what is missing and the total follow the collection of the test world, as a player's
+  album follows its collection, so a game that adds a tapestry does not turn a correct read red. The reader resolves only the stack itself, as a world does;
+  the nested stacks are left for the current code to resolve. The same stacks read the same with every id moved out of the test world's range (the tapestry
+  block has the same id in both worlds, so without the move a block id left unreplaced would pass); an invoice's origin and time of making read as the
+  bytes hold them (not in the 0.1.1 inputs). The set's records refuse a field they do not know, so a new input of a later capture is never skipped.
+  One action each on the 0.1.1 stacks, so that "read" also means "works": an intake list posted on a real chest into the 0.1.1 ledger, a pick list into the
+  0.1.1 bill of materials, a want list filled
   from a chest, an album taking a new tapestry, a ledger with spent sheets recharged in the grid; an album of 0.1.1 over a collection that grew (the stored
   `members` tell a new piece from a collected one). The config file the release wrote goes through the mod's loader (as `ConfigFileTests`): no problem in the
   log, every key it wrote is still a setting with its value (a renamed setting loses its key at the write-back), a setting the file lacks has its default,
@@ -184,12 +190,16 @@ what players have (plan `docs/plans/2026-11-04-backward-compat.md`). A set per r
   against that zip's DLLs, so it uses only the release's types: it has its own helpers (`Scenario`), and `BookTestBase`, which uses
   the current build's types, is compiled only by `TestServer.props`. The items are made the way a player makes them (the grid, the
   gestures, the release's own network requests), and the run stops if the release does not read an item back as its inputs say.
-- **Run it by hand**, once per release: `dotnet run --project CurioCatalogue.GoldenCapture` (about 40 s) writes the set of its
-  It then lays the made items out as the fixture world of the manual upgrade pass (`Fixture.cs`; chests, a shelf, the ground) and writes
-  `fixture-layout.txt` into the kept data folder. Since the set already exists, run it with `--out <scratch>` to get that world.
-  `ReleaseVersion`; it refuses to write over a set that exists (`--out <folder>` writes elsewhere, e.g. to compare two runs). Two
-  runs differ only in `created` of the three invoices (the game's time when the list was made) and in the date. The run keeps its
-  world (`%TEMP%\cc-servertests-…`, the path is printed).
+- **Run it by hand**, once per release: `dotnet run --project CurioCatalogue.GoldenCapture` (about 40 s). It makes the items, lays
+  them out as the fixture world of the manual upgrade pass (`Fixture.cs`; chests, a shelf, the ground; `fixture-layout.txt` in the
+  data folder), and last writes the set of its `ReleaseVersion` (a run that fails earlier leaves no set). It refuses to write over a
+  set that exists: run again with `--out <folder outside the repo>` to compare two runs or to get the world once more. Two runs
+  differ only in `created` of the three invoices (the game's time when the list was made) and in the date. The run keeps its world
+  in `%TEMP%\cc-golden-…` (the path is printed; the test runs' sweep of `cc-servertests-…` leaves it alone); copy it out to
+  `VintageStory-Fixtures\<version>\` at once, as the backup of the fixture.
+- **Its build** downloads the release zip into `obj/release/` and checks its hash; a zip that does not match is deleted, so the next
+  build downloads it again. It shares the fixture's files named in `TestServer.Game.props` (they use the game's types only):
+  after a change to one of them, `dotnet build CurioCatalogue.GoldenCapture` checks that the capture still compiles.
 - **Why `dotnet test` and CI skip it:** it is in `curiocatalogue.sln` without a Build entry, so `dotnet build` and `dotnet test` of the
   solution never build it: its build downloads the release, and a set is made once, not on every run. The sets it made are read by
   the server tests (`UpgradeTests`), which CI runs.
@@ -201,6 +211,8 @@ what players have (plan `docs/plans/2026-11-04-backward-compat.md`). A set per r
   its actions are added for the stacks the release changed.
 - **Old sets are never re-captured or edited.** They are what players have; a set made again by newer code would test nothing. If an old set
   turns red, the code is wrong, or the change goes to `CHANGELOG.md` as something that does not survive (and the test then checks that outcome).
+  The reader fails on a code the test world lacks, and the config test on a setting that lost its key: a release that removes or renames an
+  item code or a setting decides then how the reader maps it (a world shows a removed item as "unknown") and keeps a table of renamed keys.
 - **A change of the stored format raises `LedgerStore.Version` and keeps every old set green:** the new code reads `v` 1 (and every older
   version) and converts; a book of a newer version is refused, not wiped (`RefusalTests`). Whoever changes stored data, recipes, item codes,
   config or lang adds the line to the upgrade plan's table "Changes in … that need a case" in the same PR (`docs/testing/upgrade-*.md`).

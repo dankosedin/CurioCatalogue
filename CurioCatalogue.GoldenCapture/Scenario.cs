@@ -270,8 +270,10 @@ sealed class Scenario(GameServerFixture game)
             Same("name", b.Name, book.Name);
             Same("entries", Of(b.Entries), Of(Sorted([.. book.Entries.Values.Select(e => EntryIn.Of((ItemStack)e.Sample, e.Count))])));
             Same("collection", b.Album?.Collection, book.Album?.CollectionId);
-            if (b.Album is { } a && Mod.Store.CollectionOf(book) is { } collection)
+            if (b.Album is { } a)
             {
+                var collection = Mod.Store.CollectionOf(book) ?? throw new InvalidOperationException($"{name}: the release has no collection {a.Collection}");
+                Same("full", a.Full, book.IsEmpty);
                 var missing = book.Entries.Keys.ToHashSet();
                 Same("collected", Of(a.Collected), Of(Sorted([.. collection.Members.Where(m => !missing.Contains(m.Key)).Select(m => EntryIn.Of((ItemStack)m.Sample, 1))])));
             }

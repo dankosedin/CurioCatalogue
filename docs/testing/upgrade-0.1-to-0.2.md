@@ -73,7 +73,7 @@ If the fixture is lost, make it again with the 0.1.1 zip from the GitHub release
 | U11 | Save, quit, load again | Everything from U3 is still there |
 | U12 | The other direction: the 0.2.0 world on 0.1.1 | Not supported; check only that 0.1.1 says "newer version" for a changed book and does not wipe it, if 0.2.0 changed the format |
 
-A case marked ⚙ is also checked on every pull request by `UpgradeTests` on the golden stacks of 0.1.1 (`docs/development.md`, Golden stacks): the data read and one action each, and the config file 0.1.1 wrote. The pass by hand covers the world around them.
+A case marked ⚙ is also checked on every pull request by `UpgradeTests` on the golden stacks of 0.1.1 (`docs/development.md`, Golden stacks): the data read and one action each, and the config file 0.1.1 wrote. For U3 and U4 that is the data the tooltip and the window show, not the tooltip or the window themselves. The pass by hand covers the world around them.
 
 ## Changes in 0.2.0 that need a case
 

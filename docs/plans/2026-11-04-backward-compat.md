@@ -176,6 +176,31 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
   downloads the release; run by name. A set is never written over (`--out` for another folder).
 - **`.gitattributes`**: the golden folder is `-text`, kept byte for byte (the game's config file as it wrote it).
 
+### B6: the code review (04.11.2026)
+
+- **Six roles** (the five of `docs/review.md` and a second architect, the experiment), 20 findings after merging duplicates, one rejected
+  (the order of `Versions()`: test order only). Fixed, decided by the author one group at a time:
+  - `v` 1 no longer asserted on every set (a v0.2.0 set would fail it); "not newer" stays.
+  - Block ids: the tapestry has the same id in the capture's world and the test world, so a reader leaving block ids passed. A test
+    reads every stack with all ids moved out of the world's range.
+  - An invoice's `pos` and `created` were checked nowhere (renamed in both read and write, the whole solution stayed green). A test takes
+    them from the bytes at the keys 0.1.1 wrote.
+  - The reader resolved the nested stacks, which a world does not; it resolves only the stack itself now.
+  - An album's expected values follow the test world's collection (only the collected pieces come from the inputs): a game that adds a
+    tapestry would have turned a correct read red, with no honest way out.
+  - The pick list posted into the bill of materials (U5 is "each kind"); U3 and U4 ⚙ mean the data, not the tooltip and window.
+  - The config copied with `ObjectCreationHandling.Replace` (lists were merged).
+  - The set's records refuse an unknown field. The capture's world is kept as `cc-golden-…`, out of the test runs' sweep. The capture
+    writes its set last, deletes a zip that fails its hash, and does not download in an IDE; its check stops on an album without a collection
+    and compares `Full`. The fixture files the capture shares are named one by one; `FakeClient` no longer uses `CurioCatalogueModSystem`
+    (B1's "Sharing with the tests" said it did not; it did). `GoldenRoot` by `Path.Combine`.
+  - Docs: the garbled "Run it by hand", Part 1 of `architecture.md` (golden capture), a line on removed codes and renamed settings in
+    "At each release".
+- **To `ROADMAP.md`** (item 1 of 0.2): one shared file for the golden format; the tooltip of every golden stack; the capture built by CI.
+- **Left to CI:** whether `dotnet test --no-build` of the solution ignores the unbuilt capture on ubuntu, and `GoldenRoot` there.
+- **The experiment:** `docs/review.md`, "The architect's rights". The author: the architect stays read-only; every architect gets
+  questions from the future; the experiment runs again at R1 of the release plan, with an architect that may probe only structure.
+
 ## Where we stopped
 
 - 04.11.2026: B1 done: the spike, the answers above (approved), `docs/modding.md`, the props split. Next: B2 (opus, After: B1).
@@ -189,3 +214,5 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
 - 04.11.2026: B4 done: the author opened the world in game with the 0.1.1 zip, all as expected (the invoices on the ground
   were found on the chest, one of them on the ground: fine). The backup: `VintageStory-Fixtures\0.1.1\` (final, in `CLAUDE.local.md`). Next: B5.
 - 04.11.2026: B5 done (texts waiting for the author's yes, then committed): `docs/testing/upgrade-0.1-to-0.2.md` (golden stacks next to the fixture, the rule for the table), `docs/development.md` ("At each release"); `ROADMAP.md` items 1, 3, 4 still say "fills the upgrade table": no change. Next: B6 (opus, After: B5).
+- 04.11.2026: B6 almost done: the review, the fixes and the experiment (Decisions, B6), committed; all projects pass (one known flaky
+  server test, green alone). Left: the author pushes and opens the pull request; B6 is ticked when CI is green and it is merged.

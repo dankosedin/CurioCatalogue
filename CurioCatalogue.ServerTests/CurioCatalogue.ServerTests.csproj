@@ -8,7 +8,7 @@
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>GoldenRoot</_Parameter1>
-      <_Parameter2>$(MSBuildProjectDirectory)\Golden</_Parameter2>
+      <_Parameter2>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', 'Golden'))</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 

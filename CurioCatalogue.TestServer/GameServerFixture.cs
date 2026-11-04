@@ -17,7 +17,8 @@ namespace CurioCatalogue.TestServer;
 /// </summary>
 public class GameServerFixture : IDisposable
 {
-    const string ModId = "curiocatalogue";
+    /// <summary>Our mod's id, here so that the files the golden capture shares compile without our types (TestServer.Game.props).</summary>
+    internal const string ModId = "curiocatalogue";
     // A start takes 10–20 s (docs/development.md); a cold disk or a slow CI runner may take several times that.
     static readonly TimeSpan StartTimeout = TimeSpan.FromMinutes(3);
     // A task waits for the next tick (50 ms); a tick that sends a new player's spawn chunks may take seconds, not 30.
@@ -38,8 +39,11 @@ public class GameServerFixture : IDisposable
     readonly List<LogLine> logLines = [];
     int startupLines; // how many of logLines the server wrote until RunGame
 
-    /// <summary>The throwaway data folder (world, config, logs); deleted after the run unless the server failed to start.</summary>
-    public string DataPath { get; } = Path.Combine(Path.GetTempPath(), DataFolderPrefix + Guid.NewGuid().ToString("N")[..8]);
+    /// <summary>
+    /// The throwaway data folder (world, config, logs); deleted after the run unless the server failed to start. A folder kept on
+    /// purpose (<see cref="KeepData"/>, the golden capture's world) has its own prefix, so <see cref="SweepLeftCaches"/> never takes it.
+    /// </summary>
+    public string DataPath { get; }
 
     public string ServerLog => Path.Combine(DataPath, "Logs", "server-main.log");
     public ICoreServerAPI Api { get; private set; } = null!;
@@ -80,6 +84,7 @@ public class GameServerFixture : IDisposable
         OtherMods = otherMods;
         OurRelease = ourRelease;
         KeepData = keepData;
+        DataPath = Path.Combine(Path.GetTempPath(), (keepData ? KeptFolderPrefix : DataFolderPrefix) + Guid.NewGuid().ToString("N")[..8]);
         if (ourRelease != null)
         {
             if (ourRelease.Id != ModId) throw new ArgumentException($"our release must have the id {ModId}, not {ourRelease.Id}");
@@ -301,6 +306,7 @@ public class GameServerFixture : IDisposable
     }
 
     const string DataFolderPrefix = "cc-servertests-";
+    const string KeptFolderPrefix = "cc-golden-";
 
     /// <summary>
     /// CI sets <c>CURIOCATALOGUE_KEEP_LOGS</c> to a folder: the server's <c>Logs</c> are copied there (into a subfolder per run) before the

@@ -175,9 +175,20 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   a pinned list (mod id, version, file URL, SHA-256) is, and the zips come from a folder or a download into it, the same locally
   and on CI; a missing or changed zip fails the run. Rejected: other mods in the server tests' own server; skipping when a mod is
   missing. **The fixture is shared as source files** (11-02, author, T12): `CurioCatalogue.TestServer/` has no project; its `.cs` files
-  and `TestServer.props` are imported by both test projects, so each test assembly has its own module initializer, which must run
+  and `TestServer.props` are imported by each test project, so each test assembly has its own module initializer, which must run
   before any game type loads. Rejected: a class library referenced by both (its module initializer runs only when one of its types is
   first touched, possibly after the test assembly has loaded a game type; internal types would need `InternalsVisibleTo`).
+- **Golden stacks made by the release's own code** (11-04, author, plan `2026-11-04-backward-compat.md`): `CurioCatalogue.GoldenCapture`,
+  a console program, starts the same fixture with our mod of a release zip (the GitHub asset, checked by its hash) instead of the
+  current build, and compiles against that zip's DLLs. So the fixture is split in two props: `TestServer.Game.props` (the game's
+  references and the fixture files that use only the game's types, named one by one) is what the capture imports;
+  `TestServer.props` adds xUnit, the current build and the files that use our types (`BookTestBase`, the reader `GoldenStacks`).
+  The capture is in the solution without a Build entry, so neither `dotnet build`, `dotnet test` nor CI builds it or downloads a
+  release; it is run by hand once per release, and its code is frozen with its set. The sets (bytes plus the code of every id,
+  and the inputs as expected values) are in the repo; the world it lays out is kept outside. Rejected: a dump tool run in game
+  (not reproducible); a WorldEdit schematic of a chest (the engine remaps nested ids in trees, not in the arrays our entries are
+  in); stacks written by the current code (they would change with it); sharing `BookTestBase` with the capture (it uses the
+  current build's types).
 
 ## Part 2. Fitting features into the game
 

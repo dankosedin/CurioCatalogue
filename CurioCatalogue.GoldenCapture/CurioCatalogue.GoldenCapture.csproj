@@ -25,9 +25,14 @@
     <Reference Include="CurioCatalogue.Core"><HintPath>$(ReleaseUnpacked)CurioCatalogue.Core.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
-  <Target Name="FetchRelease" BeforeTargets="ResolveAssemblyReferences;GetAssemblyAttributes" Condition="!Exists('$(ReleaseUnpacked)curiocatalogue.dll')">
+  <!-- Not in an IDE's design-time build (opening the solution must not download). A zip whose hash does not match (a cut
+       download, an error page) is deleted, so the next build downloads it again instead of failing on it every time. -->
+  <Target Name="FetchRelease" BeforeTargets="ResolveAssemblyReferences;GetAssemblyAttributes"
+          Condition="!Exists('$(ReleaseUnpacked)curiocatalogue.dll') And '$(DesignTimeBuild)' != 'true'">
     <DownloadFile SourceUrl="$(ReleaseUrl)" DestinationFolder="$(ReleaseFolder)" Condition="!Exists('$(ReleaseZip)')" />
-    <VerifyFileHash File="$(ReleaseZip)" Hash="$(ReleaseSha256)" Algorithm="SHA256" />
+    <VerifyFileHash File="$(ReleaseZip)" Hash="$(ReleaseSha256)" Algorithm="SHA256" ContinueOnError="true" />
+    <Delete Files="$(ReleaseZip)" Condition="'$(MSBuildLastTaskResult)' == 'false'" />
+    <Error Text="$(ReleaseZip) did not match ReleaseSha256 $(ReleaseSha256) and was deleted: build again to download it again, or check the hash" Condition="!Exists('$(ReleaseZip)')" />
     <Unzip SourceFiles="$(ReleaseZip)" DestinationFolder="$(ReleaseUnpacked)" />
   </Target>
 

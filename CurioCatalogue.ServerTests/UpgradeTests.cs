@@ -37,18 +37,37 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
         public override string ToString() => $"{Code} {Mode} sheets={Sheets} name=[{Name}] album=[{Album}]\n  " + string.Join("\n  ", Entries);
     }
 
-    static Seen Expected(GoldenStack golden)
+    /// <summary>
+    /// What the item should read as. An album's inputs give only what was collected; what is missing, the total and "full" follow the
+    /// collection of this world (domain.md, An album follows its collection), so a game or a config that adds or drops a piece does
+    /// not turn a correct read red: missing = the members now, less the pieces collected; a collected piece no longer a member is gone.
+    /// </summary>
+    Seen Expected(GoldenStack golden)
     {
         var inputs = golden.Inputs;
         if (inputs.Book is { } book)
+        {
             // The books keep their entries sorted by text, so does the observed side.
-            return new Seen(inputs.Code, book.Mode, book.Sheets, book.Name, book.Entries.Select(e => e.ToString()).Order(StringComparer.Ordinal).ToList(),
-                book.Album is { } a ? $"{a.Collection}: collected {a.Collected.Count} of {a.Collected.Count + book.Entries.Count}, full {a.Full}" : "");
+            var entries = book.Entries.Select(e => e.ToString());
+            string album = "";
+            if (book.Album is { } a)
+            {
+                var members = (Mod.Collections.Get(a.Collection) ?? throw new InvalidOperationException($"no collection {a.Collection}"))
+                    .Members.Select(m => Line(m.Key, m.Sample, 1)).ToList();
+                var collected = a.Collected.Select(e => e.ToString()).ToHashSet();
+                entries = members.Where(m => !collected.Contains(m));
+                int kept = members.Count(collected.Contains);
+                album = $"{a.Collection}: collected {kept} of {members.Count}, full {kept == members.Count}";
+            }
+            return new Seen(inputs.Code, book.Mode, book.Sheets, book.Name, entries.Order(StringComparer.Ordinal).ToList(), album);
+        }
         var invoice = inputs.Invoice ?? throw new InvalidOperationException($"{golden.Name}: inputs have neither book nor invoice");
         return new Seen(inputs.Code, invoice.Kind, 0, "", invoice.Lines.Select(e => e.ToString()).ToList(), "");
     }
 
-    static string Line(Entry e) => new GoldenEntry(e.Key.Code, ((ItemStack)e.Sample).Attributes.GetString("type"), e.Count).ToString();
+    static string Line(Entry e) => Line(e.Key, e.Sample, e.Count);
+
+    static string Line(ItemKey key, object sample, int count) => new GoldenEntry(key.Code, ((ItemStack)sample).Attributes.GetString("type"), count).ToString();
 
     Seen Observed(ItemStack stack)
     {
@@ -73,8 +92,8 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
         var golden = GoldenStacks.Load(version).Stacks.Single(s => s.Name == name);
         var read = GoldenStacks.Read(World, golden);
         // "Not newer": the stored version is one this build writes or an older one, so the item is not refused.
+        // The set's own `v` is not compared with a number: a later set holds the version its release wrote (docs/development.md, At each release).
         Assert.False(LedgerStore.IsNewer(read), $"{name}: stored data is newer than LedgerStore.Version");
-        Assert.Equal(1, read.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetAsInt("v"));
         Assert.Equal(Expected(golden).ToString(), Observed(read).ToString());
     }
 
@@ -83,6 +102,71 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
     public void Every_golden_stack_is_read_as_what_went_into_it(string version, string name)
     {
         game.OnMain(() => { CheckRead(version, name); return 0; });
+    }
+
+    /// <summary>
+    /// The reader must replace every id, also where the capture's world and this one happen to agree (the tapestry block has 2053
+    /// in both): the same stack, moved into a world where no id is the same (every id shifted, in the bytes and in the map), reads the same.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(AllStacks))]
+    public void Every_golden_stack_reads_the_same_from_a_world_where_no_id_agrees(string version, string name)
+    {
+        const int Shift = 1_000_000;
+        var golden = GoldenStacks.Load(version).Stacks.Single(s => s.Name == name);
+        var stack = new ItemStack(Convert.FromBase64String(golden.Bytes));
+        ShiftIds(stack, Shift);
+        var moved = golden with
+        {
+            Bytes = Convert.ToBase64String(stack.ToBytes()),
+            Ids = golden.Ids.ToDictionary(p => { var (cls, id) = (p.Key.Split(':')[0], int.Parse(p.Key.Split(':')[1])); return $"{cls}:{id + Shift}"; }, p => p.Value),
+        };
+        game.OnMain(() =>
+        {
+            var read = GoldenStacks.Read(World, moved);
+            Assert.Equal(Expected(golden).ToString(), Observed(read).ToString());
+            return 0;
+        });
+    }
+
+    static void ShiftIds(ItemStack stack, int shift)
+    {
+        stack.Id += shift;
+        ShiftIn(stack.Attributes, shift);
+    }
+
+    static void ShiftIn(Vintagestory.API.Datastructures.ITreeAttribute tree, int shift)
+    {
+        foreach (var (_, value) in tree)
+        {
+            switch (value)
+            {
+                case Vintagestory.API.Datastructures.ITreeAttribute sub: ShiftIn(sub, shift); break;
+                case Vintagestory.API.Datastructures.TreeArrayAttribute { value: { } array }: foreach (var t in array) ShiftIn(t, shift); break;
+                case Vintagestory.API.Datastructures.ItemstackAttribute { value: { } inner }: ShiftIds(inner, shift); break;
+            }
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(AllStacks))]
+    public void An_invoice_keeps_where_and_when_it_was_made(string version, string name)
+    {
+        // Shown in its tooltip and window (invoice-info-origin). Not in the inputs of 0.1.1, so the expected values are taken from
+        // the bytes by the game's own tree, at the keys 0.1.1 wrote ("pos", "created"), not by LedgerStore.
+        var golden = GoldenStacks.Load(version).Stacks.Single(s => s.Name == name);
+        if (golden.Inputs.Invoice == null) return;
+        var raw = new ItemStack(Convert.FromBase64String(golden.Bytes)).Attributes.GetTreeAttribute(LedgerStore.RootKey);
+        var pos = raw.GetTreeAttribute("pos");
+        var expected = (pos.GetInt("x"), pos.GetInt("y"), pos.GetInt("z"), raw.GetDouble("created"));
+        Assert.True(expected.Item4 > 0, $"{name}: the set holds no time of making");
+        var seen = game.OnMain(() =>
+        {
+            var stack = GoldenStacks.Read(World, golden);
+            var invoice = Mod.Store.ReadInvoice(stack, ((ItemInvoice)stack.Collectible).InvoiceKind);
+            return (invoice.Position.X, invoice.Position.Y, invoice.Position.Z, invoice.CreatedTotalDays);
+        });
+        Assert.Equal(expected, seen);
     }
 
     // ---- reading with the config the release wrote
@@ -121,7 +205,9 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
 
             // The books read the same with that config.
             var names = GoldenStacks.Load(version).Stacks.Select(s => s.Name).ToList();
-            game.OnMain(() => WithConfig(c => JsonConvert.PopulateObject(JsonConvert.SerializeObject(loaded), c), () =>
+            game.OnMain(() => WithConfig(c => JsonConvert.PopulateObject(JsonConvert.SerializeObject(loaded), c,
+                // Replace: a list setting takes the release's list, not the release's added to the default one.
+                new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace }), () =>
             {
                 foreach (var name in names) CheckRead(version, name);
                 return 0;
@@ -181,6 +267,31 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
+    public void A_pick_list_of_0_1_1_is_filled_from_a_real_chest_into_a_bill_of_materials_of_0_1_1()
+    {
+        // The pick list (2 copper ingots, an iron ingot) with the bill of materials (2 copper, 4 iron) in the off-hand: the book
+        // wants what is still missing (copper done, 3 iron) and gets the sheet back (domain.md, Invoices; BookFlowTests, L3).
+        var client = FakeClient.Join(game, "upg-pick");
+        var seen = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("ingot-copper", 2);
+            ((IBlockEntityContainer)chest).Inventory[1].Itemstack = Vanilla("ingot-iron", 1);
+            var offhand = player.Entity.LeftHandItemSlot;
+            offhand.Itemstack = Golden("materials");
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Golden("pick-list");
+
+            Click(player, hand, pos);
+
+            var book = Observed(offhand.Itemstack!);
+            return (book.Sheets, string.Join(", ", book.Entries), Inventory(player), Contents(chest));
+        });
+        Assert.Equal((9, "game:ingot-iron x3", "ingot-copper x2, ingot-iron x1", ""), seen);
+    }
+
+    [Fact]
     public void A_want_list_of_0_1_1_is_filled_from_a_real_chest()
     {
         // The list names every piece the partial album lacked; the chest has two of them and a piece the list does not name.
@@ -222,9 +333,11 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
             Click(player, hand, pos);
 
             var after = Observed(hand.Itemstack!);
-            return (missingBefore - after.Entries.Count, after.Album, after.Sheets, Inventory(player), Contents(chest));
+            // The total follows this world's collection (Expected), not the 88 pieces of the capture's game.
+            int total = Mod.Collections.Tapestries!.Members.Count;
+            return (missingBefore - after.Entries.Count, after.Album.Replace($" of {total},", " of all,"), after.Sheets, Inventory(player), Contents(chest));
         });
-        Assert.Equal((1, "tapestries: collected 4 of 88, full False", 7, "tapestry-north:nightfall1 x1", "tapestry-north:ambush1 x1"), seen);
+        Assert.Equal((1, "tapestries: collected 4 of all, full False", 7, "tapestry-north:nightfall1 x1", "tapestry-north:ambush1 x1"), seen);
     }
 
     [Fact]

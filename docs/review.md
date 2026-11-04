@@ -113,7 +113,9 @@ DLLs; never start the game.
 2. **C# expert** (Sonnet, read-only). Language and runtime: nullability, disposal, collections, LINQ, async and threads, the
    engine's lifecycle (client and server sides, events, unloading).
 3. **Architect** (Opus, read-only). The structure against `docs/architecture.md`: the pure core, adapters, network messages,
-   where a responsibility lives, what will hurt in 0.2.
+   where a responsibility lives; whether Part 1 of `docs/architecture.md` records the structural decisions of the change.
+   **Questions from the future:** the moderator names two or three coming items of `ROADMAP.md` (or of the next plans) and asks
+   what in this change those items will touch and where it will hurt.
 4. **QA** (Opus, own worktree; may build and test). A table: each documented case (`docs/testing/functional.md`, `DESIGN.md`,
    README) → the code that does it → the test that covers it; gaps and wrong tests are findings. Tests come as a diff.
 5. **Hostile reviewer** (Sonnet, read-only). Looks for what is wrong, ugly or overbuilt. Taste is allowed, marked `taste`.
@@ -126,6 +128,27 @@ that matter in test code: a test that passes for the wrong reason (a wait or an 
 (timing, test order, state shared through one server), leaks, and CI. The worktree roles check every suspicious wait and assertion by a
 mutation (break the mod, see the test stay green, restore): in T18 only they found the tests that passed for the wrong reason, both of
 them independently. When part of the branch was already squash-merged into `main`, the scope is the diff from where the branch left `main`.
+
+**The architect's rights** (B6 of the backward-compatibility plan, 04.11.2026). Two architects on the same scope and prompt, one
+read-only, one in its own worktree with the worktree roles' paragraph. The one with rights proved more (4 findings with a probe
+against none) and cost more (14 min and 183 thousand tokens against 6 min and 129 thousand), but 6 of its 12 findings were the
+Teammate's: given the shared block's test defects and "check by a mutation", it spent its rights on them. The one structural
+finding of the round (album expectations tied to the game's tapestries, while albums follow their collection) came from the
+read-only one and the C# expert; the worktree one missed it. Decided: the architect stays read-only. The experiment runs once
+more at the code review of 0.2, as below.
+
+**Architect with rights (an experiment, to run again).** Next to the read-only architect, one more on Opus in its own worktree,
+with the same role paragraph and the same questions from the future, but not the worktree roles' paragraph and not the test
+defects of the "mostly tests" scope. Instead:
+
+> You may build and write probes, but only to prove a structural claim: a probe **simulates the next change** (the next release's
+> data, a new feature of the roadmap, a new file in a shared folder, a raised format version) and shows what breaks, or shows that
+> a boundary of `docs/architecture.md` does not hold (a type crosses it, a file compiles where it should not). Do not hunt for test
+> defects by mutating the mod: the Teammate and QA do that; a finding of that kind is out of your role and is not counted.
+
+The moderation compares the two architects by: findings in the role (a finding in the category `tests`, or one the Teammate or QA
+also made, is out of the role and not counted), found by it alone, with a proof, the questions from the future answered (by
+reasoning or by a probe), and the cost (time and tokens from the task notification).
 
 ## To weigh at the next players' round
 

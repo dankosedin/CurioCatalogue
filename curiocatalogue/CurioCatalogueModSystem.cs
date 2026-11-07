@@ -32,7 +32,7 @@ public class CurioCatalogueModSystem : ModSystem
     public StackKeys Keys => keys ??= new StackKeys(api.World, Config.ExtraIgnoredAttributes);
 
     /// <summary>Reads and writes ledger and invoice data in items.</summary>
-    public LedgerStore Store => store ??= new LedgerStore(Keys, id => Collections.Get(id));
+    public LedgerStore Store => store ??= new LedgerStore(Keys, id => Collections.Defined(id));
 
     /// <summary>Tells and reads the containers the ledger works with. Both sides.</summary>
     public ContainerReader Containers => containers ??= new ContainerReader(api.World);

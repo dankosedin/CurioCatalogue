@@ -1,0 +1,340 @@
+using CurioCatalogue.Core;
+
+namespace CurioCatalogue.Core.Tests;
+
+/// <summary>
+/// The album of format 2 (docs/architecture.md, Part 1, Collections): what it collected, by member; what is missing follows the
+/// collection; the level; taking new by members; the migration of format 1. On made-up collections: tapestry pieces (one level)
+/// and seashells (a level by type, any colour, and one per shell).
+/// </summary>
+public class AlbumTests
+{
+    private static readonly LedgerLimits Limits = new(32, 500);
+    private static readonly BlockPosition Pos = new(0, 0, 0);
+
+    private static Dictionary<string, string> V(params (string, string)[] values) => values.ToDictionary(v => v.Item1, v => v.Item2);
+
+    private static DefinedCollection Built(CollectionDefinition definition, IEnumerable<SourcePoint> points) =>
+        DefinedCollection.Build(definition, points) switch
+        {
+            CollectionBuild.Built b => b.Collection,
+            CollectionBuild.Invalid i => throw new Xunit.Sdk.XunitException("Invalid: " + string.Join("; ", i.Errors)),
+            _ => throw new InvalidOperationException(),
+        };
+
+    // --- Tapestries: ambush is 3 pieces, notice 1; the picture groups (the default layout), so notice comes after ambush ---
+
+    private static ItemKey K(string piece) => new(CollectibleKind.Block, "game:tapestry-north", $"{{\"type\":\"{piece}\"}}");
+
+    private static CollectionDefinition TapestryDefinition(params string[] exclude) => new(
+        "tapestries",
+        [new DimensionDef("picture", []), new DimensionDef("piece", [])],
+        [new LevelDef("pieces", ["piece"], new Dictionary<string, Drop> { ["picture"] = Drop.Any },
+            [new LayoutDef("pictures", ["picture"], new Arrangement.Shape())])],
+        [],
+        exclude);
+
+    private static SourcePoint Piece(string piece, string picture, int x) =>
+        new(piece, V(("picture", picture), ("piece", piece)), K(piece), "sample " + piece, V(("x", x.ToString()), ("y", "1")));
+
+    private static IEnumerable<SourcePoint> PiecesOf(params string[] pieces) => pieces.Select(p =>
+        p.StartsWith("ambush") ? Piece(p, "ambush", p[^1] - '0') : Piece(p, p.TrimEnd('1', '2', '3'), 1));
+
+    private static DefinedCollection Tapestries(params string[] pieces) =>
+        Built(TapestryDefinition(), PiecesOf(pieces.Length > 0 ? pieces : ["ambush1", "ambush2", "ambush3", "notice"]));
+
+    private static FilledBy By(string piece) => new(K(piece), "stack " + piece);
+
+    private static Album Collected(Album album, params string[] pieces) => album.Collect(pieces.Select(p => (p, By(p))));
+
+    private static string[] Ids(IEnumerable<Member> members) => members.Select(m => m.Id).ToArray();
+
+    [Fact]
+    public void A_new_album_has_collected_nothing_and_misses_every_member_in_the_order_of_taking_new()
+    {
+        var tapestries = Tapestries();
+        var album = Album.New(tapestries, sheets: 5, name: "Mine");
+        var level = album.LevelIn(tapestries)!;
+
+        Assert.True(album.IsEmpty);
+        Assert.Equal(("tapestries", "pieces", 5, "Mine"), (album.CollectionId, album.Level, album.Sheets, album.Name));
+        Assert.Equal(["ambush1", "ambush2", "ambush3", "notice"], Ids(album.Missing(level)));
+        Assert.Equal(new LevelProgress(0, 4, 0, 2), album.Progress(level));
+    }
+
+    [Fact]
+    public void Taking_new_wants_the_missing_members_the_container_has_in_the_collections_order()
+    {
+        var tapestries = Tapestries();
+        var album = Collected(Album.New(tapestries, 3, ""), "ambush2");
+        var level = album.LevelIn(tapestries)!;
+
+        var wanted = album.Wanted(level, new HashSet<ItemKey> { K("notice"), K("ambush2"), K("ambush1"), K("other") });
+
+        Assert.Equal([("ambush1", K("ambush1")), ("notice", K("notice"))], wanted.Select(w => (w.Member.Id, w.Key)));
+    }
+
+    [Fact]
+    public void Collected_members_keep_the_item_that_filled_them_and_follow_the_collection()
+    {
+        var album = Collected(Album.New(Tapestries(), 3, "Mine"), "ambush2", "notice");
+
+        Assert.Equal(["ambush2", "notice"], album.Collected.Keys);
+        Assert.Equal(By("notice"), album.Collected["notice"]);
+        Assert.Equal((3, "Mine"), (album.Sheets, album.Name)); // taking new costs no sheet
+
+        // A mod adds a picture, the config excludes notice: the album needs no refresh. Notice keeps its record and comes back.
+        var grown = Tapestries("ambush1", "ambush2", "ambush3", "wolf1");
+        var level = album.LevelIn(grown)!;
+        Assert.Equal(["ambush1", "ambush3", "wolf1"], Ids(album.Missing(level)));
+        Assert.Equal(new LevelProgress(1, 4, 0, 2), album.Progress(level));
+        Assert.Equal(new LevelProgress(2, 4, 1, 2), album.Progress(Tapestries().Levels[0]));
+    }
+
+    [Fact]
+    public void A_member_collected_again_keeps_its_first_record()
+    {
+        var album = Collected(Album.New(Tapestries(), 3, ""), "notice");
+        var again = album.Collect([("notice", new FilledBy(K("notice"), "another stack"))]);
+        Assert.Equal(By("notice"), again.Collected["notice"]);
+    }
+
+    [Fact]
+    public void Starting_over_forgets_what_was_collected_and_keeps_sheets_and_name()
+    {
+        var tapestries = Tapestries();
+        var album = Collected(Album.New(tapestries, 3, "Mine"), "notice") with { Sheets = 7 };
+
+        var again = album.StartOver(tapestries);
+
+        Assert.True(again.IsEmpty);
+        Assert.Equal(("pieces", 7, "Mine"), (again.Level, again.Sheets, again.Name));
+    }
+
+    [Fact]
+    public void Want_list_lists_the_missing_in_the_collections_order_and_costs_a_sheet()
+    {
+        var tapestries = Tapestries();
+        var album = Collected(Album.New(tapestries, 3, ""), "ambush2");
+        var level = album.LevelIn(tapestries)!;
+
+        var made = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(level, 5, Pos));
+
+        Assert.Equal(InvoiceKind.WantList, made.Invoice.Kind);
+        Assert.Equal([K("ambush1"), K("ambush3"), K("notice")], made.Invoice.Entries.Select(e => e.Key));
+        Assert.Equal(["sample ambush1", "sample ambush3", "sample notice"], made.Invoice.Entries.Select(e => (string)e.Sample));
+        Assert.All(made.Invoice.Entries, e => Assert.Equal(1, e.Count));
+        var after = Assert.IsType<Album>(made.Book);
+        Assert.Equal((2, album.Collected), (after.Sheets, after.Collected));
+    }
+
+    [Fact]
+    public void No_want_list_when_nothing_is_missing_or_no_sheets()
+    {
+        var tapestries = Tapestries();
+        var level = tapestries.Levels[0];
+        var done = Collected(Album.New(tapestries, 3, ""), "ambush1", "ambush2", "ambush3", "notice");
+
+        Assert.Equal(InvoiceRefusal.NoDifference, Assert.IsType<CreateInvoiceResult.Refused>(done.MakeWantList(level, 0, Pos)).Reason);
+        Assert.Equal(InvoiceRefusal.NoSheets,
+            Assert.IsType<CreateInvoiceResult.Refused>(Album.New(tapestries, 0, "").MakeWantList(level, 0, Pos)).Reason);
+    }
+
+    [Fact]
+    public void An_album_takes_a_sheet_back_and_recharges_like_any_book()
+    {
+        var album = Collected(Album.New(Tapestries(), 31, ""), "notice");
+
+        var back = Assert.IsType<Album>(album.ReturnSheet(Limits));
+        var (charged, used) = album.AddSheets(5, Limits);
+
+        Assert.Equal((32, album.Collected), (back.Sheets, back.Collected));
+        Assert.Null(back.ReturnSheet(Limits));
+        Assert.Equal((32, 1), (charged.Sheets, used));
+        Assert.IsType<Album>(charged);
+    }
+
+    // --- Levels: seashells by type (any colour) or by shell ---
+
+    private static readonly string[] Types = ["scallop", "clam"];
+    private static readonly string[] Colours = ["latte", "plain", "seafoam"];
+
+    private static ItemKey Shell(string type, string colour) => new(CollectibleKind.Block, $"game:seashell-{type}-{colour}", "");
+
+    private static readonly DefinedCollection Seashells = Built(
+        new CollectionDefinition("seashells",
+            [new DimensionDef("type", Types), new DimensionDef("color", Colours)],
+            [
+                new LevelDef("type", ["type"], new Dictionary<string, Drop> { ["color"] = Drop.Any }, []),
+                new LevelDef("all", ["type", "color"], new Dictionary<string, Drop>(), []),
+            ],
+            [], []),
+        Types.SelectMany(t => Colours.Select(c =>
+            new SourcePoint($"seashell-{t}-{c}", V(("type", t), ("color", c)), Shell(t, c), $"{t}-{c}"))));
+
+    [Fact]
+    public void A_collection_of_several_levels_has_none_chosen_in_a_new_album()
+    {
+        var album = Album.New(Seashells, 3, "");
+        Assert.Null(album.Level);
+        Assert.Null(album.LevelIn(Seashells));
+    }
+
+    [Fact]
+    public void The_level_is_chosen_while_empty_fixed_by_the_first_piece_and_freed_by_starting_over()
+    {
+        var album = Assert.IsType<LevelChoice.Chosen>(Album.New(Seashells, 3, "").ChooseLevel(Seashells, "all")).Album;
+        Assert.Equal("all", album.LevelIn(Seashells)!.Id);
+        // Changing one's mind while empty is fine.
+        Assert.Equal("type", Assert.IsType<LevelChoice.Chosen>(album.ChooseLevel(Seashells, "type")).Album.Level);
+
+        var filled = album.Collect([("clam-plain", new FilledBy(Shell("clam", "plain"), "stack"))]);
+        Assert.Equal(LevelRefusal.NotEmpty, Assert.IsType<LevelChoice.Refused>(filled.ChooseLevel(Seashells, "type")).Reason);
+        Assert.Same(filled, Assert.IsType<LevelChoice.Chosen>(filled.ChooseLevel(Seashells, "all")).Album);
+        Assert.Equal(LevelRefusal.UnknownLevel, Assert.IsType<LevelChoice.Refused>(album.ChooseLevel(Seashells, "colour")).Reason);
+
+        Assert.Null(filled.StartOver(Seashells).Level);
+    }
+
+    [Fact]
+    public void A_member_of_several_items_is_filled_by_any_of_them_and_remembers_which()
+    {
+        var album = Assert.IsType<LevelChoice.Chosen>(Album.New(Seashells, 3, "").ChooseLevel(Seashells, "type")).Album;
+        var level = album.LevelIn(Seashells)!;
+
+        // The container has a seafoam and a plain clam, and no scallop: the clam is wanted once, by the first in the member's order.
+        var wanted = album.Wanted(level, new HashSet<ItemKey> { Shell("clam", "seafoam"), Shell("clam", "plain") });
+        Assert.Equal([("clam", Shell("clam", "plain"))], wanted.Select(w => (w.Member.Id, w.Key)));
+
+        var after = album.Collect([("clam", new FilledBy(Shell("clam", "seafoam"), "the seafoam one"))]);
+        Assert.Equal(["scallop"], Ids(after.Missing(level)));
+        Assert.Equal(Shell("clam", "seafoam"), after.Collected["clam"].Key);
+    }
+
+    // --- Format 1 (0.1): a snapshot of the members and the missing entries, migrated on read ---
+
+    private static List<FilledBy> Snapshot(params string[] pieces) => pieces.Select(By).ToList();
+
+    [Fact]
+    public void Format_1_becomes_the_members_collected_on_the_first_level()
+    {
+        var tapestries = Tapestries();
+
+        var album = Album.FromFormat1("tapestries", 4, "Mine", Snapshot("ambush1", "ambush2", "ambush3", "notice"),
+            [K("ambush1"), K("ambush3")], tapestries);
+
+        Assert.Equal(("pieces", 4, "Mine"), (album.Level, album.Sheets, album.Name));
+        Assert.Equal(["ambush2", "notice"], album.Collected.Keys);
+        Assert.Equal(By("notice"), album.Collected["notice"]); // the snapshot's sample is the stack it keeps
+        Assert.Empty(album.Unplaced);
+    }
+
+    [Fact]
+    public void Format_1_with_nothing_collected_is_an_empty_album_with_its_level()
+    {
+        var album = Album.FromFormat1("tapestries", 4, "", Snapshot("ambush1", "notice"), [K("ambush1"), K("notice")], Tapestries());
+        Assert.True(album.IsEmpty);
+        Assert.Equal("pieces", album.Level);
+    }
+
+    [Fact]
+    public void Format_1_keeps_a_collected_piece_the_collection_no_longer_has_and_places_it_when_it_is_back()
+    {
+        var withoutNotice = Built(TapestryDefinition("notice"), PiecesOf("ambush1", "ambush2", "ambush3", "notice"));
+
+        var album = Album.FromFormat1("tapestries", 4, "", Snapshot("ambush1", "ambush2", "ambush3", "notice"),
+            [K("ambush1"), K("ambush3")], withoutNotice);
+
+        Assert.Equal(["ambush2"], album.Collected.Keys);
+        Assert.Equal([By("notice")], album.Unplaced);
+        Assert.False(album.IsEmpty);
+        Assert.Equal(["ambush2", "notice"], album.Place(Tapestries()).Collected.Keys);
+        Assert.Empty(album.Place(Tapestries()).Unplaced);
+    }
+
+    [Fact]
+    public void Format_1_of_an_unknown_collection_keeps_everything_it_collected_until_the_collection_is_known()
+    {
+        var album = Album.FromFormat1("tapestries", 4, "", Snapshot("ambush1", "ambush2", "notice"), [K("ambush1")], null);
+
+        Assert.Null(album.Level);
+        Assert.Empty(album.Collected);
+        Assert.Equal([By("ambush2"), By("notice")], album.Unplaced);
+
+        var placed = album.Place(Tapestries());
+        Assert.Equal("pieces", placed.Level);
+        Assert.Equal(["ambush2", "notice"], placed.Collected.Keys);
+    }
+
+    [Fact]
+    public void Format_1_without_a_snapshot_counts_as_made_from_the_collection_now()
+    {
+        // Albums of the development builds before 0.1.0 kept the snapshot as key strings, read as none (0.1 did the same).
+        var album = Album.FromFormat1("tapestries", 1, "", null, [K("ambush2")], Tapestries());
+        Assert.Equal(["ambush1", "ambush3", "notice"], album.Collected.Keys);
+    }
+
+    [Fact]
+    public void Placing_a_piece_whose_member_is_collected_adds_nothing_and_loses_nothing_else()
+    {
+        var album = Collected(Album.New(Tapestries(), 1, ""), "notice") with { Unplaced = [new FilledBy(K("notice"), "other"), By("wolf1")] };
+
+        var placed = album.Place(Tapestries());
+
+        Assert.Equal(By("notice"), placed.Collected["notice"]);
+        Assert.Equal([By("wolf1")], placed.Unplaced);
+    }
+
+    // --- Want lists of any book ---
+
+    [Fact]
+    public void A_container_gives_what_it_has_of_a_want_list_and_the_rest_stays()
+    {
+        var invoice = new Invoice(InvoiceKind.WantList, [new(K("ambush1"), 1, ""), new(K("ambush2"), 1, ""), new(K("notice"), 1, "")], 0, Pos);
+
+        var (take, left) = invoice.SplitBy(new HashSet<ItemKey> { K("ambush2"), K("notice"), K("other") });
+
+        Assert.Equal([K("ambush2"), K("notice")], take.Select(e => e.Key));
+        Assert.Equal([K("ambush1")], left.Entries.Select(e => e.Key));
+        Assert.Equal(InvoiceKind.WantList, left.Kind);
+    }
+
+    [Fact]
+    public void Delivered_lines_are_crossed_off_a_want_list()
+    {
+        var invoice = new Invoice(InvoiceKind.WantList, [new(K("ambush1"), 1, ""), new(K("ambush2"), 1, ""), new(K("notice"), 1, "")], 0, Pos);
+        Assert.Equal([K("ambush1"), K("notice")], invoice.CrossOff([K("ambush2"), K("other")]).Entries.Select(e => e.Key));
+    }
+
+    [Fact]
+    public void Posting_a_want_list_into_a_ledger_changes_nothing()
+    {
+        var ledger = Ledger.FromStored(LedgerMode.Counts, 3, [new(K("ambush1"), 2, "")]);
+        var invoice = new Invoice(InvoiceKind.WantList, [new(K("ambush1"), 1, "")], 0, Pos);
+        Assert.Same(ledger.Entries, ledger.Post(invoice, Limits).Ledger.Entries);
+    }
+
+    // --- Names in exclusions ---
+
+    [Theory]
+    [InlineData("aid-*", "aid-arm1", true)]
+    [InlineData("aid-*", "said-arm1", false)]
+    [InlineData("glider*", "glider2", true)]
+    [InlineData("symptoms11", "symptoms11", true)]
+    [InlineData("symptoms11", "symptoms12", false)]
+    public void Exclusion_patterns_use_a_star(string pattern, string name, bool matches)
+    {
+        Assert.Equal(matches, NamePattern.Matcher([pattern])(name));
+    }
+
+    [Fact]
+    public void Any_of_several_patterns_matches_and_none_matches_nothing()
+    {
+        var excluded = NamePattern.Matcher(["aid-*", "GLIDER*"]);
+
+        Assert.True(excluded("aid-leg2"));
+        Assert.True(excluded("glider1")); // case ignored
+        Assert.False(excluded("ambush1"));
+        Assert.False(NamePattern.Matcher([])("ambush1"));
+    }
+}

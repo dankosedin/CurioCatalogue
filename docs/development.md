@@ -143,7 +143,8 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
   One action each on the 0.1.1 stacks, so that "read" also means "works": an intake list posted on a real chest into the 0.1.1 ledger, a pick list into the
   0.1.1 bill of materials, a want list filled
   from a chest, an album taking a new tapestry, a ledger with spent sheets recharged in the grid; an album of 0.1.1 over a collection that grew (the stored
-  `members` tell a new piece from a collected one). The config file the release wrote goes through the mod's loader (as `ConfigFileTests`): no problem in the
+  `members` tell a new piece from a collected one); the albums of 0.1.1 written back by the current code (format 2: every piece
+  collected in 0.1.1 is there by its member id, none more). The config file the release wrote goes through the mod's loader (as `ConfigFileTests`): no problem in the
   log, every key it wrote is still a setting with its value (a renamed setting loses its key at the write-back), a setting the file lacks has its default,
   and every stack reads the same with that config. A new set under `Golden/` is picked up by the data-driven tests with no change; the actions name the 0.1.1 stacks.
 - The server listens on a free port chosen at start, so a game or a server running on this machine does not get in the way.
@@ -156,7 +157,9 @@ the engine ran it. How it works and its traps: `docs/modding.md`, "A server insi
 `CurioCatalogue.CompatTests` runs the server of the server tests (`CompatServerFixture`, a `GameServerFixture` given the other mods) with
 other mods loaded, so their effects never reach the server tests. Now: Upgradeable Storage (`UpgradeableStorageTests`: both mods load with a
 clean log; its six kinds of storage are supported; every gesture of K1 on each; the off-hand gesture; a padlock), and our test mod
-`cctapestry` (`ModdedTapestryTests`: a picture patched into the game's tapestry `sizes` is in the collection, and the album takes it).
+`cctapestry` (`ModdedTapestryTests`: a picture patched into the game's tapestry `sizes` is in the collection, and the album takes it),
+and `cccollections` (`CollectionsFromAssetsTests`: a collection of ingots of its own domain with two levels, and a patch of it; an
+album of it chooses its level through the channel).
 
 - **Test mods of our own** stand in for a kind of mod no real one fits: a folder each in `CurioCatalogue.CompatTests/testmods/` (in the
   repo) with its `modinfo.json`. `TestMods` lists them; the fixture copies each folder into the temp world's `Mods` and checks it is

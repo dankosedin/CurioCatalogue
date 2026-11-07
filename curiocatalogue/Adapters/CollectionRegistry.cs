@@ -28,7 +28,6 @@ public sealed class CollectionRegistry
     private readonly IReadOnlyDictionary<string, CollectionSettings> settings;
     private readonly Func<IEnumerable<DefinitionAsset>> definitions;
     private IReadOnlyDictionary<string, DefinedCollection>? defined;
-    private readonly Dictionary<string, Collection> views = [];
 
     /// <param name="definitions">The definition assets of every domain, patches applied (<see cref="DefinitionsPath"/>); read when the
     /// registry is first used. A function of our own, not the game's asset manager: its interfaces cannot be mocked outside the game.</param>
@@ -46,28 +45,12 @@ public sealed class CollectionRegistry
 
     public DefinedCollection? Defined(string id) => All.GetValueOrDefault(id);
 
-    /// <summary>
-    /// The collection as the MVP's album code reads it, until K4 of the collections core plan moves the album to members: each member
-    /// by its first filler, in the default layout's order, grouped by the default layout's grouping values.
-    /// </summary>
-    public Collection? Get(string id)
-    {
-        if (views.TryGetValue(id, out var view)) return view;
-        if (Defined(id) is not { } built || built.Levels.Count == 0) return null;
-        var level = built.Levels[0];
-        var groupBy = level.DefaultLayout.GroupBy;
-        return views[id] = new Collection(id, level.Order.Select(m =>
-            new CollectionMember(m.Fillers[0], string.Join(DefinedCollection.IdSeparator, groupBy.Select(d => m.Values[d])), m.Stacks[0])));
-    }
-
-    /// <summary>The tapestries: the collection of tapestry pieces, or null when the game has no tapestry block or it is off.</summary>
-    public Collection? Tapestries => Get(TapestriesId);
-
-    /// <summary>The collection a sample item belongs to (the narrowest, once there are several), or null.</summary>
-    public Collection? ForSample(ItemStack sample)
+    /// <summary>The collection a sample item fills a member of, at any level (the album recipe), or null. The first, in the order
+    /// the definitions were read, once there are several.</summary>
+    public DefinedCollection? ForSample(ItemStack sample)
     {
         var key = keys.KeyOf(sample);
-        return All.Keys.Select(Get).FirstOrDefault(c => c != null && c.Contains(key));
+        return All.Values.FirstOrDefault(c => c.Levels.Any(l => l.MemberOf(key) != null));
     }
 
     private Dictionary<string, DefinedCollection> Load()

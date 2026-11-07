@@ -27,6 +27,7 @@
   "curiocatalogue:cover-teal": "teal",
   "curiocatalogue:ledger-info-entries": "Entries: {0} (limit {1})",
   "curiocatalogue:ledger-info-album": "Pieces {0} of {1} · whole pictures {2} of {3}",
+  "curiocatalogue:ledger-info-nolevel": "No level chosen: choose one in the album's window",
   "curiocatalogue:ledger-info-howto-types": "{0} + right-click a container: intake list for items not in the ledger.\n{0} + {1} + right-click: pick list for items in the ledger, every stack of them.\nFilling a list moves its items from the container into your inventory.",
   "curiocatalogue:ledger-info-howto-counts": "{0} + right-click a container: intake list for what is over the listed counts.\n{0} + {1} + right-click: pick list for what the bill of materials asks for, up to its counts.\nFilling a list moves its items from the container into your inventory.",
   "curiocatalogue:ledger-info-howto-album": "Lists what the collection is still missing.\n{0} + right-click a container: takes one of each missing item right away and crosses it off. Duplicates stay.",
@@ -76,6 +77,7 @@
   "curiocatalogue:ledger-overlimit": "The book has {0} entries, its limit is {1}. It cannot make intake lists until some entries are removed.",
   "curiocatalogue:ledger-cleared": "The book is cleared. Entries removed: {0}.",
   "curiocatalogue:album-restarted": "The album starts over. Still to collect: {0}.",
+  "curiocatalogue:album-restarted-nolevel": "The album starts over. Choose a level in its window.",
   "curiocatalogue:invoice-cancelled": "The list is cancelled.",
   "curiocatalogue:invoice-cancelled-sheet": "The list is cancelled, its sheet is back in the book.",
   "curiocatalogue:invoice-cancelled-sheet-album": "The list is cancelled, its sheet is back in the album.",
@@ -101,6 +103,7 @@
   "curiocatalogue:ledgerwindow-collected": "Pieces {0} of {1} · whole pictures {2} of {3}",
   "curiocatalogue:album-name-tapestries": "Album: tapestries",
   "curiocatalogue:ledgerwindow-missing": "Missing:",
+  "curiocatalogue:ledgerwindow-level-none": "Choose a level",
   "curiocatalogue:ledgerwindow-search": "Search:",
   "curiocatalogue:ledgerwindow-sort-name": "By name",
   "curiocatalogue:ledgerwindow-sort-mod": "By mod",
@@ -131,6 +134,8 @@
   "curiocatalogue:ingameerror-blank": "Nothing to fill: this list is blank",
   "curiocatalogue:ingameerror-movefailed": "The game would not take some of the items; nothing was changed. Please report this as a bug",
   "curiocatalogue:ingameerror-nocollection": "The game no longer has this album's collection (was a mod removed?)",
+  "curiocatalogue:ingameerror-nolevel": "Choose a level in the album's window (right-click into the air)",
+  "curiocatalogue:ingameerror-levelfixed": "The album already has pieces of its level; press Start over to choose another",
   "curiocatalogue:ingameerror-outofreach": "Too far away",
   "curiocatalogue:ingameerror-offhandgesture": "Hold the book in your off-hand with the main hand empty"
 }

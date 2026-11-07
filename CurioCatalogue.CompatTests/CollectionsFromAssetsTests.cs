@@ -43,8 +43,8 @@ public class CollectionsFromAssetsTests(CompatServerFixture server) : BookTestBa
         // 88 pieces in 31 pictures in the game (modding.md, Vanilla content we rely on) and cctapestry's 2×1 picture.
         var (pieces, pictures) = game.OnMain(() =>
         {
-            var members = Mod.Collections.Get(CollectionRegistry.TapestriesId)!.Members;
-            return (members.Count, members.Select(m => m.Group).Distinct().Count());
+            var members = Pieces.Members;
+            return (members.Count, members.Select(m => m.Values["picture"]).Distinct().Count());
         });
 
         Assert.Equal((88 + 2, 31 + 1), (pieces, pictures));
@@ -58,7 +58,46 @@ public class CollectionsFromAssetsTests(CompatServerFixture server) : BookTestBa
             Mod.Collections.ForSample(Vanilla("ingot-copper"))?.Id,
             Mod.Collections.ForSample(Vanilla("ingot-iron"))?.Id));
 
-        // The ingot collection has no MVP view that finds it by sample before K4? It has: any registered member.
         Assert.Equal(("tapestries", "ingots", null), seen);
+    }
+
+    // ---- an album of a collection of several levels (K4; the ingots have two, "ingots" and "bars", the same members)
+
+    [Fact]
+    public void An_album_of_several_levels_takes_nothing_until_a_level_is_chosen_then_keeps_it()
+    {
+        // A2 of the album view plan: no default level; the window's request chooses one while the album is empty, the server
+        // re-checks it (a level the collection lacks is ignored, a filled album refuses), the first piece fixes it.
+        var client = FakeClient.Join(game, "cc-levels");
+        var (pos, fingerprint, firstClick) = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("ingot-copper", 2);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Ours("book-album-normal-brickred");
+            Mod.Store.WriteAlbum(hand.Itemstack, Core.Album.New(Mod.Collections.Defined("ingots")!, 8, ""));
+            Click(player, hand, pos);
+            return (pos, LedgerStore.Fingerprint(hand.Itemstack), (Inventory(player), Contents(chest)));
+        });
+        Assert.Equal(("", "ingot-copper x2"), firstClick);
+        client.WaitFor(() => Errors(client).Contains("nolevel"), "the refusal 'no level'");
+
+        var shown = new ShownItem { HotbarSlot = client.Player.InventoryManager.ActiveHotbarSlotNumber, Fingerprint = fingerprint };
+        client.SendToMod(new ChooseLevelRequest { Book = shown, Level = "no-such-level" }); // ignored, the album unchanged
+        client.SendToMod(new ChooseLevelRequest { Book = shown, Level = "bars" });
+        client.WaitFor(() => ReadAlbum(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Level == "bars", "the level chosen");
+
+        var (taken, refingerprint) = game.OnMain(() =>
+        {
+            var hand = client.Player.InventoryManager.ActiveHotbarSlot;
+            Click(client.Player, hand, pos);
+            return (ReadAlbum(hand.Itemstack!).Collected.Keys.ToList(), LedgerStore.Fingerprint(hand.Itemstack!));
+        });
+        Assert.Equal(["copper"], taken);
+
+        client.SendToMod(new ChooseLevelRequest { Book = new ShownItem { HotbarSlot = shown.HotbarSlot, Fingerprint = refingerprint }, Level = "ingots" });
+        client.WaitFor(() => Errors(client).Contains("levelfixed"), "the refusal 'level fixed'");
+        Assert.Equal("bars", game.OnMain(() => ReadAlbum(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Level));
     }
 }

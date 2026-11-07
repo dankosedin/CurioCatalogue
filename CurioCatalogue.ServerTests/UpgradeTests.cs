@@ -52,8 +52,9 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
             string album = "";
             if (book.Album is { } a)
             {
-                var members = (Mod.Collections.Get(a.Collection) ?? throw new InvalidOperationException($"no collection {a.Collection}"))
-                    .Members.Select(m => Line(m.Key, m.Sample, 1)).ToList();
+                var collection = Mod.Collections.Defined(a.Collection) ?? throw new InvalidOperationException($"no collection {a.Collection}");
+                // 0.1 knew one level, the first; a member by its (only) item.
+                var members = collection.Levels[0].Members.Select(m => Line(m.Fillers[0], m.Stacks[0], 1)).ToList();
                 var collected = a.Collected.Select(e => e.ToString()).ToHashSet();
                 entries = members.Where(m => !collected.Contains(m));
                 int kept = members.Count(collected.Contains);
@@ -74,14 +75,19 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
         string code = stack.Collectible.Code.ToString();
         if (stack.Collectible is ItemLedger book)
         {
-            var ledger = Mod.Store.ReadLedger(stack, book.LedgerMode);
-            string album = "";
-            if (ledger.Album is { } info)
+            if (book.IsAlbum)
             {
-                var progress = Mod.Store.CollectionOf(ledger)?.Progress(ledger.Entries.Keys) ?? throw new InvalidOperationException($"no collection {info.CollectionId}");
-                album = $"{info.CollectionId}: collected {progress.Collected} of {progress.Total}, full {ledger.IsEmpty}";
+                // What an album misses is its level less what it collected: read through the migration of format 1.
+                var a = Mod.Store.ReadAlbum(stack);
+                var level = (Mod.Store.CollectionOf(a) is { } c ? a.LevelIn(c) : null) ?? throw new InvalidOperationException($"no collection or level for {a.CollectionId}");
+                var missing = a.Missing(level);
+                var progress = a.Progress(level);
+                return new Seen(code, book.LedgerMode.ToString(), a.Sheets, a.Name,
+                    missing.Select(m => Line(m.Fillers[0], m.Stacks[0], 1)).Order(StringComparer.Ordinal).ToList(),
+                    $"{a.CollectionId}: collected {progress.Collected} of {progress.Total}, full {missing.Count == 0}");
             }
-            return new Seen(code, ledger.Mode.ToString(), ledger.Sheets, ledger.Name, ledger.Entries.Values.Select(Line).Order(StringComparer.Ordinal).ToList(), album);
+            var ledger = Mod.Store.ReadLedger(stack, book.LedgerMode);
+            return new Seen(code, ledger.Mode.ToString(), ledger.Sheets, ledger.Name, ledger.Entries.Values.Select(Line).Order(StringComparer.Ordinal).ToList(), "");
         }
         var invoice = Mod.Store.ReadInvoice(stack, ((ItemInvoice)stack.Collectible).InvoiceKind);
         return new Seen(code, invoice.Kind.ToString(), 0, "", invoice.Entries.Select(Line).ToList(), "");
@@ -244,6 +250,34 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
             golden.Sheets, true, golden.Entries.Count + 1), seen);
     }
 
+    [Theory]
+    [InlineData("album-partial")]
+    [InlineData("album-full")]
+    public void An_album_of_0_1_1_is_written_back_as_format_2_with_every_piece_it_collected(string name)
+    {
+        // Format 1 is migrated on read; the next server write (here a rename, as the window's request does) stores format 2:
+        // what was collected, by member id, with no snapshot and no missing entries (docs/architecture.md, Part 1, Collections).
+        var golden = GoldenStacks.Load(V011).Stacks.Single(s => s.Name == name);
+        var collected = golden.Inputs.Book!.Album!.Collected.Select(e => e.Type!).Order(StringComparer.Ordinal).ToList();
+        var (raw, read) = game.OnMain(() =>
+        {
+            var stack = GoldenStacks.Read(World, golden);
+            Mod.Store.WriteAlbum(stack, Mod.Store.ReadAlbum(stack) with { Name = "renamed" });
+            var tree = stack.Attributes.GetTreeAttribute(LedgerStore.RootKey);
+            var album = tree.GetTreeAttribute("album");
+            var ids = album["collected"] is Vintagestory.API.Datastructures.TreeArrayAttribute { value: { } lines }
+                ? lines.Select(l => l.GetString("id")).ToList() : [];
+            return ((tree.GetAsInt("v"), tree["entries"] == null, album["members"] == null, album.GetString("level"), album["unplaced"] == null, ids),
+                Observed(stack));
+        });
+
+        Assert.Equal((LedgerStore.Version, true, true, "pieces", true), (raw.Item1, raw.Item2, raw.Item3, raw.Item4, raw.Item5));
+        // A tapestry member's id is its piece's name (K2): every piece collected in 0.1.1, none more, none lost.
+        Assert.Equal(collected, raw.ids);
+        var expected = Expected(golden);
+        Assert.Equal((expected with { Name = "renamed" }).ToString(), read.ToString());
+    }
+
     // ---- working: one action on each kind of golden item (the set of 0.1.1)
 
     ItemStack Golden(string name) => GoldenStacks.Read(World, GoldenStacks.Load(V011).Stacks.Single(s => s.Name == name));
@@ -342,7 +376,7 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
 
             var after = Observed(hand.Itemstack!);
             // The total follows this world's collection (Expected), not the 88 pieces of the capture's game.
-            int total = Mod.Collections.Tapestries!.Members.Count;
+            int total = Pieces.Members.Count;
             return (missingBefore - after.Entries.Count, after.Album.Replace($" of {total},", " of all,"), after.Sheets, Inventory(player), Contents(chest));
         });
         Assert.Equal((1, "tapestries: collected 4 of all, full False", 7, "tapestry-north:nightfall1 x1", "tapestry-north:ambush1 x1"), seen);

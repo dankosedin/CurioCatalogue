@@ -1,6 +1,6 @@
 {
   "source": { "kind": "variants", "code": "game:ingot-{metal}" },
   "dimensions": [ { "code": "metal", "values": [] } ],
-  "levels": [ { "id": "ingots", "keep": ["metal"] } ],
+  "levels": [ { "id": "ingots", "keep": ["metal"] }, { "id": "bars", "keep": ["metal"] } ],
   "exclude": []
 }

@@ -41,6 +41,9 @@ public class CollectionRegistryTests
         return stack;
     }
 
+    /// <summary>The tapestries' one level, the pieces; null when there is no tapestry collection.</summary>
+    private static CollectionLevel? Pieces(CollectionRegistry registry) => registry.Defined(CollectionRegistry.TapestriesId)?.Levels.Single();
+
     /// <summary>The lines the registry logged as errors: the format and its arguments, joined.</summary>
     private List<string> Errors() => game.Api.Logger.ReceivedCalls()
         .Where(c => c.GetMethodInfo().Name == nameof(ILogger.Error))
@@ -50,17 +53,17 @@ public class CollectionRegistryTests
     [Fact]
     public void Tapestries_come_from_the_block_sizes()
     {
-        var collection = Registry().Tapestries!;
+        var collection = Pieces(Registry())!;
 
         Assert.Equal(6, collection.Members.Count); // ambush 3 + aid-arm 2 + notice 1
-        Assert.Equal(["aid-arm", "ambush", "notice"], collection.Members.Select(m => m.Group).Distinct().Order());
-        Assert.Contains(keys.KeyOf(Tapestry("ambush2")), collection.Members.Select(m => m.Key));
+        Assert.Equal(["aid-arm", "ambush", "notice"], collection.Members.Select(m => m.Values["picture"]).Distinct().Order());
+        Assert.Contains(keys.KeyOf(Tapestry("ambush2")), collection.Members.Select(m => m.Fillers[0]));
     }
 
     [Fact]
     public void Tapestries_come_picture_by_picture_piece_by_piece()
     {
-        var order = Registry().Tapestries!.Members.Select(m => ((ItemStack)m.Sample).Attributes.GetString("type")).ToList();
+        var order = Pieces(Registry())!.Members.Select(m => ((ItemStack)m.Stacks[0]).Attributes.GetString("type")).ToList();
 
         // The order of the block's sizes, a picture whole, a picture's pieces by their place (row by row).
         Assert.Equal(["ambush1", "ambush2", "ambush3", "aid-arm1", "aid-arm2", "notice"], order);
@@ -69,13 +72,13 @@ public class CollectionRegistryTests
     [Fact]
     public void Config_excludes_and_adds_pieces()
     {
-        var collection = Registry(new() { Exclude = ["aid-*"], Add = ["mymod-banner"] }).Tapestries!;
+        var collection = Pieces(Registry(new() { Exclude = ["aid-*"], Add = ["mymod-banner"] }))!;
 
         Assert.Equal(5, collection.Members.Count);
-        Assert.DoesNotContain(keys.KeyOf(Tapestry("aid-arm1")), collection.Members.Select(m => m.Key));
-        Assert.Contains(keys.KeyOf(Tapestry("mymod-banner")), collection.Members.Select(m => m.Key));
+        Assert.DoesNotContain(keys.KeyOf(Tapestry("aid-arm1")), collection.Members.Select(m => m.Fillers[0]));
+        Assert.Contains(keys.KeyOf(Tapestry("mymod-banner")), collection.Members.Select(m => m.Fillers[0]));
         // An added piece is its own picture.
-        Assert.Equal("mymod-banner", collection.Members.Single(m => m.Key == keys.KeyOf(Tapestry("mymod-banner"))).Group);
+        Assert.Equal("mymod-banner", collection.Members.Single(m => m.Fillers[0] == keys.KeyOf(Tapestry("mymod-banner"))).Values["picture"]);
     }
 
     [Fact]
@@ -83,7 +86,7 @@ public class CollectionRegistryTests
     {
         var registry = Registry(new() { Disabled = true });
 
-        Assert.Null(registry.Tapestries);
+        Assert.Null(Pieces(registry));
         Assert.Null(registry.ForSample(Tapestry("ambush1")));
         Assert.Empty(registry.All);
     }
@@ -100,16 +103,16 @@ public class CollectionRegistryTests
     [Fact]
     public void Members_samples_are_real_tapestry_stacks()
     {
-        var member = Registry().Tapestries!.Members[0];
-        var sample = Assert.IsType<ItemStack>(member.Sample);
-        Assert.Equal(member.Key, keys.KeyOf(sample));
+        var member = Pieces(Registry())!.Members[0];
+        var sample = Assert.IsType<ItemStack>(member.Stacks[0]);
+        Assert.Equal(member.Fillers[0], keys.KeyOf(sample));
     }
 
     [Fact]
     public void Without_the_tapestry_block_there_is_no_collection()
     {
         var empty = new GameWorld();
-        Assert.Null(new CollectionRegistry(empty.World, new StackKeys(empty.World, []), new Dictionary<string, CollectionSettings>(), () => assets).Tapestries);
+        Assert.Null(new CollectionRegistry(empty.World, new StackKeys(empty.World, []), new Dictionary<string, CollectionSettings>(), () => assets).Defined(CollectionRegistry.TapestriesId));
     }
 
     // ---- definitions of other domains, the variants source
@@ -187,7 +190,7 @@ public class CollectionRegistryTests
 
         var registry = Registry();
 
-        Assert.Equal(6, registry.Tapestries!.Members.Count);
+        Assert.Equal(6, Pieces(registry)!.Members.Count);
         Assert.Null(registry.Defined("broken"));
         Assert.Contains(Errors(), e => e.Contains("collection 'broken' (badmod:config/curiocatalogue/collections/broken.json) cannot be used"));
     }

@@ -13,6 +13,7 @@ public class InvoiceMakerTests
     // Our code only passes the player on to claims and locks, which are mocked, so a null stands in for it.
     private readonly IPlayer player = null!;
     private readonly BlockPos pos = new(512010, 110, 511990);
+    private readonly StackKeys keys;
     private readonly LedgerStore store;
     private readonly InvoiceMaker maker;
     private readonly Item ledgerItem;
@@ -21,7 +22,8 @@ public class InvoiceMakerTests
 
     public InvoiceMakerTests()
     {
-        store = new LedgerStore(new StackKeys(game.World, ["durability"]));
+        keys = new StackKeys(game.World, ["durability"]);
+        store = new LedgerStore(keys, _ => collection);
         var reader = new ContainerReader(game.World, _ => null, TestInventoryBlock.IsStorage);
         var access = new ContainerAccess(game.World, (_, _) => locked);
         maker = new InvoiceMaker(game.World, store, reader, access, () => new LedgerLimits(32, 500));
@@ -177,16 +179,36 @@ public class InvoiceMakerTests
     [Fact]
     public void Want_list_lists_what_the_album_misses_for_a_sheet()
     {
-        var albumItem = game.Item("curiocatalogue:book-album-aged-orange", new ItemLedger());
-        var albumStack = new ItemStack(albumItem);
-        var collection = new Collection("tapestries", new[] { "a", "b" }.Select(t => new CollectionMember(store.ToEntry(Tapestry(t)).Key, t, Tapestry(t))));
-        store.WriteLedger(albumStack, collection.NewAlbum(2, ""));
+        var albumStack = Album(TestCollections.Tapestries(keys, t => Tapestry(t), "a", "b"), "b");
 
         var made = Assert.IsType<MakeInvoiceResult.Made>(maker.MakeWantList(albumStack, pos));
 
         Assert.Equal("curiocatalogue:invoice-wantlist", made.InvoiceStack.Collectible.Code.ToString());
-        Assert.Equal(2, store.ReadInvoice(made.InvoiceStack, InvoiceKind.WantList).Entries.Length);
-        Assert.Equal(1, store.ReadLedger(albumStack, LedgerMode.Album).Sheets);
+        Assert.Equal([Tapestry("a").Attributes.GetString("type")],
+            store.ReadInvoice(made.InvoiceStack, InvoiceKind.WantList).Entries.Select(e => ((ItemStack)e.Sample).Attributes.GetString("type")));
+        Assert.Equal(1, store.ReadAlbum(albumStack).Sheets);
+    }
+
+    [Fact]
+    public void No_want_list_from_an_album_of_a_collection_the_game_lacks_or_with_no_level()
+    {
+        var twoLevels = Album(TestCollections.TwoLevels(keys, t => Tapestry(t), "a"));
+        Assert.Equal(MakeRefusal.NoLevel, Refusal(maker.MakeWantList(twoLevels, pos)));
+
+        collection = null;
+        Assert.Equal(MakeRefusal.NoCollection, Refusal(maker.MakeWantList(twoLevels, pos)));
+        Assert.Equal(2, store.ReadAlbum(twoLevels).Sheets); // no sheet spent
+    }
+
+    private DefinedCollection? collection;
+
+    /// <summary>An album of the collection (which becomes the one the store knows), these pieces collected, 2 sheets.</summary>
+    private ItemStack Album(DefinedCollection of, params string[] collected)
+    {
+        collection = of;
+        var stack = new ItemStack(game.Item("curiocatalogue:book-album-aged-orange", new ItemLedger()));
+        store.WriteAlbum(stack, Core.Album.New(of, 2, "").Collect(collected.Select(p => (p, new FilledBy(keys.KeyOf(Tapestry(p)), Tapestry(p))))));
+        return stack;
     }
 
     private static MakeRefusal Refusal(MakeInvoiceResult result) => Assert.IsType<MakeInvoiceResult.Refused>(result).Reason;

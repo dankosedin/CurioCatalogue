@@ -140,4 +140,8 @@ which build, who ran it, and each `❌` with its reason.
 
 - `newerversion`: a book or invoice from a newer mod version. ⚙ `RefusalTests` (every gesture and window request, the stacks written by the test).
 - `movefailed`: the game accepts only part of the items (the post rolls back). Unit test only: no container of the server accepts part of a stack.
-- `nocollection`: "Start over" for an album whose collection no longer exists. ⚙ `RefusalTests`.
+- `nocollection`: "Start over" for an album whose collection no longer exists. ⚙ `RefusalTests`; taking new and a want list from
+  such an album, ⚙ `InvoicePosterTests`, `InvoiceMakerTests`.
+- `nolevel`, `levelfixed`: an album of a collection with several levels (none in the game before the collections of 0.2's item 4)
+  takes nothing and makes no want list until a level is chosen in its window; the first piece fixes the level, "Start over" frees
+  it. ⚙ `CollectionsFromAssetsTests` (a test mod's collection of two levels), `AlbumTests`. In game with the first collection of levels.

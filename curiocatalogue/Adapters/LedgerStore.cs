@@ -8,33 +8,36 @@ using CurioCatalogue.Core;
 namespace CurioCatalogue.Adapters;
 
 /// <summary>
-/// Reads and writes ledgers and invoices in their item's attributes, all under the subtree "curiocatalogue":
+/// Reads and writes books and invoices in their item's attributes, all under the subtree "curiocatalogue":
 /// <code>
-/// ledger:  { v: int, sheets: int, name: string, album: { id: string, members: [ { stack } ] }, entries: [ { stack, count } ] }
+/// ledger:  { v: int, sheets: int, name: string, entries: [ { stack, count } ] }
+/// album:   { v: int, sheets: int, name: string, album: { id: string, level: string, collected: [ { id, stack } ], unplaced: [ { stack } ] } }
 /// invoice: { v: int, created: double, pos: { x, y, z }, entries: [ { stack, count } ] }
 /// </code>
 /// <c>v</c> is the format version (<see cref="Version"/>); data without it is version 1. Data of a newer version (a book
 /// from a newer build of the mod) is read as well as we can but never written: the actions refuse (<see cref="IsNewer"/>).
-/// The ledger mode and the invoice kind are not stored: the item's variant (its code) already says them.
+/// The book's kind and the invoice kind are not stored: the item's variant (its code) already says them.
 /// Numbers are read with GetAsInt: attributes that come from JSON (a recipe, /giveitem) hold integers as longs,
 /// and GetInt sees only ints (vsapi JsonObject.cs:376#GetInt).
-/// Item keys are not stored either but recomputed from the sample stacks on every read, so a change of the
-/// ignored attributes in the config applies to existing ledgers. The album's snapshot of its collection is kept as samples
-/// too, so it is re-keyed the same way and always agrees with the entries.
+/// Item keys are not stored either but recomputed from the stacks on every read, so a change of the ignored attributes in the
+/// config applies to existing books. An album of format 1 (0.1: <c>album: { id, members: [ { stack } ] }</c>, a snapshot of its
+/// collection, and the missing members as <c>entries</c>) is read as format 2 (<see cref="Album.FromFormat1"/>) and written as 2
+/// the next time the server writes it.
 /// </summary>
 public sealed class LedgerStore
 {
     public const string RootKey = "curiocatalogue";
 
-    /// <summary>The format this build writes. Raise it when the layout changes, and read the older ones.</summary>
-    public const int Version = 1;
+    /// <summary>The format this build writes. Raise it when the layout changes, and read the older ones.
+    /// 2 (0.2): an album stores what it collected, by member (docs/architecture.md, Part 1, Collections).</summary>
+    public const int Version = 2;
 
     private readonly StackKeys keys;
-    private readonly System.Func<string, Collection?> collectionOf;
+    private readonly System.Func<string, DefinedCollection?> collectionOf;
 
-    /// <param name="collectionOf">The collection by id, so that an album read is always up to date with it
-    /// (Collection.RefreshIfStale); none in tests that do not care.</param>
-    public LedgerStore(StackKeys keys, System.Func<string, Collection?>? collectionOf = null)
+    /// <param name="collectionOf">The collection by id: an album of format 1 is read by it, and its unplaced items are placed
+    /// with it; none in tests that do not care.</param>
+    public LedgerStore(StackKeys keys, System.Func<string, DefinedCollection?>? collectionOf = null)
     {
         this.keys = keys;
         this.collectionOf = collectionOf ?? (_ => null);
@@ -52,7 +55,7 @@ public sealed class LedgerStore
     public static string ReadName(ItemStack book) =>
         book.Attributes.GetTreeAttribute(RootKey)?.GetString("name", "") ?? "";
 
-    /// <summary>An album's collection id, cheaply (for its shown name); empty for a ledger.</summary>
+    /// <summary>An album's collection id, cheaply (for its shown name); empty for a ledger. The same key in both formats.</summary>
     public static string ReadCollectionId(ItemStack book) =>
         book.Attributes.GetTreeAttribute(RootKey)?.GetTreeAttribute("album")?.GetString("id", "") ?? "";
 
@@ -76,42 +79,92 @@ public sealed class LedgerStore
     public static bool IsNewer(ItemStack? stack) =>
         stack?.Attributes.GetTreeAttribute(RootKey)?.GetAsInt("v", 1) > Version;
 
-    public Ledger ReadLedger(ItemStack book, LedgerMode mode)
+    /// <summary>The book in the stack, as its kind says: an album for <see cref="LedgerMode.Album"/>, else a ledger.</summary>
+    public Book ReadBook(ItemStack book, LedgerMode mode) =>
+        mode == LedgerMode.Album ? ReadAlbum(book) : ReadLedger(book, mode);
+
+    public void WriteBook(ItemStack stack, Book book)
     {
-        var root = book.Attributes.GetTreeAttribute(RootKey);
-        if (root == null) return Ledger.Empty(mode, 0);
-
-        var albumTree = root.GetTreeAttribute("album");
-        var album = albumTree == null
-            ? null
-            : new AlbumInfo(albumTree.GetString("id", ""), ReadSnapshot(albumTree));
-
-        var ledger = Ledger.FromStored(mode, root.GetAsInt("sheets"), ReadEntries(root), root.GetString("name", ""), album);
-
-        // An album follows its collection by itself (domain.md, Albums and collections): read as it should be now. The stored data catches
-        // up when the server next writes the album (taking new items, making a want list).
-        return CollectionOf(ledger) is { } collection ? collection.RefreshIfStale(ledger) : ledger;
+        switch (book)
+        {
+            case Ledger ledger: WriteLedger(stack, ledger); break;
+            case Album album: WriteAlbum(stack, album); break;
+            default: throw ExhaustiveMatching.ExhaustiveMatch.Failed(book);
+        }
     }
 
-    /// <summary>The collection an album follows; null for a ledger or a collection the game no longer has.</summary>
-    public Collection? CollectionOf(Ledger ledger) => ledger.Album is { } info ? collectionOf(info.CollectionId) : null;
+    /// <summary>A ledger or a bill of materials; an album is read by <see cref="ReadAlbum"/>.</summary>
+    public Ledger ReadLedger(ItemStack book, LedgerMode mode)
+    {
+        if (mode == LedgerMode.Album) throw new System.ArgumentException("An album is read by ReadAlbum");
+        var root = book.Attributes.GetTreeAttribute(RootKey);
+        if (root == null) return Ledger.Empty(mode, 0);
+        return Ledger.FromStored(mode, root.GetAsInt("sheets"), ReadEntries(root), root.GetString("name", ""));
+    }
 
     public void WriteLedger(ItemStack book, Ledger ledger)
     {
-        var root = new TreeAttribute();
-        root.SetInt("v", Version);
-        root.SetInt("sheets", ledger.Sheets);
-        if (ledger.Name.Length > 0) root.SetString("name", ledger.Name);
-        if (ledger.Album != null)
-        {
-            var album = root.GetOrAddTreeAttribute("album");
-            album.SetString("id", ledger.Album.CollectionId);
-            if (ledger.Album.Members is { } members) album["members"] = new TreeArrayAttribute(members.Select(m => Line(m.Sample)).ToArray());
-        }
+        var root = NewRoot(ledger);
         // Sorted so that the same ledger always gives the same bytes.
         WriteEntries(root, ledger.Entries.Values.OrderBy(e => e.Key.ToString(), System.StringComparer.Ordinal));
         book.Attributes[RootKey] = root;
     }
+
+    /// <summary>
+    /// An album, of either format. Its unplaced items of format 1 are placed when its collection is known (nothing is lost while it
+    /// is not). An album item without our data (the creative inventory) reads as an album of no collection.
+    /// </summary>
+    public Album ReadAlbum(ItemStack book)
+    {
+        var root = book.Attributes.GetTreeAttribute(RootKey);
+        var albumTree = root?.GetTreeAttribute("album");
+        int sheets = root?.GetAsInt("sheets") ?? 0;
+        string name = root?.GetString("name", "") ?? "";
+        string id = albumTree?.GetString("id", "") ?? "";
+        var collection = id.Length > 0 ? collectionOf(id) : null;
+
+        if (root == null || root.GetAsInt("v", 1) < 2)
+        {
+            // Format 1: the snapshot, re-keyed like the entries (so the two agree), and the missing entries.
+            var missing = root == null ? [] : ReadEntries(root).Select(e => e.Key).ToList();
+            return Album.FromFormat1(id, sheets, name, albumTree == null ? [] : ReadSnapshot(albumTree), missing, collection);
+        }
+
+        var collected = Album.NoneCollected.ToBuilder();
+        foreach (var line in Lines(albumTree, "collected"))
+        {
+            var stack = line.GetItemstack("stack");
+            var member = line.GetString("id");
+            if (stack == null || string.IsNullOrEmpty(member)) continue; // damaged line: drop it rather than fail the whole album
+            collected.TryAdd(member, new FilledBy(keys.KeyOf(stack), stack));
+        }
+        var unplaced = Lines(albumTree, "unplaced").Select(line => line.GetItemstack("stack")).OfType<ItemStack>()
+            .Select(stack => new FilledBy(keys.KeyOf(stack), stack)).ToImmutableList();
+        string? level = albumTree?.GetString("level") is { Length: > 0 } l ? l : null;
+
+        var album = new Album(id, level, collected.ToImmutable(), unplaced, sheets, name);
+        return collection != null ? album.Place(collection) : album;
+    }
+
+    public void WriteAlbum(ItemStack book, Album album)
+    {
+        var root = NewRoot(album);
+        var tree = root.GetOrAddTreeAttribute("album");
+        tree.SetString("id", album.CollectionId);
+        if (album.Level != null) tree.SetString("level", album.Level);
+        // By member id (Collected is sorted), so that the same album always gives the same bytes.
+        tree["collected"] = new TreeArrayAttribute(album.Collected.Select(c =>
+        {
+            var line = Line(c.Value.Stack);
+            line.SetString("id", c.Key);
+            return line;
+        }).ToArray());
+        if (!album.Unplaced.IsEmpty) tree["unplaced"] = new TreeArrayAttribute(album.Unplaced.Select(u => Line(u.Stack)).ToArray());
+        book.Attributes[RootKey] = root;
+    }
+
+    /// <summary>The collection an album follows; null for a collection the game does not have.</summary>
+    public DefinedCollection? CollectionOf(Album album) => collectionOf(album.CollectionId);
 
     public Invoice ReadInvoice(ItemStack paper, InvoiceKind kind)
     {
@@ -140,10 +193,21 @@ public sealed class LedgerStore
         paper.Attributes[RootKey] = root;
     }
 
+    private static TreeAttribute NewRoot(Book book)
+    {
+        var root = new TreeAttribute();
+        root.SetInt("v", Version);
+        root.SetInt("sheets", book.Sheets);
+        if (book.Name.Length > 0) root.SetString("name", book.Name);
+        return root;
+    }
+
+    private static IEnumerable<ITreeAttribute> Lines(ITreeAttribute? tree, string key) =>
+        tree?[key] is TreeArrayAttribute { value: { } array } ? array : [];
+
     private IEnumerable<Entry> ReadEntries(ITreeAttribute root)
     {
-        if (root["entries"] is not TreeArrayAttribute array || array.value == null) yield break;
-        foreach (var line in array.value)
+        foreach (var line in Lines(root, "entries"))
         {
             var stack = line.GetItemstack("stack");
             int count = line.GetAsInt("count");
@@ -152,15 +216,15 @@ public sealed class LedgerStore
         }
     }
 
-    /// <summary>The album's snapshot, re-keyed; null when it has none or an old one of key strings (then the album counts
-    /// as made from the current collection, Collection.Refresh).</summary>
-    private IReadOnlyList<SnapshotMember>? ReadSnapshot(ITreeAttribute album)
+    /// <summary>The snapshot of an album of format 1, re-keyed; null when it has none or an old one of key strings (development
+    /// builds before 0.1.0: then the album counts as made from the current collection, <see cref="Album.FromFormat1"/>).</summary>
+    private IReadOnlyList<FilledBy>? ReadSnapshot(ITreeAttribute album)
     {
-        if (album["members"] is not TreeArrayAttribute array || array.value == null) return null;
-        return array.value
+        if (album["members"] is not TreeArrayAttribute { value: { } array }) return null;
+        return array
             .Select(line => line.GetItemstack("stack"))
-            .Where(stack => stack != null) // damaged line: as a member the collection no longer has
-            .Select(stack => new SnapshotMember(keys.KeyOf(stack), stack))
+            .OfType<ItemStack>() // damaged line: as a member the collection no longer has
+            .Select(stack => new FilledBy(keys.KeyOf(stack), stack))
             .ToList();
     }
 

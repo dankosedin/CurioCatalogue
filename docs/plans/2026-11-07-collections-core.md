@@ -43,7 +43,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       Branch: `feat/collections-core`. After: K2. Model: sonnet. Author: none.
       Done when: the tests pass; `UpgradeTests` (golden config) checks the move; upgrade table: the config keys (U2); both
       READMEs' config section and `CHANGELOG.md`.
-- [ ] **K4. The album, format 2.** The album as a core type of its own: level (or none), collected members with the stack that
+- [x] **K4. The album, format 2.** The album as a core type of its own: level (or none), collected members with the stack that
       filled each, sheets, name; missing computed from the collection. `LedgerStore.Version` 2; format 1 migrated on read
       (snapshot and missing entries → collected member ids), written as 2 on the next server write. Taking new by members (a
       member of several codes filled by any of them, in the default layout's order); the level chosen while empty (a request
@@ -160,6 +160,31 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     with a test mod `cccollections` (a collection of the game's ingots by a definition of its own domain, and a patch of it);
     the server tests of the plan for "the tapestry collection equal to today's" are there too (`CollectionsFromAssetsTests`: 88 +
     the 2 pieces of `cctapestry`, 31 + 1 pictures), because only that project has a mod besides ours.
+- **The album, format 2 (K4, 07.11.2026, final; proposed by the AI assistant in the step, within the shape).** The code is
+  `CurioCatalogue.Core/Book.cs`, `Album.cs` and `LedgerStore` (the layout in its comment); tests `AlbumTests`, `LedgerStoreTests`,
+  `UpgradeTests` (the golden albums through the migration, the write-back), `CollectionsFromAssetsTests` (the level request).
+  - *Books as a closed pair:* `Book` (sheets, name, `ReturnSheet`, `AddSheets`) with `Ledger` (types and counts only) and `Album`;
+    `LedgerMode.Album` stays as the kind of book (the item's variant). The store reads by kind (`ReadBook`, `ReadLedger`,
+    `ReadAlbum`), `InvoiceFates` and `CreateInvoiceResult.Created` take a `Book`. The MVP's `Collection`, the snapshot and
+    `Refresh` / `RefreshIfStale` are gone; `CollectionRegistry.ForSample` gives a `DefinedCollection`.
+  - *What an album stores:* `album: { id, level, collected: [ { id, stack } ], unplaced: [ { stack } ] }`, `v` 2; no `entries`.
+    The stack that filled a member is a copy of one item from the container. `LedgerStore.Version` 2 is written on every book
+    and invoice (one number for all; 0.1.1 refuses them as newer, U12).
+  - *Nothing collected is lost by the migration:* format 1's collected (the snapshot less the missing; without a snapshot, the
+    collection's first level less the missing, as 0.1 read it) go on the first level's members, the only level 0.1 knew. Those
+    that are no member now (the collection unknown or disabled, a piece excluded) are kept as `unplaced` and placed on every read
+    once the collection has them again. Rejected: dropping them (a server that disables tapestries for a while, then any write
+    of the album, a rename or a sheet back, would wipe it).
+  - *The level:* `Album.LevelIn` gives the chosen level; a collection of one level has it always (also a stored id the
+    collection no longer has); else none, and taking new and want lists refuse `nolevel`. Choosing (`ChooseLevelRequest` from the
+    window, re-checked on the server): a level the collection lacks is ignored with a diagnostic line (stale or forged), a filled
+    album refuses `levelfixed`. "Start over" frees it (`album-restarted-nolevel` when there is no level). Today's window has a
+    level dropdown while the album is empty and its collection has several levels; A3 replaces it.
+  - *Refusals about the album come first:* taking new says `nocollection` / `nolevel` before looking at the block (they are about
+    the book, and true of any chest). Until K6, a collection off in the config is `nocollection` too.
+  - *Taking new by members:* for each missing member in the default layout's order, the first of its items the container has; a
+    key fills one member of a level, so the lines keep keys and `Transfer` is unchanged. A want list is a line per missing
+    member by its first item (K5 makes it a member reference).
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -174,3 +199,8 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   the definition: 2 fail; the legacy keys not cleared: 2 fail). All five test projects green; one flake seen once in an earlier run: `BookFlowTests.
   Containers_the_mod_does_not_read_are_refused(chest-east, perPlayerLoot: True)` once timed out waiting for a join (30 s, the run took
   6 min) and passed alone and in the full run after. Not committed yet: the author's "комічь". Next: K4 (opus, After: K3).
+- 07.11.2026: K4 done (final): the album of format 2 in the core and the store, the migration of format 1, taking new by members,
+  the level request; tests mutation-checked (the migration loses a collected piece: 4 core, 4 adapter and 9 golden tests fail;
+  placing drops an unplaced piece: 2 fail). All five test projects green; a flake of the K3 kind (a 30 s timeout), this time
+  `BookEdgeTests.L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full`, once, passed alone and in the next full run. The in-game check of the old window on an album is
+  the author's (the step's report). Next: K5 (opus, After: K4).

@@ -25,7 +25,20 @@ public abstract record PostInvoiceResult
     public sealed record Refused(PostRefusal Reason, IReadOnlyList<Entry>? Lacking = null, int SlotsShort = 0) : PostInvoiceResult;
 }
 
-public enum CollectRefusal { Unsupported, NoAccess, NothingNew, NoRoom }
+/// <summary>Why an album took nothing; the code also names the player-facing message ("ingameerror-" + code).</summary>
+public enum CollectRefusal
+{
+    Unsupported,
+    NoAccess,
+    NothingNew,
+    NoRoom,
+
+    /// <summary>The game does not have the album's collection (a mod removed, or the collection off in the config until K6).</summary>
+    NoCollection,
+
+    /// <summary>The collection has several levels and the album has none chosen (A2 of the album view plan).</summary>
+    NoLevel,
+}
 
 /// <summary>An album taking new items for its collection straight from a container (domain.md, Albums and collections).</summary>
 [Closed(typeof(CollectResult.Collected), typeof(CollectResult.Refused))]
@@ -93,13 +106,13 @@ public sealed class InvoicePoster
 
         // What will become of the ledger and the invoice: decides whether the invoice's slot counts as free.
         var lim = limits();
-        // An album in the off-hand takes the sheet back, as when cancelling, but its entries stay: it changes only by taking
-        // new items (domain.md, Posting an invoice; Albums and collections).
+        // An album in the off-hand takes the sheet back, as when cancelling, but what it collected stays: it changes only by
+        // taking new items (domain.md, Posting an invoice; Albums and collections).
         var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger ? offhandSlot.Itemstack : null;
-        var ledgerItem = (ItemLedger?)ledgerStack?.Collectible;
-        var ledger = ledgerStack != null ? store.ReadLedger(ledgerStack, ledgerItem!.LedgerMode) : null;
-        var posted = ledgerItem is { IsAlbum: false } ? ledger!.Post(invoice, lim) : null;
-        var after = posted?.Ledger ?? ledger;
+        var book = ledgerStack != null ? store.ReadBook(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode) : null;
+        var ledger = book as Ledger;
+        var posted = ledger?.Post(invoice, lim);
+        var after = posted?.Ledger ?? book;
         var (fate, withSheet) = InvoiceFates.Ended(after, lim, consumeSheets());
         bool invoiceSlotFrees = fate is InvoiceFate.SheetReturned or InvoiceFate.Consumed;
 
@@ -137,7 +150,7 @@ public sealed class InvoicePoster
 
         if ((withSheet ?? posted?.Ledger) is { } written)
         {
-            store.WriteLedger(ledgerStack!, written);
+            store.WriteBook(ledgerStack!, written);
             offhandSlot!.MarkDirty();
         }
         if (fate == InvoiceFate.Parchment) invoiceSlot.Itemstack = Parchment();
@@ -175,14 +188,20 @@ public sealed class InvoicePoster
     }
 
     /// <summary>
-    /// An album takes new items for its collection straight from a container (domain.md, Albums and collections): one of each item it
-    /// misses, in the collection's order, as much as fits; what is taken is crossed off. No invoice, no sheet.
+    /// An album takes new items for its collection straight from a container (domain.md, Albums and collections): for each member of
+    /// its level it misses, one item that fills it, in the collection's order, as much as fits; the members whose item moved are
+    /// collected, each with that item. No invoice, no sheet. With no collection or no level it takes nothing (A2 of the album view
+    /// plan); those are said before the container is looked at, as they are about the album.
     /// </summary>
     /// <param name="albumSlot">The album, in the main hand or the off-hand.</param>
     /// <param name="playerSlots">Where the items may go: hotbar without the off-hand, and the backpack.</param>
     /// <param name="handSlot">The main hand; filled last, so it stays free when there is room elsewhere.</param>
     public CollectResult Collect(IPlayer player, ItemSlot albumSlot, BlockPos pos, IReadOnlyList<ItemSlot> playerSlots, ItemSlot? handSlot)
     {
+        var album = store.ReadAlbum(albumSlot.Itemstack!);
+        if (store.CollectionOf(album) is not { } collection) return new CollectResult.Refused(CollectRefusal.NoCollection);
+        if (album.LevelIn(collection) is not { } level) return new CollectResult.Refused(CollectRefusal.NoLevel);
+
         pos = reader.MainPos(pos);
         var be = world.BlockAccessor.GetBlockEntity(pos);
         if (reader.Classify(be) != ContainerKind.Supported) return new CollectResult.Refused(CollectRefusal.Unsupported);
@@ -191,22 +210,24 @@ public sealed class InvoicePoster
         var container = reader.Open(be)!;
         var merge = new MergeClasses();
         var (sources, samples) = Sources(container, merge);
-        var album = store.ReadLedger(albumSlot.Itemstack!, LedgerMode.Album);
-        var wanted = album.Entries.Values.Where(e => samples.ContainsKey(e.Key)).Select(e => e.WithCount(1));
-        var lines = (store.CollectionOf(album)?.InOrder(wanted) ?? wanted.OrderBy(e => e.Key.ToString(), StringComparer.Ordinal)).ToList();
+        // A key fills at most one member of a level, so a line's key names its member.
+        var wanted = album.Wanted(level, samples.Keys.ToHashSet());
+        var memberOf = wanted.ToDictionary(w => w.Key, w => w.Member.Id);
+        var lines = wanted.Select(w => new Entry(w.Key, 1, samples[w.Key])).ToList();
         if (lines.Count == 0) return new CollectResult.Refused(CollectRefusal.NothingNew);
 
         var plan = PlanWhatFits(lines, sources, container, playerSlots, handSlot, merge);
         if (plan.Taken.Count == 0)
             return new CollectResult.Refused(CollectRefusal.NoRoom, SlotsShort(lines, sources, samples, container, playerSlots, handSlot, merge));
 
-        // Only what really moved is crossed off: an item left in the container is still missing.
+        // Only what really moved is collected: an item left in the container is still missing. The album keeps a copy of one item
+        // as the stack that filled the member (a member of several items shows the one put in, A2).
         var moved = Carry(player, plan.Moves, container, playerSlots);
         var taken = FullyMoved(plan.Taken, moved, sources);
-        var after = album.CrossOff(taken.Select(e => e.Key));
-        store.WriteLedger(albumSlot.Itemstack!, after);
+        var after = album.Collect(taken.Select(e => (memberOf[e.Key], new FilledBy(e.Key, store.ToEntry((ItemStack)e.Sample).Sample))));
+        store.WriteAlbum(albumSlot.Itemstack!, after);
         albumSlot.MarkDirty();
-        return new CollectResult.Collected(moved.Sum(m => m.Amount), plan.Left.Count + plan.Taken.Count - taken.Count, after.Entries.Count);
+        return new CollectResult.Collected(moved.Sum(m => m.Amount), plan.Left.Count + plan.Taken.Count - taken.Count, after.Missing(level).Count);
     }
 
     /// <summary>
@@ -216,13 +237,13 @@ public sealed class InvoicePoster
     public InvoiceFate Cancel(ItemSlot invoiceSlot, ItemSlot? offhandSlot)
     {
         var ledgerStack = offhandSlot?.Itemstack?.Collectible is ItemLedger ? offhandSlot.Itemstack : null;
-        var book = ledgerStack != null ? store.ReadLedger(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode) : null;
+        var book = ledgerStack != null ? store.ReadBook(ledgerStack, ((ItemLedger)ledgerStack.Collectible).LedgerMode) : null;
         var paper = invoiceSlot.Itemstack!;
         bool blank = store.ReadInvoice(paper, ((ItemInvoice)paper.Collectible).InvoiceKind).Entries.IsEmpty;
         var (fate, withSheet) = InvoiceFates.Cancelled(blank, book, limits(), consumeSheets());
         if (withSheet != null)
         {
-            store.WriteLedger(ledgerStack!, withSheet);
+            store.WriteBook(ledgerStack!, withSheet);
             offhandSlot!.MarkDirty();
         }
         invoiceSlot.Itemstack = fate == InvoiceFate.Parchment ? Parchment() : null;

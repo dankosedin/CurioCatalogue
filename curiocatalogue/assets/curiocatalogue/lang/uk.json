@@ -27,6 +27,7 @@
   "curiocatalogue:cover-teal": "бірюзова",
   "curiocatalogue:ledger-info-entries": "Записи: {0} (ліміт {1})",
   "curiocatalogue:ledger-info-album": "Шматків {0} з {1} · цілих малюнків {2} з {3}",
+  "curiocatalogue:ledger-info-nolevel": "Рівень не вибрано: виберіть його у вікні альбому",
   "curiocatalogue:ledger-info-howto-types": "{0} + ПКМ по контейнеру: прибуткова накладна на предмети, яких немає в книзі.\n{0} + {1} + ПКМ: видаткова накладна на предмети з книги, на всі їхні примірники.\nПід час проведення предмети з накладної переходять з контейнера у ваш інвентар.",
   "curiocatalogue:ledger-info-howto-counts": "{0} + ПКМ по контейнеру: прибуткова накладна на надлишок понад кількість у списку.\n{0} + {1} + ПКМ: видаткова накладна на те, що просить список, не більше вказаної кількості.\nПід час проведення предмети з накладної переходять з контейнера у ваш інвентар.",
   "curiocatalogue:ledger-info-howto-album": "Записано те, чого колекції ще бракує.\n{0} + ПКМ по контейнеру: одразу забирає по одному кожного шматка, якого бракує, і викреслює його. Дублікати лишаються.",
@@ -76,6 +77,7 @@
   "curiocatalogue:ledger-overlimit": "Записів у книзі: {0}, ліміт {1}. Прибуткових накладних не буде, доки не приберете частину записів.",
   "curiocatalogue:ledger-cleared": "Книгу очищено: прибрано записів — {0}.",
   "curiocatalogue:album-restarted": "Альбом розпочато заново. Лишилося зібрати: {0}.",
+  "curiocatalogue:album-restarted-nolevel": "Альбом розпочато заново. Виберіть рівень у його вікні.",
   "curiocatalogue:invoice-cancelled": "Накладну анульовано.",
   "curiocatalogue:invoice-cancelled-sheet": "Накладну анульовано, аркуш повернувся в книгу.",
   "curiocatalogue:invoice-cancelled-sheet-album": "Накладну анульовано, аркуш повернувся в альбом.",
@@ -101,6 +103,7 @@
   "curiocatalogue:ledgerwindow-collected": "Шматків {0} з {1} · цілих малюнків {2} з {3}",
   "curiocatalogue:album-name-tapestries": "Альбом: гобелени",
   "curiocatalogue:ledgerwindow-missing": "Бракує:",
+  "curiocatalogue:ledgerwindow-level-none": "Виберіть рівень",
   "curiocatalogue:ledgerwindow-search": "Пошук:",
   "curiocatalogue:ledgerwindow-sort-name": "За назвою",
   "curiocatalogue:ledgerwindow-sort-mod": "За модом",
@@ -131,6 +134,8 @@
   "curiocatalogue:ingameerror-blank": "Нічого проводити: накладна чи список порожні",
   "curiocatalogue:ingameerror-movefailed": "Гра не прийняла частину предметів; нічого не змінено. Повідомте, будь ласка, про цю помилку",
   "curiocatalogue:ingameerror-nocollection": "Колекції цього альбому в грі вже немає (мод видалено?)",
+  "curiocatalogue:ingameerror-nolevel": "Виберіть рівень у вікні альбому (ПКМ у повітря)",
+  "curiocatalogue:ingameerror-levelfixed": "В альбомі вже є шматки його рівня; щоб вибрати інший, натисніть «Почати заново»",
   "curiocatalogue:ingameerror-outofreach": "Надто далеко",
   "curiocatalogue:ingameerror-offhandgesture": "Тримайте книгу в другій руці, а основна має бути порожньою"
 }

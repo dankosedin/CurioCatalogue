@@ -14,7 +14,7 @@ namespace CurioCatalogue.ServerTests;
 
 /// <summary>
 /// C6 of the collections-design plan: what it costs to read a book. Everything that reads a whole album runs through
-/// <c>LedgerStore.ReadLedger</c>: the tooltip (<c>GetHeldItemInfo</c>), the crafting checks (<c>MatchesForCrafting</c>, every time
+/// <c>LedgerStore.ReadAlbum</c>: the tooltip (<c>GetHeldItemInfo</c>), the crafting checks (<c>MatchesForCrafting</c>, every time
 /// the grid changes), and the open window (<c>Fingerprint</c> every 500 ms, a read when the data changed). The collection grows
 /// by the config's <c>TapestryAdd</c> (88 real pieces + made-up names), so the whole path is the real one: registry, store, core.
 /// The client's drawing is not here (A1 of the album-view plan). The numbers are a median of many runs on the main thread of the
@@ -44,13 +44,12 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
     static InventoryCraftingGrid Grid(IServerPlayer player) =>
         (InventoryCraftingGrid)player.InventoryManager.GetOwnInventory(GlobalConstants.craftingInvClassName);
 
-    /// <summary>An album of the collection with <paramref name="members"/> pieces, half of them collected (so the entries are half).</summary>
-    ItemStack HalfAlbum(Core.Collection collection)
+    /// <summary>An album of the collection with the first <paramref name="collected"/> members collected (format 2 stores what it collected).</summary>
+    ItemStack AlbumWith(DefinedCollection collection, int collected)
     {
         var stack = Ours("book-album-normal-brickred");
-        var full = collection.NewAlbum(8, "");
-        var half = full with { Entries = full.Entries.Take(full.Entries.Count / 2).ToImmutableDictionary() };
-        Mod.Store.WriteLedger(stack, half);
+        var members = collection.Levels[0].Order.Take(collected);
+        Mod.Store.WriteAlbum(stack, Core.Album.New(collection, 8, "").Collect(members.Select(m => (m.Id, new FilledBy(m.Fillers[0], m.Stacks[0])))));
         return stack;
     }
 
@@ -67,15 +66,16 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
         game.OnMain(() => WithConfig(c => c.Collections["tapestries"].Add = Extra(extra), () =>
         {
             var collection = Mod.Collections.ForSample(Tapestry("ambush1"))!;
-            int members = collection.Members.Count;
-            var full = Album(8);
-            var half = HalfAlbum(collection);
+            int members = collection.Levels[0].Members.Count;
+            // The largest album is the one that collected everything.
+            var full = AlbumWith(collection, members);
+            var half = AlbumWith(collection, members / 2);
             var empty = Ours("book-ledger-normal-teal");
             var info = new StringBuilder();
 
             int bytesFull = ((Vintagestory.API.Datastructures.TreeAttribute)full.Attributes.GetTreeAttribute(LedgerStore.RootKey)).ToBytes().Length;
-            double read = Ms(200, () => Mod.Store.ReadLedger(full, Core.LedgerMode.Album));
-            double readHalf = Ms(200, () => Mod.Store.ReadLedger(half, Core.LedgerMode.Album));
+            double read = Ms(200, () => Mod.Store.ReadAlbum(full));
+            double readHalf = Ms(200, () => Mod.Store.ReadAlbum(half));
             double tooltip = Ms(200, () => { info.Clear(); full.Collectible.GetHeldItemInfo(new DummySlot(full), info, World, false); });
             double fingerprint = Ms(200, () => LedgerStore.Fingerprint(full));
             // What the game itself does with the stack while the tooltip is up: GuiElementItemstackInfo.SetSourceSlot compares the
@@ -84,7 +84,7 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
             var copy = full.Clone();
             bool same = full.Equals(World, copy, GlobalConstants.IgnoredStackAttributes); double equals = Ms(200, () => full.Equals(World, copy, GlobalConstants.IgnoredStackAttributes));
             double clone = Ms(200, () => full.Clone());
-            double progress =Ms(200, () => collection.Progress(Mod.Store.ReadLedger(full, Core.LedgerMode.Album).Entries.Keys) );
+            double progress =Ms(200, () => Mod.Store.ReadAlbum(full).Progress(collection.Levels[0]));
 
             // The grid: an album put into a slot makes the grid ask every recipe with a ledger ingredient (MatchesForCrafting).
             var grid = Grid(client.Player);

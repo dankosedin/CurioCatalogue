@@ -93,12 +93,12 @@ public abstract class BookTestBase(GameServerFixture server)
         return stack;
     }
 
-    /// <summary>An album with every member of the tapestry collection missing.</summary>
+    /// <summary>A new album of the tapestry collection: nothing collected.</summary>
     protected ItemStack Album(int sheets)
     {
         var collection = Mod.Collections.ForSample(Tapestry("ambush1")) ?? throw new InvalidOperationException("no tapestry collection");
         var stack = Ours("book-album-normal-brickred");
-        Mod.Store.WriteLedger(stack, collection.NewAlbum(sheets, ""));
+        Mod.Store.WriteAlbum(stack, Core.Album.New(collection, sheets, ""));
         return stack;
     }
 
@@ -145,10 +145,21 @@ public abstract class BookTestBase(GameServerFixture server)
         return stack;
     }
 
-    /// <summary>The data of a book (ledger, bill of materials or album), read in its own mode.</summary>
+    /// <summary>The data of a ledger or a bill of materials, read in its own mode.</summary>
     protected Core.Ledger ReadBook(ItemStack book) => Mod.Store.ReadLedger(book, ((ItemLedger)book.Collectible).LedgerMode);
 
-    protected (int Sheets, int Entries) BookState(ItemStack book) => ToCounts(ReadBook(book));
+    protected Core.Album ReadAlbum(ItemStack album) => Mod.Store.ReadAlbum(album);
+
+    /// <summary>The tapestries' one level, the pieces, as the game has it now.</summary>
+    protected Core.CollectionLevel Pieces => (Mod.Collections.Defined(CollectionRegistry.TapestriesId) ?? throw new InvalidOperationException("no tapestry collection")).Levels.Single();
+
+    /// <summary>The members an album misses at its level, in the order of taking new; none without its collection or a level.</summary>
+    protected IReadOnlyList<Core.Member> MissingOf(Core.Album album) =>
+        Mod.Store.CollectionOf(album) is { } c && album.LevelIn(c) is { } level ? album.Missing(level) : [];
+
+    /// <summary>A book's sheets and entries; an album's "entries" are the members it misses.</summary>
+    protected (int Sheets, int Entries) BookState(ItemStack book) =>
+        ((ItemLedger)book.Collectible).IsAlbum && ReadAlbum(book) is var album ? (album.Sheets, MissingOf(album).Count) : ToCounts(ReadBook(book));
 
     protected static (int Sheets, int Entries) ToCounts(Core.Ledger l) => (l.Sheets, l.Entries.Count);
 

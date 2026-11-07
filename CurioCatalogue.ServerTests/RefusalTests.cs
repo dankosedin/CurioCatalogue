@@ -176,7 +176,7 @@ public class RefusalTests(GameServerFixture server) : BookTestBase(server)
         {
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             var stack = Ours("book-album-normal-brickred");
-            Mod.Store.WriteLedger(stack, Ledger.FromStored(LedgerMode.Album, 5, [], "gone", new AlbumInfo("vanished-collection")));
+            Mod.Store.WriteAlbum(stack, new Core.Album("vanished-collection", null, Core.Album.NoneCollected, [], 5, "gone"));
             hand.Itemstack = stack;
             return (LedgerStore.Fingerprint(stack), Bytes(stack));
         });

@@ -65,6 +65,15 @@ public class MakeWantListRequest
     [ProtoMember(1)] public ShownItem? Book;
 }
 
+/// <summary>Client → server, from the album window: choose the level of the shown album, which must be empty (A2 of the album
+/// view plan).</summary>
+[ProtoContract]
+public class ChooseLevelRequest
+{
+    [ProtoMember(1)] public ShownItem? Book;
+    [ProtoMember(2)] public string Level = "";
+}
+
 /// <summary>
 /// Server → client: posting is refused for lack of these items. The client names them: a name depends on the player's
 /// language, and the server translates only into its own (checked on a dedicated server 27.10.2026).
@@ -106,7 +115,8 @@ internal static class ModNetwork
             .RegisterMessageType<ClearLedgerRequest>()
             .RegisterMessageType<CancelInvoiceRequest>()
             .RegisterMessageType<MakeWantListRequest>()
-            .RegisterMessageType<MissingItemsRefusal>();
+            .RegisterMessageType<MissingItemsRefusal>()
+            .RegisterMessageType<ChooseLevelRequest>();
 
     public static void StartClient(ICoreClientAPI capi) =>
         capi.Network.GetChannel(Channel).SetMessageHandler<MissingItemsRefusal>(refusal =>
@@ -156,6 +166,7 @@ internal static class ModNetwork
         channel.SetMessageHandler<ClearLedgerRequest>((player, request) => Clear(sapi, mod, player, request));
         channel.SetMessageHandler<CancelInvoiceRequest>((player, request) => Cancel(sapi, mod, player, request));
         channel.SetMessageHandler<MakeWantListRequest>((player, request) => MakeWantList(sapi, mod, player, request));
+        channel.SetMessageHandler<ChooseLevelRequest>((player, request) => ChooseLevel(sapi, mod, player, request));
     }
 
     /// <summary>
@@ -196,8 +207,8 @@ internal static class ModNetwork
 
         string name = LimitName(request.Name);
         var item = (ItemLedger)slot.Itemstack!.Collectible;
-        var ledger = mod.Store.ReadLedger(slot.Itemstack, item.LedgerMode);
-        mod.Store.WriteLedger(slot.Itemstack, ledger with { Name = name });
+        var book = mod.Store.ReadBook(slot.Itemstack, item.LedgerMode);
+        mod.Store.WriteBook(slot.Itemstack, book with { Name = name });
         slot.MarkDirty();
         ModLog.Debug(sapi, $"{player.PlayerName}: ledger renamed to '{name}'");
     }
@@ -207,28 +218,77 @@ internal static class ModNetwork
         if (LedgerSlot(sapi, player, request.Book, "clear") is not { } slot) return;
 
         var item = (ItemLedger)slot.Itemstack!.Collectible;
-        var ledger = mod.Store.ReadLedger(slot.Itemstack, item.LedgerMode);
-
-        // An album starts over instead: every member missing again, sheets and name kept (domain.md, Albums and collections).
-        if (ledger.Album is { } info)
+        var book = mod.Store.ReadBook(slot.Itemstack, item.LedgerMode);
+        switch (book)
         {
-            if (mod.Collections.Get(info.CollectionId) is not { } collection)
-            {
-                PlayerMessages.Refuse(player, "nocollection");
-                ModLog.Debug(sapi, $"{player.PlayerName}: restart refused: no collection {info.CollectionId}");
+            // An album starts over instead: nothing collected, the level free again, sheets and name kept (domain.md, Albums and collections).
+            case Album album:
+                if (mod.Store.CollectionOf(album) is not { } collection)
+                {
+                    PlayerMessages.Refuse(player, "nocollection");
+                    ModLog.Debug(sapi, $"{player.PlayerName}: restart refused: no collection {album.CollectionId}");
+                    return;
+                }
+                var again = album.StartOver(collection);
+                mod.Store.WriteAlbum(slot.Itemstack, again);
+                slot.MarkDirty();
+                if (again.LevelIn(collection) is { } level) PlayerMessages.Tell(player, "album-restarted", level.Members.Count);
+                else PlayerMessages.Tell(player, "album-restarted-nolevel");
+                ModLog.Debug(sapi, $"{player.PlayerName}: album of {collection.Id} started over");
                 return;
-            }
-            mod.Store.WriteLedger(slot.Itemstack, collection.NewAlbum(ledger.Sheets, ledger.Name));
-            slot.MarkDirty();
-            PlayerMessages.Tell(player, "album-restarted", collection.Members.Count);
-            ModLog.Debug(sapi, $"{player.PlayerName}: album of {collection.Id} started over");
+
+            case Ledger ledger:
+                mod.Store.WriteLedger(slot.Itemstack, ledger.Clear());
+                slot.MarkDirty();
+                PlayerMessages.Tell(player, "ledger-cleared", ledger.Entries.Count);
+                ModLog.Debug(sapi, $"{player.PlayerName}: ledger cleared, {ledger.Entries.Count} entries removed");
+                return;
+
+            default:
+                throw ExhaustiveMatch.Failed(book);
+        }
+    }
+
+    /// <summary>
+    /// The level of the album in that hand, chosen in its window (A2 of the album view plan). Re-checked here: the album must still
+    /// be empty (a piece taken meanwhile fixes the level: refused, told) and the level one of its collection (else the request is
+    /// stale or forged: ignored with a diagnostic line).
+    /// </summary>
+    private static void ChooseLevel(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, ChooseLevelRequest request)
+    {
+        if (Target(sapi, player, request.Book, c => c is ItemLedger { IsAlbum: true }, "choose level") is not { } slot) return;
+
+        var album = mod.Store.ReadAlbum(slot.Itemstack!);
+        if (mod.Store.CollectionOf(album) is not { } collection)
+        {
+            PlayerMessages.Refuse(player, "nocollection");
+            ModLog.Debug(sapi, $"{player.PlayerName}: level refused: no collection {album.CollectionId}");
             return;
         }
-
-        mod.Store.WriteLedger(slot.Itemstack, ledger.Clear());
-        slot.MarkDirty();
-        PlayerMessages.Tell(player, "ledger-cleared", ledger.Entries.Count);
-        ModLog.Debug(sapi, $"{player.PlayerName}: ledger cleared, {ledger.Entries.Count} entries removed");
+        var choice = album.ChooseLevel(collection, request.Level ?? "");
+        switch (choice)
+        {
+            case LevelChoice.Chosen chosen:
+                mod.Store.WriteAlbum(slot.Itemstack!, chosen.Album);
+                slot.MarkDirty();
+                ModLog.Debug(sapi, $"{player.PlayerName}: album of {collection.Id} at level {chosen.Album.Level}");
+                break;
+            case LevelChoice.Refused refused:
+                switch (refused.Reason)
+                {
+                    case LevelRefusal.NotEmpty:
+                        PlayerMessages.Refuse(player, "levelfixed");
+                        break;
+                    case LevelRefusal.UnknownLevel:
+                        break;
+                    default:
+                        throw ExhaustiveMatch.Failed(refused.Reason);
+                }
+                ModLog.Debug(sapi, $"{player.PlayerName}: level {request.Level} of {collection.Id} refused: {refused.Reason}");
+                break;
+            default:
+                throw ExhaustiveMatch.Failed(choice);
+        }
     }
 
     /// <summary>A want list from the album in that hand (domain.md, Albums and collections); into the empty main hand if it can.</summary>

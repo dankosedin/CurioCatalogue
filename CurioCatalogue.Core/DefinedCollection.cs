@@ -8,7 +8,7 @@ using ExhaustiveMatching;
 namespace CurioCatalogue.Core;
 
 /// <summary>
-/// A member of a level: a point in the kept dimensions (docs/architecture.md, Part 1, Collections).
+/// A member of a level: a point in the kept dimensions (docs/decisions.md, Collections).
 /// </summary>
 /// <param name="Id">Made of the kept dimensions' values (<see cref="CollectionDefinition"/>); what albums store.</param>
 /// <param name="Values">Its value in every dimension on which all its points agree: the kept ones always, and a dimension the
@@ -98,7 +98,7 @@ public sealed class CollectionLevel
 }
 
 /// <summary>
-/// A collection built from its definition and the points its source found (docs/architecture.md, Part 1, Collections): every
+/// A collection built from its definition and the points its source found (docs/decisions.md, Collections): every
 /// level's members, groups and order. Immutable; built again when the definition, the config or the loaded items change.
 /// </summary>
 public sealed class DefinedCollection

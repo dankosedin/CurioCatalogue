@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Compatibility tests: the server of CurioCatalogue.ServerTests (shared through this import) with other mods loaded
-       (docs/development.md, Compatibility tests). The mods are not in the repo: mods.json pins them, PinnedMods fetches them. -->
+       (docs/tests.md, Compatibility tests). The mods are not in the repo: mods.json pins them, PinnedMods fetches them. -->
   <Import Project="..\CurioCatalogue.TestServer\TestServer.props" />
 
   <!-- Read back with TestPaths.Get: the pinned list, the folder the mods' files are kept in between runs (git-ignored;

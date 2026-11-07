@@ -1,6 +1,6 @@
 using CurioCatalogue.GoldenCapture;
 
-// The golden stacks of a release (docs/development.md, Golden stacks; plan docs/plans/2026-11-04-backward-compat.md): the test
+// The golden stacks of a release (docs/tests.md, Golden stacks; plan docs/plans/2026-11-04-backward-compat.md): the test
 // server with our mod of the release zip, the items made the way a player makes them (Scenario), and what they hold written out
 // (Golden). Run by hand, once per release:
 //   dotnet run --project CurioCatalogue.GoldenCapture                 writes CurioCatalogue.ServerTests/Golden/v<version>/

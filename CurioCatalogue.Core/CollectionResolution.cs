@@ -5,7 +5,7 @@ namespace CurioCatalogue.Core;
 /// <summary>
 /// What the game says of a collection an album (or a want list) names: it is there, it is off on this server, or it is not
 /// known at all. Closed, so every place that refuses or shows an album has to say what it does for each: "disabled on this
-/// server" and "no longer in the game" read differently to a player (docs/architecture.md, Part 1, Collections, one resolver).
+/// server" and "no longer in the game" read differently to a player (docs/decisions.md, Collections, one resolver).
 /// </summary>
 [Closed(typeof(CollectionResolution.Found), typeof(CollectionResolution.Disabled), typeof(CollectionResolution.Unknown))]
 public abstract record CollectionResolution

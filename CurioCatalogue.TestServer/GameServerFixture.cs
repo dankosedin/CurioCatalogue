@@ -12,14 +12,13 @@ namespace CurioCatalogue.TestServer;
 /// <summary>
 /// One real game server for all tests of a project, inside the test process, in a throwaway data folder: a superflat
 /// creative world with the game's mods, ours and, for the compatibility tests, the other mods given to the constructor.
-/// Started the way <c>ServerProgram.Main</c> does it (VintagestoryLib 1.22.7, decompiled; docs/modding.md, "A server inside
-/// the test process"). Each test project declares its own <c>[CollectionDefinition]</c> with it.
+/// Started the way <c>ServerProgram.Main</c> does it (VintagestoryLib 1.22.7, decompiled; docs/test-server.md). Each test project declares its own <c>[CollectionDefinition]</c> with it.
 /// </summary>
 public class GameServerFixture : IDisposable
 {
     /// <summary>Our mod's id, here so that the files the golden capture shares compile without our types (TestServer.Game.props).</summary>
     internal const string ModId = "curiocatalogue";
-    // A start takes 10–20 s (docs/development.md); a cold disk or a slow CI runner may take several times that.
+    // A start takes 10–20 s (docs/tests.md); a cold disk or a slow CI runner may take several times that.
     static readonly TimeSpan StartTimeout = TimeSpan.FromMinutes(3);
     // A task waits for the next tick (50 ms); a tick that sends a new player's spawn chunks may take seconds, not 30.
     static readonly TimeSpan MainThreadTimeout = TimeSpan.FromSeconds(30);

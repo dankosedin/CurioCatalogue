@@ -34,7 +34,7 @@ Thanks for wanting to help. Bug reports, ideas, code and translations are all we
 ## Using AI
 
 Welcome; the project is built with it. The same rules hold as for code written by hand: the tests pass, every mocked engine
-behaviour cites its source (`docs/development.md`, Writing tests), and decisions go into the docs, not only into a chat with an agent.
+behaviour cites its source (`docs/tests.md`, Writing tests), and decisions go into the docs, not only into a chat with an agent.
 
 ## Bugs and ideas
 

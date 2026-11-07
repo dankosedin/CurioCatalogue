@@ -25,8 +25,9 @@ may run on Sonnet without the context of earlier sessions: the plan and the docs
 ## 2. Prepare
 
 - Read the documents `CLAUDE.md` lists for this kind of work, always following their "Read" column: `docs/modding.md` before code
-  or JSON assets, `docs/development.md` before building, testing or committing, `docs/domain.md` for books, invoices and
-  collections, `docs/architecture.md` before a new class, adapter or message, `DESIGN.md` before a change the player sees.
+  or JSON assets, `docs/development.md` before building or committing, `docs/tests.md` before writing tests,
+  `docs/domain.md` for books, invoices and collections, `docs/architecture.md` and `docs/decisions.md` before a new class,
+  adapter or message, `DESIGN.md` before a change the player sees.
   A document over ~10 KB: list its headings first (`grep -n '^##' <file>`), then read the sections this step needs
   (Read with offset and limit); read it whole only when most of it applies.
 - Code the same way: find the place with Grep, read the part around it; read a file whole only when you will rewrite much of it.
@@ -44,7 +45,7 @@ may run on Sonnet without the context of earlier sessions: the plan and the docs
   plan; do not fix it now.
 - Follow `docs/critical.md` (always loaded). Tests come with code changes; a test meant to catch a mistake is checked by a mutation
   (break the thing, see the test fail, restore).
-- Build and test as `docs/development.md` says, and report the real result. A red test is reported with its output, not hidden.
+- Build and test as `docs/development.md` and `docs/tests.md` say, and report the real result. A red test is reported with its output, not hidden.
 - A change that lands in a big file or class (several hundred lines, or several jobs in one place): before adding code there,
   consider splitting that file or class into smaller ones, one job each (principle 8 in `docs/architecture.md`). The split is not
   part of this step: propose it to the author (as a step before this one or a plan line) and go on as they decide.

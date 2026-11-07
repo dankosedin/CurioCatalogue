@@ -54,7 +54,7 @@ static class Golden
     public const string StacksFile = "stacks.json";
     public const string ConfigFile = "curiocatalogue.json";
 
-    const string About = "Golden stacks: items made by this release of the mod in a test server, read by UpgradeTests (docs/development.md, Golden stacks). " +
+    const string About = "Golden stacks: items made by this release of the mod in a test server, read by UpgradeTests (docs/tests.md, Golden stacks). " +
         "Bytes: ItemStack.ToBytes, base64, with the numeric ids of the capture's world; Ids: the code of each of them. Inputs: what went into each item, the expected values. " +
         "Attributes: for people only. Never edit or capture a set again.";
 

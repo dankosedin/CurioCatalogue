@@ -3,7 +3,7 @@ using CurioCatalogue.Core;
 namespace CurioCatalogue.Core.Tests;
 
 /// <summary>
-/// The album of format 2 (docs/architecture.md, Part 1, Collections): what it collected, by member; what is missing follows the
+/// The album of format 2 (docs/decisions.md, Collections): what it collected, by member; what is missing follows the
 /// collection; the level; taking new by members; the migration of format 1. On made-up collections: tapestry pieces (one level)
 /// and seashells (a level by type, any colour, and one per shell).
 /// </summary>

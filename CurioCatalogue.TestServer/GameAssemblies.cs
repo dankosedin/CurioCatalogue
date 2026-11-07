@@ -26,7 +26,7 @@ static class TestPaths
 
 /// <summary>
 /// Makes this process look like the game's server executable before any game type is touched. Each line answers one trap
-/// of the in-process server (docs/modding.md, "A server inside the test process").
+/// of the in-process server (docs/test-server.md).
 /// </summary>
 static class GameAssemblies
 {

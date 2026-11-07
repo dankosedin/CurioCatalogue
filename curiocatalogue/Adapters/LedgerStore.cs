@@ -31,7 +31,7 @@ public sealed class LedgerStore
     public const string RootKey = "curiocatalogue";
 
     /// <summary>The newest format this build reads and writes. Raise it when a layout changes, and read the older ones.
-    /// 2 (0.2): an album stores what it collected, by member (docs/architecture.md, Part 1, Collections); a want list names its
+    /// 2 (0.2): an album stores what it collected, by member (docs/decisions.md, Collections); a want list names its
     /// album's collection, level and members.</summary>
     public const int Version = 2;
 

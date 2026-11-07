@@ -79,6 +79,16 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       Branch: `feat/collections-core`. After: K6. Model: opus. Author: goes through the findings.
       Done when: the findings are fixed or rejected with reasons (Decisions, K7); what the round taught in `docs/review.md`; all
       test projects pass; the branch goes to `main` by a pull request.
+      The round ran and the author went through the findings (07.11.2026, Decisions, "The code review (K7)"); the fixes are
+      K7a–K7c, then the lessons, the tests and the pull request.
+  - [ ] **K7a. Registry, definitions, the album recipe.** R1, R2, R4, T3, the empty level id, H2, C2, P1–P3 of the Decisions;
+        the Teammate's and QA's registry tests. Model: opus. Done when: tests pass, the new ones fail on the old code;
+        `docs/domain.md` (Recipes, the definition's `albumRecipe`) and `docs/architecture.md` (the recipe rule) say it.
+  - [ ] **K7b. Albums, want lists, the packet.** M1+M3, W1, H6, A9/C7, H14, T4; QA's tests for M1, Q3, Q4, Q8. Model: opus.
+        Done when: tests pass, the new ones fail on the old code; upgrade table if H6 changes what is written; lang for W1.
+  - [ ] **K7c. Docs and the leftovers.** Q6, Q7 (README in both languages; the text shown to the author at release), H16/A7,
+        C6 in `docs/domain.md`; H8/H9 to `ROADMAP.md`, A5 to the seashell plan's ideas, A8 to item 4; what the round taught in
+        `docs/review.md`. Model: sonnet.
 
 ## Decisions
 
@@ -222,6 +232,46 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     `ledger-info-progress`). Removed `album-name-tapestries`, `ledger-info-album`, `ledgerwindow-collected`. Added `ingameerror-disabled`,
     `ledger-info-disabled`. Found on the way: a positional record parameter named like an inherited property of the same type
     reuses it (a stack overflow in `CollectionResolution.Collection`), hence `Found(Value)`.
+- **The code review (K7)** (the author, 07.11.2026). Five roles at b0c4a08, about 35 findings in seven groups; ids as the roles
+  gave them (T Teammate, Q QA, A Architect, C C# expert, H Hostile). Fixed in K7a–K7c unless said otherwise.
+  - *Registry.* R1 (all five roles): a definition that throws (a dimension named twice in the pattern, a bad regex, `sizes` of
+    another shape, `null` in a config list) took every collection down, again on each use. The reader checks these and answers
+    `Bad`; `null` in the config's lists is dropped on reading; each definition is built inside a guard that logs and skips it.
+    R2: the first **good** definition of an id wins, ours (`curiocatalogue`) before others, then the asset order; the others are
+    logged. R3 (ids of different mods collide): rejected, the bare file name was decided in K3. R4: each problem is logged once
+    per session, not on every rebuild. T3: `drop: max` on a dimension with no `values` is an error, not a random order. An empty
+    level id is refused (it read as "no level chosen"). H2: a warning for `Add` on a `variants` collection and for a config id
+    no definition has. C2: the check "two members have the id" cannot fire (names are deduplicated before) and goes.
+  - *Levels and migration.* M1 (an album of format 1 placed on the first level) cannot happen today (the tapestries have one
+    level, `pieces`; `pictures` is a layout), and M3 (a level renamed by a patch leaves a filled album at "no level") can: one
+    rule for both, an album whose level the collection does not have places what it collected on the level that takes most of
+    it (a tie: the first); what fits nowhere stays unplaced, nothing is lost. M2 (format 1 with no snapshot and no collection
+    reads empty): rejected, only development builds before 0.1.0 wrote it. M4 (Start over refused for a collection off or
+    gone): by design (`docs/domain.md`, a switched-off collection), an admin's switch must not let a stray click wipe an album.
+  - *Want lists.* W1: posting a want list of a switched-off collection is refused with "disabled on this server", like taking
+    new; the list stays and works again when the collection is back. A collection the game lacks keeps the exact-item reading
+    (the list must not become rubbish for good). `docs/domain.md` names making and posting a want list apart.
+  - *The album recipe (overrides K6: "each collection of item 4 adds its own" in C#).* P1: a definition names its album recipe,
+    `albumRecipe` with the domain (`curiocatalogue:ledger-album` for the tapestries); the registry maps recipes to collections
+    from every good definition, switched-off ones included (R2's order, a recipe claimed twice is logged); `ItemLedger` asks the
+    registry instead of a constant; `AlbumRecipes` reads the definitions itself at `AssetsFinalize` (no full build there: it reads
+    the world's blocks) and takes out recipes of any domain. So a mod adds a collection with its album by JSON alone. P2 (a
+    sample of two collections) goes with it: the collection comes from the recipe; the sample must still be its member, as now.
+    P3: a server test on a clone of the loaded `GridRecipes` (the shared server must keep the recipe for `CraftingTests`).
+  - *The client.* A9/C7: `ExtraIgnoredAttributes` goes in the settings packet and the client's keys are rebuilt on it, so the
+    client's view counts items as the server does.
+  - *Stored data.* H6: `v=2` is written on ledgers and bills of materials too, so 0.1.1 refuses them. If format 2 changed only albums
+    and want lists (K7b checks first), ledgers and bills keep `v=1`, so a player who goes back to 0.1.1 keeps them. H14: the move of the old tapestry keys is logged only when something moved.
+  - *Tests.* QA's tests for Q3 (the join packet), Q4 (taking new in the layout's order), Q8 (an album of 0.1.1 written while its
+    collection is off). T4, the flake of K3/K4/K7 (the author's find): test chests float at spawn height + 6 and the player is
+    above ground, so a dropped list falls onto a chest lid or the ground, out of the ±4 cube `OnGroundNear` searches; it searches
+    the column (±4 across, ±64 up and down).
+  - *Docs.* Q6, Q7 (README: the config is synced since K6), H16/A7 (`docs/architecture.md` behind K6), C6 (a collected stack keeps
+    its ignored attributes: kept, one line in `docs/domain.md`).
+  - *Left as they are:* H10 (`LedgerMode.Album`), H11 ("Collect" names four things), H12 (the test constructor), H13 (`FilledBy.Key`
+    computed again): the names are a known debt, not worth a rename now. *Later:* H8/H9 (the resolve ladder in four places, two
+    "first filler" algorithms) to `ROADMAP.md`, for when new collections come; A5 (the filler chosen before room is known) to the
+    seashells; A8 (`Member.Fills`/`Shown`) to item 4.
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -252,3 +302,5 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   Open for the author: the want-list button is hidden for a switched-off album (option A, kept); the album stays in the handbook and
   creative inventory, only its recipe goes. The step's choices in Decisions, "The resolver (K6)". Next: K7
   (opus, After: K6).
+- 07.11.2026: K7 review round done: five roles, findings merged; the author went through all seven groups (Decisions, "The code
+  review (K7)"). Nothing in the code changed yet. Next: K7a (opus), then K7b (opus), K7c (sonnet), then the pull request.

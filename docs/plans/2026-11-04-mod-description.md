@@ -34,7 +34,10 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       - what the generator reads and the new contract (replaces the README contract of `docs/development.md`); what of P5's
         shape stays (the hero, badges, accordions, the Ukrainian part in one `<details>`, anchors);
       - who reads what: the players' rounds, translators (`CONTRIBUTING.md`), the rows of `CLAUDE.md`'s table;
-      - whether the split page goes to ModDB before 0.2 or with it.
+      - whether the split page goes to ModDB before 0.2 or with it;
+      - where a modder reads how to add a collection with their own mod (07.11.2026, K1 of `2026-11-07-collections-core.md`):
+        the definition asset, and that the mod must be universal and required on the client, with no `"side": "server"` patch
+        of a definition, or the client does not know the collection.
       Branch: `docs/mod-description`. After: the plan's own commit. Model: opus. Author: decides.
       Done when: Decisions has the split; G2–G5 are updated where it changed them.
 - [ ] **G2. Sequences on ModDB: a probe.** ModDB drops `<style>` (P5, layout test), so a carousel on `:checked`, `:target` or

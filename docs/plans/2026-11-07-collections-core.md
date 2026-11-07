@@ -18,7 +18,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
 
 ## Steps
 
-- [ ] **K1. What the game does for the shape.** Answer from the game's source (`game-src`, decompiled engine) and, where it
+- [x] **K1. What the game does for the shape.** Answer from the game's source (`game-src`, decompiled engine) and, where it
       does not say, a server test: whether grid recipes removed on the server at load (`api.World.GridRecipes`) are not sent to
       clients, and when the removal must happen; whether `Assets.GetMany("config/curiocatalogue/collections/")` returns the
       assets of every domain on both sides, with patches applied; the order of a variant group as the registry keeps it (for
@@ -92,6 +92,36 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
 - **What changes stored data, recipes, item codes, config or lang** (for the upgrade table), by step: K3 the config keys; K4 the
   album's format; K5 the want list's format; K6 lang keys and, with a collection disabled, the recipe. The album recipes of new
   collections come with item 4.
+- **What the game does for the shape (K1, 07.11.2026, final).** From the game's source and the decompiled `VintagestoryLib`
+  1.22.7; no server test was needed. The details and references are in `docs/modding.md` (Recipes, Config and logging, Network,
+  Vanilla content).
+  - *Removing a grid recipe.* The server serialises its recipe registries into the server-assets packet once, after the
+    `WorldReady` phase, so a recipe taken out of `api.World.GridRecipes` in `AssetsFinalize` or `StartServerSide` never reaches a
+    client. The list alone is not enough on the server: resolving put the recipe into `FastSearchRecipesByIngredient`, which the
+    crafting grid searches, skipping only `Enabled: false`; and `Enabled` is not sent. So K6 removes it from the list and sets
+    `Enabled = false`, finding the recipes of our album file by `Name` (the file's asset location, kept by every expanded recipe).
+    Our config is read in `Start`, before that.
+  - *`Assets.GetMany("config/curiocatalogue/collections/")`* returns that path in every domain, on both sides (`config` is a
+    universal category), with patches applied when read after `AssetsLoaded` at order 0.05 (the patch loader rewrites the cached
+    asset). A client has only the universal mods the server lists for it, so a server-side mod's definition, or a
+    `"side": "server"` patch, is on the server only. **The author:** the client keeps reading definitions from its own assets; a
+    mod with a collection must be universal and required on the client, said in the README's part for modders (G1 of
+    `2026-11-04-mod-description.md` got the line). `docs/architecture.md` says so, with the rejected option.
+  - *The order of a variant group* is not kept at run time: an item has only its own values, ids follow the world's history,
+    `itemtypes` are not read on the client. **The author:** the order is a list in the definition; values not in it come after,
+    by code, and rank lowest for `max`, with a warning (`docs/architecture.md`, Dimensions).
+  - *Lang keys:* `game:ore-{ore}` and `game:rock-{rock}` exist in `en` and `uk` for every value; the grade only as
+    `game:ore-grade-*` ("Quality: Poor"), so grade names are ours. Seashells have only full names
+    (`block-seashell-{type}-{color}`): type and colour names are ours too (for the seashell plan).
+  - *The packet on join:* send it in `PlayerJoin`. The client's handlers exist by then (`StartClientSide` runs before it asks to
+    join), early channel messages are queued until the channel list comes, and packets run in order: the message arrives with
+    items and blocks registered, maybe before the grid recipes, and before the client's `LevelFinalize`. K6 stores it in the
+    handler and rebuilds the registry at `LevelFinalize`. Reasoned from the code: K6's in-game check on the dedicated server
+    watches it.
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
+
+- 07.11.2026: K1 done (final): the answers in Decisions, "What the game does for the shape (K1)"; the surprises in
+  `docs/modding.md`; two changes of the shape agreed and written in `docs/architecture.md` (the order of values a list in the
+  definition; definitions read by the client from its own assets, a collection mod universal). Next: K2 (opus, After: K1).

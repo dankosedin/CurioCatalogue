@@ -167,7 +167,11 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   fills the member) or `max` (only the highest value that occurs, in the dimension's order): crystals keep `ore` with grade
   `max` (16), `ore` and `rock` with grade `max` (118), all three (353); seashells keep `type` (7, colour `any`) or both (42). A
   collection with one level shows no choice.
-- **Dimensions** have their values in order (a variant group's order, or a list), a name per value as a lang key (the game's where
+- **Dimensions** have their values in order, a list in the definition (K1, 11-07: the game keeps no order of a variant group at
+  run time, and item ids follow the world's history; a mod adds its value to the list with a patch); a value the source finds
+  but the list lacks comes after the listed ones, by code, and for `max` ranks below all of them, with one warning in the log.
+  Rejected: the server reading the order from the item's asset and sending it (more code, tied to the shape of others' assets);
+  the order of item ids (differs between worlds). A name per value as a lang key (the game's where
   it has one: `game:ore-{value}`, `game:rock-{value}`) and optionally an icon stack. A hierarchical dimension (a tapestry's size
   belongs to its picture) is one the source derives from another. **Layouts** belong to a level: which dimension groups (or none)
   and how a group is arranged: a table of two dimensions, the shape from the members' x and y, or in order; one is the default.
@@ -194,8 +198,15 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   are different refusals.
 - **The server's `Collections` reach the client in a packet on join;** the client's registry is rebuilt when it arrives. Without
   it the client builds albums with its own config file (already true of `TapestryExclude` in 0.1) and cannot show `Disabled`.
-  The recipe of a disabled collection is removed from the server's recipes at load, so clients never get it (to be checked: K1 of
-  the core plan); else it makes nothing. Each vanilla collection has its album recipe in our assets (an empty book and any
+  The handler only stores the section; the registry is rebuilt at the client's `LevelFinalize`, which comes after it (K1:
+  when the message arrives the grid recipes may not be loaded yet; `docs/modding.md`, Network). The definitions themselves the
+  client reads from its own assets (K1, 11-07, the author): a mod that brings a collection must be universal and required on the
+  client, and a patch of a definition must not be `"side": "server"`, or the client does not know the collection (to say in the
+  README's part for modders). Rejected: sending the server's definitions in the packet too (one source, but more code for a
+  mistake the modder can avoid).
+  The recipe of a disabled collection is removed from the server's recipes at load (K1: in `AssetsFinalize` or `StartServerSide`,
+  out of `GridRecipes` and `Enabled = false`, found by its file's `Name`; `docs/modding.md`, Recipes), so clients never get it;
+  else it makes nothing. Each vanilla collection has its album recipe in our assets (an empty book and any
   member, which stays); another mod's collection brings its own, and the collection is found by the sample.
 
 #### Client and server

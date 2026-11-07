@@ -142,6 +142,18 @@ In this order:
 - The `copyAttributesFrom` ingredient must resolve to one exact item: no plain `*` in its code (use a placeholder with `allowedVariants`).
   A plain wildcard leaves `ResolvedItemStack` null, and the handbook crashes on it
   (vssurvivalmod CollectibleBehaviorHandbookTextAndExtraInfo.cs:2271#ResolvedItemStack; crash 26.10.2026).
+- **Taking a grid recipe away on the server** (07.11.2026, K1 of the collections core plan; decompiled `VintagestoryLib` 1.22.7):
+  removing it from `api.World.GridRecipes` (IWorldAccessor.cs:185#GridRecipes) is not enough. Resolving a recipe already put it
+  into `FastSearchRecipesByIngredient` (CraftingRecipeIngredient.cs:294#AddToFastSearchRecipes), and the server's crafting grid
+  looks recipes up there (`InventoryCraftingGrid.FindMatchingRecipe`, which skips only `Enabled: false`). So remove it from the
+  list **and** set `Enabled = false`. The list is what clients get: the server serialises every recipe registry into the
+  server-assets packet (`ServerMain.BuildServerAssetsPacket`), built once, after the `WorldReady` phase; `Enabled` is not
+  serialised (RecipeBase.cs:106#ToBytes), so a recipe left in the list reaches clients enabled (handbook, grid preview). The window:
+  after `RecipeLoader.AssetsLoaded` registered the recipes (RecipeLoader.cs:14#ExecuteOrder, RecipeLoader.cs:29#RegisterCraftingRecipe)
+  and before that packet, so `AssetsFinalize` or `StartServerSide` on the server. A recipe's `Name` is its file's asset location
+  unless the JSON sets one (RecipeLoader.cs:124#recipe.Name), and every recipe expanded from it keeps it
+  (RecipeBase.cs:388#recipeBase.Name): find a file's recipes by `Name`. A file's recipe with `enabled: false` is never registered
+  (RecipeLoader.cs:115#Enabled).
 - The handbook shows the grid recipes of one `recipeGroup` as one slideshow (ours: 1 making, 2 switching the mode, 3 recharging, 4 album, 5 recolouring, 6 aging; see `docs/domain.md`).
 
 ## Handbook
@@ -217,8 +229,29 @@ In this order:
   (`AssetCategory.cs:16`, `JsonPatchLoader.cs:254`): a definition read by the client then differs from the server's. Clients get
   the server's mods (`ModsByServer`), so a universal patch reaches them. `blocktypes` and `itemtypes` load on the server only
   (`AssetCategory.cs:11-12`); the client gets them, attributes included, from the server's registry.
+- **`api.Assets.GetMany(path)` without a domain returns that path in every domain** (AssetLocation.cs:255#BeginsWith), so
+  `config/curiocatalogue/collections/` finds `<anymod>:config/curiocatalogue/collections/*.json` (07.11.2026, K1 of the collections
+  core plan). Patches are applied in `AssetsLoaded` at order 0.05 (JsonPatchLoader.cs:195#ExecuteOrder) by rewriting the cached
+  asset's bytes (JsonPatchLoader.cs:359#IsPatched), and `GetMany` hands out the same cached asset: read after that (our
+  `AssetsLoaded` at a later order, or `AssetsFinalize`) and the patches are in. But **a client has only the mods the server tells it to
+  get:** the server lists only universal mods for it (`ServerMain`, `Info.Side.IsUniversal()`), and one not `requiredOnClient`
+  may be missing there, so the assets of a server-side mod, `config/` included, exist on the server only. A collection from such a mod is unknown to the
+  client, as is one patched with `"side": "server"`.
 - Every launch moves the previous logs to `Logs\Archive`. Red in-game errors are **not** logged. The server audit log names bag
   inventories `blockcontainedbaginv-…`, which tells which position was a bag.
+
+## Network
+
+- **A message sent in `PlayerJoin` reaches the client's handler** (07.11.2026, K1 of the collections core plan; decompiled
+  `VintagestoryLib` 1.22.7). The client registers its handlers in `StartClientSide`, which runs on the server's "ready" packet
+  (`ClientSystemStartup.HandleServerReady` → `StartModsFully`), before it asks to join. The join on the server
+  (`ServerMain.HandleRequestJoin`) sends, in this order, the channel list, the world data, the server assets, the player's entity,
+  then fires `PlayerJoin`, then sends "level finalize". The client queues channel messages until the channel list has come
+  (`NetworkAPI.HandleCustomPacket`, `earlyPackets`) and runs packets on its main thread in the order they came, but holds them
+  back while it decodes the server assets: when our handler runs, the items and blocks are registered, the grid recipes may not be
+  yet (they come last, `HandleServerAssets_Step11`), and the client's `LevelFinalize` event has not fired (its packet comes after
+  ours). So: the handler stores what came; anything that needs the world built is done at `LevelFinalize` (or rebuilt there).
+  Reasoned from the code, not yet watched in game.
 
 ## Vanilla content we rely on
 
@@ -236,6 +269,12 @@ In this order:
 - **Ore crystals** `crystalizedore-{grade}-{ore}-{rock}` (04.11.2026, details in the collections design plan, C1): 407 allowed,
   but 54 never generate (uranium and stibnite have no deposits at all in 1.22.7); only mining gives them, never an explosion.
   The name has no rock ("Poor crystallized chunk of {ore}"), only the tooltip and the icon do: two codes, one name.
+  Names of the values (07.11.2026): `game:ore-{ore}` and `game:rock-{rock}` exist in `en` and `uk` for every value of
+  `block/ore-graded` and `block/rockwithdeposit`; the grade has only `game:ore-grade-{grade}`, "Quality: Poor", so its names are ours.
+- **The order of a variant group is not kept at run time** (07.11.2026): an item knows only its own values
+  (RegistryObject.cs:25#VariantStrict), item ids follow the world's history (`ServerSystemItemIdRemapper`: an item new to a world
+  gets the next free id, whatever its place in the group), and `itemtypes` are not read on the client
+  (AssetCategory.cs:12#itemtypes). Where an order matters (the grades poor < medium < rich < bountiful), write it down.
 - **Seashells** `seashell-{type}-{color}` (04.11.2026, details in the collections design plan, C2): a block, 42 combinations, a
   picked-up shell is a block stack of the same code. **A block patch's list is not always what generates:** on land
   `BlockSeashell.TryPlaceBlockForWorldGen` (`BlockShell.cs:45`) draws its own type and colour, so the loose-shell patches that

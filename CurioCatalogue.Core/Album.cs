@@ -63,8 +63,7 @@ public sealed record Album(
     /// The album's level in the collection as it is now: the chosen one; for a collection of one level, that level (a level renamed
     /// by a patch included); otherwise null, and the album takes nothing and makes no want list until a level is chosen.
     /// </summary>
-    public CollectionLevel? LevelIn(DefinedCollection collection) =>
-        (Level is { } id ? collection.Level(id) : null) ?? (collection.Levels.Count == 1 ? collection.Levels[0] : null);
+    public CollectionLevel? LevelIn(DefinedCollection collection) => collection.LevelOrOnly(Level);
 
     /// <summary>"Start over": nothing collected, the level free again (sheets and name stay).</summary>
     public Album StartOver(DefinedCollection collection) => New(collection, Sheets, Name);
@@ -104,16 +103,17 @@ public sealed record Album(
 
     /// <summary>
     /// What the album misses as a want list for another player (domain.md, Albums and collections), spending one sheet. A line per
-    /// missing member, by its first item. Nothing missing: NoDifference; no sheets: NoSheets.
+    /// missing member, naming it (any of its items will do, <see cref="Invoice.Wanted"/>), shown by its first item. Nothing missing:
+    /// NoDifference; no sheets: NoSheets.
     /// </summary>
     public CreateInvoiceResult MakeWantList(CollectionLevel level, double createdTotalDays, BlockPosition position)
     {
         var missing = Missing(level);
         if (missing.Count == 0) return new CreateInvoiceResult.Refused(InvoiceRefusal.NoDifference);
         if (Sheets <= 0) return new CreateInvoiceResult.Refused(InvoiceRefusal.NoSheets);
-        var lines = missing.Select(m => new Entry(m.Fillers[0], 1, m.Stacks[0])).ToImmutableArray();
+        var lines = missing.Select(m => new Entry(m.Fillers[0], 1, m.Stacks[0], Member: m.Id)).ToImmutableArray();
         return new CreateInvoiceResult.Created(this with { Sheets = Sheets - 1 },
-            new Invoice(InvoiceKind.WantList, lines, createdTotalDays, position));
+            new Invoice(InvoiceKind.WantList, lines, createdTotalDays, position, new WantedFrom(CollectionId, level.Id)));
     }
 
     /// <summary>

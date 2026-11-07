@@ -179,10 +179,29 @@ public class ItemInvoice : ItemRollable
         var pos = invoice.Position;
         dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-origin", (int)invoice.CreatedTotalDays, pos.X - spawn.X, pos.Y, pos.Z - spawn.Z));
 
+        var wantedIn = Mod.Store.WantedIn(invoice);
         foreach (var line in invoice.Entries.Take(TooltipLines))
-            dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, NameOf((ItemStack)line.Sample)));
+        {
+            string name = NameOf((ItemStack)line.Sample);
+            if (Freedom(wantedIn, line) is { } free) name = Lang.Get("curiocatalogue:invoice-info-member-free", name, free);
+            dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, name));
+        }
         if (invoice.Entries.Length > TooltipLines)
             dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-more", invoice.Entries.Length - TooltipLines));
+    }
+
+    /// <summary>
+    /// What a want list's line leaves free when it names a member of several items: "any colour" by each free dimension's
+    /// <c>anyKey</c>, or "any of 6 items" when a dimension has none; null for a line of one item (or of format 1, or of a collection
+    /// the game does not have: the line then wants exactly the item it shows).
+    /// </summary>
+    internal static string? Freedom((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
+    {
+        if (line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member) return null;
+        var free = collection.Free(level, member);
+        if (free.Count == 0) return null;
+        if (free.Any(d => d.AnyKey == null)) return Lang.Get("curiocatalogue:invoice-info-any-of", member.Fillers.Count);
+        return string.Join(", ", free.Select(d => Lang.Get(d.AnyKey!)));
     }
 
     // An item of a removed mod has no block or item to ask for a name.

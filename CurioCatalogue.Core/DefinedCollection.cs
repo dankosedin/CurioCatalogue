@@ -120,6 +120,21 @@ public sealed class DefinedCollection
 
     public CollectionLevel? Level(string id) => Levels.FirstOrDefault(l => l.Id == id);
 
+    /// <summary>The level of this id; for a collection of one level, that level whatever the id (a level renamed by a patch). What
+    /// an album and a want list made at a level find of it now.</summary>
+    public CollectionLevel? LevelOrOnly(string? id) => (id != null ? Level(id) : null) ?? (Levels.Count == 1 ? Levels[0] : null);
+
+    /// <summary>
+    /// What a member of several items leaves free: the dimensions the level drops as <see cref="Drop.Any"/> in which the member has
+    /// no value of its own (a seashell type: its colour), in the definition's order, for "any colour". Empty for a member of one item.
+    /// </summary>
+    public IReadOnlyList<DimensionDef> Free(CollectionLevel level, Member member) =>
+        member.Fillers.Count < 2
+            ? []
+            : Definition.Dimensions
+                .Where(d => level.Definition.Drop.TryGetValue(d.Code, out var drop) && drop == Drop.Any && !member.Values.ContainsKey(d.Code))
+                .ToList();
+
     public const string IdSeparator = "-";
 
     private static readonly LayoutDef ImplicitLayout = new("order", [], new Arrangement.InOrder());

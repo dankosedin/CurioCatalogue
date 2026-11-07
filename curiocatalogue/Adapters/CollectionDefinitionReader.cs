@@ -82,7 +82,10 @@ public static class CollectionDefinitionReader
         if (token is not JObject o) { errors.Add("A dimension is not an object"); return null; }
         var code = Text(o, "code", errors);
         var values = Strings(o["values"], $"dimension '{code}' values", errors);
-        return code == null ? null : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false));
+        return code == null
+            ? null
+            : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
+                Text(o, "anyKey", errors, required: false));
     }
 
     private static LevelDef? ReadLevel(JToken token, List<string> errors)

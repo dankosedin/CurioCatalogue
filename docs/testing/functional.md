@@ -73,6 +73,7 @@ which build, who ran it, and each `❌` with its reason.
 | W2 ⚙ | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | "Taken from the list: N. The list is done and is now parchment."; the list is parchment (a want list goes back into no book, `docs/domain.md`); the album's sheets unchanged |
 | W3 ⚙ | 0.1.0 | Same with `ConsumeSheets` true | "…The list is done."; the list is gone, no parchment; the album's sheets unchanged |
 | W4 ⚙ | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit |
+| W5 ⚙ | 0.2.0 | An album at a level whose members take any of several items (seashells by type, crystals by ore, once item 4 brings them); make a want list, look at its tooltip, fill it on a chest with a piece of another kind than the one shown (another colour), in `en` and `uk` | Each such line ends with what is free ("…, any colour"); the piece of the other kind is taken and its line crossed off. Until item 4, `CollectionsFromAssetsTests` checks it with the test mod's seashells |
 
 ## The ledger and the bill of materials
 

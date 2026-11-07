@@ -100,4 +100,38 @@ public class CollectionsFromAssetsTests(CompatServerFixture server) : BookTestBa
         client.WaitFor(() => Errors(client).Contains("levelfixed"), "the refusal 'level fixed'");
         Assert.Equal("bars", game.OnMain(() => ReadAlbum(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Level));
     }
+
+    // ---- a want list of members of several items (K5; the test mod's seashells: a level by type, any colour)
+
+    [Fact]
+    public void A_want_list_by_type_says_any_colour_and_is_given_by_a_shell_of_another_colour()
+    {
+        var client = FakeClient.Join(game, "cc-wants");
+        var seen = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var shells = Mod.Collections.Defined("ccshells")!;
+            var album = Assert.IsType<LevelChoice.Chosen>(Core.Album.New(shells, 8, "").ChooseLevel(shells, "type")).Album;
+            var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(shells)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = new ItemStack(World.GetItem(InvoiceMaker.InvoiceCode(InvoiceKind.WantList)));
+            Mod.Store.WriteInvoice(hand.Itemstack, list);
+
+            var text = new System.Text.StringBuilder();
+            hand.Itemstack.Collectible.GetHeldItemInfo(hand, text, World, false);
+
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("seashell-clam-turquoise");
+            Click(player, hand, pos);
+
+            var left = Mod.Store.ReadInvoice(hand.Itemstack!, InvoiceKind.WantList);
+            return (text.ToString(), Vanilla("seashell-scallop-latte").GetName(), left.Entries.Select(e => e.Member).ToList(), Inventory(player));
+        });
+        var (info, scallop, left, inventory) = seen;
+
+        // The first line is the scallop, shown by its first colour, any of them will do; the test mod's lang says "any colour".
+        Assert.Contains(LangText("en", "invoice-info-line", 1, LangText("en", "invoice-info-member-free", scallop, "any colour")), info);
+        Assert.Equal(["scallop", "sundial", "turritella", "conch", "seastar", "volute"], left);
+        Assert.Equal("seashell-clam-turquoise x1", inventory);
+    }
 }

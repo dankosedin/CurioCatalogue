@@ -51,6 +51,8 @@
   "curiocatalogue:invoice-info-blank": "Blank",
   "curiocatalogue:invoice-info-origin": "Made on day {0} at {1}, {2}, {3}",
   "curiocatalogue:invoice-info-line": "{0} × {1}",
+  "curiocatalogue:invoice-info-member-free": "{0}, {1}",
+  "curiocatalogue:invoice-info-any-of": "any of {0} kinds",
   "curiocatalogue:invoice-info-more": "…and {0} more",
   "curiocatalogue:unknown-item": "Unknown item #{0}",
 

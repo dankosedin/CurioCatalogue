@@ -6,6 +6,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 
 - **Collections are data.** The tapestries are the first collection defined by an asset (`config/curiocatalogue/collections/tapestries.json`), the same 88 pieces in 31 pictures; other mods can bring a collection the same way, and a JSON patch can change one. The config's `TapestryExclude` and `TapestryAdd` moved into `Collections.tapestries` (`Exclude`, `Add`) and are moved by the mod on the first start; `Disabled` switches a collection off.
 - **Albums remember what they collected,** piece by piece and with the item that filled it, instead of a list of what is missing. An album follows its collection as before (a new tapestry is missing, a piece excluded for a while comes back collected), and an album of 0.1 is converted when it is first read, with nothing lost. Books and lists saved by 0.2 cannot go back to 0.1 (it says "newer version" and leaves them untouched).
+- **Want lists name what the album misses** rather than one item each: where any of several items will do (a shell of any colour), the list says so and takes any of them. Want lists of 0.1 work as before.
 
 ## 0.1.1 (2026-10-31)
 

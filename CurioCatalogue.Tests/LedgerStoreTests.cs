@@ -335,6 +335,45 @@ public class LedgerStoreTests
         Assert.Equal(
             invoice.Entries.Select(e => (e.Key, e.Count)),
             back.Entries.Select(e => (e.Key, e.Count)));
+        Assert.Null(back.From);
+        Assert.All(back.Entries, e => Assert.Null(e.Member));
+        Assert.Null(paper.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetTreeAttribute("wants")); // nothing written for it
+    }
+
+    [Fact]
+    public void A_want_list_keeps_its_album_level_and_the_member_of_each_line()
+    {
+        // Format 2 (K5): { wants: { id, level }, entries: [ { stack, count, member } ] }.
+        var a = store.ToEntry(Tapestry("a")) with { Member = "pair" };
+        var invoice = new Invoice(InvoiceKind.WantList, [a, store.ToEntry(Tapestry("b"))], 1, new BlockPosition(0, 0, 0),
+            new WantedFrom("tapestries", "pictures"));
+
+        var paper = new ItemStack(invoiceItem);
+        store.WriteInvoice(paper, invoice);
+        var back = store.ReadInvoice(ThroughBytes(paper), InvoiceKind.WantList);
+
+        Assert.Equal(new WantedFrom("tapestries", "pictures"), back.From);
+        Assert.Equal([("pair", a.Key), (null, store.ToEntry(Tapestry("b")).Key)], back.Entries.Select(e => (e.Member, e.Key)));
+    }
+
+    [Fact]
+    public void A_want_list_of_format_1_reads_as_exact_lines()
+    {
+        // 0.1.1 wrote { v: 1?, created, pos, entries: [ { stack, count } ] }: no collection, no members (golden "want-list", U6).
+        var paper = new ItemStack(invoiceItem);
+        var root = new TreeAttribute();
+        root.SetDouble("created", 3);
+        var line = new TreeAttribute();
+        line.SetItemstack("stack", Tapestry("a"));
+        line.SetInt("count", 1);
+        root["entries"] = new TreeArrayAttribute([line]);
+        paper.Attributes[LedgerStore.RootKey] = root;
+
+        var back = store.ReadInvoice(ThroughBytes(paper), InvoiceKind.WantList);
+
+        Assert.Null(back.From);
+        Assert.Null(store.LevelOf(back));
+        Assert.Equal([(null, store.ToEntry(Tapestry("a")).Key)], back.Entries.Select(e => (e.Member, e.Key)));
     }
 
     [Fact]

@@ -19,7 +19,10 @@ namespace CurioCatalogue.Core;
 /// <param name="NameKey">A lang key for a value's name, <c>{value}</c> replaced by the value (<c>game:ore-{value}</c>); null
 /// when the values have no names.</param>
 /// <param name="Icon">An item code for a value's icon, <c>{value}</c> replaced (<c>game:rock-{value}</c>); null when none.</param>
-public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null)
+/// <param name="AnyKey">A lang key for what a member of several items leaves free in this dimension, a phrase in lower case
+/// ("any rock", "будь-яка порода"; whole, for the grammar of each language); null when none, and a generic "any of N" is said.</param>
+public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null,
+    string? AnyKey = null)
 {
     public const string ValuePlaceholder = "{value}";
 

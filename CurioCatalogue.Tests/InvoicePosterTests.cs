@@ -505,21 +505,53 @@ public class InvoicePosterTests
         Assert.Equal((TapestryKey("a"), 1), (keys.KeyOf(filled).ToString(), filled.StackSize));
     }
 
-    [Fact]
-    public void A_member_of_several_items_is_taken_once_by_whichever_the_container_has()
+    /// <summary>One member "pair", filled by the tapestry "x" or "y": a level that drops the piece as "any", as seashells by type.</summary>
+    private DefinedCollection Pair()
     {
-        // One member "pair", filled by the tapestry "x" or "y" (a level that drops the piece as "any", as seashells by type):
-        // the chest has both, the album takes one, the first in the member's order, and remembers it.
         var definition = new CollectionDefinition("tapestries",
             [new DimensionDef("picture", []), new DimensionDef("piece", [])],
             [new LevelDef("pictures", ["picture"], new Dictionary<string, Drop> { ["piece"] = Drop.Any }, [])],
             [], []);
         var points = new[] { "x", "y" }.Select(p => new SourcePoint(p,
             new Dictionary<string, string> { ["picture"] = "pair", ["piece"] = p }, keys.KeyOf(Tapestry(p)), Tapestry(p)));
-        var pair = Assert.IsType<CollectionBuild.Built>(DefinedCollection.Build(definition, points)).Collection;
+        return Assert.IsType<CollectionBuild.Built>(DefinedCollection.Build(definition, points)).Collection;
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_want_list_line_naming_a_member_of_several_items_is_given_by_any_of_them(bool collectionKnown)
+    {
+        // K5 of the collections core plan: the list names the member "pair" and shows its first item, "x"; the chest has only "y".
+        // Without the collection (a mod removed) the line wants exactly the item it shows.
+        var pair = Pair();
+        var album = Album.New(pair, 3, "");
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(pair)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+        var stack = new ItemStack(invoiceItem);
+        store.WriteInvoice(stack, list);
+        InvoiceSlot.Itemstack = stack;
+        game.Place(pos, new TestChest(game.Api, Tapestry("y")));
+        collection = collectionKnown ? pair : null;
+
+        var result = PostWantList();
+
+        if (collectionKnown)
+        {
+            var posted = Assert.IsType<PostInvoiceResult.Posted>(result);
+            Assert.Equal((1, InvoiceFate.Parchment), (posted.Lines, posted.Fate));
+            Assert.Equal([(TapestryKey("y"), 1)], PlayerItems());
+        }
+        else Assert.Equal(PostRefusal.NothingFromList, Assert.IsType<PostInvoiceResult.Refused>(result).Reason);
+    }
+
+    [Fact]
+    public void A_member_of_several_items_is_taken_once_by_whichever_the_container_has()
+    {
+        // One member "pair", filled by the tapestry "x" or "y": the chest has both, the album takes one, the first in the member's
+        // order, and remembers it.
         var chest = new TestChest(game.Api, Tapestry("y"), Tapestry("x"));
         game.Place(pos, chest);
-        var albumSlot = HoldAlbumOf(InvoiceSlot, pair);
+        var albumSlot = HoldAlbumOf(InvoiceSlot, Pair());
 
         var collected = Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
 

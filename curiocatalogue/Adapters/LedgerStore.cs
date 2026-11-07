@@ -12,8 +12,10 @@ namespace CurioCatalogue.Adapters;
 /// <code>
 /// ledger:  { v: int, sheets: int, name: string, entries: [ { stack, count } ] }
 /// album:   { v: int, sheets: int, name: string, album: { id: string, level: string, collected: [ { id, stack } ], unplaced: [ { stack } ] } }
-/// invoice: { v: int, created: double, pos: { x, y, z }, entries: [ { stack, count } ] }
+/// invoice: { v: int, created: double, pos: { x, y, z }, wants: { id: string, level: string }, entries: [ { stack, count, member: string } ] }
 /// </code>
+/// <c>wants</c> and <c>member</c> only on a want list of format 2: the album's collection and level, and the member each line
+/// names (its stack is the member's first item). A want list of format 1 (0.1) has neither: its lines are exact items.
 /// <c>v</c> is the format version (<see cref="Version"/>); data without it is version 1. Data of a newer version (a book
 /// from a newer build of the mod) is read as well as we can but never written: the actions refuse (<see cref="IsNewer"/>).
 /// The book's kind and the invoice kind are not stored: the item's variant (its code) already says them.
@@ -176,9 +178,24 @@ public sealed class LedgerStore
             ? new BlockPosition(0, 0, 0)
             : new BlockPosition(pos.GetAsInt("x"), pos.GetAsInt("y"), pos.GetAsInt("z"));
 
+        var wants = root.GetTreeAttribute("wants");
+        var from = wants?.GetString("id") is { Length: > 0 } id && wants.GetString("level") is { Length: > 0 } level
+            ? new WantedFrom(id, level)
+            : null;
+
         // Invoice lines keep their order; equal keys stay separate lines, they are summed when posted.
-        return new Invoice(kind, ReadEntries(root).ToImmutableArray(), root.GetDouble("created"), position);
+        return new Invoice(kind, ReadEntries(root).ToImmutableArray(), root.GetDouble("created"), position, from);
     }
+
+    /// <summary>The level a want list of format 2 names, in its collection as the game has it now; null for format 1, any other
+    /// invoice, or a collection or level the game does not have (then its lines want exactly their items).</summary>
+    public CollectionLevel? LevelOf(Invoice invoice) => WantedIn(invoice)?.Level;
+
+    /// <summary>As <see cref="LevelOf"/>, with the collection (for what a member leaves free, <see cref="DefinedCollection.Free"/>).</summary>
+    public (DefinedCollection Collection, CollectionLevel Level)? WantedIn(Invoice invoice) =>
+        invoice.From is { } from && collectionOf(from.CollectionId) is { } collection && from.LevelIn(collection) is { } level
+            ? (collection, level)
+            : null;
 
     public void WriteInvoice(ItemStack paper, Invoice invoice)
     {
@@ -189,6 +206,12 @@ public sealed class LedgerStore
         pos.SetInt("x", invoice.Position.X);
         pos.SetInt("y", invoice.Position.Y);
         pos.SetInt("z", invoice.Position.Z);
+        if (invoice.From is { } from)
+        {
+            var wants = root.GetOrAddTreeAttribute("wants");
+            wants.SetString("id", from.CollectionId);
+            wants.SetString("level", from.Level);
+        }
         WriteEntries(root, invoice.Entries);
         paper.Attributes[RootKey] = root;
     }
@@ -212,7 +235,7 @@ public sealed class LedgerStore
             var stack = line.GetItemstack("stack");
             int count = line.GetAsInt("count");
             if (stack == null || count <= 0) continue; // damaged line: drop it rather than fail the whole ledger
-            yield return new Entry(keys.KeyOf(stack), count, stack);
+            yield return new Entry(keys.KeyOf(stack), count, stack, Member: line.GetString("member") is { Length: > 0 } m ? m : null);
         }
     }
 
@@ -234,6 +257,7 @@ public sealed class LedgerStore
         {
             var line = Line(e.Sample);
             line.SetInt("count", e.Count);
+            if (e.Member != null) line.SetString("member", e.Member);
             return line;
         }).ToArray();
         root["entries"] = new TreeArrayAttribute(lines);

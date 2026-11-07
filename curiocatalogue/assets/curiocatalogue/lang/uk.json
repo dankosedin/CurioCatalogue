@@ -51,6 +51,8 @@
   "curiocatalogue:invoice-info-blank": "Порожньо",
   "curiocatalogue:invoice-info-origin": "Складено в день {0} біля {1}, {2}, {3}",
   "curiocatalogue:invoice-info-line": "{0} × {1}",
+  "curiocatalogue:invoice-info-member-free": "{0}, {1}",
+  "curiocatalogue:invoice-info-any-of": "будь-який з {0} видів",
   "curiocatalogue:invoice-info-more": "…і ще {0}",
   "curiocatalogue:unknown-item": "Невідомий предмет #{0}",
 

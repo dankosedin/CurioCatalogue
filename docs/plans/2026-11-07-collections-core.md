@@ -53,7 +53,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       Branch: `feat/collections-core`. After: K3. Model: opus. Author: none.
       Done when: the server tests pass with the 0.1.1 golden albums read through the migration (U3, U4, U10) and a test of the
       write-back; mutation-checked (the migration loses a collected piece); upgrade table: the album format (U10, U12).
-- [ ] **K5. Want lists by members.** A want list's line names (collection, level, member id); taking by it goes the album's way.
+- [x] **K5. Want lists by members.** A want list's line names (collection, level, member id); taking by it goes the album's way.
       Want lists of format 1 read as exact entries (golden `want-list`, U6). The tooltip names a member of several codes with
       its freedom ("any rock").
       Branch: `feat/collections-core`. After: K4. Model: opus. Author: none.
@@ -185,6 +185,23 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   - *Taking new by members:* for each missing member in the default layout's order, the first of its items the container has; a
     key fills one member of a level, so the lines keep keys and `Transfer` is unchanged. A want list is a line per missing
     member by its first item (K5 makes it a member reference).
+- **Want lists by members (K5, 07.11.2026, final; proposed by the AI assistant in the step, within the shape).** The code is
+  `Entry.cs`, `Invoice.cs`, `LedgerStore` (the layout in its comment), `InvoicePoster.PostWantList`, `ItemInvoice.Freedom`; tests
+  `AlbumTests` (want lists of format 2), `LedgerStoreTests`, `InvoicePosterTests`, `CollectionsFromAssetsTests` (the test mod's
+  seashells `ccshells`: a level by type, any colour), `UpgradeTests` (U6, unchanged).
+  - *Stored:* the collection and the level once per list (`wants: { id, level }`, `Invoice.From`), not on every line: a list comes
+    from one album. Each line keeps the member's first item as its stack (what it shows) and adds `member`. No `wants`, no `member`:
+    format 1, exact lines.
+  - *Taking:* `Invoice.Wanted(level, available)` as the album's: the first of the member's items the container has; a line whose
+    member the level no longer has, or whose collection or level the game lacks, wants exactly its own item (the list still works
+    after a mod is removed). No item goes to two lines; lines are crossed off by their place, not by key. Posting never refuses
+    for the collection; whether K6's `Disabled` should, is K6's.
+  - *The level* of a list is found as an album's (`DefinedCollection.LevelOrOnly`: a collection of one level has it under any id).
+  - *The tooltip's freedom:* `DefinedCollection.Free(level, member)`, the dimensions the level drops as `any` where the member has
+    no value, only for a member of several items. Named by a new optional `anyKey` of a dimension in the definition (a whole
+    phrase in lower case, "any colour", for each language's grammar); a dimension without it gives "any of N kinds"
+    (`invoice-info-any-of`). The line is "1 × {the first item's name}, any colour" (`invoice-info-member-free`). Naming a member by
+    its own values ("Scallop, any colour" rather than the first shell's full name) is left for the album window (A3–A5) and item 4.
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -204,3 +221,8 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   placing drops an unplaced piece: 2 fail). All five test projects green; a flake of the K3 kind (a 30 s timeout), this time
   `BookEdgeTests.L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full`, once, passed alone and in the next full run. The in-game check of the old window on an album is
   the author's (the step's report). Next: K5 (opus, After: K4).
+- 07.11.2026: K5 done (final): want lists name their album's level and members, filled the album's way; format 1 read as exact
+  lines; the tooltip names what a member of several items leaves free. Tests mutation-checked (a member line read as exact: 2 core
+  and 1 adapter tests fail; the store dropping `member`: 2 fail). The step's choices in Decisions, "Want lists by members (K5)". No
+  in-game check: vanilla has no collection of members of several items before item 4 (W5 in `functional.md`). Next: K6 (sonnet,
+  After: K5).

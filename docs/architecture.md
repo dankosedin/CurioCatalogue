@@ -51,7 +51,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - **Books:** `Book` (sheets, name, `ReturnSheet`, `AddSheets`), closed: `Ledger` (types or counts: entries, with
   `CreateInvoice`, `Post`, `Clear`, `FromStored`) or `Album` (collection, level, collected members, with `Missing`, `Wanted`,
   `Collect`, `ChooseLevel`, `StartOver`, `MakeWantList`, `FromFormat1`); `Entry` (key, count, opaque sample, kind `Exact`;
-  `Pattern` reserved); `Invoice`; `Multiset`.
+  `Pattern` reserved; on a want list the member it names); `Invoice` (a want list's `From` and `Wanted`, `CrossOff`); `Multiset`.
   All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`, `LevelChoice`), not
   exceptions.
   Limits (`LedgerLimits`) come from the config, not from the book.
@@ -153,8 +153,8 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 
 The shape of a collection (11-07, proposed by the AI assistant and accepted by the author; from the designs of tapestries, ore
 crystals, seashells and butterflies, plan `2026-11-04-collections-design.md`, and the album view, plan `2026-11-04-album-view.md`,
-A2). Being built by plan `2026-11-07-collections-core.md` (definitions, the registry and the album of format 2 are in; want lists
-by members, the resolver and the packet are its K5 and K6).
+A2). Being built by plan `2026-11-07-collections-core.md` (definitions, the registry, the album of format 2 and want lists by
+members are in; the resolver and the packet are its K6).
 
 - **A definition is data; the members come from a source in code.** A collection is defined in an asset
   `config/curiocatalogue/collections/<id>.json`, read from every domain, so another mod brings a collection without our release
@@ -168,7 +168,8 @@ by members, the resolver and the packet are its K5 and K6).
 - **The JSON of a definition** (K3, 11-07; read by `CollectionDefinitionReader` into the core's records; `tapestries.json` is the
   example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
   `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
-  "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
+  "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`, `anyKey`: a phrase in lower case for what a member of several items leaves
+free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
   `rules` (`where`, `set`), `exclude`, `nameKey`. A definition that does not read, or that the core refuses, is logged as an error
   and skipped; the other collections work. A second definition with an id already seen (another domain) is ignored, with an error.
@@ -212,6 +213,8 @@ by members, the resolver and the packet are its K5 and K6).
   them again, so no write loses a piece (the plan's Decisions, K4).
 - **A want list's line names a member** (collection, level, member id), and taking by a want list goes the album's way, by members
   rather than keys, so a member of several codes is filled by any of them. Want lists of format 1 are read as exact entries, as now.
+  Built in K5 (11-07): the list stores its album's collection and level once (`Invoice.From`), each line its member id
+  (`Entry.Member`) beside the member's first item; a line whose member or collection the game lacks wants exactly that item.
 - **One resolver** for the store, the items and the network: given an album (its id now, the book stack later for custom
   collections), it answers `Found | Disabled | Unknown`, a closed type, so "disabled on this server" and "no longer in the game"
   are different refusals.

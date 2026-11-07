@@ -167,8 +167,12 @@ public sealed class InvoicePoster
     private PostInvoiceResult PostWantList(IPlayer player, ItemSlot invoiceSlot, Invoice invoice, ContainerSlots container,
         List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples, IReadOnlyList<ItemSlot> playerSlots, MergeClasses merge)
     {
-        var (lines, _) = invoice.SplitBy(samples.Keys.ToHashSet());
-        if (lines.IsEmpty) return new PostInvoiceResult.Refused(PostRefusal.NothingFromList);
+        // A line naming a member goes the album's way: any item that fills it (format 2); else exactly its item. No two lines share
+        // an item, so an item's key names its line.
+        var wanted = invoice.Wanted(store.LevelOf(invoice), samples.Keys.ToHashSet());
+        var lineOf = wanted.ToDictionary(w => w.Key, w => w.Line);
+        var lines = wanted.Select(w => new Entry(w.Key, 1, samples[w.Key])).ToList();
+        if (lines.Count == 0) return new PostInvoiceResult.Refused(PostRefusal.NothingFromList);
 
         var plan = PlanWhatFits(lines, sources, container, playerSlots, invoiceSlot, merge);
         if (plan.Taken.Count == 0)
@@ -177,7 +181,7 @@ public sealed class InvoicePoster
         // A want list takes as much as fits anyway: what the game did not move just stays on the list.
         var moved = Carry(player, plan.Moves, container, playerSlots);
         var taken = FullyMoved(plan.Taken, moved, sources);
-        var listLeft = invoice.CrossOff(taken.Select(e => e.Key));
+        var listLeft = invoice.CrossOff(taken.Select(e => lineOf[e.Key]));
         var fate = InvoiceFates.WantListPosted(done: listLeft.Entries.IsEmpty, consumeSheets());
         if (fate == InvoiceFate.Kept) store.WriteInvoice(invoiceSlot.Itemstack!, listLeft);
         else invoiceSlot.Itemstack = fate == InvoiceFate.Parchment ? Parchment() : null;

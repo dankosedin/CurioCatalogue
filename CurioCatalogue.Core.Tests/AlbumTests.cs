@@ -288,22 +288,103 @@ public class AlbumTests
     // --- Want lists of any book ---
 
     [Fact]
-    public void A_container_gives_what_it_has_of_a_want_list_and_the_rest_stays()
+    public void A_container_gives_what_it_has_of_a_want_list_of_format_1_exactly()
     {
+        // Format 1 (0.1): lines with no member, each its own item, whatever the collection says.
         var invoice = new Invoice(InvoiceKind.WantList, [new(K("ambush1"), 1, ""), new(K("ambush2"), 1, ""), new(K("notice"), 1, "")], 0, Pos);
 
-        var (take, left) = invoice.SplitBy(new HashSet<ItemKey> { K("ambush2"), K("notice"), K("other") });
+        var wanted = invoice.Wanted(Tapestries().Levels[0], new HashSet<ItemKey> { K("ambush2"), K("notice"), K("other") });
 
-        Assert.Equal([K("ambush2"), K("notice")], take.Select(e => e.Key));
-        Assert.Equal([K("ambush1")], left.Entries.Select(e => e.Key));
-        Assert.Equal(InvoiceKind.WantList, left.Kind);
+        Assert.Equal([new WantedLine(1, K("ambush2")), new WantedLine(2, K("notice"))], wanted);
     }
 
     [Fact]
-    public void Delivered_lines_are_crossed_off_a_want_list()
+    public void Delivered_lines_are_crossed_off_a_want_list_by_their_place()
     {
         var invoice = new Invoice(InvoiceKind.WantList, [new(K("ambush1"), 1, ""), new(K("ambush2"), 1, ""), new(K("notice"), 1, "")], 0, Pos);
-        Assert.Equal([K("ambush1"), K("notice")], invoice.CrossOff([K("ambush2"), K("other")]).Entries.Select(e => e.Key));
+
+        var left = invoice.CrossOff([1]);
+
+        Assert.Equal([K("ambush1"), K("notice")], left.Entries.Select(e => e.Key));
+        Assert.Equal(InvoiceKind.WantList, left.Kind);
+    }
+
+    // --- Want lists of format 2: a line names a member (K5 of the collections core plan) ---
+
+    private static Album OfLevel(string level) =>
+        Assert.IsType<LevelChoice.Chosen>(Album.New(Seashells, 3, "").ChooseLevel(Seashells, level)).Album;
+
+    [Fact]
+    public void A_want_list_names_its_album_level_and_members()
+    {
+        var album = OfLevel("type");
+        var level = album.LevelIn(Seashells)!;
+
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(level, 5, Pos)).Invoice;
+
+        Assert.Equal(new WantedFrom("seashells", "type"), list.From);
+        Assert.Equal([("scallop", Shell("scallop", "latte"), "scallop-latte"), ("clam", Shell("clam", "latte"), "clam-latte")],
+            list.Entries.Select(e => (e.Member, e.Key, (string)e.Sample)));
+    }
+
+    [Fact]
+    public void A_line_naming_a_member_of_several_items_is_given_by_any_of_them()
+    {
+        var album = OfLevel("type");
+        var level = album.LevelIn(Seashells)!;
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(level, 5, Pos)).Invoice;
+
+        // No latte shell anywhere: the clam is given by a seafoam or a plain one, the first in the member's order.
+        var wanted = list.Wanted(level, new HashSet<ItemKey> { Shell("clam", "seafoam"), Shell("clam", "plain") });
+
+        Assert.Equal([new WantedLine(1, Shell("clam", "plain"))], wanted);
+        Assert.Equal(["scallop"], list.CrossOff(wanted.Select(w => w.Line)).Entries.Select(e => e.Member));
+    }
+
+    [Fact]
+    public void A_line_whose_member_is_gone_or_whose_collection_is_unknown_wants_exactly_its_item()
+    {
+        var list = new Invoice(InvoiceKind.WantList,
+            [new(Shell("clam", "latte"), 1, "", Member: "clam"), new(Shell("scallop", "latte"), 1, "", Member: "no-such-member")], 0, Pos,
+            new WantedFrom("seashells", "type"));
+        var chest = new HashSet<ItemKey> { Shell("clam", "plain"), Shell("scallop", "plain"), Shell("scallop", "latte") };
+
+        // The collection unknown: both lines exact, so only the latte scallop.
+        Assert.Equal([new WantedLine(1, Shell("scallop", "latte"))], list.Wanted(null, chest));
+        // Known: the clam by any colour; the gone member still by its own item.
+        Assert.Equal([new WantedLine(0, Shell("clam", "plain")), new WantedLine(1, Shell("scallop", "latte"))],
+            list.Wanted(Seashells.Level("type"), chest));
+    }
+
+    [Fact]
+    public void No_item_is_given_to_two_lines()
+    {
+        // A list a player could not make, but data may hold: two lines for one item, and two members one item could fill.
+        var list = new Invoice(InvoiceKind.WantList,
+            [new(Shell("clam", "latte"), 1, ""), new(Shell("clam", "latte"), 1, "", Member: "clam")], 0, Pos, new WantedFrom("seashells", "type"));
+
+        Assert.Equal([new WantedLine(0, Shell("clam", "latte"))], list.Wanted(Seashells.Level("type"), new HashSet<ItemKey> { Shell("clam", "latte") }));
+    }
+
+    [Fact]
+    public void A_want_list_finds_the_only_level_of_its_collection_under_another_id()
+    {
+        // As an album does: a patch renamed the level of a collection of one level.
+        Assert.Equal("pieces", new WantedFrom("tapestries", "old-name").LevelIn(Tapestries())!.Id);
+        Assert.Null(new WantedFrom("seashells", "old-name").LevelIn(Seashells));
+    }
+
+    [Fact]
+    public void A_member_of_several_items_leaves_free_the_dimensions_its_level_drops_as_any()
+    {
+        var byType = Seashells.Level("type")!;
+        var all = Seashells.Level("all")!;
+        var tapestries = Tapestries();
+        var pieces = tapestries.Levels[0];
+
+        Assert.Equal(["color"], Seashells.Free(byType, byType.Find("clam")!).Select(d => d.Code));
+        Assert.Empty(Seashells.Free(all, all.Find("clam-plain")!)); // one item
+        Assert.Empty(tapestries.Free(pieces, pieces.Find("ambush1")!)); // the picture is dropped as any, but a piece has its own
     }
 
     [Fact]

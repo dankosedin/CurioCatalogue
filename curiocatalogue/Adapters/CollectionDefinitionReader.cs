@@ -108,7 +108,7 @@ public static class CollectionDefinitionReader
         }
         else if (o["drop"] != null) errors.Add($"Level '{id}': 'drop' is not an object");
         var layouts = Items(o, "layouts", errors, required: false).Select(l => ReadLayout(l, id, errors)).ToList();
-        return id == null ? null : new LevelDef(id, keep, drop, layouts!, Text(o, "nameKey", errors, required: false));
+        return id == null ? null : new LevelDef(id, keep, drop, layouts!, Text(o, "nameKey", errors, required: false), Text(o, "progressKey", errors, required: false));
     }
 
     private static LayoutDef? ReadLayout(JToken token, string? level, List<string> errors)

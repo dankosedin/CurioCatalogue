@@ -23,7 +23,7 @@ public class InvoiceMakerTests
     public InvoiceMakerTests()
     {
         keys = new StackKeys(game.World, ["durability"]);
-        store = new LedgerStore(keys, _ => collection);
+        store = new LedgerStore(keys, id => disabled ? new CollectionResolution.Disabled(id) : collection is { } known ? new CollectionResolution.Found(known) : new CollectionResolution.Unknown(id));
         var reader = new ContainerReader(game.World, _ => null, TestInventoryBlock.IsStorage);
         var access = new ContainerAccess(game.World, (_, _) => locked);
         maker = new InvoiceMaker(game.World, store, reader, access, () => new LedgerLimits(32, 500));
@@ -200,6 +200,18 @@ public class InvoiceMakerTests
         Assert.Equal(2, store.ReadAlbum(twoLevels).Sheets); // no sheet spent
     }
 
+    [Fact]
+    public void No_want_list_from_an_album_of_a_collection_switched_off()
+    {
+        var album = Album(TestCollections.Tapestries(keys, t => Tapestry(t), "a"));
+        disabled = true;
+        Assert.Equal(MakeRefusal.Disabled, Refusal(maker.MakeWantList(album, pos)));
+        Assert.Equal(2, store.ReadAlbum(album).Sheets); // no sheet spent
+        disabled = false;
+        Assert.IsType<MakeInvoiceResult.Made>(maker.MakeWantList(album, pos));
+    }
+
+    private bool disabled; // the server switched the collection off
     private DefinedCollection? collection;
 
     /// <summary>An album of the collection (which becomes the one the store knows), these pieces collected, 2 sheets.</summary>

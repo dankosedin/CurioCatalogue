@@ -35,15 +35,23 @@ public sealed class LedgerStore
     public const int Version = 2;
 
     private readonly StackKeys keys;
-    private readonly System.Func<string, DefinedCollection?> collectionOf;
+    private readonly System.Func<string, CollectionResolution> resolve;
 
-    /// <param name="collectionOf">The collection by id: an album of format 1 is read by it, and its unplaced items are placed
-    /// with it; none in tests that do not care.</param>
-    public LedgerStore(StackKeys keys, System.Func<string, DefinedCollection?>? collectionOf = null)
+    /// <param name="resolve">What the game says of a collection by id (found, off on this server, unknown): an album of format 1 is
+    /// read by it, and its unplaced items are placed with it.</param>
+    public LedgerStore(StackKeys keys, System.Func<string, CollectionResolution> resolve)
     {
         this.keys = keys;
-        this.collectionOf = collectionOf ?? (_ => null);
+        this.resolve = resolve;
     }
+
+    /// <summary>For tests that only have collections: every id not given is unknown. None given: no collection is known.</summary>
+    public LedgerStore(StackKeys keys, System.Func<string, DefinedCollection?>? collectionOf = null)
+        : this(keys, id => collectionOf?.Invoke(id) is { } found ? new CollectionResolution.Found(found) : new CollectionResolution.Unknown(id))
+    {
+    }
+
+    private DefinedCollection? Known(string id) => resolve(id).Collection;
 
     /// <summary>One container slot as a core entry: its key, its size, and a copy of one item as the sample.</summary>
     public Entry ToEntry(ItemStack stack)
@@ -123,7 +131,7 @@ public sealed class LedgerStore
         int sheets = root?.GetAsInt("sheets") ?? 0;
         string name = root?.GetString("name", "") ?? "";
         string id = albumTree?.GetString("id", "") ?? "";
-        var collection = id.Length > 0 ? collectionOf(id) : null;
+        var collection = id.Length > 0 ? Known(id) : null;
 
         if (root == null || root.GetAsInt("v", 1) < 2)
         {
@@ -166,7 +174,13 @@ public sealed class LedgerStore
     }
 
     /// <summary>The collection an album follows; null for a collection the game does not have.</summary>
-    public DefinedCollection? CollectionOf(Album album) => collectionOf(album.CollectionId);
+    public DefinedCollection? CollectionOf(Album album) => Known(album.CollectionId);
+
+    /// <summary>What the game says of the album's collection: there, off on this server, or unknown.</summary>
+    public CollectionResolution Resolve(Album album) => resolve(album.CollectionId);
+
+    /// <summary>The same by the collection's id, for what needs no more than the id (the hints over a container).</summary>
+    public CollectionResolution Resolve(string collectionId) => resolve(collectionId);
 
     public Invoice ReadInvoice(ItemStack paper, InvoiceKind kind)
     {
@@ -193,7 +207,7 @@ public sealed class LedgerStore
 
     /// <summary>As <see cref="LevelOf"/>, with the collection (for what a member leaves free, <see cref="DefinedCollection.Free"/>).</summary>
     public (DefinedCollection Collection, CollectionLevel Level)? WantedIn(Invoice invoice) =>
-        invoice.From is { } from && collectionOf(from.CollectionId) is { } collection && from.LevelIn(collection) is { } level
+        invoice.From is { } from && Known(from.CollectionId) is { } collection && from.LevelIn(collection) is { } level
             ? (collection, level)
             : null;
 

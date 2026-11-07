@@ -174,7 +174,9 @@ public class LedgerDialog : GridDialog
             case Album album:
                 var (state, _, level) = Item.StateOf(album);
                 if (state == ItemLedger.AlbumState.AtLevel && album.Progress(level!) is var progress)
-                    text += " · " + T("ledgerwindow-collected", progress.Collected, progress.Total, progress.GroupsComplete, progress.GroupsTotal);
+                    text += " · " + ItemLedger.ProgressText(level!, progress);
+                else if (state == ItemLedger.AlbumState.Disabled)
+                    text += " · " + T("ledger-info-disabled");
                 else if (state == ItemLedger.AlbumState.NoLevel)
                     text += " · " + T("ledger-info-nolevel");
                 return text + "\n" + T("ledger-info-sheets", album.Sheets, config.MaxSheets);

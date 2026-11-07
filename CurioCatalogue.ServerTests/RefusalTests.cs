@@ -186,4 +186,34 @@ public class RefusalTests(GameServerFixture server) : BookTestBase(server)
         client.WaitFor(() => Errors(client).Contains("nocollection"), "the refusal 'no collection'");
         Assert.Equal(before, game.OnMain(() => Bytes(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack)));
     }
+
+    // ---- disabled
+
+    [Fact]
+    public void An_album_of_a_collection_the_server_switched_off_is_refused_apart_from_an_unknown_one_and_works_again_when_it_is_on()
+    {
+        var client = FakeClient.Join(game, "disabled-coll");
+        var tapestries = Mod.Config.Collections[CollectionRegistry.TapestriesId];
+        var (fingerprint, before) = game.OnMain(() =>
+        {
+            var stack = Album(8);
+            client.Player.InventoryManager.ActiveHotbarSlot.Itemstack = stack;
+            return (LedgerStore.Fingerprint(stack), Bytes(stack));
+        });
+
+        game.OnMain(() => tapestries.Disabled = true);
+        try
+        {
+            client.SendToMod(new ClearLedgerRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+            client.WaitFor(() => Errors(client).Contains("disabled"), "the refusal 'disabled'");
+            Assert.DoesNotContain("nocollection", Errors(client));
+            client.SendToMod(new MakeWantListRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+            client.WaitFor(() => Errors(client).Count(e => e == "disabled") == 2, "the second refusal 'disabled'");
+            Assert.Equal(before, game.OnMain(() => Bytes(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack)));
+        }
+        finally
+        {
+            game.OnMain(() => tapestries.Disabled = false); // the server is shared: the next test must find the collection on
+        }
+    }
 }

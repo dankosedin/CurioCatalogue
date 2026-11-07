@@ -74,6 +74,27 @@ public class ChooseLevelRequest
     [ProtoMember(2)] public string Level = "";
 }
 
+/// <summary>One collection's settings of the server's config, as the client needs them (<see cref="CollectionSettings"/>).</summary>
+[ProtoContract]
+public class CollectionSettingsEntry
+{
+    [ProtoMember(1)] public string Id = "";
+    [ProtoMember(2)] public List<string> Exclude = [];
+    [ProtoMember(3)] public List<string> Add = [];
+    [ProtoMember(4)] public bool Disabled;
+}
+
+/// <summary>
+/// Server → client, on join: the server's <c>Collections</c> config, so the client builds the same collections (a collection off, a
+/// piece left out on the server only) and can say "switched off" (docs/architecture.md, Part 1, Collections). The definitions are not
+/// sent: the client reads them from its own assets.
+/// </summary>
+[ProtoContract]
+public class CollectionSettingsPacket
+{
+    [ProtoMember(1)] public List<CollectionSettingsEntry> Collections = [];
+}
+
 /// <summary>
 /// Server → client: posting is refused for lack of these items. The client names them: a name depends on the player's
 /// language, and the server translates only into its own (checked on a dedicated server 27.10.2026).
@@ -116,16 +137,34 @@ internal static class ModNetwork
             .RegisterMessageType<CancelInvoiceRequest>()
             .RegisterMessageType<MakeWantListRequest>()
             .RegisterMessageType<MissingItemsRefusal>()
-            .RegisterMessageType<ChooseLevelRequest>();
+            .RegisterMessageType<ChooseLevelRequest>()
+            .RegisterMessageType<CollectionSettingsPacket>();
 
-    public static void StartClient(ICoreClientAPI capi) =>
-        capi.Network.GetChannel(Channel).SetMessageHandler<MissingItemsRefusal>(refusal =>
+    public static void StartClient(ICoreClientAPI capi, CurioCatalogueModSystem mod)
+    {
+        var channel = capi.Network.GetChannel(Channel);
+        channel.SetMessageHandler<MissingItemsRefusal>(refusal =>
         {
             var text = MissingText(capi.World, refusal);
             // The game does not log in-game errors; this line is the only trace of the refusal.
             ModLog.Debug(capi, $"refused, missing: {text}");
             capi.TriggerIngameError(typeof(ModNetwork), "missing", text);
         });
+        channel.SetMessageHandler<CollectionSettingsPacket>(packet =>
+        {
+            ModLog.Debug(capi, $"the server's collection settings: {string.Join(", ", packet.Collections.Select(c => c.Id + (c.Disabled ? " (off)" : "")))}");
+            mod.UseServerSettings(SettingsOf(packet));
+        });
+    }
+
+    /// <summary>The config's collection settings as a packet, and back.</summary>
+    internal static CollectionSettingsPacket PacketOf(IReadOnlyDictionary<string, CollectionSettings> settings) => new()
+    {
+        Collections = [.. settings.Select(s => new CollectionSettingsEntry { Id = s.Key, Exclude = [.. s.Value.Exclude], Add = [.. s.Value.Add], Disabled = s.Value.Disabled })],
+    };
+
+    internal static Dictionary<string, CollectionSettings> SettingsOf(CollectionSettingsPacket packet) =>
+        packet.Collections.ToDictionary(c => c.Id, c => new CollectionSettings { Exclude = [.. c.Exclude], Add = [.. c.Add], Disabled = c.Disabled });
 
     /// <summary>How many lacking items a refusal names; the rest are counted.</summary>
     public const int LackingShown = 3;
@@ -167,6 +206,9 @@ internal static class ModNetwork
         channel.SetMessageHandler<CancelInvoiceRequest>((player, request) => Cancel(sapi, mod, player, request));
         channel.SetMessageHandler<MakeWantListRequest>((player, request) => MakeWantList(sapi, mod, player, request));
         channel.SetMessageHandler<ChooseLevelRequest>((player, request) => ChooseLevel(sapi, mod, player, request));
+        // Before the player opens anything: the client's handler exists by now and the packet waits in the channel if need be (K1 of the
+        // collections core plan, docs/modding.md, Network).
+        sapi.Event.PlayerJoin += player => channel.SendPacket(PacketOf(mod.Config.Collections), player);
     }
 
     /// <summary>
@@ -223,12 +265,7 @@ internal static class ModNetwork
         {
             // An album starts over instead: nothing collected, the level free again, sheets and name kept (domain.md, Albums and collections).
             case Album album:
-                if (mod.Store.CollectionOf(album) is not { } collection)
-                {
-                    PlayerMessages.Refuse(player, "nocollection");
-                    ModLog.Debug(sapi, $"{player.PlayerName}: restart refused: no collection {album.CollectionId}");
-                    return;
-                }
+                if (CollectionOrRefuse(sapi, mod, player, album, "restart") is not { } collection) return;
                 var again = album.StartOver(collection);
                 mod.Store.WriteAlbum(slot.Itemstack, again);
                 slot.MarkDirty();
@@ -249,6 +286,28 @@ internal static class ModNetwork
         }
     }
 
+    /// <summary>The album's collection; null, with the player told, when the game lacks it ("no longer in the game") or the server
+    /// switched it off ("disabled on this server").</summary>
+    private static DefinedCollection? CollectionOrRefuse(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, Album album, string action)
+    {
+        var resolution = mod.Store.Resolve(album);
+        switch (resolution)
+        {
+            case CollectionResolution.Found found:
+                return found.Value;
+            case CollectionResolution.Disabled _:
+                PlayerMessages.Refuse(player, "disabled");
+                break;
+            case CollectionResolution.Unknown _:
+                PlayerMessages.Refuse(player, "nocollection");
+                break;
+            default:
+                throw ExhaustiveMatch.Failed(resolution);
+        }
+        ModLog.Debug(sapi, $"{player.PlayerName}: {action} refused: {resolution}");
+        return null;
+    }
+
     /// <summary>
     /// The level of the album in that hand, chosen in its window (A2 of the album view plan). Re-checked here: the album must still
     /// be empty (a piece taken meanwhile fixes the level: refused, told) and the level one of its collection (else the request is
@@ -259,12 +318,7 @@ internal static class ModNetwork
         if (Target(sapi, player, request.Book, c => c is ItemLedger { IsAlbum: true }, "choose level") is not { } slot) return;
 
         var album = mod.Store.ReadAlbum(slot.Itemstack!);
-        if (mod.Store.CollectionOf(album) is not { } collection)
-        {
-            PlayerMessages.Refuse(player, "nocollection");
-            ModLog.Debug(sapi, $"{player.PlayerName}: level refused: no collection {album.CollectionId}");
-            return;
-        }
+        if (CollectionOrRefuse(sapi, mod, player, album, "level") is not { } collection) return;
         var choice = album.ChooseLevel(collection, request.Level ?? "");
         switch (choice)
         {

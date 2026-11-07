@@ -33,8 +33,11 @@ public enum CollectRefusal
     NothingNew,
     NoRoom,
 
-    /// <summary>The game does not have the album's collection (a mod removed, or the collection off in the config until K6).</summary>
+    /// <summary>The game does not have the album's collection (a mod removed).</summary>
     NoCollection,
+
+    /// <summary>The server's config switched the album's collection off.</summary>
+    Disabled,
 
     /// <summary>The collection has several levels and the album has none chosen (A2 of the album view plan).</summary>
     NoLevel,
@@ -203,6 +206,7 @@ public sealed class InvoicePoster
     public CollectResult Collect(IPlayer player, ItemSlot albumSlot, BlockPos pos, IReadOnlyList<ItemSlot> playerSlots, ItemSlot? handSlot)
     {
         var album = store.ReadAlbum(albumSlot.Itemstack!);
+        if (store.Resolve(album) is CollectionResolution.Disabled) return new CollectResult.Refused(CollectRefusal.Disabled);
         if (store.CollectionOf(album) is not { } collection) return new CollectResult.Refused(CollectRefusal.NoCollection);
         if (album.LevelIn(collection) is not { } level) return new CollectResult.Refused(CollectRefusal.NoLevel);
 

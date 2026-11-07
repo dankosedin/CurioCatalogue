@@ -1,4 +1,5 @@
 {
+  "nameKey": "curiocatalogue:collection-tapestries",
   "source": { "kind": "tapestry", "block": "game:tapestry-north" },
   "dimensions": [
     { "code": "picture", "values": [] },
@@ -7,6 +8,7 @@
   "levels": [
     {
       "id": "pieces",
+      "progressKey": "curiocatalogue:tapestries-progress",
       "keep": ["piece"],
       "drop": { "picture": "any" },
       "layouts": [

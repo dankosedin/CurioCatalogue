@@ -83,7 +83,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client.
 - `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
-  `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language).
+  `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` config, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.
 
 ### Main flows
@@ -154,7 +154,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 The shape of a collection (11-07, proposed by the AI assistant and accepted by the author; from the designs of tapestries, ore
 crystals, seashells and butterflies, plan `2026-11-04-collections-design.md`, and the album view, plan `2026-11-04-album-view.md`,
 A2). Being built by plan `2026-11-07-collections-core.md` (definitions, the registry, the album of format 2 and want lists by
-members are in; the resolver and the packet are its K6).
+members, the resolver, the packet and the recipe of a disabled collection are in).
 
 - **A definition is data; the members come from a source in code.** A collection is defined in an asset
   `config/curiocatalogue/collections/<id>.json`, read from every domain, so another mod brings a collection without our release
@@ -170,8 +170,9 @@ members are in; the resolver and the packet are its K6).
   `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
   "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`, `anyKey`: a phrase in lower case for what a member of several items leaves
 free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
-  `"max"`, `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
-  `rules` (`where`, `set`), `exclude`, `nameKey`. A definition that does not read, or that the core refuses, is logged as an error
+  `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
+  complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
+  `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}". A definition that does not read, or that the core refuses, is logged as an error
   and skipped; the other collections work. A second definition with an id already seen (another domain) is ignored, with an error.
   The registry builds a collection on first use, and none when its source finds no point (no tapestry block, no such variants:
   a mod's collection without the mod); `Defined(id)` gives it. The config's `Exclude` joins the

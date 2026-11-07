@@ -45,6 +45,13 @@ public sealed class CollectionRegistry
 
     public DefinedCollection? Defined(string id) => All.GetValueOrDefault(id);
 
+    /// <summary>What the game says of a collection: <see cref="CollectionResolution.Disabled"/> when the config switches it off (even
+    /// if no definition is there), else found when it is built, else unknown.</summary>
+    public CollectionResolution Resolve(string id) =>
+        settings.TryGetValue(id, out var config) && config.Disabled ? new CollectionResolution.Disabled(id)
+        : Defined(id) is { } found ? new CollectionResolution.Found(found)
+        : new CollectionResolution.Unknown(id);
+
     /// <summary>The collection a sample item fills a member of, at any level (the album recipe), or null. The first, in the order
     /// the definitions were read, once there are several.</summary>
     public DefinedCollection? ForSample(ItemStack sample)

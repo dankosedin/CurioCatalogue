@@ -145,3 +145,28 @@ public class ModNetworkTests
         Assert.False(char.IsHighSurrogate(cut[^1]));
     }
 }
+
+public class CollectionSettingsPacketTests
+{
+    [Fact]
+    public void The_servers_collection_settings_come_back_as_they_went()
+    {
+        var settings = new Dictionary<string, CollectionSettings>
+        {
+            ["tapestries"] = new() { Exclude = ["aid-*"], Add = ["mymod-banner"], Disabled = false },
+            ["ores"] = new() { Disabled = true },
+        };
+
+        // Through protobuf, as on the wire (ProtoContract classes of the same channel).
+        using var stream = new MemoryStream();
+        ProtoBuf.Serializer.Serialize(stream, ModNetwork.PacketOf(settings));
+        stream.Position = 0;
+        var back = ModNetwork.SettingsOf(ProtoBuf.Serializer.Deserialize<CollectionSettingsPacket>(stream));
+
+        Assert.Equal(["ores", "tapestries"], back.Keys.Order());
+        Assert.Equal(["aid-*"], back["tapestries"].Exclude);
+        Assert.Equal(["mymod-banner"], back["tapestries"].Add);
+        Assert.False(back["tapestries"].Disabled);
+        Assert.True(back["ores"].Disabled);
+    }
+}

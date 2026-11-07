@@ -27,6 +27,7 @@ public class InvoicePosterTests
     private readonly Item parchment;
     private bool consumeSheets;
     private bool locked;
+    private bool disabled; // the server switched the collection off
     private DefinedCollection? collection; // what albums follow; set by the album tests
 
     // The player's side: main hand (slot 0) holds the invoice, the rest is the hotbar and the backpack.
@@ -38,7 +39,7 @@ public class InvoicePosterTests
         playerInventory = new InventoryGeneric(6, "testplayer-1", game.Api, (i, inv) => i == 1 ? new RefusingSlot(inv) : new ItemSlotSurvival(inv));
         offhand = new InventoryGeneric(1, "testoffhand-1", game.Api)[0];
         keys = new StackKeys(game.World, ["durability"]);
-        store = new LedgerStore(keys, _ => collection);
+        store = new LedgerStore(keys, id => disabled ? new CollectionResolution.Disabled(id) : collection is { } known ? new CollectionResolution.Found(known) : new CollectionResolution.Unknown(id));
         tapestry = game.Block("tapestry-north");
         tapestry.MaxStackSize = 64;
         ingot = game.Item("ingot-iron");
@@ -575,6 +576,23 @@ public class InvoicePosterTests
         Assert.Equal(CollectRefusal.NoCollection, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
         Assert.Single(chest.Inventory, s => s.Itemstack != null);
         Assert.Empty(PlayerItems());
+    }
+
+    [Fact]
+    public void Album_of_a_collection_switched_off_takes_nothing_and_says_so_apart_from_unknown()
+    {
+        var chest = new TestChest(game.Api, Tapestry("a"));
+        game.Place(pos, chest);
+        var albumSlot = HoldAlbum(InvoiceSlot, "a");
+
+        disabled = true;
+
+        Assert.Equal(CollectRefusal.Disabled, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+        Assert.Single(chest.Inventory, s => s.Itemstack != null);
+        Assert.Empty(PlayerItems());
+        // The record of what was collected stays: switched on again, the album works as before.
+        disabled = false;
+        Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
     }
 
     private CollectResult Collect(ItemSlot albumSlot) => Poster().Collect(player, albumSlot, pos, PlayerSlots, InvoiceSlot);

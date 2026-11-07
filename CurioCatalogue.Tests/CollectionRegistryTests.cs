@@ -92,6 +92,20 @@ public class CollectionRegistryTests
     }
 
     [Fact]
+    public void The_resolver_tells_found_from_switched_off_from_unknown()
+    {
+        var on = Registry();
+        Assert.Equal(CollectionRegistry.TapestriesId, Assert.IsType<CollectionResolution.Found>(on.Resolve(CollectionRegistry.TapestriesId)).Value.Id);
+        Assert.IsType<CollectionResolution.Unknown>(on.Resolve("vanished"));
+
+        var off = Registry(new() { Disabled = true });
+        Assert.IsType<CollectionResolution.Disabled>(off.Resolve(CollectionRegistry.TapestriesId));
+        Assert.Null(off.Resolve(CollectionRegistry.TapestriesId).Collection);
+        // Off in the config wins over a missing definition: the admin's word is "switched off".
+        Assert.IsType<CollectionResolution.Disabled>(Registry(settings: new() { ["vanished"] = new() { Disabled = true } }).Resolve("vanished"));
+    }
+
+    [Fact]
     public void A_tapestry_belongs_to_the_tapestry_collection_and_others_do_not()
     {
         var registry = Registry();

@@ -76,10 +76,10 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
             return (album.GetName(), renamed.GetName(), Info(album), progress);
         });
 
-        Assert.Equal(En("album-name-tapestries"), name);
+        Assert.Equal(En("album-name", En("collection-tapestries")), name);
         Assert.Equal("Grandma's walls", named);
         Assert.Contains(En("item-book-album-*"), info); // the kind line: an album always has one, its title is the collection or a name
-        Assert.Contains(En("ledger-info-album", 0, progress.Total, 0, progress.GroupsTotal), info);
+        Assert.Contains(En("tapestries-progress", 0, progress.Total, 0, progress.GroupsTotal), info);
         Assert.All(EnLines("ledger-info-howto-album"), line => Assert.Contains(line, info));
         Assert.DoesNotContain(info, l => l.StartsWith("Entries:")); // its entries are what it misses, the limit does not matter
     }

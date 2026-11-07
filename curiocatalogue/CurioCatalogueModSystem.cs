@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -25,6 +26,7 @@ public class CurioCatalogueModSystem : ModSystem
     private InvoiceMaker? invoiceMaker;
     private InvoicePoster? invoicePoster;
     private CollectionRegistry? collections;
+    private IReadOnlyDictionary<string, CollectionSettings>? serverSettings;
 
     // All are made on first use, when the world and the other mod systems are surely there.
 
@@ -32,7 +34,7 @@ public class CurioCatalogueModSystem : ModSystem
     public StackKeys Keys => keys ??= new StackKeys(api.World, Config.ExtraIgnoredAttributes);
 
     /// <summary>Reads and writes ledger and invoice data in items.</summary>
-    public LedgerStore Store => store ??= new LedgerStore(Keys, id => Collections.Defined(id));
+    public LedgerStore Store => store ??= new LedgerStore(Keys, id => Collections.Resolve(id));
 
     /// <summary>Tells and reads the containers the ledger works with. Both sides.</summary>
     public ContainerReader Containers => containers ??= new ContainerReader(api.World);
@@ -50,7 +52,15 @@ public class CurioCatalogueModSystem : ModSystem
 
     /// <summary>The collections (tapestries), the same on both sides.</summary>
     public CollectionRegistry Collections => collections ??=
-        new CollectionRegistry(api.World, Keys, Config.Collections, () => DefinitionAsset.OfAllDomains(api.Assets));
+        new CollectionRegistry(api.World, Keys, serverSettings ?? Config.Collections, () => DefinitionAsset.OfAllDomains(api.Assets));
+
+    /// <summary>Client: the server's <c>Collections</c> config arrived (on join). The registry is built again on next use, from it instead
+    /// of this machine's file.</summary>
+    public void UseServerSettings(IReadOnlyDictionary<string, CollectionSettings> settings)
+    {
+        serverSettings = settings;
+        collections = null;
+    }
 
     public override void Start(ICoreAPI api)
     {
@@ -67,6 +77,7 @@ public class CurioCatalogueModSystem : ModSystem
 
     public override void AssetsFinalize(ICoreAPI api)
     {
+        if (api is ICoreServerAPI) AlbumRecipes.RemoveOfDisabled(api, Config.Collections);
         // Hints are drawn by the client, and behaviors added in code are not sent to it (checked in game 26.10.2026:
         // 63 blocks on the server, 0 on the client), so the client adds them itself. The server does not need them.
         if (api.Side == EnumAppSide.Client) LedgerHintsBehavior.AddTo(api);
@@ -80,9 +91,11 @@ public class CurioCatalogueModSystem : ModSystem
     public override void StartClientSide(Vintagestory.API.Client.ICoreClientAPI api)
     {
         EmptyHandGesture.StartClient(api, this);
-        ModNetwork.StartClient(api);
+        ModNetwork.StartClient(api, this);
         api.Event.LevelFinalize += () =>
         {
+            // The packet may come before the grid recipes and the rest are there (K1): build again once everything is.
+            collections = null;
             HandbookIndexFix.Apply(api);
         };
     }

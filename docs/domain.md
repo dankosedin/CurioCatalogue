@@ -125,6 +125,12 @@ A sheet is vanilla parchment; there is no separate blank item.
 - Shift + Ctrl + RMB with an album does nothing (the click goes to the game). An album never makes ordinary invoices, and posting
   an invoice with an album in the off-hand does not touch it.
 - **Start over** (the album's "Clear"): every member is missing again; sheets and name stay.
+- **A collection switched off** (`Collections.<id>.Disabled` in the server's config) is not the same as one the game lacks (a mod
+  removed). An album of a switched-off collection keeps all it collected and shows "switched off on this server"; taking new, a
+  want list, choosing a level and Start over are refused with that reason ("no longer in the game" is for a collection with no
+  definition); switched on again, the album works as before. Its album recipe is taken out of the server's recipes at load, so
+  clients do not see it. The client builds its collections from the server's `Collections` settings, sent when it joins; the
+  definitions it reads from its own assets, so a mod with a collection must be on the client too.
 - **An album follows its collection:** if the collection changed (config, a mod adding tapestries), the album is up to date by
   itself: collected stays collected, new members are missing, gone members disappear from the count; a piece excluded for a while
   keeps its record and comes back collected. An album of 0.1 is converted when read and stored in the new form the next time the

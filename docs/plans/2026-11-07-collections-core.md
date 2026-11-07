@@ -58,7 +58,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       its freedom ("any rock").
       Branch: `feat/collections-core`. After: K4. Model: opus. Author: none.
       Done when: the server tests pass, mutation-checked; upgrade table: the want list format (U6).
-- [ ] **K6. One resolver, `Disabled`, the packet, the recipes.** The resolver (`Found | Disabled | Unknown`) replaces the three
+- [x] **K6. One resolver, `Disabled`, the packet, the recipes.** The resolver (`Found | Disabled | Unknown`) replaces the three
       `Collections.Get`; refusals "disabled on this server" (taking new, want list) beside "no longer in the game"; the
       `Collections` section sent to each client on join, the client's registry rebuilt; the recipe of a disabled collection removed
       as K1 found (or makes nothing). The album recipe stays the tapestries' in this plan; each collection of item 4 adds its own.
@@ -202,6 +202,26 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     phrase in lower case, "any colour", for each language's grammar); a dimension without it gives "any of N kinds"
     (`invoice-info-any-of`). The line is "1 × {the first item's name}, any colour" (`invoice-info-member-free`). Naming a member by
     its own values ("Scallop, any colour" rather than the first shell's full name) is left for the album window (A3–A5) and item 4.
+- **The resolver, `Disabled`, the packet, the recipes (K6, 07.11.2026, final; proposed by the AI assistant in the step, within the shape).** The code is
+  `Core/CollectionResolution.cs`, `Adapters/CollectionRegistry.Resolve`, `LedgerStore.Resolve`, `Adapters/AlbumRecipes.cs`, `ModNetwork`
+  (`CollectionSettingsPacket`), `CurioCatalogueModSystem.UseServerSettings`; tests `CollectionRegistryTests`, `InvoicePosterTests`,
+  `InvoiceMakerTests`, `AlbumRecipesTests`, `CollectionSettingsPacketTests`, `RefusalTests`.
+  - *The resolver:* `CollectionResolution` is a closed pair of `Found(Value)`, `Disabled(Id)`, `Unknown(Id)`. The registry answers it:
+    `Disabled` when the config says so (even with no definition: the admin's word), else `Found`, else `Unknown`. `LedgerStore` takes
+    the resolver (the old constructor with a collection function stays for tests). `Defined` / `CollectionOf` still give the collection for
+    reading; every refusal and every text that must tell the reasons apart goes through `Resolve`. Refusals: `disabled` (new) beside
+    `nocollection`, in taking new, want lists, level choice and Start over; the tooltip and window say "switched off on this server".
+  - *The packet:* `CollectionSettingsPacket` (id, `Exclude`, `Add`, `Disabled` of every collection of the server's config), sent in
+    `PlayerJoin`; the client's handler stores it in the mod system and drops the registry, which is built again on next use, and once
+    more at `LevelFinalize`. Until a packet comes the client uses its own file. Not in-game checked: G5, G6.
+  - *The recipe:* `AlbumRecipes` maps a collection id to the names of its album recipes (`tapestries` → `ledger-album`); at `AssetsFinalize`
+    on the server the recipes of disabled collections leave `GridRecipes` and get `Enabled = false` (found by our domain and `name`,
+    not by the file's location: our recipes set `name`). Each collection of item 4 adds its line.
+  - *Lang:* a collection's words moved into its definition: `nameKey` (the collection's name, "tapestries", shown as `album-name` "Album: {0}")
+    and, new, a level's `progressKey` (the whole progress line with four numbers, for each language's grammar; none: the generic
+    `ledger-info-progress`). Removed `album-name-tapestries`, `ledger-info-album`, `ledgerwindow-collected`. Added `ingameerror-disabled`,
+    `ledger-info-disabled`. Found on the way: a positional record parameter named like an inherited property of the same type
+    reuses it (a stack overflow in `CollectionResolution.Collection`), hence `Found(Value)`.
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -226,3 +246,9 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   and 1 adapter tests fail; the store dropping `member`: 2 fail). The step's choices in Decisions, "Want lists by members (K5)". No
   in-game check: vanilla has no collection of members of several items before item 4 (W5 in `functional.md`). Next: K6 (sonnet,
   After: K5).
+- 07.11.2026: K6 done (final): code, tests, docs; G5 and G6 of `functional.md` passed by the author on the dedicated server (a
+  collection disabled; an `Exclude` on the server only: the client showed 82 pieces in 28 pictures from the server's packet while its own
+  file said nothing). After G5 the hints over a container are gone for an album whose collection is off or gone (`LedgerHintsBehavior`).
+  Open for the author: the want-list button is hidden for a switched-off album (option A, kept); the album stays in the handbook and
+  creative inventory, only its recipe goes. The step's choices in Decisions, "The resolver (K6)". Next: K7
+  (opus, After: K6).

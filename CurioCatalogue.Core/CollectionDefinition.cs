@@ -70,13 +70,17 @@ public sealed record LayoutDef(string Id, IReadOnlyList<string> GroupBy, Arrange
 /// A level: a projection of the collection's points. It keeps some dimensions (a member per combination of their values) and
 /// says for every other dimension whether any value fills the member or only the highest. The first layout is the default,
 /// which gives the order of taking new; with none, one group in order.
+/// <param name="ProgressKey">A lang key of the line that tells an album's progress at this level, whole, for each language's grammar:
+/// <c>{0}</c> members collected, <c>{1}</c> of all, <c>{2}</c> groups complete, <c>{3}</c> groups ("Pieces {0} of {1} · whole
+/// pictures {2} of {3}"). Null: a generic line.</param>
 /// </summary>
 public sealed record LevelDef(
     string Id,
     IReadOnlyList<string> Keep,
     IReadOnlyDictionary<string, Drop> Drop,
     IReadOnlyList<LayoutDef> Layouts,
-    string? NameKey = null);
+    string? NameKey = null,
+    string? ProgressKey = null);
 
 /// <summary>
 /// Sets attributes on the members whose values match: each dimension in <paramref name="Where"/> must be one the member has a

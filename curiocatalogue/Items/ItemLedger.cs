@@ -50,14 +50,19 @@ public class ItemLedger : Item
     }
 
     /// <summary>What an album's tooltip and window say of its progress, against its collection as the game has it now.</summary>
-    internal enum AlbumState { NoCollection, NoLevel, AtLevel }
+    internal enum AlbumState { NoCollection, Disabled, NoLevel, AtLevel }
 
     /// <summary>The album's collection and level as the game has them now; the level is null unless <see cref="AlbumState.AtLevel"/>.</summary>
     internal (AlbumState State, DefinedCollection? Collection, CollectionLevel? Level) StateOf(Album album)
     {
+        if (Mod.Store.Resolve(album) is CollectionResolution.Disabled) return (AlbumState.Disabled, null, null);
         if (Mod.Store.CollectionOf(album) is not { } collection) return (AlbumState.NoCollection, null, null);
         return album.LevelIn(collection) is { } level ? (AlbumState.AtLevel, collection, level) : (AlbumState.NoLevel, collection, null);
     }
+
+    /// <summary>An album's progress as its level words it (the level's <c>progressKey</c>; a generic line when it has none).</summary>
+    internal static string ProgressText(CollectionLevel level, LevelProgress progress) =>
+        Lang.Get(level.Definition.ProgressKey ?? "curiocatalogue:ledger-info-progress", progress.Collected, progress.Total, progress.GroupsComplete, progress.GroupsTotal);
 
     private CurioCatalogueModSystem Mod => api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
 
@@ -306,8 +311,8 @@ public class ItemLedger : Item
     {
         string name = LedgerStore.ReadName(itemStack);
         if (name.Length > 0) return name;
-        if (IsAlbum && LedgerStore.ReadCollectionId(itemStack) is { Length: > 0 } id)
-            return Lang.Get("curiocatalogue:album-name-" + id);
+        if (IsAlbum && LedgerStore.ReadCollectionId(itemStack) is { Length: > 0 } id && Mod.Collections.Defined(id)?.Definition.NameKey is { } nameKey)
+            return Lang.Get("curiocatalogue:album-name", Lang.Get(nameKey));
         return base.GetHeldItemName(itemStack);
     }
 
@@ -339,7 +344,9 @@ public class ItemLedger : Item
             case Album album:
                 var (state, _, level) = StateOf(album);
                 if (state == AlbumState.AtLevel && album.Progress(level!) is var progress)
-                    dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-album", progress.Collected, progress.Total, progress.GroupsComplete, progress.GroupsTotal));
+                    dsc.AppendLine(ProgressText(level!, progress));
+                else if (state == AlbumState.Disabled)
+                    dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-disabled"));
                 else if (state == AlbumState.NoLevel)
                     dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-nolevel"));
                 break;

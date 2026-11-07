@@ -31,6 +31,10 @@ those that outlive their feature. Dates are 2026.
    needs a decision entry below (what was tried, why it did not work), prefers a Postfix over a Prefix, never uses a Transpiler without
    the author's agreement, and cites the patched method (`File.cs:line#Method`) so `tools/check-refs.ps1` notices when it moves.
 7. **State lives in the items.** Books and invoices carry their data in item attributes; there is no world-level storage.
+8. **Small pieces, one job each.** A file or class does one job and stays small enough to read whole. When a change is about to
+   land in something big (several hundred lines, or several jobs in one place), first think whether to split it; the split is
+   its own change, before the feature, so the feature's diff stays readable. The same holds for plan steps: a step fits one
+   session (one layer or one flow, some tens of edits); a bigger one is split while planning.
 
 ### Layers
 

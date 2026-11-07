@@ -18,7 +18,7 @@ Steps of the open plans are taken one per session with the project skill `/step 
 
 | Document | Read | Update |
 |---|---|---|
-| `docs/plans/` | at the start of a session: the open plans (with unticked steps) are the current work; several may run side by side | tick items as they are done; a new plan per big feature, named `YYYY-MM-DD-<feature>.md` (start date), with a "Decisions" section for that feature and its own letter for step ids, not used by another open plan |
+| `docs/plans/` | at the start of a session: the open plans (with unticked steps) are the current work; several may run side by side | tick items as they are done; a new plan per big feature, named `YYYY-MM-DD-<feature>.md` (start date), with a "Decisions" section for that feature and its own letter for step ids, not used by another open plan; each step fits one session (principle 8 in `docs/architecture.md`) |
 | `ROADMAP.md` | when choosing what to do next | an idea comes up; an idea gets its own plan (replace the line with a link) |
 | `DESIGN.md` | before changing what the mod does for the player | only after agreeing the change with the author |
 | `docs/domain.md` | before touching books, invoices, collections; when a term is unclear | a new term or mechanic appears |

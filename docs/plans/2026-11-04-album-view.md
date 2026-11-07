@@ -45,7 +45,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
         crystals: rock × grade, seashells: type × colour; collections plan, C1, C2).
       Branch: `docs/album-view`. After: the plan's own commit. Model: opus. Author: none.
       Done when: Decisions has the answers with sources; `docs/modding.md` has what surprised us; the open points for A2 are named.
-- [ ] **A2. The view on paper.** The input is the collections plan's Decisions, C1–C5 (final, 04.11.2026): collections have
+- [x] **A2. The view on paper.** The input is the collections plan's Decisions, C1–C5 (final, 04.11.2026): collections have
       **dimensions**, hierarchical (tapestries: picture → piece, the picture's size) or Cartesian (ore crystals: ore × rock ×
       grade, only some points allowed; seashells: type × colour), **levels** (crystals 16 / 118 / 353, seashells 7 / 42),
       **members filled by any of several codes** (level 1 of both) or by a rule on an attribute (C4, berry bushes),
@@ -81,18 +81,22 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
 - [ ] **A3. The view built.** The album window by A2, on the collection resolver of the core (item 3). The ledger and the bill
       of materials keep today's window: the album gets a window of its own, or `LedgerDialog` a mode (A2 decides, with
       `docs/architecture.md` if a class is added). The decisions of the view (which page, what is shown where) pulled into
-      testable code where they can be, with unit tests (`ROADMAP.md`, Later, tests for the client code).
+      testable code where they can be, with unit tests (`ROADMAP.md`, Later, tests for the client code). Both header
+      variants (A and C) and both tab variants (several groups a page, or one tab one page; Decisions) built behind
+      temporary switches, for the author to compare in A4.
       Branch: `feat/album-view`. After: A2, the core's plan done. Model: opus. Author: none.
       Done when: the build and all test projects pass; the author has the exact steps of the in-game check.
 - [ ] **A4. Checked in game, docs.** The author checks the window in game (en and uk, memory: in-game checks by language):
       empty, partly full and full album; a refresh while open (taking new from a chest); a long name of a piece in both
-      languages. `docs/testing/functional.md` gets the cases; both READMEs say what the album window shows (the screenshots
+      languages; the levels and the layouts; the header variants A and C and the two tab variants side by side, the author
+      keeps one of each and the others are removed. `docs/testing/functional.md` gets the cases; both READMEs say what the album window shows (the screenshots
       come with item 6).
       Branch: `feat/album-view`. After: A3. Model: sonnet. Author: the check in game.
       Done when: the checks pass or their fixes are in; the docs are committed.
-- [ ] **A5. Code review.** The roles of `docs/review.md` on the branch (or once at the end of the release: A2 decides).
-      Branch: `feat/album-view`. After: A4. Model: opus. Author: goes through the findings.
-      Done when: the findings are fixed or rejected with reasons; the branch goes to `main` by a pull request.
+- [ ] **A5. Into `main`.** No review of its own: the code review of the window is part of R1 of the release plan (A2,
+      Decisions). The branch goes to `main` by a pull request.
+      Branch: `feat/album-view`. After: A4. Model: sonnet. Author: approves the pull request.
+      Done when: the branch is merged into `main`.
 
 ## Decisions
 
@@ -117,7 +121,8 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
   collection's look stay in `ROADMAP.md`, 0.2, item 6.
 - **No change to stored data expected:** the view reads what the album already keeps. If A2 or A3 changes that, the change
   goes into the upgrade table (`docs/testing/upgrade-0.1-to-0.2.md`). One known candidate: remembering the code that filled
-  a member filled by any of several codes (A2 decides whether the view shows it).
+  a member filled by any of several codes (A2 decides whether the view shows it). A2 (07.11.2026) adds two: the chosen level
+  and that code ("The view on paper (A2)", the end).
 - **A1 and A2 updated by the results of C1–C6** (the author, 04.11.2026): written before the collections research, they spoke
   of groups only. The order stays (A1, A2, then C7): what A2 owes C7 changed, it did not go away; levels and the code shown for
   a collected member are the player's side and are decided in A2. Rejected: C7 first, with the view adapting later (the shape
@@ -214,9 +219,171 @@ Open points for A2:
 - the name's edit button: our SVG pencil or a vanilla icon;
 - what the table of a Cartesian page uses as headings (texts or stacks) and how a point that does not occur is shown.
 
+All five answered in A2 below.
+
+### The view on paper (A2)
+
+Final, but for two pairs of variants left to A4 in game (the header, the tabs). Decided with the author 07.11.2026; an HTML
+mockup (not kept) was looked at after the decisions. Mockups are ASCII: `███` a collected piece, `░░░` a missing one (translucent), a
+blank a point that does not exist. Texts in the mockups are Ukrainian, as they were discussed; sizes are rough.
+
+**Pages and groups**
+- **A page holds whole groups, in order, until it is full.** A group is never split; a group larger than a page goes on over
+  the next pages, its heading marked "(continued)". Rejected: one group per page (31 pages of tapestries, a page of seashells
+  nearly empty).
+- **Tabs for the dimension that groups, when its values have names and there is more than one page:** vertical tabs at the
+  side, as the handbook's (ore crystals at level 3: 16 ores, ~480 px, fit at 768). A complete group has ✓ on its tab. No tabs
+  for a single page, nor for pages filled by count only (tapestries by picture, butterflies): 31 pictures are too many tabs.
+  **Two variants, compared in game in A4** (the author, after an HTML mockup 07.11.2026: several tabs lit for one page felt
+  unusual, not surely bad): **pages of several groups**, a tab turning to the page with its group and the tabs of all groups
+  on the page lit; or **one tab, one page**, a group per page when the grouping has tabs.
+- **Page buttons ◀ N / M ▶ always** when there is more than one page (crystals at level 3: 8 pages, with tabs too). Rejected:
+  a "first page with something missing" button (the author: overload; the ✓ on tabs already tells).
+- **A Cartesian group is a table** with headings: rows and columns are two dimensions, the third (if any) groups. Headings are
+  stacks (a rock's stone, a shell of the colour) with the name in their tooltip, narrower than text in Ukrainian; a dimension
+  with no item of its own (the crystal's grade) is headed by text. A column or row exists only for values that occur in the
+  group. **A point that does not occur is plain background**: no slot frame, no tint (the author).
+- **Layouts: the player switches them at any time** (the author: "should be cheap, fewer screenshots to redo later"). A
+  layout says which dimension groups and how a group is laid out; it changes nothing in the data. Each collection has a
+  default. Kept **on the client**, per collection, for the game session: no change of stored data, no packet, and an album
+  handed over opens in the receiver's usual layout. Rejected: the layout remembered in the album.
+
+The mockups, as agreed (the bottom row of the header variant C, below, left out except in the first):
+
+Ore crystals, level 1 (16): one page, no tabs.
+```
+┌ Альбом: кристали ──────────────────────────────────────────────── ✕ ┐
+│  ███  ███  ░░░  ███  ███  ░░░  ███  ███                              │
+│  ░░░  ███  ███  ░░░  ███  ░░░  ░░░  ███                              │
+├──────────────────────────────────────────────────────────────────────┤
+│ Рівень: [Найбагатші (16) ▾]  [За рудою ▾]  🔍[____]  [Список бажаного] [↺] │
+│ Мої кристали ✎               ▓▓▓▓▓░░░░ 9/16                    📜 27 │
+└──────────────────────────────────────────────────────────────────────┘
+```
+Ore crystals, level 2 (118: one member per ore × rock; the grade shows in the icon): ores as rows, two pages of 8.
+```
+│                  анд гран баз сл  філ крем пісч вапн мрм кмб …       │
+│  Самородна мідь  ███ ░░░  ███                                        │
+│  Малахіт         ███           ░░░          ███                      │
+│  …  (8 руд)                                                          │
+│                          ◀ 1 / 2 ▶                                   │
+```
+Ore crystals, level 3 (353), layout "by ore": tabs by ore, a table grade × rock per ore, 2–3 ores a page.
+```
+│ ▸Самородна мідь │ Самородна мідь                         21/34      │
+│  Малахіт        │          анд  гран  баз  сл  …                    │
+│  Каситерит      │ бідна    ███  ███   ░░░  ███                      │
+│  Кварц: золото ✓│ середня  ███  ░░░   ███  ░░░                      │
+│  …              │ багата   ░░░        ░░░                           │
+│                 │ щедра    ░░░        ░░░                           │
+│                 │ Малахіт                                3/12       │
+```
+The same, layout "by rock": tabs by rock, a table grade × ore per rock.
+```
+│ ▸Андезит │          мідь  мал  кас  кв.з …
+│  Граніт  │ бідна    ███   ░░░  ███  ░░░
+│  …       │ середня  ░░░   ███  ███  ███
+```
+Seashells, level 1 (7) and level 2 (42, type × colour): one page each, no tabs.
+```
+Level 1                               Level 2
+ гребінець ███  сонячна ░░░ …                   латте прост морськ пурп кориц бірюз
+                                     гребінець  ███   ███   ░░░     ░░░  ███   ░░░
+                                     … (7 rows)
+```
+Tapestries, layout "by picture" (default): pictures as flat textures (A1), pages by count, no tabs; layout "by size": tabs
+by size (1×2, 2×1, 3×1, 2×2, 4×1).
+```
+│ Засідка ✓           Порятунок            Сутінки                     │
+│ ███ ███ ███         ███ ░░░              ███ ░░░ ░░░                 │
+│                     ░░░ ███                                          │
+│ Брама                                    Ловці                       │
+│ ███ ░░░ ░░░ ░░░                          ░░░ ███                     │
+│                          ◀ 2 / 5 ▶                                   │
+```
+Butterflies (169) and a flat collection: one group, pages by count (~2 pages of 10 × 9 for butterflies) until their grouping
+is decided (collections plan, "Butterflies last").
+
+**Levels**
+- **One album, the level chosen in its window while it is empty** (the author: "B + a"). A dropdown in the bottom row,
+  shown only while nothing is collected; after the first piece the level is fixed (and named in the progress tooltip);
+  "Start over" frees it again. The window follows the level: a level of 7 pieces is a simple page, one of 353 has tabs and
+  pages. Rejected: the level fixed when the album is made (by the recipe, or as three collections), and a level switch on a
+  filled album (taking new would depend on what the screen shows).
+- **An album with no level chosen does nothing:** taking new (Shift + RMB) refuses with "Choose a level in the album's window
+  (RMB)"; no want list button; the tooltip says "No level chosen". **No default level:** a player clicking a chest before
+  opening the window would get a level fixed that they never chose. A collection with one level (tapestries) has it chosen
+  from the start, as today.
+- **Stored data:** the album keeps the chosen level (and "none"): for the upgrade table (C7).
+
+**The cell**
+- **One element of ours draws a page**, for every collection: stacks, flat tapestry textures, table headings, group frames.
+  Hover gives the game's tooltip (`TriggerOnMouseEnterSlot`, A1); search is ours. Rejected: vanilla grids with our slots (two
+  ways of drawing; ~32 ms per refresh for a page of 30 pictures).
+- **A missing piece is the item translucent** (alpha 0.35; the author's choice in A1).
+- **A refresh** (a piece taken from a chest while the window is open) flips the "missing" flags and the progress, without
+  composing the page again; composing happens on turning a page, switching a layout or a level.
+- **A member filled by any of several codes** (crystals and seashells at level 1): missing, its icon cycles through the
+  possible stacks once a second, paused while hovered (as the handbook's slideshow); collected, it shows **the stack actually
+  put in**. **Stored data:** the album remembers that code (upgrade table, C7).
+- **Rarity mark: a coloured corner** (a small triangle in a corner of the cell; the tier is its colour), drawn over the stack
+  as the game draws its red cross. The cell's background is not tinted: it already says collected / missing / does not exist.
+  Rejected: a stone or a star icon (the author). A frame and a foil effect (as in MTG) are ideas for the rarity feature
+  (`ROADMAP.md`, Maybe). Whether 0.2 shows any rarity is C7's and item 6's (rare seashell colours are the first candidate).
+- **Tooltips:** the title is the piece's name; then "✓ In the collection" or "✗ Missing"; for a member of several codes, a
+  line naming the freedom ("Any rock"); a rarity line with the mark; then the game's own tooltip of the stack (a crystal's
+  "Parent material" tells crystals of two rocks apart, the open point of C1).
+
+**The header and the bottom of the window**
+- **Two variants, compared in game in A4, the other removed** (the author):
+  - **A:** the game's title bar, and under it our row: the name with ✎, the progress in the centre, the sheets on the right;
+  - **C:** the game's title bar with the kind of book and the collection ("Альбом: кристали"), and our row at the **bottom**
+    of the window, outside the scrolling area if one appears.
+  Rejected: B, our row in place of the title bar (thinner, but dragging the window would be ours to write).
+- **The bottom row** (variant C; in A the same elements move up): the name with ✎, the progress in the centre, the sheets on
+  the right. Above it a row of controls: the level (while empty), the layout, search, the page buttons, "Make a want list"
+  (a text button: the main action) and "Start over" (an icon ↺ with a tooltip, confirmation as today).
+- **The name:** a label and our own SVG pencil (the game has none, A1); the pencil turns the label into a text input and
+  itself into "Save"; Enter saves, Escape cancels.
+- **The sheets:** a parchment stack with its count; the limit (`MaxSheets`) in its tooltip.
+- **Progress:** the whole album as a bar in the centre with its number always shown (the game's statbar shows it on hover
+  only, A1); a group's "21/34" in its heading; a complete group's ✓ in its heading and on its tab. No progress per page.
+- **Text sizes:** group headings 16 (`WhiteSmallText`); table headings, tabs and the bottom rows 14; nothing smaller (A1).
+- **What stays of today's window:** search stays (the matches on the page lit, the rest dimmed; Enter turns to the next page
+  with a match), though the game's own search works poorly (the author). Sorting goes: the collection's order and the layout
+  replace it. No "missing only" filter: every piece has its place, and the want list says what to look for.
+- **A collection disabled by the config** (`Collections.<id>.Disabled`), in an album already made: the window opens and shows
+  what was collected, with a line "This collection is disabled on the server"; taking new refuses with the same text; no want
+  list button; the data is kept, so enabling the collection again brings everything back. Its recipe: C7.
+- **The ledger and the bill of materials keep today's window in 0.2:** the album gets a window of its own (a class of its own:
+  A3, with `docs/architecture.md`). New windows for the other two: two lines in `ROADMAP.md`, Interface.
+- **The code review of A5 is part of R1** of the release plan, the review of all of 0.2: the window is read together with
+  the core it stands on, one run instead of two.
+
+**What the view needs from the shape of a collection** (input for C7, in the words of dimensions):
+1. **Dimensions:** each with its values in order, their names (lang keys) and optionally an icon stack (table headings,
+   tabs); hierarchical (picture → piece, the size belongs to the picture) or Cartesian (ore × rock × grade).
+2. **Layouts,** several per collection, one the default; each says which dimension groups (tabs, if its values have names)
+   and how a group is laid out: a table of two dimensions (rows, columns), the group's own shape (a picture's width × height
+   and a piece's place x, y in it), or filling in order. A collection with no dimensions is one group filled in order.
+3. **A group:** a value of the grouping dimension, its name, its members; complete when every member is collected.
+4. **A member:** its value in every dimension; what fills it (one code, any of several codes, a rule on an attribute, C4);
+   **the stacks to show** (one, a list to cycle, a representative for a rule); per-member attributes (rarity → the corner's
+   colour). A point of a table with no member is background.
+5. **A flat texture** per member where the definition gives one (tapestry pieces, `textures/block/cloth/tapestry/{type}.png`):
+   an option of the definition, not a rule for all.
+6. **Levels:** a list, each with its own member set and its own dimensions (crystals: 1 ore; 2 ore × rock; 3 ore × rock ×
+   grade). A collection with one level shows no choice.
+7. **The collection's name** for the title bar ("Альбом: кристали").
+8. **`Disabled` seen by the client:** the config is not synced (C5), so how the client knows is C7's.
+- **Stored data** for the upgrade table: the chosen level (and "none"); the code that filled a member of several codes.
+
 ## Where we stopped
 
 - 04.11.2026: A1 (three more GUI questions) and A2 (dimensions, levels, members of several codes, rarity marks, flat and
   disabled collections) updated by C1–C6 (Decisions). Next: A1 (opus, After: the plan's own commit).
 - 05.11.2026: A1 done (Decisions, "What the game's GUI can do"; the probe removed). Next: A2 (opus, After: A1), on the same
   branch `docs/album-view`.
+- 07.11.2026: A2 done (final: Decisions, "The view on paper (A2)", with the mockups and the list for C7; `docs/domain.md`,
+  Windows). The branch `docs/album-view` waits for the author's pull request into `main`; then C7 of the collections plan.
+  Next here: A3 (opus, After: A2 and the core's plan done).

@@ -68,9 +68,11 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       server allows. A probe or a test that stays if it is cheap to keep.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: sonnet. Author: none.
       Done when: the numbers and how they were taken are in Decisions, with a verdict: fine as is, or what the core must change.
-- [ ] **C7. The shape and the core's plan.** From C1–C6 and what the album view needs (`2026-11-04-album-view.md`, A2: which
-      dimensions turn pages and make tables, the order and names of their values, a group's layout, levels, the code that
-      filled a member, per-member attributes; A2 decides the player's side of levels and of a disabled collection): the
+- [ ] **C7. The shape and the core's plan.** From C1–C6 and what the album view needs (`2026-11-04-album-view.md`, Decisions,
+      "The view on paper (A2)", its last part "What the view needs from the shape": dimensions, layouts, groups, members and
+      the stacks to show, flat textures, levels, the collection's name, `Disabled` on the client, and two changes of stored
+      data, the chosen level and the code that filled a member; the player's side of levels and of a disabled collection is
+      decided there): the
       shape of a collection (members and their keys, dimensions, groups, order, names, the definition's source, its settings;
       hierarchical and Cartesian dimensions, the levels of ore crystals as one album or three collections, members filled by
       any of several codes: Decisions, C1) and the changes to the core: the one collection resolver used by

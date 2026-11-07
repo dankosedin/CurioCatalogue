@@ -151,6 +151,12 @@ sent to clients, messages built by the client), then recipes into a bill of mate
     it takes an inventory slot or a clothing slot, and what it needs to be made.
   Open: where the album's data comes from when the book is not in the inventory (the data lives in the item, `DESIGN.md`).
 
+- **A new window for the ledger** (the album view plan, A2, 07.11.2026): the album gets a window of its own in 0.2, the ledger
+  keeps today's. Its turn: a compact header as the album's (the name with a pencil, the sheets as parchment, facts as elements),
+  and what else a ledger's window needs, designed for it.
+- **A new window for the bill of materials** (the same): as the ledger's, with what a bill of materials needs (counts, sorting by
+  count, editing: Books above).
+
 - **A hotkey for the book's window** (review, 28.10.2026): today it opens only on right click into the air, which is hard to
   find in a cellar or at a workbench.
 
@@ -205,7 +211,8 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   computed from the game (loot table weights, butterfly spawn by climate; needs research) or set in the collection's config.
   Rarity is a property of a cell, not a dimension; perhaps a sort key. Several tiers (e.g. rare, epic, legendary), decided with
   the feature (the author, 04.11.2026). Butterflies carry it in their assets: six steps of spawn chance (the collections design
-  plan, C3).
+  plan, C3). The mark on a cell is a coloured corner, the tier its colour (the album view plan, A2, 07.11.2026); a frame or a foil
+  effect, as on MTG cards, are ideas for the feature.
 - **An album that improves:** one cell per kind holding the best specimen, with a quality order: e.g. per berry bush type the
   cutting with the most good traits and no bad ones; a better one found replaces the one kept (the author, 04.11.2026). Another
   kind of album beside "is it collected"; the berry bush traits in the collections design plan, C4.

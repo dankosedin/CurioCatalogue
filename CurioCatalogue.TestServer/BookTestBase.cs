@@ -96,7 +96,7 @@ public abstract class BookTestBase(GameServerFixture server)
     /// <summary>A new album of the tapestry collection: nothing collected.</summary>
     protected ItemStack Album(int sheets)
     {
-        var collection = Mod.Collections.ForSample(Tapestry("ambush1")) ?? throw new InvalidOperationException("no tapestry collection");
+        var collection = Mod.Collections.Defined(CurioCatalogue.Adapters.CollectionRegistry.TapestriesId) ?? throw new InvalidOperationException("no tapestry collection");
         var stack = Ours("book-album-normal-brickred");
         Mod.Store.WriteAlbum(stack, Core.Album.New(collection, sheets, ""));
         return stack;

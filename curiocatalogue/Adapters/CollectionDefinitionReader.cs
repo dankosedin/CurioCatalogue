@@ -13,13 +13,53 @@ namespace CurioCatalogue.Adapters;
 [Closed(typeof(CollectionSource.Variants), typeof(CollectionSource.Tapestry))]
 public abstract record CollectionSource
 {
-    /// <summary>The registered items and blocks whose code fits <paramref name="Code"/> (<c>game:crystalizedore-{grade}-{ore}-{rock}</c>):
+    /// <summary>The registered items and blocks whose code fits the pattern (<c>game:crystalizedore-{grade}-{ore}-{rock}</c>):
     /// each <c>{name}</c> is a dimension and takes the text between dashes.</summary>
-    public sealed record Variants(string Code) : CollectionSource;
+    public sealed record Variants(VariantPattern Pattern) : CollectionSource;
 
     /// <summary>The pieces of the block's <c>sizes</c> attribute (<c>game:tapestry-north</c>): dimensions <c>picture</c> and
     /// <c>piece</c>, the piece's place as attributes <c>x</c> and <c>y</c>.</summary>
     public sealed record Tapestry(string Block) : CollectionSource;
+}
+
+/// <summary>
+/// The code of a <see cref="CollectionSource.Variants"/> source made into a test of item codes. Each <c>{name}</c> takes the text
+/// between dashes (<c>[^-]+</c>) and is that dimension's value; a name is a letter or <c>_</c>, then letters, digits or <c>_</c>, and
+/// appears once.
+/// </summary>
+public sealed record VariantPattern(string Code, string Domain, System.Text.RegularExpressions.Regex Regex, IReadOnlyList<string> Names)
+{
+    private static readonly System.Text.RegularExpressions.Regex Placeholder = new(@"\{([^{}]*)\}");
+    private static readonly System.Text.RegularExpressions.Regex ValidName = new(@"^[A-Za-z_][A-Za-z0-9_]*$");
+
+    /// <summary>The pattern, or null with the reasons in <paramref name="errors"/>: a name that is not one, or that comes twice,
+    /// would make the regex throw or a value ambiguous.</summary>
+    public static VariantPattern? Parse(string code, List<string> errors)
+    {
+        var location = new Vintagestory.API.Common.AssetLocation(code);
+        var names = new List<string>();
+        int before = errors.Count;
+        foreach (System.Text.RegularExpressions.Match m in Placeholder.Matches(location.Path))
+        {
+            var name = m.Groups[1].Value;
+            if (!ValidName.IsMatch(name)) errors.Add($"'{{{name}}}' in the code '{code}' is not a name (a letter, then letters, digits or _)");
+            else if (names.Contains(name)) errors.Add($"'{{{name}}}' comes twice in the code '{code}'");
+            else names.Add(name);
+        }
+        if (errors.Count > before) return null;
+
+        var regex = "^" + Placeholder.Replace(System.Text.RegularExpressions.Regex.Escape(location.Path).Replace("\\{", "{"),
+            m => $"(?<{m.Groups[1].Value}>[^-]+)") + "$";
+        try
+        {
+            return new VariantPattern(code, location.Domain, new(regex, System.Text.RegularExpressions.RegexOptions.CultureInvariant), names);
+        }
+        catch (ArgumentException e)
+        {
+            errors.Add($"The code '{code}' makes no pattern: {e.Message}");
+            return null;
+        }
+    }
 }
 
 /// <summary>A definition asset as read: the definition (the core's type) and the source its points come from.</summary>
@@ -59,10 +99,16 @@ public static class CollectionDefinitionReader
         var rules = Items(root, "rules", errors, required: false).Select(r => ReadRule(r, errors)).ToList();
         var exclude = Strings(root["exclude"], "exclude", errors);
         var nameKey = Text(root, "nameKey", errors, required: false);
+        var albumRecipe = Text(root, "albumRecipe", errors, required: false);
+        if (albumRecipe != null && !albumRecipe.Contains(':'))
+            errors.Add($"'albumRecipe' must name the recipe's domain ('curiocatalogue:ledger-album', not '{albumRecipe}')");
 
         if (errors.Count > 0 || source == null) return new DefinitionRead.Bad(id, errors);
-        return new DefinitionRead.Good(new ParsedDefinition(
-            new CollectionDefinition(id, dimensions!, levels!, rules!, exclude, nameKey), source));
+        var definition = new CollectionDefinition(id, dimensions!, levels!, rules!, exclude, nameKey, albumRecipe);
+        // Good means the core accepts the definition too, whatever the game has: the registry and the recipes choose among the
+        // good ones (docs/architecture.md, Collections).
+        var invalid = DefinedCollection.CheckDefinition(definition);
+        return invalid.Count > 0 ? new DefinitionRead.Bad(id, invalid) : new DefinitionRead.Good(new ParsedDefinition(definition, source));
     }
 
     private static CollectionSource? ReadSource(JToken? token, List<string> errors)
@@ -70,7 +116,9 @@ public static class CollectionDefinitionReader
         if (token is not JObject o) { errors.Add("'source' is missing or not an object"); return null; }
         switch (Text(o, "kind", errors))
         {
-            case "variants": return Text(o, "code", errors) is { } code ? new CollectionSource.Variants(code) : null;
+            case "variants":
+                return Text(o, "code", errors) is { } code && VariantPattern.Parse(code, errors) is { } pattern
+                    ? new CollectionSource.Variants(pattern) : null;
             case "tapestry": return Text(o, "block", errors) is { } block ? new CollectionSource.Tapestry(block) : null;
             case { } other: errors.Add($"Unknown source kind '{other}' (variants, tapestry)"); return null;
             default: return null;

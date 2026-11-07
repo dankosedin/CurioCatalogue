@@ -18,7 +18,7 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
         {
             var (pos, _) = TestBlocks.Place(game, "tapestry-east", s => s.Attributes.SetString("type", "ambush1"));
             var drops = World.BlockAccessor.GetBlock(pos).GetDrops(World, pos, null);
-            return (string.Join(", ", drops.Select(Describe)), Member: drops.Length == 1 && Mod.Collections.ForSample(drops[0]) != null);
+            return (string.Join(", ", drops.Select(Describe)), Member: drops.Length == 1 && Mod.Collections.Defined("tapestries") is { } c && Mod.Collections.HasMember(c, drops[0]));
         });
 
         Assert.Equal(("tapestry-north:ambush1 x1", true), seen);

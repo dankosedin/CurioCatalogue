@@ -115,7 +115,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         var seen = game.OnMain(() =>
         {
             int Count() => Pieces.Members.Count;
-            bool Has(string piece) => Mod.Collections.ForSample(Tapestry(piece)) != null;
+            bool Has(string piece) => Mod.Collections.Defined("tapestries") is { } c && Mod.Collections.HasMember(c, Tapestry(piece));
             int all = Count();
             var excluded = WithConfig(c => c.Collections["tapestries"].Exclude = ["ambush*"], () => (Count(), Has("ambush1"), Has("ambush2")));
             var added = WithConfig(c => c.Collections["tapestries"].Add = ["somemod-piece"], () => (Count(), Has("somemod-piece")));

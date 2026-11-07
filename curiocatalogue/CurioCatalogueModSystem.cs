@@ -27,6 +27,7 @@ public class CurioCatalogueModSystem : ModSystem
     private InvoicePoster? invoicePoster;
     private CollectionRegistry? collections;
     private IReadOnlyDictionary<string, CollectionSettings>? serverSettings;
+    private ProblemLog? problems;
 
     // All are made on first use, when the world and the other mod systems are surely there.
 
@@ -52,7 +53,11 @@ public class CurioCatalogueModSystem : ModSystem
 
     /// <summary>The collections (tapestries), the same on both sides.</summary>
     public CollectionRegistry Collections => collections ??=
-        new CollectionRegistry(api.World, Keys, serverSettings ?? Config.Collections, () => DefinitionAsset.OfAllDomains(api.Assets));
+        new CollectionRegistry(api.World, Keys, serverSettings ?? Config.Collections, () => DefinitionAsset.OfAllDomains(api.Assets), Problems);
+
+    /// <summary>Problems with the collections' definitions and settings, each logged once in the session (the registry is built
+    /// again after the server's settings arrive).</summary>
+    private ProblemLog Problems => problems ??= new ProblemLog(api.Logger);
 
     /// <summary>Client: the server's <c>Collections</c> config arrived (on join). The registry is built again on next use, from it instead
     /// of this machine's file.</summary>
@@ -77,7 +82,7 @@ public class CurioCatalogueModSystem : ModSystem
 
     public override void AssetsFinalize(ICoreAPI api)
     {
-        if (api is ICoreServerAPI) AlbumRecipes.RemoveOfDisabled(api, Config.Collections);
+        if (api is ICoreServerAPI) AlbumRecipes.RemoveOfDisabled(api, Config.Collections, DefinitionAsset.OfAllDomains(api.Assets), Problems);
         // Hints are drawn by the client, and behaviors added in code are not sent to it (checked in game 26.10.2026:
         // 63 blocks on the server, 0 on the client), so the client adds them itself. The server does not need them.
         if (api.Side == EnumAppSide.Client) LedgerHintsBehavior.AddTo(api);

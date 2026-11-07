@@ -172,8 +172,15 @@ members, the resolver, the packet and the recipe of a disabled collection are in
 free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
   complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
-  `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}". A definition that does not read, or that the core refuses, is logged as an error
-  and skipped; the other collections work. A second definition with an id already seen (another domain) is ignored, with an error.
+  `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",
+  `albumRecipe`: the grid recipe that makes its album, by name with the domain (`curiocatalogue:ledger-album`). A definition that
+  does not read, or that the core refuses (`DefinedCollection.CheckDefinition`, also called by the reader: e.g. a level dropping
+  as `max` a dimension with no `values`, an empty level id), is logged as an error and skipped; the other collections work. Of
+  the good definitions of one id the first is used, ours (`curiocatalogue`) before other domains, then the game's asset order; the
+  others are logged as errors (K7, 11-07: a broken copy must not shadow a good one, and the asset order is not ours to choose).
+  Each collection is built inside a guard that logs whatever it throws and skips it, and each problem is logged once per session
+  (`ProblemLog`), however often the registry is rebuilt. A config id no definition has, and `Add` on a `variants` collection,
+  are warnings.
   The registry builds a collection on first use, and none when its source finds no point (no tapestry block, no such variants:
   a mod's collection without the mod); `Defined(id)` gives it. The config's `Exclude` joins the
   definition's own, so it also leaves out an `Add`ed piece it matches (0.1 did not); `Add` is for the `tapestry` source (a piece,
@@ -227,10 +234,14 @@ free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   client, and a patch of a definition must not be `"side": "server"`, or the client does not know the collection (to say in the
   README's part for modders). Rejected: sending the server's definitions in the packet too (one source, but more code for a
   mistake the modder can avoid).
-  The recipe of a disabled collection is removed from the server's recipes at load (K1: in `AssetsFinalize` or `StartServerSide`,
-  out of `GridRecipes` and `Enabled = false`, found by its file's `Name`; `docs/modding.md`, Recipes), so clients never get it;
-  else it makes nothing. Each vanilla collection has its album recipe in our assets (an empty book and any
-  member, which stays); another mod's collection brings its own, and the collection is found by the sample.
+  **The album recipe is named by the definition** (`albumRecipe`; K7, 11-07, replacing a table in C#), so a mod brings a collection
+  with its album by JSON alone: its definition and a grid recipe of an empty book and any member (which stays). The registry maps
+  recipes to collections from every good definition, switched-off ones included (`AlbumOf`; a recipe two definitions name is the
+  first's, logged); the book asks it whether a recipe makes an album and of which collection, and the sample must be a member of
+  that collection, or there is no output. The recipe of a disabled collection is removed from the server's recipes at load
+  (K1: in `AssetsFinalize` or `StartServerSide`, out of `GridRecipes` and `Enabled = false`; `docs/modding.md`, Recipes), so
+  clients never get it. `AlbumRecipes` reads the definitions itself there, choosing as the registry does, but builds no
+  collection (that needs the world's blocks); it takes out recipes of any domain.
 
 #### Client and server
 

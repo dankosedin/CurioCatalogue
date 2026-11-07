@@ -15,7 +15,8 @@ namespace CurioCatalogue.Core;
 /// </summary>
 /// <param name="Values">The order of the values, lowest first. A value the source finds but the list lacks comes after the
 /// listed ones, by code, ranks below all of them for <see cref="Drop.Max"/>, and gives a warning. An empty list means the
-/// order in which the source gives its points, with no warning (tapestries: the order of the block's <c>sizes</c>).</param>
+/// order in which the source gives its points, with no warning (tapestries: the order of the block's <c>sizes</c>); such a
+/// dimension cannot be dropped as <see cref="Drop.Max"/>, which needs an order of its own.</param>
 /// <param name="NameKey">A lang key for a value's name, <c>{value}</c> replaced by the value (<c>game:ore-{value}</c>); null
 /// when the values have no names.</param>
 /// <param name="Icon">An item code for a value's icon, <c>{value}</c> replaced (<c>game:rock-{value}</c>); null when none.</param>
@@ -94,13 +95,17 @@ public sealed record AttributeRule(IReadOnlyDictionary<string, IReadOnlyList<str
 /// </summary>
 /// <param name="Exclude">Patterns (<c>*</c> for any text) on the source's own name of a point (a code without domain, a
 /// tapestry piece's name); points that match are not in the collection.</param>
+/// <param name="AlbumRecipe">The grid recipe that makes an album of this collection, by its name with the domain
+/// (<c>curiocatalogue:ledger-album</c>); null when the collection has none. The core only carries it: the adapters find the
+/// recipe and take it away when the collection is switched off.</param>
 public sealed record CollectionDefinition(
     string Id,
     IReadOnlyList<DimensionDef> Dimensions,
     IReadOnlyList<LevelDef> Levels,
     IReadOnlyList<AttributeRule> Rules,
     IReadOnlyList<string> Exclude,
-    string? NameKey = null);
+    string? NameKey = null,
+    string? AlbumRecipe = null);
 
 /// <summary>A point the source found: its own name (for exclusions), its value in each dimension, the item that fills it, a
 /// sample stack to show (the game's ItemStack; the core never reads it) and attributes the source knows (a piece's x and y).</summary>

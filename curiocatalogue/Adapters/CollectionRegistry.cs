@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Vintagestory.API.Common;
 using CurioCatalogue.Core;
 
@@ -21,23 +20,27 @@ public sealed class CollectionRegistry
     /// <summary>Where the definitions are, in every domain.</summary>
     public const string DefinitionsPath = "config/curiocatalogue/collections/";
 
-    public static readonly AssetLocation TapestryCode = new("game", "tapestry-north");
-
     private readonly IWorldAccessor world;
     private readonly StackKeys keys;
     private readonly IReadOnlyDictionary<string, CollectionSettings> settings;
     private readonly Func<IEnumerable<DefinitionAsset>> definitions;
+    private readonly ProblemLog problems;
+    private IReadOnlyList<ChosenDefinition>? chosen;
+    private IReadOnlyDictionary<AssetLocation, string>? albumRecipes;
     private IReadOnlyDictionary<string, DefinedCollection>? defined;
 
     /// <param name="definitions">The definition assets of every domain, patches applied (<see cref="DefinitionsPath"/>); read when the
     /// registry is first used. A function of our own, not the game's asset manager: its interfaces cannot be mocked outside the game.</param>
+    /// <param name="problems">Where problems with the definitions and settings are written, once per session; by default a log of
+    /// this registry's own.</param>
     public CollectionRegistry(IWorldAccessor world, StackKeys keys, IReadOnlyDictionary<string, CollectionSettings> settings,
-        Func<IEnumerable<DefinitionAsset>> definitions)
+        Func<IEnumerable<DefinitionAsset>> definitions, ProblemLog? problems = null)
     {
         this.world = world;
         this.keys = keys;
         this.settings = settings;
         this.definitions = definitions;
+        this.problems = problems ?? new ProblemLog(world.Api.Logger);
     }
 
     /// <summary>The collections that are on and have members, by id.</summary>
@@ -52,37 +55,88 @@ public sealed class CollectionRegistry
         : Defined(id) is { } found ? new CollectionResolution.Found(found)
         : new CollectionResolution.Unknown(id);
 
-    /// <summary>The collection a sample item fills a member of, at any level (the album recipe), or null. The first, in the order
-    /// the definitions were read, once there are several.</summary>
-    public DefinedCollection? ForSample(ItemStack sample)
+    /// <summary>The id of the collection whose album <paramref name="recipe"/> makes (the definition's <c>albumRecipe</c>), switched
+    /// off or not; null for any other recipe. Needs no collection built, only the definitions.</summary>
+    public string? AlbumOf(AssetLocation? recipe) =>
+        recipe != null && (albumRecipes ??= AlbumRecipeMap(Chosen, problems)).TryGetValue(recipe, out var id) ? id : null;
+
+    /// <summary>Whether the stack fills a member of the collection at any of its levels (the sample of an album recipe).</summary>
+    public bool HasMember(DefinedCollection collection, ItemStack stack)
     {
-        var key = keys.KeyOf(sample);
-        return All.Values.FirstOrDefault(c => c.Levels.Any(l => l.MemberOf(key) != null));
+        var key = keys.KeyOf(stack);
+        return collection.Levels.Any(l => l.MemberOf(key) != null);
     }
+
+    private IReadOnlyList<ChosenDefinition> Chosen => chosen ??= Choose(definitions(), problems);
+
+    // ---- the definitions: which one of an id is used
+
+    /// <summary>
+    /// The definition used for each id: of the assets that read well (<see cref="DefinitionRead.Good"/>), ours (domain
+    /// <c>curiocatalogue</c>) first, then in the order the game gives them. A bad one is logged and does not take the id; a good one
+    /// after the first is logged and ignored. The registry and the album recipes at load both choose this way, so they agree.
+    /// </summary>
+    public static IReadOnlyList<ChosenDefinition> Choose(IEnumerable<DefinitionAsset> assets, ProblemLog problems)
+    {
+        var chosen = new Dictionary<string, ChosenDefinition>();
+        var order = new List<string>();
+        var jsons = assets
+            .Where(a => a.Location.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(a => a.Location.Domain == CurioCatalogueModSystem.ModId ? 0 : 1); // stable: the game's order otherwise
+        foreach (var asset in jsons)
+        {
+            var id = System.IO.Path.GetFileNameWithoutExtension(asset.Location.Path);
+            var origin = asset.Location.ToString();
+            switch (CollectionDefinitionReader.Read(id, asset.Text))
+            {
+                case DefinitionRead.Bad bad:
+                    problems.Error($"collection '{id}' ({origin}) cannot be used: {string.Join("; ", bad.Errors)}");
+                    break;
+                case DefinitionRead.Good when chosen.TryGetValue(id, out var first):
+                    problems.Error($"collection '{id}' is defined twice ({first.Origin} and {origin}); the second is ignored");
+                    break;
+                case DefinitionRead.Good good:
+                    chosen[id] = new ChosenDefinition(good.Definition, origin);
+                    order.Add(id);
+                    break;
+            }
+        }
+        return order.Select(id => chosen[id]).ToList();
+    }
+
+    /// <summary>The album recipes of the definitions, recipe → collection id; a recipe two definitions name is the first's.</summary>
+    public static IReadOnlyDictionary<AssetLocation, string> AlbumRecipeMap(IEnumerable<ChosenDefinition> chosen, ProblemLog problems)
+    {
+        var map = new Dictionary<AssetLocation, string>();
+        foreach (var c in chosen)
+        {
+            if (c.Parsed.Definition.AlbumRecipe is not { } name) continue;
+            var recipe = new AssetLocation(name);
+            if (map.TryGetValue(recipe, out var other))
+                problems.Error($"collection '{c.Parsed.Definition.Id}' ({c.Origin}) names the album recipe {recipe}, which is already '{other}''s; it gets none");
+            else map[recipe] = c.Parsed.Definition.Id;
+        }
+        return map;
+    }
+
+    // ---- building
 
     private Dictionary<string, DefinedCollection> Load()
     {
         var result = new Dictionary<string, DefinedCollection>();
-        var seen = new Dictionary<string, string>();
-        foreach (var asset in definitions())
-        {
-            if (!asset.Location.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) continue;
-            var id = System.IO.Path.GetFileNameWithoutExtension(asset.Location.Path);
-            var origin = asset.Location.ToString();
-            if (!seen.TryAdd(id, origin))
-            {
-                Problem(true, $"collection '{id}' is defined twice ({seen[id]} and {origin}); the second is ignored");
-                continue;
-            }
+        foreach (var id in settings.Keys.Where(id => Chosen.All(c => c.Parsed.Definition.Id != id)))
+            problems.Warning($"Collections.{id} in the config: no collection has this id (a mod removed, or a typo?)");
 
-            switch (CollectionDefinitionReader.Read(id, asset.Text))
+        foreach (var c in Chosen)
+        {
+            // A guard: whatever a definition or the game's data does, the other collections still work.
+            try
             {
-                case DefinitionRead.Bad bad:
-                    Problem(true, $"collection '{id}' ({origin}) cannot be used: {string.Join("; ", bad.Errors)}");
-                    continue;
-                case DefinitionRead.Good good:
-                    if (Build(good.Definition, origin) is { } collection) result[id] = collection;
-                    break;
+                if (Build(c.Parsed, c.Origin) is { } collection) result[collection.Id] = collection;
+            }
+            catch (Exception e)
+            {
+                problems.Error($"collection '{c.Parsed.Definition.Id}' ({c.Origin}) cannot be used: {e.GetType().Name}: {e.Message}");
             }
         }
         return result;
@@ -97,17 +151,10 @@ public sealed class CollectionRegistry
             ModLog.Debug(world.Api, $"collection {id} is disabled in the config");
             return null;
         }
+        if (parsed.Source is CollectionSource.Variants && config.Add.Length > 0)
+            problems.Warning($"Collections.{id}.Add in the config is ignored: only a tapestry collection can add a member by name");
 
-        List<SourcePoint>? points;
-        try
-        {
-            points = Points(parsed.Source, config.Add);
-        }
-        catch (FormatException e)
-        {
-            Problem(true, $"collection '{id}' ({origin}) cannot be used: {e.Message}");
-            return null;
-        }
+        var points = Points(parsed.Source, config.Add);
         if (points == null || points.Count == 0)
         {
             ModLog.Debug(world.Api, $"collection {id}: its source finds nothing, so there is no collection");
@@ -119,10 +166,10 @@ public sealed class CollectionRegistry
         switch (build)
         {
             case CollectionBuild.Invalid invalid:
-                Problem(true, $"collection '{id}' ({origin}) cannot be used: {string.Join("; ", invalid.Errors)}");
+                problems.Error($"collection '{id}' ({origin}) cannot be used: {string.Join("; ", invalid.Errors)}");
                 return null;
             case CollectionBuild.Built built:
-                foreach (var warning in built.Warnings) Problem(false, $"collection '{id}': {warning}");
+                foreach (var warning in built.Warnings) problems.Warning($"collection '{id}': {warning}");
                 ModLog.Debug(world.Api, $"collection {id}: {string.Join(", ", built.Collection.Levels.Select(l => $"{l.Id} {l.Members.Count} members"))}");
                 return built.Collection;
             default:
@@ -130,16 +177,10 @@ public sealed class CollectionRegistry
         }
     }
 
-    private void Problem(bool error, string text)
-    {
-        if (error) world.Api.Logger.Error("[CurioCatalogue] {0}", text);
-        else world.Api.Logger.Warning("[CurioCatalogue] {0}", text);
-    }
-
     private List<SourcePoint>? Points(CollectionSource source, IReadOnlyList<string> add) => source switch
     {
         CollectionSource.Tapestry t => TapestryPoints(t, add),
-        CollectionSource.Variants v => VariantPoints(v),
+        CollectionSource.Variants v => VariantPoints(v.Pattern),
         _ => throw ExhaustiveMatching.ExhaustiveMatch.Failed(source),
     };
 
@@ -148,7 +189,8 @@ public sealed class CollectionRegistry
     /// Assumption: a piece is the block with its name in the string attribute "type". A tapestry taken off a
     /// wall of any side drops as tapestry-north (vssurvivalmod BehaviorHorizontalAttachable.cs:66, dropBlockFace defaults to
     /// "north"; modding.md, Vanilla content we rely on). Only creative pick block gives another side (vssurvivalmod
-    /// BlockTapestry.cs#OnPickBlock, "new ItemStack(this)"), and such a stack is not a member.
+    /// BlockTapestry.cs#OnPickBlock, "new ItemStack(this)"), and such a stack is not a member. A "sizes" of another shape throws,
+    /// and the guard in <see cref="Load"/> logs it.
     /// </summary>
     private List<SourcePoint>? TapestryPoints(CollectionSource.Tapestry source, IReadOnlyList<string> add)
     {
@@ -173,32 +215,24 @@ public sealed class CollectionRegistry
             }).ToList();
     }
 
-    /// <summary>
-    /// Every registered item and block whose code fits the pattern; each <c>{name}</c> of the pattern takes the text between dashes
-    /// (<c>[^-]+</c>) and is that dimension's value. The point's name is the code without domain.
-    /// </summary>
-    private List<SourcePoint> VariantPoints(CollectionSource.Variants source)
+    /// <summary>Every registered item and block whose code fits the pattern. The point's name is the code without domain.</summary>
+    private List<SourcePoint> VariantPoints(VariantPattern pattern)
     {
-        var pattern = new AssetLocation(source.Code);
-        var names = new List<string>();
-        var regex = new Regex("^" + Regex.Replace(Regex.Escape(pattern.Path).Replace("\\{", "{"), @"\{(\w+)\}", m =>
-        {
-            names.Add(m.Groups[1].Value);
-            return $"(?<{m.Groups[1].Value}>[^-]+)";
-        }) + "$", RegexOptions.CultureInvariant);
-
         var points = new List<SourcePoint>();
         foreach (var collectible in world.Collectibles)
         {
             if (collectible?.Code == null || collectible.Code.Domain != pattern.Domain) continue;
-            var match = regex.Match(collectible.Code.Path);
+            var match = pattern.Regex.Match(collectible.Code.Path);
             if (!match.Success) continue;
             var stack = new ItemStack(collectible);
-            points.Add(new SourcePoint(collectible.Code.Path, names.ToDictionary(n => n, n => match.Groups[n].Value), keys.KeyOf(stack), stack));
+            points.Add(new SourcePoint(collectible.Code.Path, pattern.Names.ToDictionary(n => n, n => match.Groups[n].Value), keys.KeyOf(stack), stack));
         }
         return points;
     }
 }
+
+/// <summary>The definition used for an id, and the asset it came from (for the log).</summary>
+public sealed record ChosenDefinition(ParsedDefinition Parsed, string Origin);
 
 /// <summary>A definition asset: where it is and what it says.</summary>
 public sealed record DefinitionAsset(AssetLocation Location, string Text)

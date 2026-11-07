@@ -141,6 +141,34 @@ public class RecipeTests(GameServerFixture game)
     }
 
     [Fact]
+    public void Switching_tapestries_off_takes_exactly_their_album_recipes_out_of_the_loaded_ones()
+    {
+        // K7 (P3): the removal at load (AlbumRecipes.RemoveOfDisabled) on a copy of the server's real list, with the album recipes
+        // read from the real definitions. The recipes themselves are shared with the server (CraftingTests needs them), so the
+        // ones switched off are switched on again.
+        var (removed, albumNames, left, total) = game.OnMain(() =>
+        {
+            var problems = new CurioCatalogue.ProblemLog(game.Api.Logger);
+            var albums = CurioCatalogue.Adapters.CollectionRegistry.AlbumRecipeMap(
+                CurioCatalogue.Adapters.CollectionRegistry.Choose(CurioCatalogue.Adapters.DefinitionAsset.OfAllDomains(game.Api.Assets), problems), problems);
+            var copy = game.Api.World.GridRecipes.ToList();
+            int total = copy.Count;
+            var before = copy.ToList();
+            int removed = CurioCatalogue.Adapters.AlbumRecipes.Remove(copy, albums, new HashSet<string> { "tapestries" });
+            var gone = before.Except(copy).ToList();
+            var result = (removed, gone.Select(r => r.Name?.ToString()).Distinct().ToList(), copy.Count(r => r.Name?.Path == "ledger-album"), total);
+            foreach (var r in gone) r.Enabled = true;
+            return result;
+        });
+
+        Assert.Equal(OfName("ledger-album", r => r).Count, removed);
+        Assert.True(removed > 0, "no album recipe was found");
+        Assert.Equal(["curiocatalogue:ledger-album"], albumNames);
+        Assert.Equal(0, left);
+        Assert.True(game.OnMain(() => game.Api.World.GridRecipes.Count) == total, "the server's own list is untouched");
+    }
+
+    [Fact]
     public void All_our_recipes_are_covered_by_a_test_above()
     {
         // A new recipe name in the JSON without a test here would pass unseen.

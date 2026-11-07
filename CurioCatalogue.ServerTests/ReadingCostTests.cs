@@ -65,7 +65,7 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
 
         game.OnMain(() => WithConfig(c => c.Collections["tapestries"].Add = Extra(extra), () =>
         {
-            var collection = Mod.Collections.ForSample(Tapestry("ambush1"))!;
+            var collection = Mod.Collections.Defined("tapestries")!;
             int members = collection.Levels[0].Members.Count;
             // The largest album is the one that collected everything.
             var full = AlbumWith(collection, members);

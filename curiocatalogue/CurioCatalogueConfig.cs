@@ -104,6 +104,13 @@ public class CurioCatalogueConfig
             fixes.Add($"{name} is null, using an empty list");
             return [];
         }
+        // A null inside a list (a stray comma in a hand-edited file) would break the collection's patterns (K7, R1).
+        string[] NoNulls(string name, string[] list)
+        {
+            if (!list.Contains(null)) return list;
+            fixes.Add($"{name} has an empty entry (null), dropped");
+            return list.Where(s => s != null).ToArray();
+        }
 
         MaxSheets = AtLeastOne(nameof(MaxSheets), MaxSheets);
         SoftEntryLimit = AtLeastOne(nameof(SoftEntryLimit), SoftEntryLimit);
@@ -121,8 +128,10 @@ public class CurioCatalogueConfig
                 Collections[id] = new();
             }
             var settings = Collections[id];
-            settings.Exclude = NotNull($"{nameof(Collections)}.{id}.{nameof(CollectionSettings.Exclude)}", settings.Exclude);
-            settings.Add = NotNull($"{nameof(Collections)}.{id}.{nameof(CollectionSettings.Add)}", settings.Add);
+            settings.Exclude = NoNulls($"{nameof(Collections)}.{id}.{nameof(CollectionSettings.Exclude)}",
+                NotNull($"{nameof(Collections)}.{id}.{nameof(CollectionSettings.Exclude)}", settings.Exclude));
+            settings.Add = NoNulls($"{nameof(Collections)}.{id}.{nameof(CollectionSettings.Add)}",
+                NotNull($"{nameof(Collections)}.{id}.{nameof(CollectionSettings.Add)}", settings.Add));
         }
         return fixes;
     }

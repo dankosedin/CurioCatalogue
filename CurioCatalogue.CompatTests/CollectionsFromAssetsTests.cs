@@ -53,10 +53,11 @@ public class CollectionsFromAssetsTests(CompatServerFixture server) : BookTestBa
     [Fact]
     public void Every_collection_of_the_registry_is_found_by_its_samples_and_by_nothing_else()
     {
+        string? Of(ItemStack s) => Mod.Collections.All.Values.FirstOrDefault(c => Mod.Collections.HasMember(c, s))?.Id;
         var seen = game.OnMain(() => (
-            Mod.Collections.ForSample(Tapestry("ambush1"))?.Id,
-            Mod.Collections.ForSample(Vanilla("ingot-copper"))?.Id,
-            Mod.Collections.ForSample(Vanilla("ingot-iron"))?.Id));
+            Of(Tapestry("ambush1")),
+            Of(Vanilla("ingot-copper")),
+            Of(Vanilla("ingot-iron"))));
 
         Assert.Equal(("tapestries", "ingots", null), seen);
     }

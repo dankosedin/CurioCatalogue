@@ -357,6 +357,12 @@ public class DefinedCollectionTests
         { "lists 'plain' twice", Seashells with { Dimensions = [new DimensionDef("type", ShellTypes), new DimensionDef("color", ["plain", "plain"])] } },
         { "unknown dimension 'colour'", Seashells with
             { Rules = [new AttributeRule(new Dictionary<string, IReadOnlyList<string>> { ["colour"] = ["plain"] }, V())] } },
+        // K7 (T3): max with no list of values would follow the source's order, for variants the world's item ids.
+        { "drops 'color' as max, but the dimension lists no values", Seashells with
+            { Dimensions = [new DimensionDef("type", ShellTypes), new DimensionDef("color", [])],
+              Levels = [new LevelDef("x", ["type"], D(("color", Drop.Max)), [])] } },
+        // K7: an album with no level chosen stores "".
+        { "A level has an empty id", Seashells with { Levels = [new LevelDef("", ["type", "color"], D(), [])] } },
     };
 
     [Theory]

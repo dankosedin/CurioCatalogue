@@ -161,7 +161,9 @@ with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `sympt
 
 ## Recipes
 
-Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one slideshow.
+Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one slideshow. The album recipe of a collection is
+the one its definition names (`albumRecipe`, e.g. `curiocatalogue:ledger-album` for the tapestries), so a collection from another
+mod brings its own; the item put in must be a member of that collection.
 
 | Group | Recipe | Result |
 |---|---|---|

@@ -195,7 +195,6 @@ public class ItemLedger : Item
     private const string RestoreRecipe = "ledger-restore";
     private const string SwitchModeRecipe = "ledger-switchmode";
     private const string RechargeRecipe = "ledger-recharge";
-    private const string AlbumRecipe = "ledger-album";
     private const string RecolorRecipe = "ledger-recolor";
 
     /// <summary>Sheets of a new ledger (domain.md, Recipes).</summary>
@@ -203,6 +202,9 @@ public class ItemLedger : Item
     private const int RestoreSheets = 32;
 
     private static bool Is(IRecipeBase recipe, string name) => recipe.Name?.Path == name;
+
+    /// <summary>An album recipe of any collection, of any domain: the one a definition names (<c>albumRecipe</c>).</summary>
+    private bool IsAlbumRecipe(IRecipeBase recipe) => Mod.Collections.AlbumOf(recipe.Name) != null;
 
     private Book Read(ItemStack stack) => Mod.Store.ReadBook(stack, ((ItemLedger)stack.Collectible).LedgerMode);
 
@@ -218,7 +220,7 @@ public class ItemLedger : Item
         if (Is(recipe, SwitchModeRecipe)) return Read(inputStack) is Ledger { IsEmpty: true };
         if (Is(recipe, RechargeRecipe)) return Read(inputStack).Sheets < Mod.Config.MaxSheets;
         // An album is made from an empty ledger (domain.md, Recipes).
-        if (Is(recipe, AlbumRecipe)) return Read(inputStack).IsEmpty;
+        if (IsAlbumRecipe(recipe)) return Read(inputStack).IsEmpty;
         // Dyed leather for the colour the book already has would only be wasted.
         if (Is(recipe, RecolorRecipe)) return recipe.RecipeOutput?.ResolvedItemStack?.Collectible is ItemLedger output && output.Cover != Cover;
         return true;
@@ -248,9 +250,9 @@ public class ItemLedger : Item
             return;
         }
 
-        if (Is(byRecipe, AlbumRecipe))
+        if (Mod.Collections.AlbumOf(byRecipe.Name) is { } collectionId)
         {
-            MakeAlbum(allInputSlots, outputSlot);
+            MakeAlbum(allInputSlots, outputSlot, collectionId);
             return;
         }
 
@@ -260,15 +262,16 @@ public class ItemLedger : Item
     }
 
     /// <summary>
-    /// A new album of the sample's collection, nothing collected (the level chosen only if the collection has one); sheets and name
+    /// A new album of the recipe's collection, nothing collected (the level chosen only if the collection has one); sheets and name
     /// come from the ledger it is made from (the recipe copied them). An album follows its collection by itself: it stores what it
-    /// collected, and what is missing is computed. No collection for the sample (should not happen): no output.
+    /// collected, and what is missing is computed. The sample must be a member of that collection (a recipe's ingredient may be wider
+    /// than the collection: an excluded piece); else, or with the collection off or gone, no output.
     /// </summary>
-    private void MakeAlbum(ItemSlot[] inputSlots, ItemSlot outputSlot)
+    private void MakeAlbum(ItemSlot[] inputSlots, ItemSlot outputSlot, string collectionId)
     {
         var sample = System.Array.Find(inputSlots, s => s.Itemstack is { } st && st.Collectible is not ItemLedger)?.Itemstack;
-        var collection = sample == null ? null : Mod.Collections.ForSample(sample);
-        if (collection == null)
+        if (sample == null || Mod.Collections.Resolve(collectionId) is not CollectionResolution.Found { Value: var collection }
+            || !Mod.Collections.HasMember(collection, sample))
         {
             outputSlot.Itemstack = null;
             return;

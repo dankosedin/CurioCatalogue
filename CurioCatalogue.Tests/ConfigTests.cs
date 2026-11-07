@@ -43,6 +43,21 @@ public class ConfigTests
     }
 
     [Fact]
+    public void A_null_inside_a_collections_list_is_dropped()
+    {
+        // K7 (R1, C1): [ "aid-*", null ] in the file (a stray comma) reads with the null kept (Newtonsoft's default), and a null
+        // pattern would throw when the collection is built.
+        var config = Newtonsoft.Json.JsonConvert.DeserializeObject<CurioCatalogueConfig>(
+            """{ "Collections": { "tapestries": { "Exclude": [ "aid-*", null ], "Add": [ null ] } } }""")!;
+
+        var fixes = config.Correct();
+
+        Assert.Equal(2, fixes.Count);
+        Assert.Equal(["aid-*"], config.Collections["tapestries"].Exclude);
+        Assert.Empty(config.Collections["tapestries"].Add);
+    }
+
+    [Fact]
     public void The_tapestry_settings_of_0_1_move_into_the_collections_section_and_are_cleared()
     {
         var config = new CurioCatalogueConfig { TapestryExclude = ["aid-*"], TapestryAdd = ["mymod-banner"] };

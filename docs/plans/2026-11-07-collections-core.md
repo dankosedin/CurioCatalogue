@@ -81,7 +81,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       test projects pass; the branch goes to `main` by a pull request.
       The round ran and the author went through the findings (07.11.2026, Decisions, "The code review (K7)"); the fixes are
       K7a–K7c, then the lessons, the tests and the pull request.
-  - [ ] **K7a. Registry, definitions, the album recipe.** R1, R2, R4, T3, the empty level id, H2, C2, P1–P3 of the Decisions;
+  - [x] **K7a. Registry, definitions, the album recipe.** R1, R2, R4, T3, the empty level id, H2, C2, P1–P3 of the Decisions;
         the Teammate's and QA's registry tests. Model: opus. Done when: tests pass, the new ones fail on the old code;
         `docs/domain.md` (Recipes, the definition's `albumRecipe`) and `docs/architecture.md` (the recipe rule) say it.
   - [ ] **K7b. Albums, want lists, the packet.** M1+M3, W1, H6, A9/C7, H14, T4; QA's tests for M1, Q3, Q4, Q8. Model: opus.
@@ -272,6 +272,15 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     computed again): the names are a known debt, not worth a rename now. *Later:* H8/H9 (the resolve ladder in four places, two
     "first filler" algorithms) to `ROADMAP.md`, for when new collections come; A5 (the filler chosen before room is known) to the
     seashells; A8 (`Member.Fills`/`Shown`) to item 4.
+  - *How K7a did it (07.11.2026, final; the AI assistant, within the decisions above).* "Good" is decided by the definition alone:
+    the reader's JSON checks, the variants pattern (`VariantPattern.Parse`: a `{name}` must be a name and come once) and the core's
+    `DefinedCollection.CheckDefinition`, which the reader now calls (T3 and the empty level id live there, so a core user gets them
+    too). So the registry and `AlbumRecipes` choose the same definition (`CollectionRegistry.Choose`) without the world; a good
+    definition whose points then fail (a `sizes` of another shape, a key in two members) is logged by the build and does not hand
+    its id to the next copy. `ProblemLog` (in `ModLog.cs`) is held by the mod system for the session. `null` in the config's lists
+    is dropped by `Correct()` with a line in the log. `ForSample` is gone: `AlbumOf(recipe)` gives the collection id and
+    `HasMember` checks the sample; the test helpers use `Defined("tapestries")`. `albumRecipe` must name its domain (else the
+    definition is bad).
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -304,3 +313,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   (opus, After: K6).
 - 07.11.2026: K7 review round done: five roles, findings merged; the author went through all seven groups (Decisions, "The code
   review (K7)"). Nothing in the code changed yet. Next: K7a (opus), then K7b (opus), K7c (sonnet), then the pull request.
+- 07.11.2026: K7a done (final): R1, R2, R4, T3, the empty level id, H2, C2, P1–P3; the Teammate's and QA's registry tests taken.
+  All five test projects green (Core 133, Tests 211, PageGen 33, Compat 23, Server 192); mutations caught (the guard, ours first,
+  logged once, nulls in the config, removing only the disabled's recipe, T3, the empty level id). No in-game check: C3 crafts the
+  album as before (`CraftingTests`). Next: K7b (opus).

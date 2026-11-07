@@ -148,3 +148,7 @@ which build, who ran it, and each `❌` with its reason.
 - `nolevel`, `levelfixed`: an album of a collection with several levels (none in the game before the collections of 0.2's item 4)
   takes nothing and makes no want list until a level is chosen in its window; the first piece fixes the level, "Start over" frees
   it. ⚙ `CollectionsFromAssetsTests` (a test mod's collection of two levels), `AlbumTests`. In game with the first collection of levels.
+- A broken collection definition (bad JSON, a pattern naming a dimension twice, `max` on a dimension with no `values`, a block
+  whose `sizes` is of another shape, a null in the config's lists) is logged once and skipped; the other collections work, and a
+  good copy of the same id from another mod is used. Another mod's album recipe, named by its definition, makes its album and is
+  taken out when its collection is switched off. ⚙ `CollectionRegistryTests`, `AlbumRecipesTests`, `ConfigTests`, `RecipeTests` (0.2.0, K7).

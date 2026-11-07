@@ -45,8 +45,12 @@ public class CollectionRegistryTests
     private static CollectionLevel? Pieces(CollectionRegistry registry) => registry.Defined(CollectionRegistry.TapestriesId)?.Levels.Single();
 
     /// <summary>The lines the registry logged as errors: the format and its arguments, joined.</summary>
-    private List<string> Errors() => game.Api.Logger.ReceivedCalls()
-        .Where(c => c.GetMethodInfo().Name == nameof(ILogger.Error))
+    private List<string> Errors() => Logged(nameof(ILogger.Error));
+
+    private List<string> Warnings() => Logged(nameof(ILogger.Warning));
+
+    private List<string> Logged(string method) => game.Api.Logger.ReceivedCalls()
+        .Where(c => c.GetMethodInfo().Name == method)
         .Select(c => string.Join(" ", c.GetArguments().SelectMany(a => a is object?[] arguments ? arguments : [a]).Select(a => a?.ToString())))
         .ToList();
 
@@ -87,8 +91,9 @@ public class CollectionRegistryTests
         var registry = Registry(new() { Disabled = true });
 
         Assert.Null(Pieces(registry));
-        Assert.Null(registry.ForSample(Tapestry("ambush1")));
         Assert.Empty(registry.All);
+        // Its album recipe is still known as its own: the server takes it away at load (AlbumRecipes).
+        Assert.Equal(CollectionRegistry.TapestriesId, registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-album")));
     }
 
     [Fact]
@@ -109,9 +114,50 @@ public class CollectionRegistryTests
     public void A_tapestry_belongs_to_the_tapestry_collection_and_others_do_not()
     {
         var registry = Registry();
-        Assert.Equal(CollectionRegistry.TapestriesId, registry.ForSample(Tapestry("ambush1"))?.Id);
-        Assert.Null(registry.ForSample(new ItemStack(game.Item("ingot-iron"))));
-        Assert.Null(registry.ForSample(Tapestry("not-a-piece")));
+        var tapestries = registry.Defined(CollectionRegistry.TapestriesId)!;
+        Assert.True(registry.HasMember(tapestries, Tapestry("ambush1")));
+        Assert.False(registry.HasMember(tapestries, new ItemStack(game.Item("ingot-iron"))));
+        Assert.False(registry.HasMember(tapestries, Tapestry("not-a-piece")));
+    }
+
+    // ---- the album recipe (K7, P1): named by the definition
+
+    [Fact]
+    public void The_album_recipe_is_the_one_the_definition_names_and_no_other()
+    {
+        var registry = Registry();
+
+        Assert.Equal(CollectionRegistry.TapestriesId, registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-album")));
+        Assert.Null(registry.AlbumOf(new AssetLocation("othermod", "ledger-album")));
+        Assert.Null(registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-fallback")));
+        Assert.Null(registry.AlbumOf(null));
+    }
+
+    [Fact]
+    public void Another_mods_collection_brings_its_album_recipe_by_json_alone()
+    {
+        Add("othermod", "ores", Ores.Replace("\"exclude\"", "\"albumRecipe\": \"othermod:album-ores\", \"exclude\""));
+
+        Assert.Equal("ores", Registry().AlbumOf(new AssetLocation("othermod", "album-ores")));
+    }
+
+    [Fact]
+    public void A_recipe_two_definitions_claim_is_the_first_ones_and_logged()
+    {
+        Add("othermod", "ores", Ores.Replace("\"exclude\"", "\"albumRecipe\": \"curiocatalogue:ledger-album\", \"exclude\""));
+
+        Assert.Equal(CollectionRegistry.TapestriesId, Registry().AlbumOf(new AssetLocation("curiocatalogue", "ledger-album")));
+        Assert.Contains(Errors(), e => e.Contains("collection 'ores'") && e.Contains("already 'tapestries''s"));
+    }
+
+    [Fact]
+    public void An_album_recipe_without_its_domain_makes_the_definition_bad()
+    {
+        Add("othermod", "ores", Ores.Replace("\"exclude\"", "\"albumRecipe\": \"album-ores\", \"exclude\""));
+        Codes("crystalizedore-rich-quartz-basalt");
+
+        Assert.Null(Registry().Defined("ores"));
+        Assert.Contains(Errors(), e => e.Contains("collection 'ores'") && e.Contains("albumRecipe"));
     }
 
     [Fact]
@@ -197,16 +243,101 @@ public class CollectionRegistryTests
     [InlineData("{ not json")]
     [InlineData("""{ "source": { "kind": "nowhere" }, "dimensions": [], "levels": [] }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "drop": { "b": "any" } } ] }""")]
+    // A pattern naming one dimension twice, and a dimension name .NET cannot take as a group name (QA K7).
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{1a}" }, "dimensions": [ { "code": "1a" } ], "levels": [ { "id": "l", "keep": ["1a"] } ] }""")]
+    // A tapestry source pointed at a block whose "sizes" is not names to sizes (QA K7).
+    [InlineData("""{ "source": { "kind": "tapestry", "block": "game:oddblock" }, "dimensions": [ { "code": "piece" }, { "code": "picture" } ], "levels": [ { "id": "l", "keep": ["piece"], "drop": { "picture": "any" } } ] }""")]
+    // K7 (T3): max on a dimension with no list of values; an empty level id.
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}-{b}" }, "dimensions": [ { "code": "a" }, { "code": "b" } ], "levels": [ { "id": "l", "keep": ["a"], "drop": { "b": "max" } } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "", "keep": ["a"] } ] }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);
-        Codes("x-1");
+        Codes("x-1-1", "x-1");
+        // Not names to sizes: the game's AsObject throws on it (JsonObject.AsObject, Newtonsoft deserialising an array into a dictionary).
+        game.Block("oddblock").Attributes = new JsonObject(JToken.Parse("{ sizes: [ '3x1' ] }"));
 
         var registry = Registry();
 
         Assert.Equal(6, Pieces(registry)!.Members.Count);
         Assert.Null(registry.Defined("broken"));
         Assert.Contains(Errors(), e => e.Contains("collection 'broken' (badmod:config/curiocatalogue/collections/broken.json) cannot be used"));
+    }
+
+    [Fact]
+    public void A_pattern_naming_a_dimension_twice_is_logged_and_the_other_collections_work()
+    {
+        // A typo in a definition (or a wrong patch): {a} twice in the code. .NET regex allows a repeated group name (Teammate K7).
+        Add("badmod", "twice", """{ "source": { "kind": "variants", "code": "game:x-{a}-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""");
+        Codes("x-1-2");
+
+        var registry = Registry();
+
+        Assert.Equal(6, Pieces(registry)!.Members.Count);
+        Assert.Null(registry.Defined("twice"));
+        Assert.Contains(Errors(), e => e.Contains("collection 'twice'"));
+    }
+
+    [Fact]
+    public void A_bad_definition_does_not_shadow_a_good_one_of_the_same_id()
+    {
+        Add("badmod", "ores", "{ not json");
+        Add("goodmod", "ores", Ores);
+        Codes("crystalizedore-rich-quartz-basalt");
+
+        Assert.NotNull(Registry().Defined("ores"));
+    }
+
+    [Fact]
+    public void Our_definition_wins_over_another_domains_found_before_it()
+    {
+        // K7 (R2): the order of the game's assets is not ours to choose; our domain comes first.
+        assets.Insert(0, new DefinitionAsset(new AssetLocation("othermod", $"{CollectionRegistry.DefinitionsPath}tapestries.json"),
+            """{ "source": { "kind": "tapestry", "block": "game:tapestry-north" }, "dimensions": [ { "code": "picture" }, { "code": "piece" } ], "levels": [ { "id": "pictures", "keep": ["picture"], "drop": { "piece": "any" } } ] }"""));
+
+        Assert.Equal("pieces", Pieces(Registry())!.Id);
+        Assert.Contains(Errors(), e => e.Contains("collection 'tapestries' is defined twice (curiocatalogue:"));
+    }
+
+    [Fact]
+    public void A_definition_that_throws_while_building_is_logged_and_the_other_collections_work()
+    {
+        // The guard: a source whose game data breaks something we did not foresee (here the world throws on the items).
+        Add("othermod", "ores", Ores);
+        game.World.Collectibles.Returns(_ => throw new InvalidOperationException("boom"));
+
+        var registry = Registry();
+
+        Assert.Equal(6, Pieces(registry)!.Members.Count);
+        Assert.Null(registry.Defined("ores"));
+        Assert.Contains(Errors(), e => e.Contains("collection 'ores'") && e.Contains("boom"));
+    }
+
+    [Fact]
+    public void Each_problem_is_logged_once_however_often_the_registry_is_built()
+    {
+        // K7 (R4): the client builds its registry again when the server's settings come and at LevelFinalize.
+        Add("badmod", "broken", "{ not json");
+        var problems = new ProblemLog(game.Api.Logger);
+
+        for (int i = 0; i < 3; i++)
+            new CollectionRegistry(game.World, keys, new Dictionary<string, CollectionSettings>(), () => assets, problems).Defined("broken");
+
+        Assert.Single(Errors(), e => e.Contains("collection 'broken'"));
+    }
+
+    [Fact]
+    public void The_config_naming_no_collection_or_adding_to_variants_is_warned_about()
+    {
+        // K7 (H2): settings that do nothing.
+        Add("othermod", "ores", Ores);
+        Codes("crystalizedore-rich-quartz-basalt");
+
+        Registry(settings: new() { ["tapestry"] = new(), ["ores"] = new() { Add = ["crystalizedore-rich-gold-basalt"] } }).Defined("ores");
+
+        Assert.Contains(Warnings(), w => w.Contains("Collections.tapestry in the config: no collection has this id"));
+        Assert.Contains(Warnings(), w => w.Contains("Collections.ores.Add in the config is ignored"));
     }
 
     [Fact]

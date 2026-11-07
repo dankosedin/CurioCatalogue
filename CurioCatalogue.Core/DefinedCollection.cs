@@ -204,10 +204,6 @@ public sealed class DefinedCollection
             members.Add(MakeMember(definition, memberPoints.Key, filling));
         }
 
-        // Distinct ids from distinct values: a value containing the separator could make two members one id.
-        foreach (var dup in members.GroupBy(m => m.Id).Where(g => g.Count() > 1))
-            errors.Add($"Level '{levelDef.Id}': two members have the id '{dup.Key}'");
-
         members = members
             .OrderBy(m => keptDims.Select(d => orders[d].Index(m.Values[d])).ToArray(), Lexicographic.Instance)
             .ToList();
@@ -279,8 +275,9 @@ public sealed class DefinedCollection
             .ToList();
     }
 
-    /// <summary>What can be checked before any point is read.</summary>
-    private static List<string> CheckDefinition(CollectionDefinition def)
+    /// <summary>What can be checked before any point is read: the errors that make the definition itself unusable, whatever the
+    /// game has. The adapters' reader calls it too, so a definition it calls good is one the core accepts.</summary>
+    public static List<string> CheckDefinition(CollectionDefinition def)
     {
         var errors = new List<string>();
         var codes = def.Dimensions.Select(d => d.Code).ToList();
@@ -298,7 +295,13 @@ public sealed class DefinedCollection
         foreach (var level in def.Levels)
         {
             string at = $"Level '{level.Id}'";
+            // An album with no level stores "": a level with that id would read as none chosen.
+            if (string.IsNullOrEmpty(level.Id)) errors.Add("A level has an empty id");
             if (level.Keep.Count == 0) errors.Add($"{at} keeps no dimension");
+            // Max needs an order to find the highest; without a list it would be the order of the source's points, which for
+            // variants follows the world's item ids.
+            foreach (var d in def.Dimensions.Where(d => d.Values.Count == 0 && level.Drop.GetValueOrDefault(d.Code) == Drop.Max && !level.Keep.Contains(d.Code)))
+                errors.Add($"{at} drops '{d.Code}' as max, but the dimension lists no values to tell the highest");
             foreach (var d in level.Keep.Concat(level.Drop.Keys).Where(d => !known.Contains(d)).Distinct())
                 errors.Add($"{at} names an unknown dimension '{d}'");
             foreach (var d in level.Keep.Where(level.Drop.ContainsKey)) errors.Add($"{at} both keeps and drops '{d}'");
@@ -359,7 +362,7 @@ public sealed class DefinedCollection
     /// <summary>
     /// The order of one dimension's values (docs/architecture.md, Dimensions). With a list: the listed values first, in its
     /// order, then the others by code; for Max the others rank below every listed one. Without a list: the order in which the
-    /// values first come from the source, the same for Max.
+    /// values first come from the source (a level cannot drop such a dimension as Max: <see cref="CheckDefinition"/>).
     /// </summary>
     private sealed class DimensionOrder
     {

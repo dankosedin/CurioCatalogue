@@ -117,8 +117,8 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             int Count() => Mod.Collections.Tapestries!.Members.Count;
             bool Has(string piece) => Mod.Collections.ForSample(Tapestry(piece)) != null;
             int all = Count();
-            var excluded = WithConfig(c => c.TapestryExclude = ["ambush*"], () => (Count(), Has("ambush1"), Has("ambush2")));
-            var added = WithConfig(c => c.TapestryAdd = ["somemod-piece"], () => (Count(), Has("somemod-piece")));
+            var excluded = WithConfig(c => c.Collections["tapestries"].Exclude = ["ambush*"], () => (Count(), Has("ambush1"), Has("ambush2")));
+            var added = WithConfig(c => c.Collections["tapestries"].Add = ["somemod-piece"], () => (Count(), Has("somemod-piece")));
             return (Excluded: (all - excluded.Item1 >= 2, excluded.Item2, excluded.Item3), Added: (added.Item1 - all, added.Item2), Back: (Count() == all, Has("ambush1")));
         });
         Assert.Equal(((true, false, false), (1, true), (true, true)), seen);

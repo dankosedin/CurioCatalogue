@@ -64,7 +64,7 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
         var report = new StringBuilder();
         double budget = 0;
 
-        game.OnMain(() => WithConfig(c => c.TapestryAdd = Extra(extra), () =>
+        game.OnMain(() => WithConfig(c => c.Collections["tapestries"].Add = Extra(extra), () =>
         {
             var collection = Mod.Collections.ForSample(Tapestry("ambush1"))!;
             int members = collection.Members.Count;

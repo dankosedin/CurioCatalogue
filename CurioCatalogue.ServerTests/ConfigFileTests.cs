@@ -40,18 +40,45 @@ public class ConfigFileTests(GameServerFixture game)
     [Fact]
     public void Impossible_values_are_corrected_logged_and_written_back()
     {
-        var (config, log, _, file) = Load("""{ "MaxSheets": 0, "SoftEntryLimit": -5, "TapestryAdd": null }""");
+        var (config, log, _, file) = Load("""{ "MaxSheets": 0, "SoftEntryLimit": -5, "ExtraIgnoredAttributes": null, "Collections": { "tapestries": { "Exclude": null } } }""");
 
-        Assert.Equal((1, 1, 0), (config.MaxSheets, config.SoftEntryLimit, config.TapestryAdd.Length));
+        Assert.Equal((1, 1, 0), (config.MaxSheets, config.SoftEntryLimit, config.ExtraIgnoredAttributes.Length));
         var warnings = log.Where(l => l.Type == EnumLogType.Warning).Select(l => l.Text).ToList();
         Assert.Contains(warnings, w => w.Contains("curiocatalogue.json") && w.Contains("MaxSheets 0 is below 1, using 1"));
         Assert.Contains(warnings, w => w.Contains("SoftEntryLimit -5 is below 1, using 1"));
-        Assert.Contains(warnings, w => w.Contains("TapestryAdd is null, using an empty list"));
+        Assert.Contains(warnings, w => w.Contains("ExtraIgnoredAttributes is null, using an empty list"));
+        Assert.Contains(warnings, w => w.Contains("Collections.tapestries.Exclude is null, using an empty list"));
         Assert.DoesNotContain(log, l => l.Type is EnumLogType.Error or EnumLogType.Fatal);
 
         var written = JsonNode.Parse(file)!;
         Assert.Equal((1, 1), ((int)written["MaxSheets"]!, (int)written["SoftEntryLimit"]!));
-        Assert.Equal(0, written["TapestryAdd"]!.AsArray().Count);
+        Assert.Equal(0, written["ExtraIgnoredAttributes"]!.AsArray().Count);
+        Assert.Equal(0, written["Collections"]!["tapestries"]!["Exclude"]!.AsArray().Count);
+    }
+
+    [Fact]
+    public void The_tapestry_settings_of_0_1_are_moved_into_the_collections_section_and_the_file_loses_them()
+    {
+        // K3 of the collections core plan: read once, moved, removed from the file; a second load finds nothing to move.
+        var (config, log, problems, file) = Load("""{ "TapestryExclude": ["aid-*"], "TapestryAdd": ["somemod-piece"], "MaxSheets": 12 }""");
+
+        var tapestries = config.Collections["tapestries"];
+        Assert.Equal(["aid-*"], tapestries.Exclude);
+        Assert.Equal(["somemod-piece"], tapestries.Add);
+        Assert.False(tapestries.Disabled);
+        Assert.Null(config.TapestryExclude);
+        Assert.Empty(problems);
+        Assert.Contains(log, l => l.Type == EnumLogType.Notification && l.Text.Contains("TapestryExclude [aid-*] moved to Collections.tapestries.Exclude"));
+        var written = JsonNode.Parse(file)!.AsObject();
+        Assert.False(written.ContainsKey("TapestryExclude"));
+        Assert.False(written.ContainsKey("TapestryAdd"));
+        Assert.Equal("aid-*", (string)written["Collections"]!["tapestries"]!["Exclude"]![0]!);
+        Assert.Equal("somemod-piece", (string)written["Collections"]!["tapestries"]!["Add"]![0]!);
+        Assert.Equal(12, (int)written["MaxSheets"]!);
+
+        var (again, againLog, _, _) = Load(file);
+        Assert.Equal(["aid-*"], again.Collections["tapestries"].Exclude);
+        Assert.DoesNotContain(againLog, l => l.Text.Contains("moved to"));
     }
 
     [Fact]

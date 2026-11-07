@@ -2,6 +2,10 @@
 
 What changed in each version of Curio Catalogue. A version's section is its release notes on GitHub and on the ModDB page.
 
+## Unreleased (0.2.0)
+
+- **Collections are data.** The tapestries are the first collection defined by an asset (`config/curiocatalogue/collections/tapestries.json`), the same 88 pieces in 31 pictures; other mods can bring a collection the same way, and a JSON patch can change one. The config's `TapestryExclude` and `TapestryAdd` moved into `Collections.tapestries` (`Exclude`, `Add`) and are moved by the mod on the first start; `Disabled` switches a collection off.
+
 ## 0.1.1 (2026-10-31)
 
 Fixes after the first release.

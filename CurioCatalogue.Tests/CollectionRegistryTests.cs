@@ -1,7 +1,9 @@
+using NSubstitute;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using CurioCatalogue.Adapters;
+using CurioCatalogue.Core;
 
 namespace CurioCatalogue.Tests;
 
@@ -10,6 +12,7 @@ public class CollectionRegistryTests
     private readonly GameWorld game = new();
     private readonly StackKeys keys;
     private readonly Block tapestry;
+    private readonly List<DefinitionAsset> assets = [];
 
     public CollectionRegistryTests()
     {
@@ -18,10 +21,18 @@ public class CollectionRegistryTests
         // Assumption: the tapestry block lists its pictures in the "sizes" attribute, name → "WxH"
         // (assets/survival/blocktypes/cloth/tapestry.json; modding.md, Vanilla content we rely on).
         tapestry.Attributes = new JsonObject(JToken.Parse("{ sizes: { ambush: '3x1', 'aid-arm': '1x2', notice: '1x1' } }"));
+        // Our own definition, as shipped.
+        Add("curiocatalogue", "tapestries", File.ReadAllText(Path.Combine(AssetsTests.AssetsFolder, "config", "curiocatalogue", "collections", "tapestries.json")));
     }
 
-    private CollectionRegistry Registry(string[]? exclude = null, string[]? add = null) =>
-        new(game.World, keys, exclude ?? [], add ?? []);
+    private void Add(string domain, string id, string json)
+    {
+
+        assets.Add(new DefinitionAsset(new AssetLocation(domain, $"{CollectionRegistry.DefinitionsPath}{id}.json"), json));
+    }
+
+    private CollectionRegistry Registry(CollectionSettings? tapestries = null, Dictionary<string, CollectionSettings>? settings = null) =>
+        new(game.World, keys, settings ?? new() { [CollectionRegistry.TapestriesId] = tapestries ?? new() }, () => assets);
 
     private ItemStack Tapestry(string type)
     {
@@ -29,6 +40,12 @@ public class CollectionRegistryTests
         stack.Attributes.SetString("type", type);
         return stack;
     }
+
+    /// <summary>The lines the registry logged as errors: the format and its arguments, joined.</summary>
+    private List<string> Errors() => game.Api.Logger.ReceivedCalls()
+        .Where(c => c.GetMethodInfo().Name == nameof(ILogger.Error))
+        .Select(c => string.Join(" ", c.GetArguments().SelectMany(a => a is object?[] arguments ? arguments : [a]).Select(a => a?.ToString())))
+        .ToList();
 
     [Fact]
     public void Tapestries_come_from_the_block_sizes()
@@ -41,13 +58,34 @@ public class CollectionRegistryTests
     }
 
     [Fact]
+    public void Tapestries_come_picture_by_picture_piece_by_piece()
+    {
+        var order = Registry().Tapestries!.Members.Select(m => ((ItemStack)m.Sample).Attributes.GetString("type")).ToList();
+
+        // The order of the block's sizes, a picture whole, a picture's pieces by their place (row by row).
+        Assert.Equal(["ambush1", "ambush2", "ambush3", "aid-arm1", "aid-arm2", "notice"], order);
+    }
+
+    [Fact]
     public void Config_excludes_and_adds_pieces()
     {
-        var collection = Registry(exclude: ["aid-*"], add: ["mymod-banner"]).Tapestries!;
+        var collection = Registry(new() { Exclude = ["aid-*"], Add = ["mymod-banner"] }).Tapestries!;
 
         Assert.Equal(5, collection.Members.Count);
         Assert.DoesNotContain(keys.KeyOf(Tapestry("aid-arm1")), collection.Members.Select(m => m.Key));
         Assert.Contains(keys.KeyOf(Tapestry("mymod-banner")), collection.Members.Select(m => m.Key));
+        // An added piece is its own picture.
+        Assert.Equal("mymod-banner", collection.Members.Single(m => m.Key == keys.KeyOf(Tapestry("mymod-banner"))).Group);
+    }
+
+    [Fact]
+    public void A_disabled_collection_is_not_there()
+    {
+        var registry = Registry(new() { Disabled = true });
+
+        Assert.Null(registry.Tapestries);
+        Assert.Null(registry.ForSample(Tapestry("ambush1")));
+        Assert.Empty(registry.All);
     }
 
     [Fact]
@@ -71,6 +109,99 @@ public class CollectionRegistryTests
     public void Without_the_tapestry_block_there_is_no_collection()
     {
         var empty = new GameWorld();
-        Assert.Null(new CollectionRegistry(empty.World, new StackKeys(empty.World, []), [], []).Tapestries);
+        Assert.Null(new CollectionRegistry(empty.World, new StackKeys(empty.World, []), new Dictionary<string, CollectionSettings>(), () => assets).Tapestries);
+    }
+
+    // ---- definitions of other domains, the variants source
+
+    private const string Ores = """
+        {
+          "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}" },
+          "dimensions": [
+            { "code": "ore", "values": [] }, { "code": "rock", "values": [] },
+            { "code": "grade", "values": ["poor", "medium", "rich"] }
+          ],
+          "levels": [
+            { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" } },
+            { "id": "all", "keep": ["ore", "rock", "grade"] }
+          ],
+          "exclude": ["*-granite"]
+        }
+        """;
+
+    private void Codes(params string[] codes)
+    {
+        var all = codes.Select(c => (CollectibleObject)game.Item(c)).ToList();
+        all.Add(game.Item("ingot-iron"));
+        game.World.Collectibles.Returns(all);
+    }
+
+    [Fact]
+    public void A_definition_of_another_domain_makes_a_collection_of_the_registered_variants()
+    {
+        Add("othermod", "ores", Ores);
+        Codes("crystalizedore-poor-quartz-andesite", "crystalizedore-rich-quartz-andesite", "crystalizedore-rich-quartz-basalt",
+            "crystalizedore-poor-quartz-granite", "crystalizedore-medium-galena-basalt");
+
+        var registry = Registry();
+        var ores = registry.Defined("ores")!;
+
+        // The granite one is the definition's own exclusion; ingot-iron does not fit the pattern.
+        Assert.Equal(["quartz", "galena"], ores.Level("ores")!.Members.Select(m => m.Id)); // the source's order: no list of ores
+        Assert.Equal(4, ores.Level("all")!.Members.Count);
+        // Quartz is filled by its richest grade in any rock: two codes.
+        Assert.Equal(2, ores.Level("ores")!.Find("quartz")!.Fillers.Count);
+        Assert.Equal(["ores", "tapestries"], registry.All.Keys.Order());
+    }
+
+    [Fact]
+    public void The_config_excludes_from_a_definition_of_another_domain()
+    {
+        Add("othermod", "ores", Ores);
+        Codes("crystalizedore-rich-quartz-andesite", "crystalizedore-rich-galena-basalt");
+
+        var ores = Registry(settings: new() { ["ores"] = new() { Exclude = ["crystalizedore-*-galena-*"] } }).Defined("ores")!;
+
+        Assert.Equal(["quartz"], ores.Level("ores")!.Members.Select(m => m.Id));
+    }
+
+    [Fact]
+    public void A_variants_collection_with_no_variants_registered_is_not_there()
+    {
+        Add("othermod", "ores", Ores);
+        Codes();
+
+        Assert.Null(Registry().Defined("ores"));
+    }
+
+    // ---- a bad definition leaves the others working
+
+    [Theory]
+    [InlineData("{ not json")]
+    [InlineData("""{ "source": { "kind": "nowhere" }, "dimensions": [], "levels": [] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "drop": { "b": "any" } } ] }""")]
+    public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
+    {
+        Add("badmod", "broken", json);
+        Codes("x-1");
+
+        var registry = Registry();
+
+        Assert.Equal(6, registry.Tapestries!.Members.Count);
+        Assert.Null(registry.Defined("broken"));
+        Assert.Contains(Errors(), e => e.Contains("collection 'broken' (badmod:config/curiocatalogue/collections/broken.json) cannot be used"));
+    }
+
+    [Fact]
+    public void A_definition_found_twice_keeps_the_first()
+    {
+        Add("first", "ores", Ores);
+        Add("second", "ores", Ores.Replace("*-granite", "*-basalt"));
+        Codes("crystalizedore-rich-quartz-basalt", "crystalizedore-rich-quartz-granite");
+
+        var ores = Registry().Defined("ores")!;
+
+        Assert.Equal(["basalt"], ores.Level("all")!.Members.Select(m => m.Values["rock"]));
+        Assert.Contains(Errors(), e => e.Contains("collection 'ores' is defined twice"));
     }
 }

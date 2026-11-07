@@ -1,0 +1,6 @@
+{
+  "source": { "kind": "variants", "code": "game:ingot-{metal}" },
+  "dimensions": [ { "code": "metal", "values": [] } ],
+  "levels": [ { "id": "ingots", "keep": ["metal"] } ],
+  "exclude": []
+}

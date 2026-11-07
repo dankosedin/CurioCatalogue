@@ -133,8 +133,8 @@ A sheet is vanilla parchment; there is no separate blank item.
 - A tapestry already on a wall gets into an album by taking it down into a chest once.
 
 **Tapestry collection:** generated from the tapestry block's `sizes` attribute (31 pictures = 88 pieces; mods that extend
-`sizes` are included). The member is a piece (`tapestry-north` + `type`, e.g. `ambush1`). Config: `TapestryExclude` (patterns
-with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `symptoms*`) and `TapestryAdd`.
+`sizes` are included). The member is a piece (`tapestry-north` + `type`, e.g. `ambush1`). Config: `Collections.tapestries.Exclude` (patterns
+with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `symptoms*`) and `Add`.
 
 ## Covers
 
@@ -221,7 +221,7 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 | `SoftEntryLimit` | 500 | soft limit of entries, see Books |
 | `ExtraIgnoredAttributes` | `["durability"]` | attributes ignored when comparing items, on top of the game's own |
 | `ConsumeSheets` | false | hardcore: a posted invoice never returns its sheet |
-| `TapestryExclude`, `TapestryAdd` | empty | tune the tapestry collection |
+| `Collections` | `tapestries` with empty lists | per collection id: `Exclude`, `Add`, `Disabled` (0.1's `TapestryExclude`, `TapestryAdd` move into `tapestries` on load) |
 | `Diagnostics` | false | debug lines in the game log (`docs/development.md`) |
 
 Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty.

@@ -101,7 +101,7 @@ Plain right click and Ctrl + right click open containers as usual.
 - `SoftEntryLimit` (500): a book with this many entries makes no more intake lists.
 - `ConsumeSheets` (false): hardcore; a filled list never gives its sheet back.
 - `ExtraIgnoredAttributes` (`["durability"]`): attributes ignored when comparing items, on top of the game's own.
-- `TapestryExclude`, `TapestryAdd`: leave tapestry pieces out of the collection, or add pieces of other mods.
+- `Collections`: settings per collection, by its id (`tapestries`): `Exclude` (names to leave out, `*` for any text, e.g. `["aid-*"]` for tapestry pieces), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
 - `Diagnostics` (false): write details to the game log, for finding problems.
 
 The server and each client read their own copy of this file, and the game does not sync them. On a server with changed settings,

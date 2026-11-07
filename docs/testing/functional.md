@@ -126,7 +126,7 @@ which build, who ran it, and each `❌` with its reason.
 |---|---|---|---|
 | G1 ⚙ | 0.1.0 | `"MaxSheets": 0`, restart | Server log warning "MaxSheets 0 is below 1, using 1"; the file now says 1. Put back 32 |
 | G2 ⚙ | 0.1.0 | `ExtraIgnoredAttributes`: `[]` and `["durability"]` | Damaged and plain items count as different, or the same |
-| G3 ⚙ | 0.1.0 | `TapestryExclude` / `TapestryAdd` | The collection changes accordingly |
+| G3 ⚙ | 0.1.0 | `Collections.tapestries.Exclude` / `Add` (before 0.2: `TapestryExclude` / `TapestryAdd`, which move there on the first start and leave the file) | The collection changes accordingly |
 | G4 ⚙ | 0.1.0 | `Diagnostics` true / false | Debug lines appear / do not |
 
 ## Languages (S)

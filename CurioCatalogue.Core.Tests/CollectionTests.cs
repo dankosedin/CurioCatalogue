@@ -222,7 +222,7 @@ public class CollectionTests
     {
         var pieces = TapestryPieces.WithPictures(new Dictionary<string, string> { ["ambush"] = "3x1", ["notice-blackguard"] = "1x1" });
         Assert.Equal(
-            [new TapestryPiece("ambush1", "ambush"), new("ambush2", "ambush"), new("ambush3", "ambush"), new("notice-blackguard", "notice-blackguard")],
+            [new TapestryPiece("ambush1", "ambush", 1, 1), new("ambush2", "ambush", 2, 1), new("ambush3", "ambush", 3, 1), new("notice-blackguard", "notice-blackguard")],
             pieces);
     }
 }

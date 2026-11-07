@@ -237,6 +237,15 @@ In this order:
   get:** the server lists only universal mods for it (`ServerMain`, `Info.Side.IsUniversal()`), and one not `requiredOnClient`
   may be missing there, so the assets of a server-side mod, `config/` included, exist on the server only. A collection from such a mod is unknown to the
   client, as is one patched with `"side": "server"`.
+- **`AssetLocation.GetName()` keeps the file ending** (`AssetLocation.cs:383`): `tapestries.json` for `…/tapestries.json`. The id of a
+  definition is `Path.GetFileNameWithoutExtension(location.Path)` (07.11.2026, K3).
+- **`IAssetManager` and `IAsset` cannot be mocked in `CurioCatalogue.Tests`:** NSubstitute's proxy needs `SkiaSharp` (the bitmap
+  methods of `IAsset`), which the test project does not have (`FileNotFoundException` on the first call). The registry takes a
+  function that gives `DefinitionAsset` (a location and a text), made from the game's assets in one line; the real read is tested
+  in the compatibility tests with a test mod (`cccollections`).
+- **A patch on a `config/` asset of another domain works like any patch:** `"file": "<domain>:config/curiocatalogue/collections/x.json"`
+  with `"op": "add", "path": "/exclude/-"` changes what `GetMany` hands out (compatibility tests, 07.11.2026, K3). The mod project
+  references the game's `Lib/Newtonsoft.Json.dll` (`Private=false`) for the definitions and the config's legacy keys.
 - Every launch moves the previous logs to `Logs\Archive`. Red in-game errors are **not** logged. The server audit log names bag
   inventories `blockcontainedbaginv-…`, which tells which position was a bag.
 

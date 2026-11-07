@@ -35,7 +35,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       tapestries (picture shapes). Nothing uses it yet.
       Branch: `feat/collections-core`. After: K1. Model: opus. Author: none.
       Done when: the tests pass and are mutation-checked (`max` read as `any`; a duplicate key let through).
-- [ ] **K3. The registry from assets, the config.** The sources `variants` and `tapestry` in the adapters; the registry reads the
+- [x] **K3. The registry from assets, the config.** The sources `variants` and `tapestry` in the adapters; the registry reads the
       definitions from every domain and applies `Collections.<id>` from the config (`Exclude`, `Add`, `Disabled`); the
       tapestries become the first definition asset (`tapestries.json`), built the same as today (88 pieces, 31 pictures).
       `TapestryExclude` and `TapestryAdd` move into `Collections.tapestries` on load: read once, moved, removed from the file.
@@ -143,6 +143,23 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   - *Test data:* the 407 allowed codes of `game:crystalizedore` (1.22.7) in `CurioCatalogue.Core.Tests/Data`; with the 54 of C1
     excluded, 16 / 118 / 353, and level 2 by grade medium 44, rich 31, bountiful 43 as C1 counted. Bountiful native copper
     occurs in one rock only; quartz gold and silver in 13 (the tests' example of a member of several codes).
+- **The registry from assets, the config (K3, 07.11.2026, final; proposed by the AI assistant in the step, within the shape).** The
+  JSON of a definition and what the registry does are in `docs/architecture.md`, Part 1, Collections ("The JSON of a definition").
+  - *The id of a collection is its file's name* (`tapestries.json`); a second file with the same id is ignored with an error. The
+    reader is `CollectionDefinitionReader`, the sources are `variants` and `tapestry`; `Add` works for `tapestry` only.
+  - *The config:* `Collections` is a dictionary by id (default `tapestries` with empty lists); the legacy keys are `string[]?`,
+    null by default and not written (`NullValueHandling.Ignore`), read by `MoveLegacy()` before `Correct()` in `LoadConfig`
+    (appended after what `Collections.tapestries` already holds, a line in the log), then null, so the write-back drops them.
+  - *Changed behaviour, small:* the config's `Exclude` also leaves out an `Add`ed piece it matches (0.1 kept it); an `Add` of a
+    piece the block already has gives a warning "given twice" in the log (0.1 was silent). The order of taking new inside a
+    picture is by place (row by row), as K2 decided; the album window and K4 do not care yet.
+  - *`Disabled` for now only removes the collection from the registry:* consumers see "no collection". K6 makes it a refusal of
+    its own, and sends it to clients.
+  - *`IAssetManager` is not mockable in `CurioCatalogue.Tests`* (SkiaSharp): the registry takes `Func<IEnumerable<DefinitionAsset>>`
+    (`docs/modding.md`, Config and logging). The read of the real assets is tested in `CurioCatalogue.CompatTests`
+    with a test mod `cccollections` (a collection of the game's ingots by a definition of its own domain, and a patch of it);
+    the server tests of the plan for "the tapestry collection equal to today's" are there too (`CollectionsFromAssetsTests`: 88 +
+    the 2 pieces of `cctapestry`, 31 + 1 pictures), because only that project has a mod besides ours.
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -153,3 +170,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
 - 07.11.2026: K2 done (final): the types and `DefinedCollection.Build` in the core, unit tests mutation-checked (`max` read as
   `any`: 3 tests fail; a duplicate key let through: 1 fails); all five test projects pass; nothing uses the new types yet. The
   step's choices in Decisions, "Definitions in the core (K2)". Next: K3 (sonnet, After: K2).
+- 07.11.2026: K3 done (final): reader, registry and config move in place, tests mutation-checked (the config's `Exclude` left out of
+  the definition: 2 fail; the legacy keys not cleared: 2 fail). All five test projects green; one flake seen once in an earlier run: `BookFlowTests.
+  Containers_the_mod_does_not_read_are_refused(chest-east, perPlayerLoot: True)` once timed out waiting for a join (30 s, the run took
+  6 min) and passed alone and in the full run after. Not committed yet: the author's "комічь". Next: K4 (opus, After: K3).

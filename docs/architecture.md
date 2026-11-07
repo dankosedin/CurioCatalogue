@@ -57,7 +57,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   over plain `SourceSlot` / `TargetSlot` descriptions, with merge classes (`Stack`) besides keys.
 - **How an invoice ends:** `InvoiceFates` (`Ended`, `WantListPosted`): the one table of sheet returned / parchment / consumed / kept,
   for posting and cancelling alike.
-- **Collections:** `Collection` (members, groups, snapshot, progress, `Refresh` / `RefreshIfStale`), `TapestryPieces` (pieces from `sizes`).
+- **Collections:** `Collection` (members, groups, snapshot, progress, `Refresh` / `RefreshIfStale`; the MVP type until K4), `DefinedCollection` and `CollectionDefinition` (definitions as data), `TapestryPieces` (pieces from `sizes`); adapters `CollectionRegistry`, `CollectionDefinitionReader`.
   Being replaced (plan `2026-11-07-collections-core.md`, not used yet): `CollectionDefinition` (dimensions, levels, layouts,
   rules, exclusions; `SourcePoint`s from the adapters) and `DefinedCollection.Build` (`Built | Invalid`): per level the members
   (`Member`: id, values, fillers, stacks, attributes), the member a key fills, groups and order per layout, `LevelProgress`.
@@ -162,6 +162,18 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   kinds: the book itself (custom collections), a rule on an attribute (berry bush traits). Everything else is data: dimensions,
   levels, layouts, attribute rules, exclusions. Rejected: every collection in C# (no collection from another mod, no patch by an
   admin); every member listed in data (353 crystals by hand, and the list does not follow mods).
+- **The JSON of a definition** (K3, 11-07; read by `CollectionDefinitionReader` into the core's records; `tapestries.json` is the
+  example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
+  `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
+  "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
+  `"max"`, `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
+  `rules` (`where`, `set`), `exclude`, `nameKey`. A definition that does not read, or that the core refuses, is logged as an error
+  and skipped; the other collections work. A second definition with an id already seen (another domain) is ignored, with an error.
+  The registry builds a collection on first use, and none when its source finds no point (no tapestry block, no such variants:
+  a mod's collection without the mod). Until K4 the album code reads a `Collection` made from the first level's default layout
+  by each member's first filler (`CollectionRegistry.Get`); `Defined(id)` is the whole thing. The config's `Exclude` joins the
+  definition's own, so it also leaves out an `Add`ed piece it matches (0.1 did not); `Add` is for the `tapestry` source (a piece,
+  its own picture, place 1, 1) and ignored by `variants`.
 - **A member** is a point in the collection's dimensions (dimension → value), with a stable id made of its values (a tapestry
   piece's id is its name), what fills it (a set of item keys: one code, or any of several), the stacks to show (one, or a list
   the album cycles through) and attributes (rarity, a piece's x and y). Within a level a key fills at most one member, checked

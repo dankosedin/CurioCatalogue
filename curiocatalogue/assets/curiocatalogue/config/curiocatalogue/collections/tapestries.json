@@ -1,0 +1,18 @@
+{
+  "source": { "kind": "tapestry", "block": "game:tapestry-north" },
+  "dimensions": [
+    { "code": "picture", "values": [] },
+    { "code": "piece", "values": [] }
+  ],
+  "levels": [
+    {
+      "id": "pieces",
+      "keep": ["piece"],
+      "drop": { "picture": "any" },
+      "layouts": [
+        { "id": "pictures", "groupBy": ["picture"], "arrange": { "kind": "shape" } }
+      ]
+    }
+  ],
+  "exclude": []
+}

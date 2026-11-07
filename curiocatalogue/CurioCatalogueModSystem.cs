@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
@@ -49,7 +50,7 @@ public class CurioCatalogueModSystem : ModSystem
 
     /// <summary>The collections (tapestries), the same on both sides.</summary>
     public CollectionRegistry Collections => collections ??=
-        new CollectionRegistry(api.World, Keys, Config.TapestryExclude, Config.TapestryAdd);
+        new CollectionRegistry(api.World, Keys, Config.Collections, () => DefinitionAsset.OfAllDomains(api.Assets));
 
     public override void Start(ICoreAPI api)
     {
@@ -61,7 +62,7 @@ public class CurioCatalogueModSystem : ModSystem
         ModNetwork.Register(api);
         Config = LoadConfig(api);
         ModLog.DebugEnabled = Config.Diagnostics;
-        ModLog.Debug(api, $"config: MaxSheets={Config.MaxSheets}, SoftEntryLimit={Config.SoftEntryLimit}, ExtraIgnoredAttributes=[{string.Join(", ", Config.ExtraIgnoredAttributes)}], ConsumeSheets={Config.ConsumeSheets}, Diagnostics={Config.Diagnostics}, TapestryExclude=[{string.Join(", ", Config.TapestryExclude)}], TapestryAdd=[{string.Join(", ", Config.TapestryAdd)}]");
+        ModLog.Debug(api, $"config: MaxSheets={Config.MaxSheets}, SoftEntryLimit={Config.SoftEntryLimit}, ExtraIgnoredAttributes=[{string.Join(", ", Config.ExtraIgnoredAttributes)}], ConsumeSheets={Config.ConsumeSheets}, Diagnostics={Config.Diagnostics}, Collections=[{string.Join("; ", Config.Collections.Select(c => $"{c.Key}: Exclude=[{string.Join(", ", c.Value.Exclude)}], Add=[{string.Join(", ", c.Value.Add)}], Disabled={c.Value.Disabled}"))}]");
     }
 
     public override void AssetsFinalize(ICoreAPI api)
@@ -100,9 +101,10 @@ public class CurioCatalogueModSystem : ModSystem
             return new CurioCatalogueConfig();
         }
 
+        config ??= new CurioCatalogueConfig();
+        foreach (var moved in config.MoveLegacy()) api.Logger.Notification("[CurioCatalogue] {0}: {1}", ConfigFileName, moved);
         // Written back every time, so settings added in a newer version appear in the file with their defaults, and
         // corrections (logged as warnings) replace impossible values.
-        config ??= new CurioCatalogueConfig();
         foreach (var fix in config.Correct()) api.Logger.Warning("[CurioCatalogue] {0}: {1}", ConfigFileName, fix);
         api.StoreModConfig(config, ConfigFileName);
         return config;

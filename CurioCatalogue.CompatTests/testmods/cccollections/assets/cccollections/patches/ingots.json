@@ -1,0 +1,8 @@
+[
+  {
+    "op": "add",
+    "path": "/exclude/-",
+    "value": "ingot-iron",
+    "file": "cccollections:config/curiocatalogue/collections/ingots.json"
+  }
+]

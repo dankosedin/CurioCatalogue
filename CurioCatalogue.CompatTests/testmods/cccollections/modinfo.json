@@ -1,0 +1,10 @@
+{
+  "type": "content",
+  "modid": "cccollections",
+  "name": "Curio Catalogue test: a collection from another mod",
+  "description": "Loaded by CurioCatalogue.CompatTests only: brings a collection of the game's ingots by a definition of its own domain and patches that definition, as a mod with a collection and an admin's patch would (collections core plan, K3).",
+  "authors": [ "DankoSedin" ],
+  "version": "1.0.0",
+  "side": "Universal",
+  "dependencies": { "game": "", "curiocatalogue": "" }
+}

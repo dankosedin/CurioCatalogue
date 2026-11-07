@@ -61,7 +61,7 @@ If the fixture is lost, make it again with the 0.1.1 zip from the GitHub release
 | # | Case | Expected |
 |---|---|---|
 | U1 | Load the world | Loads; no `[CurioCatalogue]` errors or warnings about unknown items, no "Failed to parse grid recipe", no "cannot be resolved" |
-| U2 ⚙ | Config of 0.1.1 | Read as it is; the new keys of 0.2.0 appear with defaults; the old values are kept |
+| U2 ⚙ | Config of 0.1.1 | Read as it is; the new keys of 0.2.0 appear with defaults; the old values are kept. `TapestryExclude` and `TapestryAdd` are the exception: they move into `Collections.tapestries` (`Exclude`, `Add`) and the file loses them (K3; with non-empty lists too: `ConfigFileTests`) |
 | U3 ⚙ | Look at every book from the fixture (tooltip, window) | Same counts, entries, name and cover colour as before |
 | U4 ⚙ | Open the album window | Collected pieces and the missing ones as before; the collection counts match |
 | U5 ⚙ | Post an invoice from the fixture (each kind) | Works as in 0.1.1; the book in the off-hand updates and gets the sheet back |
@@ -81,7 +81,7 @@ Fill in while 0.2.0 is made. Take each line from the changelog or the PR and say
 
 | Change | Touches stored data, recipes, item codes, config or lang? | Case |
 |---|---|---|
-| | | |
+| Config: `TapestryExclude`, `TapestryAdd` move into `Collections.tapestries` (`Exclude`, `Add`; new `Disabled`), read once and removed from the file (K3) | config | U2 ⚙ (golden config; `ConfigFileTests` with non-empty lists), G3 |
 
 **The rule for the table:** a change that touches stored data, a recipe, an item code, a config key or a lang key gets its line in the same PR as
 the change, and each line names a case. If the case is about an item's data, it is also made automatic: a stack of the golden set (the old sets are

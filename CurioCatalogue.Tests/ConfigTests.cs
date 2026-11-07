@@ -25,15 +25,49 @@ public class ConfigTests
     [Fact]
     public void Missing_lists_become_empty()
     {
-        // "TapestryAdd": null in the file reads as null: the game uses JsonConvert.DeserializeObject with default settings
+        // "ExtraIgnoredAttributes": null in the file reads as null: the game uses JsonConvert.DeserializeObject with default settings
         // (decompiled Vintagestory.Common.APIBase.LoadModConfig), which sets an explicit null over the default.
-        var config = new CurioCatalogueConfig { TapestryExclude = null!, TapestryAdd = null!, ExtraIgnoredAttributes = null! };
+        var config = new CurioCatalogueConfig
+        {
+            ExtraIgnoredAttributes = null!,
+            Collections = new() { ["tapestries"] = new() { Exclude = null!, Add = null! }, ["ores"] = null! },
+        };
 
         var fixes = config.Correct();
 
-        Assert.Equal(3, fixes.Count);
-        Assert.Empty(config.TapestryExclude);
-        Assert.Empty(config.TapestryAdd);
+        Assert.Equal(4, fixes.Count);
         Assert.Empty(config.ExtraIgnoredAttributes);
+        Assert.Empty(config.Collections["tapestries"].Exclude);
+        Assert.Empty(config.Collections["tapestries"].Add);
+        Assert.False(config.Collections["ores"].Disabled);
+    }
+
+    [Fact]
+    public void The_tapestry_settings_of_0_1_move_into_the_collections_section_and_are_cleared()
+    {
+        var config = new CurioCatalogueConfig { TapestryExclude = ["aid-*"], TapestryAdd = ["mymod-banner"] };
+        config.Collections["tapestries"].Exclude = ["glider*"];
+
+        var moved = config.MoveLegacy();
+
+        Assert.Equal(2, moved.Count);
+        Assert.Equal(["glider*", "aid-*"], config.Collections["tapestries"].Exclude);
+        Assert.Equal(["mymod-banner"], config.Collections["tapestries"].Add);
+        Assert.Null(config.TapestryExclude);
+        Assert.Null(config.TapestryAdd);
+        Assert.Empty(config.MoveLegacy()); // once
+    }
+
+    [Fact]
+    public void The_legacy_keys_leave_the_file_once_moved()
+    {
+        var config = new CurioCatalogueConfig { TapestryExclude = ["aid-*"] };
+        config.MoveLegacy();
+
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(config);
+
+        Assert.DoesNotContain("TapestryExclude", json);
+        Assert.DoesNotContain("TapestryAdd", json);
+        Assert.Contains("\"Exclude\":[\"aid-*\"]", json);
     }
 }

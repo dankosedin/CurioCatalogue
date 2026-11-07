@@ -195,6 +195,14 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
             var old = JsonNode.Parse(golden)!.AsObject();
             foreach (var (key, value) in old)
             {
+                // 0.2 moved the tapestry lists into Collections.tapestries (the file loses the old keys, the values stay).
+                if (key is "TapestryExclude" or "TapestryAdd")
+                {
+                    Assert.False(written.ContainsKey(key), $"{key} of {version} was not moved out of the file");
+                    Assert.True(JsonNode.DeepEquals(value, written["Collections"]!["tapestries"]![key["Tapestry".Length..]]),
+                        $"{key}: {version} wrote {value?.ToJsonString()}, now {written["Collections"]!["tapestries"]!.ToJsonString()}");
+                    continue;
+                }
                 Assert.True(written.ContainsKey(key), $"the setting {key} of {version} is not a setting any more");
                 Assert.True(JsonNode.DeepEquals(value, written[key]), $"{key}: {version} wrote {value?.ToJsonString()}, now {written[key]?.ToJsonString()}");
             }
@@ -226,7 +234,7 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
         // Albums follow their collection (domain.md, Albums and collections): a mod adds a piece, the album's snapshot of 0.1.1 (the
         // stored "members") tells it from a piece already collected. Without the snapshot the new piece would count as collected.
         var golden = GoldenStacks.Load(V011).Stacks.Single(s => s.Name == "album-partial").Inputs.Book!;
-        var seen = game.OnMain(() => WithConfig(c => c.TapestryAdd = [.. c.TapestryAdd, "cc-new-piece"], () =>
+        var seen = game.OnMain(() => WithConfig(c => c.Collections["tapestries"].Add = [.. c.Collections["tapestries"].Add, "cc-new-piece"], () =>
         {
             var book = Observed(Golden("album-partial"));
             return (book.Album, book.Sheets, book.Entries.Contains("game:tapestry-north:cc-new-piece x1"), book.Entries.Count);

@@ -37,8 +37,15 @@ public sealed class AlbumPageElement : GuiElement
     private const double Corner = 12;
     private const float ItemZ = 90, MarkZ = 250; // as the slot grid draws items and its cross (GuiElementItemSlotGridBase.cs:498, 512)
 
-    private static readonly Vec4f Translucent = new(1, 1, 1, MissingAlpha);
-    private static readonly int TranslucentArgb = ColorUtil.ToRgba((int)(255 * MissingAlpha), 255, 255, 255);
+    // A cell the search does not match is drawn dark (A2, "What stays of today's window": the matches lit, the rest dimmed).
+    private const float Dim = 0.3f;
+    private static readonly Vec4f Opaque = new(1, 1, 1, 1), Translucent = new(1, 1, 1, MissingAlpha);
+    private static readonly Vec4f OpaqueDim = new(Dim, Dim, Dim, 1), TranslucentDim = new(Dim, Dim, Dim, MissingAlpha);
+    private static readonly int OpaqueArgb = ColorUtil.WhiteArgb, TranslucentArgb = Argb(1, MissingAlpha);
+    private static readonly int OpaqueDimArgb = Argb(Dim, 1), TranslucentDimArgb = Argb(Dim, MissingAlpha);
+
+    private static int Argb(float grey, float alpha) =>
+        ColorUtil.ToRgba((int)(255 * alpha), (int)(255 * grey), (int)(255 * grey), (int)(255 * grey));
 
     private sealed class Cell(PlacedMember placed, AlbumSlot slot)
     {
@@ -47,20 +54,25 @@ public sealed class AlbumPageElement : GuiElement
         public IReadOnlyList<ItemStack> Stacks = [];
         public Slideshow Show = Slideshow.Start;
         public bool Collected;
+        public bool Lit = true;
         public int FlatTexture;
     }
 
-    private sealed class Heading(PlacedHeading placed, AlbumSlot? icon, string name)
+    private sealed class Heading(PlacedHeading placed, AlbumSlot? icon, string name, string fitted)
     {
         public readonly PlacedHeading Placed = placed;
         public readonly AlbumSlot? Icon = icon;
         public readonly string Name = name;
+        /// <summary>The name in words, cut with "…" to the heading's width.</summary>
+        public readonly string Fitted = fitted;
         public LoadedTexture? Text;
     }
 
-    private sealed class Group(GroupBox box)
+    private sealed class Group(GroupBox box, string name, string fitted)
     {
         public readonly GroupBox Box = box;
+        public readonly string FullName = name;
+        public readonly string Fitted = fitted;
         public int Count = -1;
         public bool Complete;
         public LoadedTexture? Name, Progress;
@@ -72,9 +84,11 @@ public sealed class AlbumPageElement : GuiElement
     private readonly Cell[] cells;
     private readonly Heading[] headings;
     private readonly Group[] groups;
-    private readonly CairoFont groupFont = CairoFont.WhiteSmallText(), headingFont = CairoFont.WhiteDetailText();
+    private static readonly CairoFont GroupFont = CairoFont.WhiteSmallText(), HeadingFont = CairoFont.WhiteDetailText();
+    private const double CheckSize = 16;
 
     private IReadOnlySet<string> collected = new HashSet<string>();
+    private System.Func<Member, bool>? matches;
     private AlbumSlot? hovered;
     private bool composed;
     private int slotTexture, cornerTexture;
@@ -101,12 +115,41 @@ public sealed class AlbumPageElement : GuiElement
         {
             var s = (AlbumSlot)inventory[slot++];
             string name = h.Dimension.ValueNameKey(h.Value) is { } key ? Lang.Get(key) : h.Value;
-            if (IconOf(h) is not { } icon) return new Heading(h, null, name);
+            if (IconOf(h) is not { } icon) return new Heading(h, null, name, Fit(name, HeadingFont, h.Width));
             s.Itemstack = icon;
             s.HeadingName = name;
-            return new Heading(h, s, name);
+            return new Heading(h, s, name, name);
         }).ToArray();
-        groups = page.Groups.Select(g => new Group(g)).ToArray();
+        groups = page.Groups.Select(g =>
+        {
+            string name = look.GroupName(g.Group) + (g.Continued ? " " + Lang.Get("curiocatalogue:albumwindow-continued") : "");
+            return new Group(g, name, g.HeadingHeight > 0 ? Fit(name, GroupFont, NameRoom(g)) : name);
+        }).ToArray();
+    }
+
+    /// <summary>The width a group's name has beside its progress and check mark. Measured with every member collected
+    /// ("34/34"), the widest the progress gets, so that the name is cut once and does not move as pieces come.</summary>
+    private static double NameRoom(GroupBox box)
+    {
+        int total = box.Group.Members.Count;
+        return box.Width - GroupFont.GetTextExtents($"{total}/{total}").Width / scaled(1) - CheckSize - 2 - 8;
+    }
+
+    /// <summary>
+    /// The texts cut with "…" (a group's name, a heading in words), with their full text and where they stand on the page
+    /// (unscaled, from its top left): the window puts a hover text over each (A3b, "Words that do not fit").
+    /// </summary>
+    public IEnumerable<(double X, double Y, double Width, double Height, string Text)> CutTexts =>
+        groups.Where(g => g.Box.HeadingHeight > 0 && g.Fitted != g.FullName)
+            .Select(g => ((double)g.Box.X, (double)g.Box.Y, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.FullName))
+            .Concat(headings.Where(h => h.Icon == null && h.Fitted != h.Name)
+                .Select(h => ((double)h.Placed.X, (double)h.Placed.Y, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
+
+    /// <summary>Lights the cells whose member matches the search and dims the rest; null lights all. Kept over <see cref="Show"/>.</summary>
+    public void Highlight(System.Func<Member, bool>? matching)
+    {
+        matches = matching;
+        foreach (var cell in cells) cell.Lit = matching?.Invoke(cell.Placed.Member) ?? true;
     }
 
     private ItemStack? IconOf(PlacedHeading heading)
@@ -132,6 +175,7 @@ public sealed class AlbumPageElement : GuiElement
             cell.Slot.Itemstack = stacks.Count > 0 ? stacks[cell.Show.Index % stacks.Count] : null;
             cell.Slot.Lines = Lines(member, cell.Collected);
         }
+        Highlight(matches); // the stack put in may match where the member did not
         if (composed) ComposeGroupHeadings();
     }
 
@@ -156,15 +200,15 @@ public sealed class AlbumPageElement : GuiElement
         slotTexture = GuiElementItemSlotGridBase.DrawSlotBackground(api, scaled(SlotSize), scaled(SlotSize),
             GuiStyle.DialogSlotBackColor, GuiStyle.DialogSlotFrontColor, null);
         cornerTexture = CornerTexture();
-        check = api.Gui.LoadSvg(new AssetLocation("game:textures/icons/checkmark.svg"), (int)scaled(16), (int)scaled(16),
-            (int)scaled(16), (int)scaled(16), ColorUtil.ToRgba(255, 132, 255, 132));
+        check = api.Gui.LoadSvg(new AssetLocation("game:textures/icons/checkmark.svg"), (int)scaled(CheckSize), (int)scaled(CheckSize),
+            (int)scaled(CheckSize), (int)scaled(CheckSize), ColorUtil.ToRgba(255, 132, 255, 132));
         foreach (var cell in cells)
         {
             if (cell.Placed.Member.Attributes.TryGetValue(Member.FlatTexture, out var texture))
                 cell.FlatTexture = api.Render.GetOrLoadTexture(new AssetLocation(texture)); // cached by the game, not ours to free
         }
         foreach (var heading in headings.Where(h => h.Icon == null))
-            heading.Text = api.Gui.TextTexture.GenTextTexture(Fit(heading.Name, headingFont, heading.Placed.Width), headingFont);
+            heading.Text = api.Gui.TextTexture.GenTextTexture(heading.Fitted, HeadingFont);
         composed = true;
         ComposeGroupHeadings();
     }
@@ -196,12 +240,9 @@ public sealed class AlbumPageElement : GuiElement
             group.Count = count;
             group.Complete = count == members.Members.Count;
             group.Progress?.Dispose();
-            group.Progress = api.Gui.TextTexture.GenTextTexture($"{count}/{members.Members.Count}", groupFont);
+            group.Progress = api.Gui.TextTexture.GenTextTexture($"{count}/{members.Members.Count}", GroupFont);
             if (group.Name != null) continue;
-            string name = look.GroupName(members) + (group.Box.Continued ? " " + Lang.Get("curiocatalogue:albumwindow-continued") : "");
-            // Room for the progress ("21/34") and the check mark beside the name.
-            double room = group.Box.Width - (group.Progress.Width + (check?.Width ?? 0)) / scaled(1) - 8;
-            group.Name = api.Gui.TextTexture.GenTextTexture(Fit(name, groupFont, room), groupFont);
+            group.Name = api.Gui.TextTexture.GenTextTexture(group.Fitted, GroupFont);
         }
     }
 
@@ -276,7 +317,13 @@ public sealed class AlbumPageElement : GuiElement
         {
             // Edge to edge over the whole cell, padding included, so the pieces make the picture.
             api.Render.Render2DTexture(cell.FlatTexture, (float)x, (float)y, (float)scaled(metrics.Cell), (float)scaled(metrics.Cell),
-                ItemZ, cell.Collected ? null : Translucent);
+                ItemZ, (cell.Collected, cell.Lit) switch
+                {
+                    (true, true) => Opaque,
+                    (true, false) => OpaqueDim,
+                    (false, true) => Translucent,
+                    (false, false) => TranslucentDim,
+                });
         }
         else
         {
@@ -284,7 +331,13 @@ public sealed class AlbumPageElement : GuiElement
             if (cell.Slot.Itemstack != null)
             {
                 api.Render.RenderItemstackToGui(cell.Slot, x + scaled(SlotSize) / 2, y + scaled(SlotSize) / 2, ItemZ,
-                    (float)scaled(ItemSize), cell.Collected ? ColorUtil.WhiteArgb : TranslucentArgb, deltaTime, showStackSize: false);
+                    (float)scaled(ItemSize), (cell.Collected, cell.Lit) switch
+                    {
+                        (true, true) => OpaqueArgb,
+                        (true, false) => OpaqueDimArgb,
+                        (false, true) => TranslucentArgb,
+                        (false, false) => TranslucentDimArgb,
+                    }, deltaTime, showStackSize: false);
             }
         }
 
@@ -343,9 +396,10 @@ public static class AlbumPageComposerExtensions
 {
     /// <summary>Adds a page of the album (<see cref="AlbumPageElement"/>); its size is the largest page's.</summary>
     public static GuiComposer AddAlbumPage(this GuiComposer composer, ElementBounds bounds, AlbumPages pages, int pageIndex,
-        PageMetrics metrics, AlbumPageLook look, string key)
+        PageMetrics metrics, AlbumPageLook look, string key, out AlbumPageElement page)
     {
-        if (!composer.Composed) composer.AddInteractiveElement(new AlbumPageElement(composer.Api, bounds, pages, pageIndex, metrics, look), key);
+        page = new AlbumPageElement(composer.Api, bounds, pages, pageIndex, metrics, look);
+        composer.AddInteractiveElement(page, key);
         return composer;
     }
 }

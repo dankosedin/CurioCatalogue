@@ -209,7 +209,7 @@ mod brings its own; the item put in must be a member of that collection.
   longer holds exactly that item, the server refuses with a message ("no longer the one in the window").
   Irreversible ones ask for confirmation.
 - **Book window:** name (editable, Save), mode, sheets (e.g. 27/32), entries and the limit; search by name in the player's language;
-  sort by name, by mod, by count (bill of materials only); "Clear". Album (0.1): progress line, the grid under "Missing:", "Start over", "Make a want list".
+  sort by name, by mod, by count (bill of materials only); "Clear". The album has a window of its own since 0.2 (below).
 - **Album window** (agreed for 0.2, being built: `docs/plans/2026-11-04-album-view.md`, Decisions, "The view on paper"): a window of
   its own, as a stamp album. Pages hold whole groups in order (a picture, an ore); collected pieces in their places, missing ones
   translucent, points of a table that do not exist left blank. A group of two dimensions is a table with stack headings (rock ×

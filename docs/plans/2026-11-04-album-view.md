@@ -99,7 +99,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
         textures, table headings (stacks or text), the rarity corner, cycling stacks (once a second, paused while hovered),
         the game's tooltip through a slot of ours; a refresh flips flags without composing again.
         Done when: the build and all test projects pass.
-  - [ ] **A3c. The album window.** `AlbumDialog`, a class of its own (`docs/architecture.md`): the row of controls (level
+  - [x] **A3c. The album window.** `AlbumDialog`, a class of its own (`docs/architecture.md`): the row of controls (level
         while empty, layout, search, page buttons, "Make a want list", ↺), both tab variants behind a temporary switch, the
         line of a collection disabled on the server; an album opens it, the ledger and the bill of materials keep
         `LedgerDialog`.
@@ -437,6 +437,32 @@ The agent's choices, 08.11.2026 (`AlbumPageElement`, `AlbumSlot`); the author ma
   rarity come from the window (`AlbumPageLook`): rarity has no source yet (item 6), so A3c passes none.
 - **The corner** is a white triangle tinted by the tier's colour, 12 in the top right, over the stack (z 250, as the grid's cross).
 
+### The window (A3c)
+
+The agent's choices, 08.11.2026 (`AlbumDialog`, `AlbumTabs`, `BookWindow`, `HeldItemDialog`); the author may overrule any in A4:
+- **A base for windows about a held item** (`HeldItemDialog`: watching, `Shown`, `SetComposer`), split out of `GridDialog`:
+  the album window has no slot grid. `BookWindow.Open` picks the album's window or the ledger's, one at a time; the ledger
+  window no longer shows albums.
+- **The page's size:** 12 cells wide (a wider table widens it), as tall as the screen allows less 270 for the title bar, the
+  line, the page buttons and the rows under the page (A1, "How much fits"); at least 3 rows. Group headings 24 high, gaps 12, a
+  group with a heading at least 3 cells wide.
+- **Under the page:** the page buttons ◀ N / M ▶ centred (vanilla's `left` and `right` icons), then one row: the level (while
+  empty, several levels), the layout (when the level has several), search on the left; "Make a want list" and ↺ (vanilla's
+  `undo` icon, "Start over" on hover, only when something is collected) on the right. Variant A or C of the header is A3d's; till
+  then the title bar has the album's name, as the ledger window does, and the name and sheets are not shown.
+- **Tabs** are vanilla's vertical tabs outside the window on its left (as the handbook's), at 14; a complete tab has vanilla's
+  check mark on its left. The temporary switch of the two variants is a button under the row, in English, shown only with tabs.
+- **Search:** typing lights the cells whose names (the stack put in, or every stack of the member) contain the text and dims the
+  rest (grey at 0.3); Enter turns to the next page with a match and keeps the focus. Typing does not turn pages.
+- **Turning a page, a tab, a layout, a level composes the window; a piece taken flips cells** (and the tabs' marks). A new
+  layout or tab variant stays on the page with the first piece of the page shown before.
+- **With no level chosen,** the window shows the level and a line "Choose a level to start collecting", no page.
+- **An album whose collection the game lacks** (switched off: "This collection is switched off on this server"; gone with its
+  mod: "The game no longer has this collection…") shows what it collected, as one group in member id order
+  (`Album.CollectedOnly`, the collection's own order being unknown); no level, layout, want list or ↺.
+- **Cut names get a hover text** with the full name (group headings, headings in words); the room for a group's name is
+  measured with its progress full ("34/34"), so the cut does not change as pieces come.
+
 ## Where we stopped
 
 - 04.11.2026: A1 (three more GUI questions) and A2 (dimensions, levels, members of several codes, rarity marks, flat and
@@ -452,3 +478,7 @@ The agent's choices, 08.11.2026 (`AlbumPageElement`, `AlbumSlot`); the author ma
 - 08.11.2026: A3b done (final as code; its look unchecked until A4): `AlbumPageElement` and `AlbumSlot` in `Gui/`, the hit
   test and `Slideshow` in the core (5 unit tests), the tapestry pieces' flat image (a server test); mutation-checked (four
   mutations, each caught). Choices in Decisions, "The element (A3b)". Nothing opens it yet. Next: A3c (opus, After: A3b).
+- 08.11.2026: A3c done (final as code; its look unchecked until A4): `AlbumDialog` opens for every album, with tabs, pages,
+  the row of controls, search, the temporary tab switch and the view of a collection the game lacks (`Album.CollectedOnly`, 2
+  unit tests, mutation-checked). Choices in Decisions, "The window (A3c)". On this branch the album's name cannot be edited and
+  its sheets are not shown until A3d. Next: A3d (opus, After: A3c).

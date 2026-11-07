@@ -198,12 +198,12 @@ In this order:
   slot). Pass `searchCacheNames` (and `searchCache`); see `GridDialog.FilterByName`.
 - **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129`;
   only `ClearComposers` and `Dispose` free them, `:42-59`). Dispose the old one before recomposing, as vanilla does
-  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `GridDialog.SetComposer`.
+  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `HeldItemDialog.SetComposer`.
 - **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
   only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
-  made per opening must set it and dispose itself on close (`GridDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
+  made per opening must set it and dispose itself on close (`HeldItemDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
 - **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
-  `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`GridDialog.Watch`) and name the
+  `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`HeldItemDialog.Watch`) and name the
   item in its requests (`ShownItem`).
 - **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
 
@@ -218,6 +218,9 @@ In this order:
 - **Tapestry icons are 3D at an angle**; each piece's flat image is `textures/block/cloth/tapestry/{type}.png`
   (`BlockTapestry.cs:40#texturePath`), and drawn side by side the pieces make the picture.
 - **Text smaller than 14** (`WhiteDetailText`) does not read at the default GUI scale (the author, 05.11.2026).
+- **Vertical tabs light their first tab in the constructor** (vsapi `GuiElementVerticalTabs.cs:52`), whatever the `GuiTab`s say:
+  set `Active` after constructing. Several tabs may be lit at once by setting `Active` yourself; a click clears the others unless
+  `ToggleTabs` (`GuiElementVerticalTabs.cs:293#SetValue`). `Gui/AlbumTabs`.
 
 ## Config and logging
 

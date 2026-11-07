@@ -487,6 +487,32 @@ public class AlbumTests
         Assert.Equal(matches, NamePattern.Matcher([pattern])(name));
     }
 
+    // --- What the window shows when the game does not have the album's collection (album view, A3c) ---
+
+    [Fact]
+    public void Collected_only_is_one_group_of_what_was_collected_each_shown_by_the_item_put_in()
+    {
+        var album = Collected(Album.New(Tapestries(), 3, "Mine"), "notice", "ambush2");
+
+        var shown = album.CollectedOnly()!;
+        var level = album.LevelIn(shown)!;
+
+        Assert.Equal(Album.CollectedOnlyLevel, level.Id);
+        var group = Assert.Single(level.Groups(level.DefaultLayout));
+        Assert.Equal(["ambush2", "notice"], Ids(group.Members));
+        Assert.Equal(["stack ambush2", "stack notice"], group.Members.Select(m => album.StacksToShow(m).Single()));
+        Assert.Equal(2, album.Progress(level).Collected); // every piece is shown collected
+        Assert.Null(Album.New(Tapestries(), 3, "Mine").CollectedOnly());
+    }
+
+    [Fact]
+    public void Collected_only_is_nothing_when_one_item_filled_two_members()
+    {
+        var album = Album.New(Tapestries(), 3, "Mine").Collect([("notice", By("notice")), ("ambush1", By("notice"))]);
+
+        Assert.Null(album.CollectedOnly());
+    }
+
     [Fact]
     public void Any_of_several_patterns_matches_and_none_matches_nothing()
     {

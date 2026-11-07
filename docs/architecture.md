@@ -93,10 +93,16 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `Items/ItemLedger`, `Items/ItemInvoice`: the item classes; click handling (`OnHeldInteractStart`), tooltips, crafting hooks.
 - `EmptyHandGesture`: the off-hand gesture, caught on the client in `Input.InWorldAction`.
 - `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client; no "take new" or "take from the list" hint for an album or want list whose collection is not `Found` (switched off or gone).
-- `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
+- `Gui/HeldItemDialog` (base: watches the item in the hand, refreshes or closes, names it in requests), `Gui/GridDialog` (base:
+  a read-only slot grid), `Gui/LedgerDialog` (ledger, bill of materials), `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only windows.
+  `Gui/BookWindow` opens the window of a book in a hand, one at a time.
+- `Gui/AlbumDialog`: the album's own window (plan `2026-11-04-album-view.md`, A3c): tabs (`Gui/AlbumTabs`, vanilla's vertical
+  tabs with a check mark), a page, and the row of controls (level, layout, search, page buttons, want list, start over). A
+  refresh flips cells; turning a page, a layout or a level composes. An album whose collection the game lacks shows
+  `Album.CollectedOnly`.
 - `Gui/AlbumPageElement`: one page of the album window drawn by us from `AlbumPages` (stacks, flat tapestry images, headings,
-  the rarity corner, cycling stacks); `Show(album)` flips what is collected without composing again; hover gives the game's
-  tooltip through `Gui/AlbumSlot`. No window uses it yet (A3c).
+  the rarity corner, cycling stacks, search dimming); `Show(album)` flips what is collected without composing again; hover
+  gives the game's tooltip through `Gui/AlbumSlot`.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.

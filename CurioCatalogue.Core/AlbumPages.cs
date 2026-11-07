@@ -59,6 +59,40 @@ public sealed record GroupBox(
 public sealed record AlbumPage(IReadOnlyList<GroupBox> Groups)
 {
     public IEnumerable<Member> Members => Groups.SelectMany(g => g.Cells).Select(c => c.Member);
+
+    /// <summary>The member whose cell (<paramref name="cell"/> square) holds the point; null over background, a heading or a gap.</summary>
+    public PlacedMember? CellAt(int x, int y, int cell) =>
+        Groups.SelectMany(g => g.Cells).FirstOrDefault(c => Inside(x, y, c.X, c.Y, cell, cell));
+
+    /// <summary>The table heading that holds the point; null elsewhere.</summary>
+    public PlacedHeading? HeadingAt(int x, int y) =>
+        Groups.SelectMany(g => g.Headings).FirstOrDefault(h => Inside(x, y, h.X, h.Y, h.Width, h.Height));
+
+    // The right and bottom edges belong to the next cell: cells stand edge to edge (a tapestry picture).
+    private static bool Inside(int x, int y, int left, int top, int width, int height) =>
+        x >= left && x < left + width && y >= top && y < top + height;
+}
+
+/// <summary>
+/// A cell cycling through a member's stacks (a member filled by any of several items, while missing): one stack a second,
+/// held while the mouse is over it, as the handbook's slideshow (A2, "The cell").
+/// </summary>
+/// <param name="Index">The stack shown, of however many the cell has.</param>
+/// <param name="Shown">Seconds it has been shown.</param>
+public sealed record Slideshow(int Index, double Shown)
+{
+    public const double SecondsPerStack = 1;
+
+    public static readonly Slideshow Start = new(0, 0);
+
+    /// <summary>The slideshow <paramref name="seconds"/> later: the next stack after each full second, round to the first.</summary>
+    public Slideshow Tick(double seconds, int count, bool hovered)
+    {
+        if (hovered || count < 2) return this;
+        double shown = Shown + seconds;
+        int steps = (int)(shown / SecondsPerStack);
+        return new Slideshow((Index + steps) % count, shown - steps * SecondsPerStack);
+    }
 }
 
 /// <summary>A tab: a value of the layout's outermost grouping dimension and its groups.</summary>

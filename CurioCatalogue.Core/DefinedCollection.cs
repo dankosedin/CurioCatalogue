@@ -22,7 +22,12 @@ public sealed record Member(
     IReadOnlyDictionary<string, string> Values,
     IReadOnlyList<ItemKey> Fillers,
     IReadOnlyList<object> Stacks,
-    IReadOnlyDictionary<string, string> Attributes);
+    IReadOnlyDictionary<string, string> Attributes)
+{
+    /// <summary>The attribute naming a flat image the album draws in place of the stack (a tapestry piece's own texture, so
+    /// that the pieces side by side make the picture; album view, A2, "What the view needs", 5): an asset location.</summary>
+    public const string FlatTexture = "texture";
+}
 
 /// <summary>A group of a layout: its values in the layout's grouping dimensions (none for a layout without groups) and its
 /// members in the layout's order.</summary>

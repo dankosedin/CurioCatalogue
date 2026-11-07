@@ -36,6 +36,11 @@
       <HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- The game's 2D drawing (Cairo): the album page draws its own textures, as vanilla GUI elements do. Never shipped. -->
+    <Reference Include="cairo-sharp">
+      <HintPath>$(VINTAGE_STORY)/Lib/cairo-sharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 <ItemGroup>

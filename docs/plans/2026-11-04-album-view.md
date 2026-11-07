@@ -95,7 +95,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
         a cell's state (collected, missing) and what it shows (the stack put in, or the member's stacks to cycle), search
         matches and the next page with one.
         Done when: unit tests pass, mutation-checked; nothing draws it yet.
-  - [ ] **A3b. The element that draws a page.** A `GuiElement` of ours: stacks (missing translucent, alpha 0.35), flat tapestry
+  - [x] **A3b. The element that draws a page.** A `GuiElement` of ours: stacks (missing translucent, alpha 0.35), flat tapestry
         textures, table headings (stacks or text), the rarity corner, cycling stacks (once a second, paused while hovered),
         the game's tooltip through a slot of ours; a refresh flips flags without composing again.
         Done when: the build and all test projects pass.
@@ -418,6 +418,25 @@ The agent's choices, 08.11.2026 (`AlbumPages`, `docs/architecture.md`, Core); th
 - **Headings:** a dimension with an icon heads its rows and columns with a cell (a stack); one without, with words: a row
   heading of the measured width, a column heading a line high (a narrow column's word is the drawing's problem, A3b).
 
+### The element (A3b)
+
+The agent's choices, 08.11.2026 (`AlbumPageElement`, `AlbumSlot`); the author may overrule any in A4, where the look is checked:
+- **The flat image is a member attribute** (`Member.FlatTexture`, `texture`), set by the tapestry source as it sets x and y,
+  to the texture the game puts on the wall. Not a field of the definition: no other collection needs one yet. A server test
+  checks every piece has its image.
+- **A cell is the game's slot** (48, the slot grid's background texture) in its 51 of the page; a flat image fills the whole
+  51, so the pieces of a picture touch. Missing: the stack, or the image, at alpha 0.35; the slot's frame stays opaque.
+- **The check mark is vanilla's SVG** (`textures/icons/checkmark.svg`, green), not a "✓" in the text: vanilla's texts never
+  use that glyph, so the font may lack it. Progress "21/34" right in the group's heading, the mark before it; the name cut
+  with "…" to fit.
+- **Words that do not fit are cut with "…"**: a group's name, a column heading in words (a cell wide). Their full text on
+  hover is A3c's (the window's `AddHoverText`), as is a hover text on a heading in words; icon headings show the value's name
+  as the game's tooltip (title only).
+- **Tooltip lines** above the item's own: "In the collection" (green) or "Missing" (red), what a member of several items
+  leaves free (`AlbumPageLook.Freedom`, the window's, e.g. `ItemInvoice.Freedom`), the rarity line. Group names, freedom and
+  rarity come from the window (`AlbumPageLook`): rarity has no source yet (item 6), so A3c passes none.
+- **The corner** is a white triangle tinted by the tier's colour, 12 in the top right, over the stack (z 250, as the grid's cross).
+
 ## Where we stopped
 
 - 04.11.2026: A1 (three more GUI questions) and A2 (dimensions, levels, members of several codes, rarity marks, flat and
@@ -430,3 +449,6 @@ The agent's choices, 08.11.2026 (`AlbumPages`, `docs/architecture.md`, Core); th
 - 08.11.2026: A3 split in four (A3a–A3d, the author). A3a done (final): `AlbumPages` in the core with 15 unit tests,
   mutation-checked (six mutations, each caught); its choices in Decisions, "The page model (A3a)". Nothing draws it yet. Next:
   A3b (opus, After: A3a), on the same branch `feat/album-view`.
+- 08.11.2026: A3b done (final as code; its look unchecked until A4): `AlbumPageElement` and `AlbumSlot` in `Gui/`, the hit
+  test and `Slideshow` in the core (5 unit tests), the tapestry pieces' flat image (a server test); mutation-checked (four
+  mutations, each caught). Choices in Decisions, "The element (A3b)". Nothing opens it yet. Next: A3c (opus, After: A3b).

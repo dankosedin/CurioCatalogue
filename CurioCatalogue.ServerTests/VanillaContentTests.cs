@@ -25,6 +25,23 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     }
 
     [Fact]
+    public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
+    {
+        // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod
+        // BlockTapestry.cs:40#texturePath). Textures load on the server too (vsapi AssetCategory.cs:23, Universal).
+        var missing = game.OnMain(() =>
+        {
+            var members = Mod.Collections.Defined("tapestries")!.Levels.SelectMany(l => l.Members).ToList();
+            return (members.Count, Missing: members
+                .Where(m => !m.Attributes.TryGetValue(CurioCatalogue.Core.Member.FlatTexture, out var t) || !World.AssetManager.Exists(new AssetLocation(t)))
+                .Select(m => m.Id).ToList());
+        });
+
+        Assert.True(missing.Count > 30, $"only {missing.Count} pieces");
+        Assert.Empty(missing.Missing);
+    }
+
+    [Fact]
     public void A_hot_ingot_counts_as_the_same_item_as_a_cold_one()
     {
         // The game keeps the heat where GlobalConstants.IgnoredStackAttributes says, so the key ignores it without our config.

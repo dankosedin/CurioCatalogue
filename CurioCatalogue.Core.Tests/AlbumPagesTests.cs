@@ -262,4 +262,34 @@ public class AlbumPagesTests
         var collected = album.Collect([(copper.Id, new FilledBy(copper.Fillers[1], "the basalt one put in"))]);
         Assert.Equal(["the basalt one put in"], collected.StacksToShow(copper));
     }
+
+    // --- The mouse over a page (A3b: the element finds what is under the mouse here) ---
+
+    [Fact]
+    public void A_point_finds_the_cell_it_is_in_and_cells_stand_edge_to_edge()
+    {
+        // Ambush at (0, 0): its heading 5 high, then three cells 10 wide in a row.
+        var page = Pages(Tapestries, "pieces", "pictures", Metrics(50, 100)).Pages.Single();
+
+        Assert.Equal("ambush1", page.CellAt(0, 5, 10)?.Member.Id);
+        Assert.Equal("ambush1", page.CellAt(9, 14, 10)?.Member.Id);
+        Assert.Equal("ambush2", page.CellAt(10, 5, 10)?.Member.Id);
+        Assert.Null(page.CellAt(5, 4, 10)); // the heading
+        Assert.Null(page.CellAt(5, 15, 10)); // the gap under the picture
+    }
+
+    [Fact]
+    public void A_point_of_a_table_with_no_member_is_background_and_a_heading_is_found_by_its_box()
+    {
+        // Iron: one row (poor) and one column (basalt). By rock, basalt's table has copper, tin and iron as columns, and only
+        // poor iron; rich iron is background.
+        var basalt = Pages(Crystals, "all", "by-rock", Metrics(200, 200)).Pages.Single(p => p.Groups.Any(g => g.Group.Values[0] == "basalt"));
+        var box = basalt.Groups.Single(g => g.Group.Values[0] == "basalt");
+        var richTin = box.Cells.Single(c => c.Member.Id.Contains("rich") && c.Member.Id.Contains("tin"));
+        int ironX = box.Headings.Single(h => h.Value == "iron").X;
+
+        Assert.Null(basalt.CellAt(ironX + 1, richTin.Y + 1, 10));
+        Assert.Equal("iron", basalt.HeadingAt(ironX + 1, box.Y + 5)?.Value);
+        Assert.Equal("rich", basalt.HeadingAt(box.X + 1, richTin.Y + 1)?.Value);
+    }
 }

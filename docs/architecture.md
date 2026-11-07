@@ -70,7 +70,8 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   `CollectionDefinitionReader`, `AlbumRecipes` (plan `2026-11-07-collections-core.md`).
 - **The album window as data:** `AlbumPages.Build` lays a level's groups in a layout out on pages by `PageMetrics` (whole groups,
   side by side then under each other; a group larger than a page cut by lines; tables of the values that occur; a picture's
-  shape), with the tabs (`TabPaging.Shared | PerTab`) and search (`NextPageWith`). Positions only: what is collected is read when
+  shape), with the tabs (`TabPaging.Shared | PerTab`), search (`NextPageWith`), what is under the mouse (`CellAt`, `HeadingAt`)
+  and a cell's cycling stacks (`Slideshow`). Positions only: what is collected is read when
   drawing (`Album.StacksToShow`, `MemberGroup.CollectedCount`), so a refresh moves nothing (plan `2026-11-04-album-view.md`, A3).
 
 #### Adapters (`curiocatalogue/Adapters`)
@@ -93,6 +94,9 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `EmptyHandGesture`: the off-hand gesture, caught on the client in `Input.InWorldAction`.
 - `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client; no "take new" or "take from the list" hint for an album or want list whose collection is not `Found` (switched off or gone).
 - `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
+- `Gui/AlbumPageElement`: one page of the album window drawn by us from `AlbumPages` (stacks, flat tapestry images, headings,
+  the rarity corner, cycling stacks); `Show(album)` flips what is collected without composing again; hover gives the game's
+  tooltip through `Gui/AlbumSlot`. No window uses it yet (A3c).
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.

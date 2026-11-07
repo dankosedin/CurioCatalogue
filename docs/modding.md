@@ -195,6 +195,18 @@ In this order:
   item in its requests (`ShownItem`).
 - **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
 
+- **A slot grid always draws stacks white** (`GuiElementItemSlotGridBase.cs:504#WhiteArgb`). To change how a stack looks in a
+  vanilla grid, use a slot class of our own: `ItemSlot.OnBeforeRender` (`ItemSlot.cs:529#OnBeforeRender`) runs on every draw
+  and may set `renderInfo.OverlayTexture`/`OverlayOpacity` (as rot does) or `Transform`. The tooltip draws the same slot, so
+  its icon changes too. `GetStackName` and `GetStackDescription` of the slot are the tooltip's title and text. A colour or
+  alpha needs our own element with `RenderItemstackToGui(slot, …, color)`: the shader multiplies the texture by it (`gui.fsh`).
+  Checked in game 05.11.2026 (A1 of the album view plan).
+- **Composing costs per grid, not per slot** (dev client 05.11.2026): one grid of 400 slots 7 ms, 30 grids of 2 slots 32 ms.
+  Change slots' stacks or flags in place instead of composing again; a slot's stack can change with no composing.
+- **Tapestry icons are 3D at an angle**; each piece's flat image is `textures/block/cloth/tapestry/{type}.png`
+  (`BlockTapestry.cs:40#texturePath`), and drawn side by side the pieces make the picture.
+- **Text smaller than 14** (`WhiteDetailText`) does not read at the default GUI scale (the author, 05.11.2026).
+
 ## Config and logging
 
 - **Logger:** never pass dynamic text as the format string: `api.Logger.Notification("{0}", text)`. Text with `{}` (e.g. attribute

@@ -62,7 +62,8 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - **Collections:** `CollectionDefinition` (dimensions, levels, layouts, rules, exclusions; `SourcePoint`s from the adapters) and
   `DefinedCollection.Build` (`Built | Invalid`): per level the members (`Member`: id, values, fillers, stacks, attributes), the
   member a key fills, groups and order per layout, `LevelProgress`; `TapestryPieces` (pieces from `sizes`); adapters
-  `CollectionRegistry`, `CollectionDefinitionReader` (plan `2026-11-07-collections-core.md`).
+  `CollectionResolution` (`Found | Disabled | Unknown`, the one answer to "which collection is this album's"); adapters `CollectionRegistry`,
+  `CollectionDefinitionReader`, `AlbumRecipes` (plan `2026-11-07-collections-core.md`).
 
 #### Adapters (`curiocatalogue/Adapters`)
 
@@ -74,16 +75,18 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `InvoiceMaker`: compares a book with a container and makes an invoice.
 - `InvoicePoster`: `Post` (an invoice) and `Collect` (album, want list): builds the plan, checks all of it, then moves with `TryPutInto`
   and updates the off-hand book and the sheet.
-- `CollectionRegistry`: the collections known in this world, from the definitions of every domain and the config.
+- `CollectionRegistry`: the collections known in this world, from the definitions of every domain and the config; a bad definition is logged once and skipped.
+- `CollectionDefinitionReader`: reads and checks the definition assets (a bad one is `Bad`, never an exception).
+- `AlbumRecipes`: at `AssetsFinalize` reads the definitions itself and removes the album recipe of every switched-off collection from the server's grid recipes.
 
 #### Glue
 
 - `Items/ItemLedger`, `Items/ItemInvoice`: the item classes; click handling (`OnHeldInteractStart`), tooltips, crafting hooks.
 - `EmptyHandGesture`: the off-hand gesture, caught on the client in `Input.InWorldAction`.
-- `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client.
+- `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client; no "take new" or "take from the list" hint for an album or want list whose collection is not `Found` (switched off or gone).
 - `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
-  `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` config, on join).
+  `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.
 
 ### Main flows
@@ -228,7 +231,8 @@ free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   are different refusals.
 - **The server's `Collections` reach the client in a packet on join;** the client's registry is rebuilt when it arrives. Without
   it the client builds albums with its own config file (already true of `TapestryExclude` in 0.1) and cannot show `Disabled`.
-  The handler only stores the section; the registry is rebuilt at the client's `LevelFinalize`, which comes after it (K1:
+  The handler only stores the section and drops the registry and the client's item keys at once (so nothing is read with the old
+  ones); it is rebuilt at the client's `LevelFinalize`, which comes after it (K1:
   when the message arrives the grid recipes may not be loaded yet; `docs/modding.md`, Network). The definitions themselves the
   client reads from its own assets (K1, 11-07, the author): a mod that brings a collection must be universal and required on the
   client, and a patch of a definition must not be `"side": "server"`, or the client does not know the collection (to say in the

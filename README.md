@@ -104,8 +104,7 @@ Plain right click and Ctrl + right click open containers as usual.
 - `Collections`: settings per collection, by its id (`tapestries`): `Exclude` (names to leave out, `*` for any text, e.g. `["aid-*"]` for tapestry pieces), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
 - `Diagnostics` (false): write details to the game log, for finding problems.
 
-The server and each client read their own copy of this file, and the game does not sync them. On a server with changed settings,
-give players the same file: otherwise the album and the tooltips show the client's values, while the server acts on its own.
+The server sends its `Collections` and `ExtraIgnoredAttributes` to every client when it joins, so the album and the tooltips follow the server's file, not the client's. The other settings the server alone acts on. A mod that brings a collection must be on the server and on every client: the definitions are read from each side's own assets.
 
 ## Compatibility and known limitations
 

@@ -86,7 +86,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
         `docs/domain.md` (Recipes, the definition's `albumRecipe`) and `docs/architecture.md` (the recipe rule) say it.
   - [x] **K7b. Albums, want lists, the packet.** M1+M3, W1, H6, A9/C7, H14, T4; QA's tests for M1, Q3, Q4, Q8. Model: opus.
         Done when: tests pass, the new ones fail on the old code; upgrade table if H6 changes what is written; lang for W1.
-  - [ ] **K7c. Docs and the leftovers.** Q6, Q7 (README in both languages; the text shown to the author at release), H16/A7,
+  - [x] **K7c. Docs and the leftovers.** Q6, Q7 (README in both languages; the text shown to the author at release), H16/A7,
         C6 in `docs/domain.md`; H8/H9 to `ROADMAP.md`, A5 to the seashell plan's ideas, A8 to item 4; what the round taught in
         `docs/review.md`. Model: sonnet.
 
@@ -332,3 +332,4 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   "missing in the members' order"; W1 and H6 by mutation). G7 and W6 of `functional.md` passed by the author on the dedicated
   server; W6 showed the "Take from the list" hint over a chest for a want list of a collection switched off, now hidden
   (`LedgerHintsBehavior`, `LedgerStore.ReadWantedCollectionId`; checked in game again). Next: K7c (sonnet).
+- 08.11.2026: K7c done (final, docs only): Q6, Q7 (both READMEs: the config is synced since K6), H16/A7, C6; H8/H9, A5 and A8 in `ROADMAP.md` (A5 under the seashells of item 4: no seashell plan exists yet); the lessons in `docs/review.md`. No code changed, so no test run. Left of K7 (unticked): the pull request into `main`, its text shown to the author first; the README sentence on the config is for the author's read at release. Next: the pull request, then item 4 of the roadmap (a plan for the first collection).

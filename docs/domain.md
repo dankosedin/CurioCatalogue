@@ -133,6 +133,7 @@ A sheet is vanilla parchment; there is no separate blank item.
   definition); switched on again, the album works as before. Its album recipe is taken out of the server's recipes at load, so
   clients do not see it. The client builds its collections from the server's `Collections` settings, sent when it joins; the
   definitions it reads from its own assets, so a mod with a collection must be on the client too.
+- **A collected stack keeps its ignored attributes:** taking new moves the real stack, so a piece that reaches the inventory is as it was (durability and the like stay); the album only counts it by its key.
 - **An album follows its collection:** if the collection changed (config, a mod adding tapestries), the album is up to date by
   itself: collected stays collected, new members are missing, gone members disappear from the count; a piece excluded for a while
   keeps its record and comes back collected. An album of 0.1 is converted when read and stored in the new form the next time the
@@ -238,7 +239,9 @@ mod brings its own; the item put in must be a member of that collection.
 | `Collections` | `tapestries` with empty lists | per collection id: `Exclude`, `Add`, `Disabled` (0.1's `TapestryExclude`, `TapestryAdd` move into `tapestries` on load) |
 | `Diagnostics` | false | debug lines in the game log (`docs/development.md`) |
 
-Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty.
+Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty (also inside the lists of `Collections`: a `null` entry is dropped).
+
+The server sends `Collections` and `ExtraIgnoredAttributes` to each client on join; the client counts items and builds albums with them, not with its own file. The rest is the server's alone.
 
 ## Scenarios
 

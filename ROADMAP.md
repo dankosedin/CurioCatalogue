@@ -35,18 +35,22 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
 2. **Collections designed first:** [the plan](docs/plans/2026-11-04-collections-design.md) (04.11.2026). Ore crystals,
    seashells and butterflies on paper, the config of mods researched, the cost of reading a book measured; the result is the
    shape of a collection and the plan of the core (item 3), so that the core is built once.
-3. **The core of collections,** a plan written at the end of item 2. Known before it (review, 28.10.2026): one collection
-   resolver used by the store, the items and the network (today `Collections.Get` is called in three places), and the
-   registry as a list of collection definitions, not tapestries only; the config of collections (item 2 decides its form);
-   whatever the measurement of reading a book asks (tooltips and crafting checks read the whole book, the window hashes its
-   whole data every 500 ms; fine for 88 tapestries, maybe not for 169 butterflies). Fills the upgrade table.
-4. **The collections of 0.2,** in this order, by what they give the core (item 2, Decisions); each fills the upgrade table:
-   - **Ore crystals** (29.10.2026, players on the author's server collect them): `crystalizedore-{grade}-{ore}-{rock}`, 4 grades,
-     18 ores, 17 rocks, about 400 allowed combinations in vanilla; a piece has three dimensions.
-   - **Seashells** (asked on the ModDB page, 30.10.2026): block `seashell-{type}-{color}`, 7 types, 6 colors, 42 combinations.
+3. **The core of collections:** [the plan](docs/plans/2026-11-07-collections-core.md) (07.11.2026). Definitions as assets
+   built by sources, levels, members of several codes, the album storing what it collected, want lists by members, one
+   resolver, the server's `Collections` sent to clients. Fills the upgrade table.
+4. **The collections of 0.2,** in this order, by what they give the core (item 2, Decisions); each a definition asset, its
+   album recipe and its lang, and fills the upgrade table. What each needs (collections design plan, Decisions):
+   - **Ore crystals** (29.10.2026, players on the author's server collect them): `crystalizedore-{grade}-{ore}-{rock}`, source
+     `variants`; three levels (16 / 118 / 353: ore with the richest grade, ore × rock with the richest grade, every combination);
+     the 54 combinations that never generate as the definition's `exclude`; rocks' stones as icons; grade names of our own; the
+     rock shown wherever a missing piece is listed (pieces of two rocks share a name).
+   - **Seashells** (asked on the ModDB page, 30.10.2026): block `seashell-{type}-{color}`, source `variants`; two levels
+     (7: type, any colour; 42: type × colour); the rare colours (seafoam, turquoise) as an attribute rule, shown or not as item 6
+     decides.
    - **Butterflies** (collected by a player on the author's server; promised for 0.2 on the ModDB page, 29.10.2026):
-     `butterfly-dead-<type>`, 169 types, the species is the item's variant; dead only, live ones of other mods would be another
-     collection. Last, since grouping 169 types by species is decided in item 6.
+     `butterfly-dead-<type>`, 169 types, source `variants` (members from the loaded items: 169, not the entity's 170); one level,
+     no dimensions until grouping by species is decided in item 6; dead only, live ones of other mods would be another
+     collection. Collected butterflies lie on displays more than in chests (Exhibits, Later).
 5. **Stamp-album view:** [the plan](docs/plans/2026-11-04-album-view.md) (04.11.2026). Pages by group, collected pieces in place,
    missing ones as dim silhouettes. Designed before the shape of collections (C7 of item 2), built after the core (item 3).
 6. **Every vanilla collection, polished in the album:** back to tapestries, ore crystals, seashells and butterflies (last), each one's look

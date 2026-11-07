@@ -144,6 +144,60 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - **modid renamed before the release** (`warehouseledger` → `curiocatalogue`, 10-26, author): after a release a modid cannot change
   without breaking worlds.
 
+#### Collections
+
+The shape of a collection (11-07, proposed by the AI assistant and accepted by the author; from the designs of tapestries, ore
+crystals, seashells and butterflies, plan `2026-11-04-collections-design.md`, and the album view, plan `2026-11-04-album-view.md`,
+A2). Being built by plan `2026-11-07-collections-core.md`; until then the code is the MVP's (a `Collection` of tapestry pieces).
+
+- **A definition is data; the members come from a source in code.** A collection is defined in an asset
+  `config/curiocatalogue/collections/<id>.json`, read from every domain, so another mod brings a collection without our release
+  and an admin or a mod changes one with a JSON patch (C5, option D). The members are built by a **source**, one of a small closed
+  set of kinds written in C# and parameterised by the definition: `variants` (the registered items or blocks of one code with
+  variant groups, `game:crystalizedore-{grade}-{ore}-{rock}`: members follow the loaded game and mods, an item added by an update
+  or a mod comes in by itself) and `tapestry` (blocks with a `sizes` attribute: picture, size, the piece's place x, y). Later
+  kinds: the book itself (custom collections), a rule on an attribute (berry bush traits). Everything else is data: dimensions,
+  levels, layouts, attribute rules, exclusions. Rejected: every collection in C# (no collection from another mod, no patch by an
+  admin); every member listed in data (353 crystals by hand, and the list does not follow mods).
+- **A member** is a point in the collection's dimensions (dimension → value), with a stable id made of its values (a tapestry
+  piece's id is its name), what fills it (a set of item keys: one code, or any of several), the stacks to show (one, or a list
+  the album cycles through) and attributes (rarity, a piece's x and y). Within a level a key fills at most one member, checked
+  when the collection is built. A rule on an attribute is a further kind of filler, reserved.
+- **Levels are projections of the full set.** A level keeps some dimensions; for each dimension it drops it says `any` (any value
+  fills the member) or `max` (only the highest value that occurs, in the dimension's order): crystals keep `ore` with grade
+  `max` (16), `ore` and `rock` with grade `max` (118), all three (353); seashells keep `type` (7, colour `any`) or both (42). A
+  collection with one level shows no choice.
+- **Dimensions** have their values in order (a variant group's order, or a list), a name per value as a lang key (the game's where
+  it has one: `game:ore-{value}`, `game:rock-{value}`) and optionally an icon stack. A hierarchical dimension (a tapestry's size
+  belongs to its picture) is one the source derives from another. **Layouts** belong to a level: which dimension groups (or none)
+  and how a group is arranged: a table of two dimensions, the shape from the members' x and y, or in order; one is the default.
+  Groups and order are computed, never stored; taking new follows the default layout's order (whole groups first, as pictures today).
+- **Attributes by rules in the definition** (`where` some dimension values, `set` attributes): the rarity of seashell colours, and
+  any later per-member property. The core carries them; what the album shows of them is decided per collection.
+- **The config's `Collections.<id>`** (`Exclude`, `Add`, `Disabled`; C5) works on each source's own name of a member: the item
+  code without domain for `variants` (`crystalizedore-*-uranium-*`), the piece name for `tapestry`, so the old `TapestryExclude`
+  and `TapestryAdd` move into `Collections.tapestries` unchanged. The id is the one albums already store, `tapestries`.
+  Combinations that never occur (54 crystals) are the definition's own default `exclude`; computing them from the loaded deposits
+  was left for later.
+- **An album stores what it collected, not what it misses** (format 2): its level (or none chosen) and, per collected member, the
+  member's id and the stack that filled it. What is missing is the collection minus that. So the album remembers the code that
+  filled a member of several codes (A2), needs no snapshot and no refresh on read (`RefreshIfStale` goes), and keeps the records of
+  a member excluded or disabled for a while: it comes back collected. The data is about half of today's. The album becomes a core
+  type of its own rather than a `Ledger` in album mode (a step towards books as a sum type, `ROADMAP.md`, Technical); format 1 is
+  migrated on read (snapshot keys → member ids by the collection's index), and 0.1.1 refuses format 2 as any newer data. Rejected:
+  keep the missing entries and the snapshot, with `Entry.Pattern` for members of several codes (fewer changes, but the code that
+  filled a member would be a third list beside them).
+- **A want list's line names a member** (collection, level, member id), and taking by a want list goes the album's way, by members
+  rather than keys, so a member of several codes is filled by any of them. Want lists of format 1 are read as exact entries, as now.
+- **One resolver** for the store, the items and the network: given an album (its id now, the book stack later for custom
+  collections), it answers `Found | Disabled | Unknown`, a closed type, so "disabled on this server" and "no longer in the game"
+  are different refusals.
+- **The server's `Collections` reach the client in a packet on join;** the client's registry is rebuilt when it arrives. Without
+  it the client builds albums with its own config file (already true of `TapestryExclude` in 0.1) and cannot show `Disabled`.
+  The recipe of a disabled collection is removed from the server's recipes at load, so clients never get it (to be checked: K1 of
+  the core plan); else it makes nothing. Each vanilla collection has its album recipe in our assets (an empty book and any
+  member, which stays); another mod's collection brings its own, and the collection is found by the sample.
+
 #### Client and server
 
 - **One network channel**, every request re-checked; a forged or stale request is ignored with a diagnostic line.

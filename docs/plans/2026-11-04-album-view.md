@@ -84,7 +84,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
       testable code where they can be, with unit tests (`ROADMAP.md`, Later, tests for the client code). Both header
       variants (A and C) and both tab variants (several groups a page, or one tab one page; Decisions) built behind
       temporary switches, for the author to compare in A4.
-      Branch: `feat/album-view`. After: A2, the core's plan done. Model: opus. Author: none.
+      Branch: `feat/album-view`. After: A2; the core's plan (`2026-11-07-collections-core.md`) merged into `main` after its review, K7. Model: opus. Author: none.
       Done when: the build and all test projects pass; the author has the exact steps of the in-game check.
 - [ ] **A4. Checked in game, docs.** The author checks the window in game (en and uk, memory: in-game checks by language):
       empty, partly full and full album; a refresh while open (taking new from a chest); a long name of a piece in both
@@ -386,4 +386,4 @@ is decided (collections plan, "Butterflies last").
   branch `docs/album-view`.
 - 07.11.2026: A2 done (final: Decisions, "The view on paper (A2)", with the mockups and the list for C7; `docs/domain.md`,
   Windows). The branch `docs/album-view` waits for the author's pull request into `main`; then C7 of the collections plan.
-  Next here: A3 (opus, After: A2 and the core's plan done).
+  Next here: A3 (opus, After: A2, and the core merged after K7).

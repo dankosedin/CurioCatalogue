@@ -150,6 +150,20 @@ The moderation compares the two architects by: findings in the role (a finding i
 also made, is out of the role and not counted), found by it alone, with a proof, the questions from the future answered (by
 reasoning or by a probe), and the cost (time and tokens from the task notification).
 
+**What the code review of the core taught** (K7 of `2026-11-07-collections-core.md`, 07.11.2026). Five roles on the diff from where the
+branch left `main`, about 35 findings after the merge; costs 157–260 thousand tokens and 5–18 minutes a role (QA the slowest).
+- **Agreement is the signal.** R1 (a definition that throws takes every collection down) was found by all five roles independently,
+  and the Teammate's and QA's tests for it failed on the old code, so the fix started from proof.
+- **The moderator checks reachability before the author sees a finding.** M1 (an album of 0.1 placed on the wrong level) and M2 (an
+  album with no snapshot) were true in the code and unreachable with today's data (M1 was fixed together with the reachable M3,
+  M2 rejected); the moderation said so and the decision was quick. Verify each claim against the code and say what can reach it.
+- **Doc findings are real findings.** Q6 and Q7 came from QA's table (documented case → code → test): the README still said the
+  config is not synced after K6 had synced it, and rows of `functional.md` sat above its heading.
+- **A flaky test needs its cause, not a mention.** `BookEdgeTests.L1` flaked in K3, K4 and K7; the cause (a dropped list falls out of
+  the cube `OnGroundNear` searches) was found by the author from the test world's layout (T4). Ask a role that meets a flake to find
+  the cause, or say so in the prompt.
+- **Not run:** the architect with rights (above); its second run stays at R1 of 0.2.
+
 ## To weigh at the next players' round
 
 Proposals from the round on the mod page (P9 of the mod page plan, 04.11.2026), not adopted yet: the next round, with more

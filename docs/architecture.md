@@ -48,37 +48,45 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 
 - **Identity:** `AttrValue` (a small attribute model: typed numbers, strings, bytes, arrays, trees), `AttrCanonical` (a canonical,
   locale-independent, key-sorted string of attributes minus the ignored ones), `ItemKey` (kind + code + canonical attributes), `ItemIdentity`.
-- **Books:** `Entry` (key, count, opaque sample, kind `Exact`; `Pattern` reserved), `Ledger` (mode, entries, sheets, name, album
-  info) with `CreateInvoice`, `Post`, `ReturnSheet`, `AddSheets`, `Clear`, `FromStored`; `Invoice`; `Multiset`.
-  All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`), not exceptions;
-  a call the caller must never make (`Clear` on an album, `Post` into an album) throws.
+- **Books:** `Book` (sheets, name, `ReturnSheet`, `AddSheets`), closed: `Ledger` (types or counts: entries, with
+  `CreateInvoice`, `Post`, `Clear`, `FromStored`) or `Album` (collection, level, collected members, with `Missing`, `Wanted`,
+  `Collect`, `ChooseLevel`, `StartOver`, `MakeWantList`, `FromFormat1`); `Entry` (key, count, opaque sample, kind `Exact`;
+  `Pattern` reserved; on a want list the member it names); `Invoice` (a want list's `From` and `Wanted`, `CrossOff`); `Multiset`.
+  All immutable; operations return a new value. Refusals are values (`CreateInvoiceResult.Created | Refused`, `LevelChoice`), not
+  exceptions.
   Limits (`LedgerLimits`) come from the config, not from the book.
 - **Moving items:** `Transfer.Plan` (all or nothing: `Ready | Missing | NoRoom`) and `Transfer.PlanWhatFits` (partial, in a given order),
   over plain `SourceSlot` / `TargetSlot` descriptions, with merge classes (`Stack`) besides keys.
 - **How an invoice ends:** `InvoiceFates` (`Ended`, `WantListPosted`): the one table of sheet returned / parchment / consumed / kept,
   for posting and cancelling alike.
-- **Collections:** `Collection` (members, groups, snapshot, progress, `Refresh` / `RefreshIfStale`), `TapestryPieces` (pieces from `sizes`).
+- **Collections:** `CollectionDefinition` (dimensions, levels, layouts, rules, exclusions; `SourcePoint`s from the adapters) and
+  `DefinedCollection.Build` (`Built | Invalid`): per level the members (`Member`: id, values, fillers, stacks, attributes), the
+  member a key fills, groups and order per layout, `LevelProgress`; `TapestryPieces` (pieces from `sizes`); adapters
+  `CollectionResolution` (`Found | Disabled | Unknown`, the one answer to "which collection is this album's"); adapters `CollectionRegistry`,
+  `CollectionDefinitionReader`, `AlbumRecipes` (plan `2026-11-07-collections-core.md`).
 
 #### Adapters (`curiocatalogue/Adapters`)
 
 - `StackKeys`: `ItemStack` → `ItemKey` (resolves stacks read from bytes first; ignored attributes from the config).
-- `LedgerStore`: ledger and invoice ↔ item attributes under `curiocatalogue`; reads every album up to date with its collection.
+- `LedgerStore`: books and invoices ↔ item attributes under `curiocatalogue`; reads an album of format 1 as format 2 (the migration).
 - `ContainerReader`: classifies the aimed block (supported storage / other inventory / not ours), resolves multiblocks, reads slots,
   opens writable slots (bags on the ground through a wrapper inventory).
 - `ContainerAccess`: claims and reinforcement, behind interfaces for tests.
 - `InvoiceMaker`: compares a book with a container and makes an invoice.
 - `InvoicePoster`: `Post` (an invoice) and `Collect` (album, want list): builds the plan, checks all of it, then moves with `TryPutInto`
   and updates the off-hand book and the sheet.
-- `CollectionRegistry`: the collections known in this world (tapestries from the block's `sizes` plus config).
+- `CollectionRegistry`: the collections known in this world, from the definitions of every domain and the config; a bad definition is logged once and skipped.
+- `CollectionDefinitionReader`: reads and checks the definition assets (a bad one is `Bad`, never an exception).
+- `AlbumRecipes`: at `AssetsFinalize` reads the definitions itself and removes the album recipe of every switched-off collection from the server's grid recipes.
 
 #### Glue
 
 - `Items/ItemLedger`, `Items/ItemInvoice`: the item classes; click handling (`OnHeldInteractStart`), tooltips, crafting hooks.
 - `EmptyHandGesture`: the off-hand gesture, caught on the client in `Input.InWorldAction`.
-- `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client.
+- `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client; no "take new" or "take from the list" hint for an album or want list whose collection is not `Found` (switched off or gone).
 - `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
-  `MakeWantListRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language).
+  `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.
 
 ### Main flows
@@ -133,10 +141,10 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   load. `Entry.Sample` in the core is therefore an opaque `object`.
 - **Keys recomputed on read, not stored** (10-26): a change of ignored attributes in the config applies to existing books; an item
   from a removed mod is kept. The same book always serializes to the same bytes (entries sorted).
-- **The album's snapshot as sample stacks** (10-28, code review): re-keyed on read like the entries, so the two always agree. Kept as
-  key strings, any change of a key's text (our format, the config's ignored attributes, a new attribute on the item) reset every
-  album to nothing collected, silently. Strings plus a migration per version would cover only our own format changes. The cost: an
-  album's data about doubles (88 small stacks for tapestries). The unread `album.size` was dropped with it.
+- **The album's snapshot as sample stacks** (10-28, code review; format 1, replaced by format 2 in 0.2, below in Collections):
+  re-keyed on read like the entries, so the two always agree. Kept as key strings, any change of a key's text (our format, the
+  config's ignored attributes, a new attribute on the item) reset every album to nothing collected, silently. The same reason keeps
+  the stacks of format 2 as stacks: the migration of format 1 re-keys the snapshot, and a collected member's stack is re-keyed too.
 - **Format version `v` at the root of every book and invoice** (10-28, code review): missing means 1. Data of a newer version (after
   a downgrade of the mod) is read as well as we can and never written: every server action on it, and our recipes, refuse
   (`LedgerStore.IsNewer`, `PlayerMessages.RefuseNewer`). Alternative: read and write as is, which silently drops what the older
@@ -148,7 +156,8 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 
 The shape of a collection (11-07, proposed by the AI assistant and accepted by the author; from the designs of tapestries, ore
 crystals, seashells and butterflies, plan `2026-11-04-collections-design.md`, and the album view, plan `2026-11-04-album-view.md`,
-A2). Being built by plan `2026-11-07-collections-core.md`; until then the code is the MVP's (a `Collection` of tapestry pieces).
+A2). Being built by plan `2026-11-07-collections-core.md` (definitions, the registry, the album of format 2 and want lists by
+members, the resolver, the packet and the recipe of a disabled collection are in).
 
 - **A definition is data; the members come from a source in code.** A collection is defined in an asset
   `config/curiocatalogue/collections/<id>.json`, read from every domain, so another mod brings a collection without our release
@@ -159,6 +168,26 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   kinds: the book itself (custom collections), a rule on an attribute (berry bush traits). Everything else is data: dimensions,
   levels, layouts, attribute rules, exclusions. Rejected: every collection in C# (no collection from another mod, no patch by an
   admin); every member listed in data (353 crystals by hand, and the list does not follow mods).
+- **The JSON of a definition** (K3, 11-07; read by `CollectionDefinitionReader` into the core's records; `tapestries.json` is the
+  example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
+  `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
+  "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`, `anyKey`: a phrase in lower case for what a member of several items leaves
+free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
+  `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
+  complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
+  `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",
+  `albumRecipe`: the grid recipe that makes its album, by name with the domain (`curiocatalogue:ledger-album`). A definition that
+  does not read, or that the core refuses (`DefinedCollection.CheckDefinition`, also called by the reader: e.g. a level dropping
+  as `max` a dimension with no `values`, an empty level id), is logged as an error and skipped; the other collections work. Of
+  the good definitions of one id the first is used, ours (`curiocatalogue`) before other domains, then the game's asset order; the
+  others are logged as errors (K7, 11-07: a broken copy must not shadow a good one, and the asset order is not ours to choose).
+  Each collection is built inside a guard that logs whatever it throws and skips it, and each problem is logged once per session
+  (`ProblemLog`), however often the registry is rebuilt. A config id no definition has, and `Add` on a `variants` collection,
+  are warnings.
+  The registry builds a collection on first use, and none when its source finds no point (no tapestry block, no such variants:
+  a mod's collection without the mod); `Defined(id)` gives it. The config's `Exclude` joins the
+  definition's own, so it also leaves out an `Add`ed piece it matches (0.1 did not); `Add` is for the `tapestry` source (a piece,
+  its own picture, place 1, 1) and ignored by `variants`.
 - **A member** is a point in the collection's dimensions (dimension → value), with a stable id made of its values (a tapestry
   piece's id is its name), what fills it (a set of item keys: one code, or any of several), the stacks to show (one, or a list
   the album cycles through) and attributes (rarity, a piece's x and y). Within a level a key fills at most one member, checked
@@ -167,7 +196,11 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   fills the member) or `max` (only the highest value that occurs, in the dimension's order): crystals keep `ore` with grade
   `max` (16), `ore` and `rock` with grade `max` (118), all three (353); seashells keep `type` (7, colour `any`) or both (42). A
   collection with one level shows no choice.
-- **Dimensions** have their values in order (a variant group's order, or a list), a name per value as a lang key (the game's where
+- **Dimensions** have their values in order, a list in the definition (K1, 11-07: the game keeps no order of a variant group at
+  run time, and item ids follow the world's history; a mod adds its value to the list with a patch); a value the source finds
+  but the list lacks comes after the listed ones, by code, and for `max` ranks below all of them, with one warning in the log.
+  Rejected: the server reading the order from the item's asset and sending it (more code, tied to the shape of others' assets);
+  the order of item ids (differs between worlds). A name per value as a lang key (the game's where
   it has one: `game:ore-{value}`, `game:rock-{value}`) and optionally an icon stack. A hierarchical dimension (a tapestry's size
   belongs to its picture) is one the source derives from another. **Layouts** belong to a level: which dimension groups (or none)
   and how a group is arranged: a table of two dimensions, the shape from the members' x and y, or in order; one is the default.
@@ -186,17 +219,33 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   type of its own rather than a `Ledger` in album mode (a step towards books as a sum type, `ROADMAP.md`, Technical); format 1 is
   migrated on read (snapshot keys → member ids by the collection's index), and 0.1.1 refuses format 2 as any newer data. Rejected:
   keep the missing entries and the snapshot, with `Entry.Pattern` for members of several codes (fewer changes, but the code that
-  filled a member would be a third list beside them).
+  filled a member would be a third list beside them). Built in K4 (11-07): what an album of format 1 collected but its collection
+  lacks at the time of reading (unknown, disabled, a piece excluded) is kept as `unplaced` stacks and placed when the collection has
+  them again, so no write loses a piece (the plan's Decisions, K4).
 - **A want list's line names a member** (collection, level, member id), and taking by a want list goes the album's way, by members
   rather than keys, so a member of several codes is filled by any of them. Want lists of format 1 are read as exact entries, as now.
+  Built in K5 (11-07): the list stores its album's collection and level once (`Invoice.From`), each line its member id
+  (`Entry.Member`) beside the member's first item; a line whose member or collection the game lacks wants exactly that item.
 - **One resolver** for the store, the items and the network: given an album (its id now, the book stack later for custom
   collections), it answers `Found | Disabled | Unknown`, a closed type, so "disabled on this server" and "no longer in the game"
   are different refusals.
 - **The server's `Collections` reach the client in a packet on join;** the client's registry is rebuilt when it arrives. Without
   it the client builds albums with its own config file (already true of `TapestryExclude` in 0.1) and cannot show `Disabled`.
-  The recipe of a disabled collection is removed from the server's recipes at load, so clients never get it (to be checked: K1 of
-  the core plan); else it makes nothing. Each vanilla collection has its album recipe in our assets (an empty book and any
-  member, which stays); another mod's collection brings its own, and the collection is found by the sample.
+  The handler only stores the section and drops the registry and the client's item keys at once (so nothing is read with the old
+  ones); it is rebuilt at the client's `LevelFinalize`, which comes after it (K1:
+  when the message arrives the grid recipes may not be loaded yet; `docs/modding.md`, Network). The definitions themselves the
+  client reads from its own assets (K1, 11-07, the author): a mod that brings a collection must be universal and required on the
+  client, and a patch of a definition must not be `"side": "server"`, or the client does not know the collection (to say in the
+  README's part for modders). Rejected: sending the server's definitions in the packet too (one source, but more code for a
+  mistake the modder can avoid).
+  **The album recipe is named by the definition** (`albumRecipe`; K7, 11-07, replacing a table in C#), so a mod brings a collection
+  with its album by JSON alone: its definition and a grid recipe of an empty book and any member (which stays). The registry maps
+  recipes to collections from every good definition, switched-off ones included (`AlbumOf`; a recipe two definitions name is the
+  first's, logged); the book asks it whether a recipe makes an album and of which collection, and the sample must be a member of
+  that collection, or there is no output. The recipe of a disabled collection is removed from the server's recipes at load
+  (K1: in `AssetsFinalize` or `StartServerSide`, out of `GridRecipes` and `Enabled = false`; `docs/modding.md`, Recipes), so
+  clients never get it. `AlbumRecipes` reads the definitions itself there, choosing as the registry does, but builds no
+  collection (that needs the world's blocks); it takes out recipes of any domain.
 
 #### Client and server
 
@@ -291,9 +340,10 @@ A2). Being built by plan `2026-11-07-collections-core.md`; until then the code i
   refill them). Made by a button in the album window rather than a recipe (no need to get the album back from the grid). It does not
   touch the holder's own off-hand book: it is meant for another player.
 - **"Clear" on an album means "Start over"** (author): one button must not "collect" the whole collection.
-- **The album follows its collection on every read** (`RefreshIfStale`, 10-26). Alternatives: a refresh recipe (tried; the player had
-  to remember to re-craft after a new mod or config change), showing stale entries separately, or waiting for playtests. The author,
-  after trying the recipe: "щось перемудрили".
+- **The album follows its collection by itself** (10-26). Alternatives: a refresh recipe (tried; the player had to remember to
+  re-craft after a new mod or config change), showing stale entries separately, or waiting for playtests. The author, after trying
+  the recipe: "щось перемудрили". Until 0.2 by a refresh on every read (`RefreshIfStale`); since format 2 (K4) with no refresh:
+  the album stores what it collected, and what is missing is computed from the collection.
 
 ### Messages and texts
 

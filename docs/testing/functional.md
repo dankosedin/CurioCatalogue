@@ -73,6 +73,8 @@ which build, who ran it, and each `❌` with its reason.
 | W2 ⚙ | 0.1.0 | Fill it until it is finished, `ConsumeSheets` false, album in off-hand | "Taken from the list: N. The list is done and is now parchment."; the list is parchment (a want list goes back into no book, `docs/domain.md`); the album's sheets unchanged |
 | W3 ⚙ | 0.1.0 | Same with `ConsumeSheets` true | "…The list is done."; the list is gone, no parchment; the album's sheets unchanged |
 | W4 ⚙ | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit |
+| W5 ⚙ | 0.2.0 | An album at a level whose members take any of several items (seashells by type, crystals by ore, once item 4 brings them); make a want list, look at its tooltip, fill it on a chest with a piece of another kind than the one shown (another colour), in `en` and `uk` | Each such line ends with what is free ("…, any colour"); the piece of the other kind is taken and its line crossed off. Until item 4, `CollectionsFromAssetsTests` checks it with the test mod's seashells |
+| W6 ⚙ | 0.2.0 | A want list made by an album, the server's `Collections.tapestries.Disabled: true` (restart); Shift + RMB with the list on a chest that has a piece of it; then `Disabled: false`, restart, again | No "Take from the list" hint over the chest (the client's hints); red "This want list's collection is switched off on this server"; the chest and the list unchanged. Switched on, the list fills as usual (`InvoicePosterTests`) |
 
 ## The ledger and the bill of materials
 
@@ -126,8 +128,11 @@ which build, who ran it, and each `❌` with its reason.
 |---|---|---|---|
 | G1 ⚙ | 0.1.0 | `"MaxSheets": 0`, restart | Server log warning "MaxSheets 0 is below 1, using 1"; the file now says 1. Put back 32 |
 | G2 ⚙ | 0.1.0 | `ExtraIgnoredAttributes`: `[]` and `["durability"]` | Damaged and plain items count as different, or the same |
-| G3 ⚙ | 0.1.0 | `TapestryExclude` / `TapestryAdd` | The collection changes accordingly |
+| G3 ⚙ | 0.1.0 | `Collections.tapestries.Exclude` / `Add` (before 0.2: `TapestryExclude` / `TapestryAdd`, which move there on the first start and leave the file) | The collection changes accordingly |
 | G4 ⚙ | 0.1.0 | `Diagnostics` true / false | Debug lines appear / do not |
+| G5 | 0.2.0 | Dedicated server (`VintageStory-ServerData`), a client joined: set `Collections.tapestries.Disabled: true` and restart the server only. Then, on the client: hold an album made before, open its window, Shift + RMB on a chest; look for the album recipe in the handbook and the grid | The album says "switched off on this server" (tooltip and window), the chest click and "Make a want list" give the red "switched off on this server" (not "no longer in the game"); the album is untouched; no album recipe in the handbook or grid; no "Take new items for the collection" hint over a chest while the album is in hand (the client's hints; not unit-testable). Set `Disabled: false` and restart: the album works again, its collected pieces still counted |
+| G6 | 0.2.0 | Same server, `Collections.tapestries.Exclude: ["aid-*"]` on the server only (the client's own file unchanged), restart the server, rejoin | The client's album counts the same pieces as the server's (no `aid-*` among the missing); the client's log has "the server's collection settings: tapestries" (with `Diagnostics` on). Put the config back |
+| G7 | 0.2.0 | Dedicated server (`VintageStory-ServerData`): `ExtraIgnoredAttributes: []` on the server only (the client's own file keeps `["durability"]`), restart the server, rejoin. A chest with two copper pickaxes, one new and one worn; Shift + RMB on it with an empty bill of materials, fill the intake list with the bill in the off-hand, then open the bill's window | The bill lists the two pickaxes as two lines (the server's setting: wear counts), not one line of 2 as the client's own file would. Put the config back (`RefusalTests` checks that the packet carries the setting) |
 
 ## Languages (S)
 
@@ -140,4 +145,12 @@ which build, who ran it, and each `❌` with its reason.
 
 - `newerversion`: a book or invoice from a newer mod version. ⚙ `RefusalTests` (every gesture and window request, the stacks written by the test).
 - `movefailed`: the game accepts only part of the items (the post rolls back). Unit test only: no container of the server accepts part of a stack.
-- `nocollection`: "Start over" for an album whose collection no longer exists. ⚙ `RefusalTests`.
+- `nocollection`: "Start over" for an album whose collection no longer exists. ⚙ `RefusalTests`; taking new and a want list from
+  such an album, ⚙ `InvoicePosterTests`, `InvoiceMakerTests`.
+- `nolevel`, `levelfixed`: an album of a collection with several levels (none in the game before the collections of 0.2's item 4)
+  takes nothing and makes no want list until a level is chosen in its window; the first piece fixes the level, "Start over" frees
+  it. ⚙ `CollectionsFromAssetsTests` (a test mod's collection of two levels), `AlbumTests`. In game with the first collection of levels.
+- A broken collection definition (bad JSON, a pattern naming a dimension twice, `max` on a dimension with no `values`, a block
+  whose `sizes` is of another shape, a null in the config's lists) is logged once and skipped; the other collections work, and a
+  good copy of the same id from another mod is used. Another mod's album recipe, named by its definition, makes its album and is
+  taken out when its collection is switched off. ⚙ `CollectionRegistryTests`, `AlbumRecipesTests`, `ConfigTests`, `RecipeTests` (0.2.0, K7).

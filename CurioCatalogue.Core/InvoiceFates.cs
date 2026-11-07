@@ -17,7 +17,7 @@ public enum InvoiceFate
 }
 
 /// <param name="Book">The book in the off-hand with the sheet back, to be written; null when no sheet goes back.</param>
-public sealed record InvoiceEnd(InvoiceFate Fate, Ledger? Book);
+public sealed record InvoiceEnd(InvoiceFate Fate, Book? Book);
 
 /// <summary>
 /// The one table of how an invoice ends; the caller carries it out:
@@ -29,13 +29,13 @@ public sealed record InvoiceEnd(InvoiceFate Fate, Ledger? Book);
 /// posted want list      list done: consumed or parchment (never into a book); lines left: kept
 /// </code>
 /// A blank invoice (no lines: from the creative inventory) was never a book's sheet, so it gives none back.
-/// "Book" is any book in the off-hand, an album included: an album takes the sheet, its entries stay.
+/// "Book" is any book in the off-hand, an album included: an album takes the sheet, what it collected stays.
 /// </summary>
 public static class InvoiceFates
 {
     /// <summary>A posted ordinary invoice, or any cancelled one.</summary>
     /// <param name="book">The book in the off-hand as it will be (after posting, if it takes the entries), or null.</param>
-    public static InvoiceEnd Ended(Ledger? book, LedgerLimits limits, bool consumeSheets)
+    public static InvoiceEnd Ended(Book? book, LedgerLimits limits, bool consumeSheets)
     {
         if (consumeSheets) return new InvoiceEnd(InvoiceFate.Consumed, null);
         return book?.ReturnSheet(limits) is { } withSheet
@@ -44,7 +44,7 @@ public static class InvoiceFates
     }
 
     /// <summary>A cancelled invoice of any kind; a blank one is just gone.</summary>
-    public static InvoiceEnd Cancelled(bool blank, Ledger? book, LedgerLimits limits, bool consumeSheets) =>
+    public static InvoiceEnd Cancelled(bool blank, Book? book, LedgerLimits limits, bool consumeSheets) =>
         blank ? new InvoiceEnd(InvoiceFate.Consumed, null) : Ended(book, limits, consumeSheets);
 
     /// <summary>A posted want list: it was made for someone else's collection, so its sheet goes back into no book.</summary>

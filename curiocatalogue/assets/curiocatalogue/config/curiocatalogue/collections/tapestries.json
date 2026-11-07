@@ -1,0 +1,21 @@
+{
+  "nameKey": "curiocatalogue:collection-tapestries",
+  "albumRecipe": "curiocatalogue:ledger-album",
+  "source": { "kind": "tapestry", "block": "game:tapestry-north" },
+  "dimensions": [
+    { "code": "picture", "values": [] },
+    { "code": "piece", "values": [] }
+  ],
+  "levels": [
+    {
+      "id": "pieces",
+      "progressKey": "curiocatalogue:tapestries-progress",
+      "keep": ["piece"],
+      "drop": { "picture": "any" },
+      "layouts": [
+        { "id": "pictures", "groupBy": ["picture"], "arrange": { "kind": "shape" } }
+      ]
+    }
+  ],
+  "exclude": []
+}

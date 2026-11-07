@@ -176,7 +176,7 @@ public class RefusalTests(GameServerFixture server) : BookTestBase(server)
         {
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             var stack = Ours("book-album-normal-brickred");
-            Mod.Store.WriteLedger(stack, Ledger.FromStored(LedgerMode.Album, 5, [], "gone", new AlbumInfo("vanished-collection")));
+            Mod.Store.WriteAlbum(stack, new Core.Album("vanished-collection", null, Core.Album.NoneCollected, [], 5, "gone"));
             hand.Itemstack = stack;
             return (LedgerStore.Fingerprint(stack), Bytes(stack));
         });
@@ -185,5 +185,59 @@ public class RefusalTests(GameServerFixture server) : BookTestBase(server)
 
         client.WaitFor(() => Errors(client).Contains("nocollection"), "the refusal 'no collection'");
         Assert.Equal(before, game.OnMain(() => Bytes(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack)));
+    }
+
+    // ---- disabled
+
+    [Fact]
+    public void A_joining_player_gets_the_servers_collection_settings_and_ignored_attributes()
+    {
+        // K6: the client builds its collections with the server's Collections section, not its own file (G5, G6 in game); K7
+        // (A9/C7): and tells items apart by the server's ExtraIgnoredAttributes. QA K7 (Q3).
+        var tapestries = Mod.Config.Collections[CollectionRegistry.TapestriesId];
+        var ignored = Mod.Config.ExtraIgnoredAttributes;
+        game.OnMain(() => { tapestries.Disabled = true; tapestries.Exclude = ["aid-*"]; Mod.Config.ExtraIgnoredAttributes = ["durability", "cc-test"]; return true; });
+        try
+        {
+            var client = FakeClient.Join(game, "settings-packet");
+            client.WaitFor(() => client.FromMod<CollectionSettingsPacket>().Count > 0, "the collection settings");
+            var packet = Assert.Single(client.FromMod<CollectionSettingsPacket>());
+            var entry = Assert.Single(packet.Collections, c => c.Id == CollectionRegistry.TapestriesId);
+            Assert.True(entry.Disabled);
+            Assert.Equal(["aid-*"], entry.Exclude);
+            Assert.Equal(["durability", "cc-test"], packet.ExtraIgnoredAttributes);
+        }
+        finally
+        {
+            game.OnMain(() => { tapestries.Disabled = false; tapestries.Exclude = []; Mod.Config.ExtraIgnoredAttributes = ignored; return true; });
+        }
+    }
+
+    [Fact]
+    public void An_album_of_a_collection_the_server_switched_off_is_refused_apart_from_an_unknown_one_and_works_again_when_it_is_on()
+    {
+        var client = FakeClient.Join(game, "disabled-coll");
+        var tapestries = Mod.Config.Collections[CollectionRegistry.TapestriesId];
+        var (fingerprint, before) = game.OnMain(() =>
+        {
+            var stack = Album(8);
+            client.Player.InventoryManager.ActiveHotbarSlot.Itemstack = stack;
+            return (LedgerStore.Fingerprint(stack), Bytes(stack));
+        });
+
+        game.OnMain(() => tapestries.Disabled = true);
+        try
+        {
+            client.SendToMod(new ClearLedgerRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+            client.WaitFor(() => Errors(client).Contains("disabled"), "the refusal 'disabled'");
+            Assert.DoesNotContain("nocollection", Errors(client));
+            client.SendToMod(new MakeWantListRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
+            client.WaitFor(() => Errors(client).Count(e => e == "disabled") == 2, "the second refusal 'disabled'");
+            Assert.Equal(before, game.OnMain(() => Bytes(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack)));
+        }
+        finally
+        {
+            game.OnMain(() => tapestries.Disabled = false); // the server is shared: the next test must find the collection on
+        }
     }
 }

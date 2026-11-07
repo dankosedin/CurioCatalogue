@@ -46,11 +46,15 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      rock shown wherever a missing piece is listed (pieces of two rocks share a name).
    - **Seashells** (asked on the ModDB page, 30.10.2026): block `seashell-{type}-{color}`, source `variants`; two levels
      (7: type, any colour; 42: type × colour); the rare colours (seafoam, turquoise) as an attribute rule, shown or not as item 6
-     decides.
+     decides. From the code review of the core (K7, A5): the album picks the filler of a member before it knows there is room
+     for it, so a member of several items may take the first filler when another would fit; settle it here, where members of several
+     items first appear (the same for the want list).
    - **Butterflies** (collected by a player on the author's server; promised for 0.2 on the ModDB page, 29.10.2026):
      `butterfly-dead-<type>`, 169 types, source `variants` (members from the loaded items: 169, not the entity's 170); one level,
      no dimensions until grouping by species is decided in item 6; dead only, live ones of other mods would be another
      collection. Collected butterflies lie on displays more than in chests (Exhibits, Later).
+   - **For the core, when these land** (code review K7, A8): `Member.Fills` and `Member.Shown` are one thing today; a collection where
+     what a member accepts differs from what the album shows (a berry bush: any cutting fills, one is drawn) needs them apart.
 5. **Stamp-album view:** [the plan](docs/plans/2026-11-04-album-view.md) (04.11.2026). Pages by group, collected pieces in place,
    missing ones as dim silhouettes. Designed before the shape of collections (C7 of item 2), built after the core (item 3).
 6. **Every vanilla collection, polished in the album:** back to tapestries, ore crystals, seashells and butterflies (last), each one's look
@@ -170,6 +174,10 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   it on, as with chests), how the lock looks.
 
 **Technical**
+- **The collections' code, one resolve and one filler** (code review K7, H8/H9, 07.11.2026): the ladder that answers "which collection,
+  found, switched off or gone" is written in four places (store, items, network, hints) with three refusal enums, and `Album.Wanted` and
+  `Invoice.Wanted` choose the first filler by two algorithms. Merge them when the first new collection (item 4) touches them anyway;
+  until then a change to one is a change to all.
 - **The server's config sent to clients** (review, 28.10.2026). Each side reads its own `ModConfig` file and the game does not
   sync them (vsapi `ICoreAPI.cs:150`). The client then builds its own tapestry collection, item identity and sheet limits: album
   progress, missing lists, tooltips and the recharge recipe differ from what the server does. Fix: one packet on join with the

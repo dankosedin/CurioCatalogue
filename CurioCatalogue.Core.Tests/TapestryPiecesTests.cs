@@ -45,4 +45,17 @@ public class TapestryPiecesTests
     {
         Assert.Throws<FormatException>(() => Pieces(new Dictionary<string, string> { ["x"] = "big" }));
     }
+
+    [Fact]
+    public void A_piece_knows_its_place_in_the_picture()
+    {
+        var pieces = TapestryPieces.WithPictures(new Dictionary<string, string> { ["wide"] = "3x1", ["tall"] = "1x2", ["big"] = "2x2", ["one"] = "1x1" })
+            .ToDictionary(p => p.Piece, p => (p.X, p.Y));
+
+        // The digits of a name are x then y, from 1; a row or a column counts along its length.
+        Assert.Equal((3, 1), pieces["wide3"]);
+        Assert.Equal((1, 2), pieces["tall2"]);
+        Assert.Equal((2, 1), pieces["big21"]);
+        Assert.Equal((1, 1), pieces["one"]);
+    }
 }

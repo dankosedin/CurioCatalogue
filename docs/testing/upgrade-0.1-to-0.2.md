@@ -61,7 +61,7 @@ If the fixture is lost, make it again with the 0.1.1 zip from the GitHub release
 | # | Case | Expected |
 |---|---|---|
 | U1 | Load the world | Loads; no `[CurioCatalogue]` errors or warnings about unknown items, no "Failed to parse grid recipe", no "cannot be resolved" |
-| U2 ⚙ | Config of 0.1.1 | Read as it is; the new keys of 0.2.0 appear with defaults; the old values are kept |
+| U2 ⚙ | Config of 0.1.1 | Read as it is; the new keys of 0.2.0 appear with defaults; the old values are kept. `TapestryExclude` and `TapestryAdd` are the exception: they move into `Collections.tapestries` (`Exclude`, `Add`) and the file loses them (K3; with non-empty lists too: `ConfigFileTests`) |
 | U3 ⚙ | Look at every book from the fixture (tooltip, window) | Same counts, entries, name and cover colour as before |
 | U4 ⚙ | Open the album window | Collected pieces and the missing ones as before; the collection counts match |
 | U5 ⚙ | Post an invoice from the fixture (each kind) | Works as in 0.1.1; the book in the off-hand updates and gets the sheet back |
@@ -81,7 +81,18 @@ Fill in while 0.2.0 is made. Take each line from the changelog or the PR and say
 
 | Change | Touches stored data, recipes, item codes, config or lang? | Case |
 |---|---|---|
-| | | |
+| Config: `TapestryExclude`, `TapestryAdd` move into `Collections.tapestries` (`Exclude`, `Add`; new `Disabled`), read once and removed from the file (K3) | config | U2 ⚙ (golden config; `ConfigFileTests` with non-empty lists), G3 |
+| The album's stored format 2 (K4): what it collected by member id (with the item that filled it) and its level, no snapshot and no missing entries; `v` 2 (on albums and want lists only since K7b, below); an album of 0.1.1 is converted when read and written as 2 by the next server write, nothing collected lost (a piece the collection lacks at the time is kept and placed later) | stored data | U3 ⚙, U4 ⚙, U10 ⚙ (`UpgradeTests`: the golden albums read through the conversion, and written back), U12 (0.1.1 says "newer version" for an album the 0.2.0 server wrote) |
+| New lang keys for albums with levels and a lost collection (`ledger-info-nolevel`, `album-restarted-nolevel`, `ledgerwindow-level-none`, `ingameerror-nolevel`, `ingameerror-levelfixed`); no key changed (K4) | lang | U1 (`AssetsTests`: both languages have them); T1 |
+| A want list's stored format 2 (K5): the album's collection and level (`wants: { id, level }`) and the member each line names (`member`); a line of a member of several items is filled by any of them. A want list of 0.1.1 has neither and is read as exact lines, as before | stored data | U6 ⚙ (`UpgradeTests`: the golden want list filled from a real chest), U12 |
+| New lang keys for a want list's line of a member of several items (`invoice-info-member-free`, `invoice-info-any-of`); no key changed (K5) | lang | U1 (`AssetsTests`); T1 |
+| The resolver (K6): a collection switched off is told from one the game lacks. New lang keys `ingameerror-disabled`, `ledger-info-disabled`, `ledger-info-progress`, `album-name` (with the collection's name), `collection-tapestries`, `tapestries-progress`; removed `album-name-tapestries`, `ledger-info-album`, `ledgerwindow-collected` (their words moved into the definition's `nameKey` and `progressKey`; the album's shown name and its progress line read the same) | lang | U1 (`AssetsTests`); T1, G5 |
+| The album recipe of a collection with `Disabled: true` is removed from the server's recipes at load (K6); with no collection disabled, no recipe changes | recipes | U9, G5 (`AlbumRecipesTests`, `RecipeTests`) |
+| The server sends its `Collections` settings to each client on join (K6); no stored data | network | G5 |
+| The format version by kind (K7b, H6): only albums and want lists of format 2 are written with `v` 2; ledgers, bills of materials, intake and pick lists (and want lists of 0.1.1) keep `v` 1, as their layout did not change | stored data | U12 (0.1.1 reads a ledger, a bill and an intake list the 0.2.0 server wrote; says "newer version" for an album and a want list), `LedgerStoreTests` |
+| An album whose level the collection no longer has (format 1, or a level renamed by a patch) is placed on the level that takes most of what it collected (K7b, M1 and M3) | stored data | U10 ⚙ (the golden albums), `AlbumTests` |
+| New lang key `ingameerror-wantlistdisabled` (K7b, W1): filling a want list of a collection switched off is refused; no key changed | lang | U1 (`AssetsTests`); W6 |
+| The settings packet also carries `ExtraIgnoredAttributes` (K7b, A9/C7); the 0.1.1 config's empty `TapestryExclude` / `TapestryAdd` leave the file without a line in the log (H14) | network, config | G7; U2 ⚙ |
 
 **The rule for the table:** a change that touches stored data, a recipe, an item code, a config key or a lang key gets its line in the same PR as
 the change, and each line names a case. If the case is about an item's data, it is also made automatic: a stack of the golden set (the old sets are

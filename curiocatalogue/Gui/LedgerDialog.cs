@@ -20,7 +20,7 @@ public class LedgerDialog : GridDialog
     private readonly CurioCatalogueModSystem mod;
     private SortBy sort = SortBy.Name;
     private string search = "";
-    private Ledger ledger = null!;
+    private Book book = null!;
 
     private static LedgerDialog? open;
 
@@ -45,18 +45,28 @@ public class LedgerDialog : GridDialog
     protected override void Refresh()
     {
         if (!StillShows(Slot.Itemstack)) return;
-        ledger = mod.Store.ReadLedger(Slot.Itemstack!, Mode);
+        book = mod.Store.ReadBook(Slot.Itemstack!, Mode);
         Compose();
     }
 
+    private ItemLedger Item => (ItemLedger)Slot.Itemstack!.Collectible;
+
     private List<ItemStack> Stacks()
     {
-        var stacks = ledger.Entries.Values.Select(entry =>
+        var stacks = book switch
         {
-            var shown = ((ItemStack)entry.Sample).Clone();
-            shown.StackSize = entry.Count; // drawn in the slot corner; types mode has 1, drawn as nothing
-            return shown;
-        });
+            Ledger ledger => ledger.Entries.Values.Select(entry =>
+            {
+                var shown = ((ItemStack)entry.Sample).Clone();
+                shown.StackSize = entry.Count; // drawn in the slot corner; types mode has 1, drawn as nothing
+                return shown;
+            }),
+            // What the album misses at its level, by each member's first item, until the album window of A3 (album view plan).
+            Album album => Item.StateOf(album).Level is { } level
+                ? album.Missing(level).Select(m => ((ItemStack)m.Stacks[0]).Clone())
+                : [],
+            _ => throw ExhaustiveMatching.ExhaustiveMatch.Failed(book),
+        };
         var byName = StringComparer.CurrentCultureIgnoreCase;
         return (sort switch
         {
@@ -91,19 +101,24 @@ public class LedgerDialog : GridDialog
         var sortDrop = ElementBounds.Fixed(width / 2, y, width / 2, line);
         y += line + 10;
         ElementBounds? missingLabel = null;
-        if (ledger.Album != null)
+        var levels = LevelChoices();
+        ElementBounds? levelDrop = null;
+        if (book is Album)
         {
-            missingLabel = ElementBounds.Fixed(0, y, width, 22);
-            y += 24;
+            missingLabel = ElementBounds.Fixed(0, y + (levels != null ? 5 : 0), width / 2, 22);
+            // The level, while the album is empty and its collection has several (A2 of the album view plan).
+            if (levels != null) levelDrop = ElementBounds.Fixed(width / 2, y, width / 2, line);
+            y += levels != null ? line + 6 : 24;
         }
         content.WithChildren(nameLabel, nameInput, saveButton, info, searchLabel, searchInput, sortDrop);
         if (missingLabel != null) content.WithChildren(missingLabel);
+        if (levelDrop != null) content.WithChildren(levelDrop);
 
         string[] sortCodes = Mode == LedgerMode.Counts ? ["name", "mod", "count"] : ["name", "mod"];
         string[] sortNames = sortCodes.Select(c => T("ledgerwindow-sort-" + c)).ToArray();
 
         var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
-        string title = ledger.Name.Length > 0 ? ledger.Name : Slot.Itemstack!.GetName();
+        string title = book.Name.Length > 0 ? book.Name : Slot.Itemstack!.GetName();
 
         var composer = capi.Gui
             .CreateCompo("curiocatalogue-ledger", dialogBounds)
@@ -118,6 +133,7 @@ public class LedgerDialog : GridDialog
             .AddTextInput(searchInput, OnSearch, font, "search")
             .AddDropDown(sortCodes, sortNames, Math.Max(0, Array.IndexOf(sortCodes, sort.ToString().ToLowerInvariant())), OnSort, sortDrop, "sort");
         if (missingLabel != null) composer.AddStaticText(T("ledgerwindow-missing"), font, missingLabel);
+        if (levels is { } choice && levelDrop != null) composer.AddDropDown(choice.Codes, choice.Names, choice.Selected, OnLevel, levelDrop, "level");
 
         var inset = AddGrid(composer, content, y, rows);
         // For an album "Clear" means "start over": every member missing again (emptying the list would instead
@@ -125,9 +141,9 @@ public class LedgerDialog : GridDialog
         var clearButton = ElementBounds.Fixed(width - 160, inset.fixedY + inset.fixedHeight + 10, 160, line);
         content.WithChildren(clearButton);
         composer.AddSmallButton(T(Mode == LedgerMode.Album ? "ledgerwindow-restart" : "ledgerwindow-clear"), OnClear, clearButton, EnumButtonStyle.Normal, "clear");
-        if (Mode == LedgerMode.Album)
+        if (book is Album album && Item.StateOf(album).State == ItemLedger.AlbumState.AtLevel)
         {
-            // The "missing" list for another player, for one sheet (domain.md, Albums and collections).
+            // The "missing" list for another player, for one sheet (domain.md, Albums and collections); none without a level (A2).
             var wantListButton = ElementBounds.Fixed(width - 160 - 10 - 220, clearButton.fixedY, 220, line);
             content.WithChildren(wantListButton);
             composer.AddSmallButton(T("ledgerwindow-wantlist"), OnWantList, wantListButton, EnumButtonStyle.Normal, "wantlist");
@@ -135,7 +151,7 @@ public class LedgerDialog : GridDialog
 
         SetComposer(composer.EndChildElements());
         SingleComposer.GetTextInput("name").SetMaxLength(ModNetwork.MaxNameLength); // the server cuts longer names anyway
-        SingleComposer.GetTextInput("name").SetValue(ledger.Name);
+        SingleComposer.GetTextInput("name").SetValue(book.Name);
         SingleComposer.GetTextInput("search").SetValue(search);
         ApplySearch();
         SingleComposer.UnfocusOwnElements();
@@ -151,13 +167,42 @@ public class LedgerDialog : GridDialog
             LedgerMode.Album => "ledgerwindow-mode-album",
             _ => "ledgerwindow-mode-types",
         });
-        // Against the collection as the game has it now, with pictures: "Collected 57 of 88 · pictures 12 of 31".
-        if (((ItemLedger)Slot.Itemstack!.Collectible).ProgressOf(ledger) is { } progress)
-            text += " · " + T("ledgerwindow-collected", progress.Collected, progress.Total, progress.GroupsComplete, progress.GroupsTotal);
-        // An album's entries are what it still misses, already in the progress, and its limit does not matter: sheets only.
-        return text + "\n" + (Mode == LedgerMode.Album
-            ? T("ledger-info-sheets", ledger.Sheets, config.MaxSheets)
-            : T("ledgerwindow-info", ledger.Sheets, config.MaxSheets, ledger.Entries.Count, config.SoftEntryLimit));
+        switch (book)
+        {
+            // Against the collection as the game has it now, with pictures: "Collected 57 of 88 · pictures 12 of 31". Its limit does
+            // not matter: sheets only.
+            case Album album:
+                var (state, _, level) = Item.StateOf(album);
+                if (state == ItemLedger.AlbumState.AtLevel && album.Progress(level!) is var progress)
+                    text += " · " + ItemLedger.ProgressText(level!, progress);
+                else if (state == ItemLedger.AlbumState.Disabled)
+                    text += " · " + T("ledger-info-disabled");
+                else if (state == ItemLedger.AlbumState.NoLevel)
+                    text += " · " + T("ledger-info-nolevel");
+                return text + "\n" + T("ledger-info-sheets", album.Sheets, config.MaxSheets);
+            case Ledger ledger:
+                return text + "\n" + T("ledgerwindow-info", ledger.Sheets, config.MaxSheets, ledger.Entries.Count, config.SoftEntryLimit);
+            default:
+                throw ExhaustiveMatching.ExhaustiveMatch.Failed(book);
+        }
+    }
+
+    /// <summary>The levels to choose from (codes, names, the chosen one), or null when there is no choice: not an album, an album that
+    /// has collected something, or a collection of one level. With none chosen, the first entry asks for one.</summary>
+    private (string[] Codes, string[] Names, int Selected)? LevelChoices()
+    {
+        if (book is not Album { IsEmpty: true } album || Item.StateOf(album).Collection is not { Levels.Count: > 1 } collection) return null;
+        var levels = collection.Levels;
+        string[] codes = [.. (album.LevelIn(collection) == null ? [""] : Array.Empty<string>()), .. levels.Select(l => l.Id)];
+        string[] names = codes.Select(c => c.Length == 0 ? T("ledgerwindow-level-none")
+            : collection.Level(c)!.Definition.NameKey is { } key ? Lang.Get(key) : c).ToArray();
+        return (codes, names, Math.Max(0, Array.IndexOf(codes, album.LevelIn(collection)?.Id ?? "")));
+    }
+
+    private void OnLevel(string code, bool selected)
+    {
+        if (code.Length == 0 || book is not Album album || album.Level == code) return;
+        capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new ChooseLevelRequest { Book = Shown(), Level = code });
     }
 
     private void OnSearch(string text)
@@ -192,7 +237,7 @@ public class LedgerDialog : GridDialog
     private bool OnClear()
     {
         var shown = Shown();
-        new ConfirmDialog(capi, Mode == LedgerMode.Album ? T("confirm-restart") : T("confirm-clear", ledger.Entries.Count), ok =>
+        new ConfirmDialog(capi, Mode == LedgerMode.Album ? T("confirm-restart") : T("confirm-clear", (book as Ledger)?.Entries.Count ?? 0), ok =>
         {
             if (ok) capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new ClearLedgerRequest { Book = shown });
         }).TryOpen();

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Vintagestory.API.Common;
 
@@ -39,4 +40,26 @@ internal ref struct DebugMessage
     public void AppendFormatted<T>(T value) => text.AppendFormatted(value);
     public void AppendFormatted<T>(T value, string? format) => text.AppendFormatted(value, format);
     public string ToStringAndClear() => text.ToStringAndClear();
+}
+
+/// <summary>
+/// Problems with the collections' definitions and settings (errors and warnings), each written once per session: the registry
+/// is built again after the server's settings arrive and after a config change, and the same broken asset should not fill the
+/// log on every build. The mod system keeps one for the session.
+/// </summary>
+public sealed class ProblemLog(ILogger logger)
+{
+    private readonly HashSet<string> written = [];
+
+    public void Error(string text)
+    {
+        lock (written) if (!written.Add("E" + text)) return;
+        logger.Error("[CurioCatalogue] {0}", text);
+    }
+
+    public void Warning(string text)
+    {
+        lock (written) if (!written.Add("W" + text)) return;
+        logger.Warning("[CurioCatalogue] {0}", text);
+    }
 }

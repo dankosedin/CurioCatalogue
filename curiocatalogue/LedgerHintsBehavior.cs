@@ -3,6 +3,7 @@ using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using CurioCatalogue.Adapters;
+using CurioCatalogue.Core;
 
 namespace CurioCatalogue;
 
@@ -55,19 +56,25 @@ public class LedgerHintsBehavior(Block owner) : BlockBehavior(owner)
     {
         var hand = forPlayer?.InventoryManager?.ActiveHotbarSlot;
         // Empty main hand with the ledger in the off-hand: the same gestures (EmptyHandGesture).
-        var item = hand?.Empty == true ? forPlayer?.Entity?.LeftHandItemSlot?.Itemstack?.Collectible as ItemLedger : hand?.Itemstack?.Collectible;
+        var stack = hand?.Empty == true ? forPlayer?.Entity?.LeftHandItemSlot?.Itemstack : hand?.Itemstack;
+        var item = hand?.Empty == true ? stack?.Collectible as ItemLedger : stack?.Collectible;
+        var mod = world.Api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
         var hints = item switch
         {
-            ItemLedger { IsAlbum: true } => AlbumHints,
+            // An album whose collection is off or gone refuses the click, so it promises nothing.
+            ItemLedger { IsAlbum: true } => mod.Store.Resolve(LedgerStore.ReadCollectionId(stack!)) is CollectionResolution.Found ? AlbumHints : null,
             ItemLedger => LedgerHints,
-            ItemInvoice { InvoiceKind: Core.InvoiceKind.WantList } when hand?.Empty != true => WantListHints,
+            // A want list of a collection switched off refuses too (K7, W1); one of a collection the game lacks still fills by exact items.
+            ItemInvoice { InvoiceKind: InvoiceKind.WantList } when hand?.Empty != true =>
+                LedgerStore.ReadWantedCollectionId(stack!) is { Length: > 0 } id && mod.Store.Resolve(id) is CollectionResolution.Disabled
+                    ? null
+                    : WantListHints,
             ItemInvoice when hand?.Empty != true => InvoiceHints,
             _ => null,
         };
         if (hints == null) return [];
         // Ground storage is one block for everything lying on the ground: only a bag on it is a container.
-        var containers = world.Api.ModLoader.GetModSystem<CurioCatalogueModSystem>().Containers;
-        return containers.Classify(world, selection) == ContainerKind.Supported ? hints : [];
+        return mod.Containers.Classify(world, selection) == ContainerKind.Supported ? hints : [];
     }
 
     /// <summary>

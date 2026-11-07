@@ -17,9 +17,9 @@ public class ModdedTapestryTests(CompatServerFixture server) : BookTestBase(serv
     [Fact]
     public void The_patched_picture_is_in_the_collection()
     {
-        var pieces = game.OnMain(() => Mod.Collections.Get(CollectionRegistry.TapestriesId)!.Members
-            .Where(m => m.Group == Picture)
-            .Select(m => ((ItemStack)m.Sample).Attributes.GetString("type"))
+        var pieces = game.OnMain(() => Pieces.Members
+            .Where(m => m.Values["picture"] == Picture)
+            .Select(m => ((ItemStack)m.Stacks[0]).Attributes.GetString("type"))
             .ToList());
         Assert.Equal([Picture + "1", Picture + "2"], pieces);
     }
@@ -46,5 +46,5 @@ public class ModdedTapestryTests(CompatServerFixture server) : BookTestBase(serv
 
     /// <summary>The album's missing pieces: their keys' attributes (a key holds the tapestry's <c>type</c>, e.g. <c>{"type":"ambush1"}</c>).</summary>
     List<string> Missing(ItemStack album) =>
-        ReadBook(album).Entries.Select(e => e.Key.Attributes).ToList();
+        MissingOf(ReadAlbum(album)).Select(m => m.Fillers[0].Attributes).ToList();
 }

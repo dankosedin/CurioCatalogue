@@ -27,7 +27,7 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
     static string[] EnLines(string key) => En(key, "Shift", "Ctrl").Split('\n');
 
     void Rename(ItemStack book, string name) =>
-        Mod.Store.WriteLedger(book, ReadBook(book) with { Name = name });
+        Mod.Store.WriteBook(book, Mod.Store.ReadBook(book, ((ItemLedger)book.Collectible).LedgerMode) with { Name = name });
 
     [Fact]
     public void A_ledger_says_its_cover_sheets_entries_and_gestures()
@@ -70,17 +70,16 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
         var (name, named, info, progress) = game.OnMain(() =>
         {
             var album = Album(8);
-            var collection = Mod.Collections.ForSample(Tapestry("ambush1"))!;
-            var progress = collection.Progress(collection.Members.Select(m => m.Key));
+            var progress = Pieces.Progress([]);
             var renamed = Album(8);
             Rename(renamed, "Grandma's walls");
             return (album.GetName(), renamed.GetName(), Info(album), progress);
         });
 
-        Assert.Equal(En("album-name-tapestries"), name);
+        Assert.Equal(En("album-name", En("collection-tapestries")), name);
         Assert.Equal("Grandma's walls", named);
         Assert.Contains(En("item-book-album-*"), info); // the kind line: an album always has one, its title is the collection or a name
-        Assert.Contains(En("ledger-info-album", 0, progress.Total, 0, progress.GroupsTotal), info);
+        Assert.Contains(En("tapestries-progress", 0, progress.Total, 0, progress.GroupsTotal), info);
         Assert.All(EnLines("ledger-info-howto-album"), line => Assert.Contains(line, info));
         Assert.DoesNotContain(info, l => l.StartsWith("Entries:")); // its entries are what it misses, the limit does not matter
     }

@@ -65,6 +65,38 @@ public class MakeWantListRequest
     [ProtoMember(1)] public ShownItem? Book;
 }
 
+/// <summary>Client → server, from the album window: choose the level of the shown album, which must be empty (A2 of the album
+/// view plan).</summary>
+[ProtoContract]
+public class ChooseLevelRequest
+{
+    [ProtoMember(1)] public ShownItem? Book;
+    [ProtoMember(2)] public string Level = "";
+}
+
+/// <summary>One collection's settings of the server's config, as the client needs them (<see cref="CollectionSettings"/>).</summary>
+[ProtoContract]
+public class CollectionSettingsEntry
+{
+    [ProtoMember(1)] public string Id = "";
+    [ProtoMember(2)] public List<string> Exclude = [];
+    [ProtoMember(3)] public List<string> Add = [];
+    [ProtoMember(4)] public bool Disabled;
+}
+
+/// <summary>
+/// Server → client, on join: the server's <c>Collections</c> config, so the client builds the same collections (a collection off, a
+/// piece left out on the server only) and can say "switched off" (docs/architecture.md, Part 1, Collections), and its
+/// <c>ExtraIgnoredAttributes</c>, so the client tells items apart as the server does (what a tooltip or window counts as missing; K7,
+/// A9/C7). The definitions are not sent: the client reads them from its own assets.
+/// </summary>
+[ProtoContract]
+public class CollectionSettingsPacket
+{
+    [ProtoMember(1)] public List<CollectionSettingsEntry> Collections = [];
+    [ProtoMember(2)] public List<string> ExtraIgnoredAttributes = [];
+}
+
 /// <summary>
 /// Server → client: posting is refused for lack of these items. The client names them: a name depends on the player's
 /// language, and the server translates only into its own (checked on a dedicated server 27.10.2026).
@@ -106,16 +138,36 @@ internal static class ModNetwork
             .RegisterMessageType<ClearLedgerRequest>()
             .RegisterMessageType<CancelInvoiceRequest>()
             .RegisterMessageType<MakeWantListRequest>()
-            .RegisterMessageType<MissingItemsRefusal>();
+            .RegisterMessageType<MissingItemsRefusal>()
+            .RegisterMessageType<ChooseLevelRequest>()
+            .RegisterMessageType<CollectionSettingsPacket>();
 
-    public static void StartClient(ICoreClientAPI capi) =>
-        capi.Network.GetChannel(Channel).SetMessageHandler<MissingItemsRefusal>(refusal =>
+    public static void StartClient(ICoreClientAPI capi, CurioCatalogueModSystem mod)
+    {
+        var channel = capi.Network.GetChannel(Channel);
+        channel.SetMessageHandler<MissingItemsRefusal>(refusal =>
         {
             var text = MissingText(capi.World, refusal);
             // The game does not log in-game errors; this line is the only trace of the refusal.
             ModLog.Debug(capi, $"refused, missing: {text}");
             capi.TriggerIngameError(typeof(ModNetwork), "missing", text);
         });
+        channel.SetMessageHandler<CollectionSettingsPacket>(packet =>
+        {
+            ModLog.Debug(capi, $"the server's collection settings: {string.Join(", ", packet.Collections.Select(c => c.Id + (c.Disabled ? " (off)" : "")))}");
+            mod.UseServerSettings(SettingsOf(packet), packet.ExtraIgnoredAttributes);
+        });
+    }
+
+    /// <summary>The settings of the server's config the client must share, as a packet; <see cref="SettingsOf"/> reads its collections back.</summary>
+    internal static CollectionSettingsPacket PacketOf(CurioCatalogueConfig config) => new()
+    {
+        Collections = [.. config.Collections.Select(s => new CollectionSettingsEntry { Id = s.Key, Exclude = [.. s.Value.Exclude], Add = [.. s.Value.Add], Disabled = s.Value.Disabled })],
+        ExtraIgnoredAttributes = [.. config.ExtraIgnoredAttributes],
+    };
+
+    internal static Dictionary<string, CollectionSettings> SettingsOf(CollectionSettingsPacket packet) =>
+        packet.Collections.ToDictionary(c => c.Id, c => new CollectionSettings { Exclude = [.. c.Exclude], Add = [.. c.Add], Disabled = c.Disabled });
 
     /// <summary>How many lacking items a refusal names; the rest are counted.</summary>
     public const int LackingShown = 3;
@@ -156,6 +208,10 @@ internal static class ModNetwork
         channel.SetMessageHandler<ClearLedgerRequest>((player, request) => Clear(sapi, mod, player, request));
         channel.SetMessageHandler<CancelInvoiceRequest>((player, request) => Cancel(sapi, mod, player, request));
         channel.SetMessageHandler<MakeWantListRequest>((player, request) => MakeWantList(sapi, mod, player, request));
+        channel.SetMessageHandler<ChooseLevelRequest>((player, request) => ChooseLevel(sapi, mod, player, request));
+        // Before the player opens anything: the client's handler exists by now and the packet waits in the channel if need be (K1 of the
+        // collections core plan, docs/modding.md, Network).
+        sapi.Event.PlayerJoin += player => channel.SendPacket(PacketOf(mod.Config), player);
     }
 
     /// <summary>
@@ -196,8 +252,8 @@ internal static class ModNetwork
 
         string name = LimitName(request.Name);
         var item = (ItemLedger)slot.Itemstack!.Collectible;
-        var ledger = mod.Store.ReadLedger(slot.Itemstack, item.LedgerMode);
-        mod.Store.WriteLedger(slot.Itemstack, ledger with { Name = name });
+        var book = mod.Store.ReadBook(slot.Itemstack, item.LedgerMode);
+        mod.Store.WriteBook(slot.Itemstack, book with { Name = name });
         slot.MarkDirty();
         ModLog.Debug(sapi, $"{player.PlayerName}: ledger renamed to '{name}'");
     }
@@ -207,28 +263,89 @@ internal static class ModNetwork
         if (LedgerSlot(sapi, player, request.Book, "clear") is not { } slot) return;
 
         var item = (ItemLedger)slot.Itemstack!.Collectible;
-        var ledger = mod.Store.ReadLedger(slot.Itemstack, item.LedgerMode);
-
-        // An album starts over instead: every member missing again, sheets and name kept (domain.md, Albums and collections).
-        if (ledger.Album is { } info)
+        var book = mod.Store.ReadBook(slot.Itemstack, item.LedgerMode);
+        switch (book)
         {
-            if (mod.Collections.Get(info.CollectionId) is not { } collection)
-            {
-                PlayerMessages.Refuse(player, "nocollection");
-                ModLog.Debug(sapi, $"{player.PlayerName}: restart refused: no collection {info.CollectionId}");
+            // An album starts over instead: nothing collected, the level free again, sheets and name kept (domain.md, Albums and collections).
+            case Album album:
+                if (CollectionOrRefuse(sapi, mod, player, album, "restart") is not { } collection) return;
+                var again = album.StartOver(collection);
+                mod.Store.WriteAlbum(slot.Itemstack, again);
+                slot.MarkDirty();
+                if (again.LevelIn(collection) is { } level) PlayerMessages.Tell(player, "album-restarted", level.Members.Count);
+                else PlayerMessages.Tell(player, "album-restarted-nolevel");
+                ModLog.Debug(sapi, $"{player.PlayerName}: album of {collection.Id} started over");
                 return;
-            }
-            mod.Store.WriteLedger(slot.Itemstack, collection.NewAlbum(ledger.Sheets, ledger.Name));
-            slot.MarkDirty();
-            PlayerMessages.Tell(player, "album-restarted", collection.Members.Count);
-            ModLog.Debug(sapi, $"{player.PlayerName}: album of {collection.Id} started over");
-            return;
-        }
 
-        mod.Store.WriteLedger(slot.Itemstack, ledger.Clear());
-        slot.MarkDirty();
-        PlayerMessages.Tell(player, "ledger-cleared", ledger.Entries.Count);
-        ModLog.Debug(sapi, $"{player.PlayerName}: ledger cleared, {ledger.Entries.Count} entries removed");
+            case Ledger ledger:
+                mod.Store.WriteLedger(slot.Itemstack, ledger.Clear());
+                slot.MarkDirty();
+                PlayerMessages.Tell(player, "ledger-cleared", ledger.Entries.Count);
+                ModLog.Debug(sapi, $"{player.PlayerName}: ledger cleared, {ledger.Entries.Count} entries removed");
+                return;
+
+            default:
+                throw ExhaustiveMatch.Failed(book);
+        }
+    }
+
+    /// <summary>The album's collection; null, with the player told, when the game lacks it ("no longer in the game") or the server
+    /// switched it off ("disabled on this server").</summary>
+    private static DefinedCollection? CollectionOrRefuse(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, Album album, string action)
+    {
+        var resolution = mod.Store.Resolve(album);
+        switch (resolution)
+        {
+            case CollectionResolution.Found found:
+                return found.Value;
+            case CollectionResolution.Disabled _:
+                PlayerMessages.Refuse(player, "disabled");
+                break;
+            case CollectionResolution.Unknown _:
+                PlayerMessages.Refuse(player, "nocollection");
+                break;
+            default:
+                throw ExhaustiveMatch.Failed(resolution);
+        }
+        ModLog.Debug(sapi, $"{player.PlayerName}: {action} refused: {resolution}");
+        return null;
+    }
+
+    /// <summary>
+    /// The level of the album in that hand, chosen in its window (A2 of the album view plan). Re-checked here: the album must still
+    /// be empty (a piece taken meanwhile fixes the level: refused, told) and the level one of its collection (else the request is
+    /// stale or forged: ignored with a diagnostic line).
+    /// </summary>
+    private static void ChooseLevel(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, ChooseLevelRequest request)
+    {
+        if (Target(sapi, player, request.Book, c => c is ItemLedger { IsAlbum: true }, "choose level") is not { } slot) return;
+
+        var album = mod.Store.ReadAlbum(slot.Itemstack!);
+        if (CollectionOrRefuse(sapi, mod, player, album, "level") is not { } collection) return;
+        var choice = album.ChooseLevel(collection, request.Level ?? "");
+        switch (choice)
+        {
+            case LevelChoice.Chosen chosen:
+                mod.Store.WriteAlbum(slot.Itemstack!, chosen.Album);
+                slot.MarkDirty();
+                ModLog.Debug(sapi, $"{player.PlayerName}: album of {collection.Id} at level {chosen.Album.Level}");
+                break;
+            case LevelChoice.Refused refused:
+                switch (refused.Reason)
+                {
+                    case LevelRefusal.NotEmpty:
+                        PlayerMessages.Refuse(player, "levelfixed");
+                        break;
+                    case LevelRefusal.UnknownLevel:
+                        break;
+                    default:
+                        throw ExhaustiveMatch.Failed(refused.Reason);
+                }
+                ModLog.Debug(sapi, $"{player.PlayerName}: level {request.Level} of {collection.Id} refused: {refused.Reason}");
+                break;
+            default:
+                throw ExhaustiveMatch.Failed(choice);
+        }
     }
 
     /// <summary>A want list from the album in that hand (domain.md, Albums and collections); into the empty main hand if it can.</summary>

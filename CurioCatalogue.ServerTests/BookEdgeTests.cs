@@ -114,11 +114,11 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         // a change on a running server counts only after the mod's cache is dropped (WithConfig); in the game that is a restart.
         var seen = game.OnMain(() =>
         {
-            int Count() => Mod.Collections.Tapestries!.Members.Count;
-            bool Has(string piece) => Mod.Collections.ForSample(Tapestry(piece)) != null;
+            int Count() => Pieces.Members.Count;
+            bool Has(string piece) => Mod.Collections.Defined("tapestries") is { } c && Mod.Collections.HasMember(c, Tapestry(piece));
             int all = Count();
-            var excluded = WithConfig(c => c.TapestryExclude = ["ambush*"], () => (Count(), Has("ambush1"), Has("ambush2")));
-            var added = WithConfig(c => c.TapestryAdd = ["somemod-piece"], () => (Count(), Has("somemod-piece")));
+            var excluded = WithConfig(c => c.Collections["tapestries"].Exclude = ["ambush*"], () => (Count(), Has("ambush1"), Has("ambush2")));
+            var added = WithConfig(c => c.Collections["tapestries"].Add = ["somemod-piece"], () => (Count(), Has("somemod-piece")));
             return (Excluded: (all - excluded.Item1 >= 2, excluded.Item2, excluded.Item3), Added: (added.Item1 - all, added.Item2), Back: (Count() == all, Has("ambush1")));
         });
         Assert.Equal(((true, false, false), (1, true), (true, true)), seen);
@@ -228,9 +228,11 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     /// <summary>
     /// How many items of ours with this code prefix lie on the ground near the player. Main thread. Every test player stands
     /// at the spawn, so a test compares the count before and after its own click.
+    /// The whole column, not a cube: the test chests float at the spawn's height + 6 and the player is above the ground, so a dropped
+    /// item falls onto a chest lid or down to the ground, out of ±4 blocks (the flake of K3, K4 and K7: T4 of the K7 review).
     /// </summary>
     int OnGroundNear(IServerPlayer player, string codePrefix) =>
-        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 4, e => e is EntityItem { Itemstack: { } st }
+        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 64, e => e is EntityItem { Itemstack: { } st }
             && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length;
 
     /// <summary>
@@ -257,7 +259,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Tapestry("ambush1");
             var hand = player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Album(8);
-            Mod.Store.WriteLedger(hand.Itemstack, ReadBook(hand.Itemstack) with { Name = "Wall pieces" });
+            Mod.Store.WriteAlbum(hand.Itemstack, ReadAlbum(hand.Itemstack) with { Name = "Wall pieces" });
             int members = BookState(hand.Itemstack).Entries;
             Click(player, hand, pos); // takes ambush1: one missing fewer
             return (LedgerStore.Fingerprint(hand.Itemstack!), members, BookState(hand.Itemstack!).Entries);
@@ -269,10 +271,10 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         client.WaitFor(() => BookState(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Entries == members, "the album to start over");
         var seen = game.OnMain(() =>
         {
-            var album = ReadBook(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!);
-            return (album.Sheets, album.Name, album.Album?.CollectionId);
+            var album = ReadAlbum(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!);
+            return (album.Sheets, album.Name, album.CollectionId, album.IsEmpty);
         });
-        Assert.Equal((8, "Wall pieces", "tapestries"), seen);
+        Assert.Equal((8, "Wall pieces", "tapestries", true), seen);
         client.WaitFor(() => Chat(client).Any(l => l.Contains(members.ToString())), "the chat line 'starts over, still to collect'");
     }
 
@@ -326,7 +328,11 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         {
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = refusal == "nosheets" ? Album(0) : Album(8);
-            if (refusal == "allcollected") Mod.Store.WriteLedger(hand.Itemstack, ReadBook(hand.Itemstack) with { Entries = ImmutableDictionary<ItemKey, Entry>.Empty });
+            if (refusal == "allcollected")
+            {
+                var album = ReadAlbum(hand.Itemstack);
+                Mod.Store.WriteAlbum(hand.Itemstack, album.Collect(MissingOf(album).Select(m => (m.Id, new FilledBy(m.Fillers[0], m.Stacks[0])))));
+            }
             return (LedgerStore.Fingerprint(hand.Itemstack), BookState(hand.Itemstack));
         });
 

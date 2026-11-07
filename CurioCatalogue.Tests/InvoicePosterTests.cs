@@ -27,7 +27,8 @@ public class InvoicePosterTests
     private readonly Item parchment;
     private bool consumeSheets;
     private bool locked;
-    private Collection? collection; // what albums follow; set by the album tests
+    private bool disabled; // the server switched the collection off
+    private DefinedCollection? collection; // what albums follow; set by the album tests
 
     // The player's side: main hand (slot 0) holds the invoice, the rest is the hotbar and the backpack.
     private readonly InventoryGeneric playerInventory;
@@ -38,7 +39,7 @@ public class InvoicePosterTests
         playerInventory = new InventoryGeneric(6, "testplayer-1", game.Api, (i, inv) => i == 1 ? new RefusingSlot(inv) : new ItemSlotSurvival(inv));
         offhand = new InventoryGeneric(1, "testoffhand-1", game.Api)[0];
         keys = new StackKeys(game.World, ["durability"]);
-        store = new LedgerStore(keys, _ => collection);
+        store = new LedgerStore(keys, id => disabled ? new CollectionResolution.Disabled(id) : collection is { } known ? new CollectionResolution.Found(known) : new CollectionResolution.Unknown(id));
         tapestry = game.Block("tapestry-north");
         tapestry.MaxStackSize = 64;
         ingot = game.Item("ingot-iron");
@@ -391,7 +392,7 @@ public class InvoicePosterTests
 
         Assert.Equal(PostRefusal.Blank, Assert.IsType<PostInvoiceResult.Refused>(PostWantList()).Reason);
         Assert.Equal(invoiceItem, InvoiceSlot.Itemstack!.Collectible);
-        Assert.Equal(4, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+        Assert.Equal(4, store.ReadAlbum(offhand.Itemstack!).Sheets);
     }
 
     [Fact]
@@ -470,15 +471,155 @@ public class InvoicePosterTests
     /// <summary>A tapestry collection of these pieces, in this order, and a fresh album of it in the given slot.</summary>
     private ItemSlot HoldAlbum(ItemSlot slot, params string[] pieces)
     {
-        collection = new Collection("tapestries", pieces.Select(p => new CollectionMember(keys.KeyOf(Tapestry(p)), p, Tapestry(p))));
+        collection = TestCollections.Tapestries(keys, t => Tapestry(t), pieces);
+        return HoldAlbumOf(slot, collection);
+    }
+
+    private ItemSlot HoldAlbumOf(ItemSlot slot, DefinedCollection of)
+    {
+        collection = of;
         var stack = new ItemStack(game.Item("curiocatalogue:book-album-aged-orange", new ItemLedger()));
-        store.WriteLedger(stack, collection.NewAlbum(4, ""));
+        store.WriteAlbum(stack, Album.New(of, 4, ""));
         slot.Itemstack = stack;
         return slot;
     }
 
-    private string[] Missing(ItemSlot albumSlot) =>
-        store.ReadLedger(albumSlot.Itemstack!, LedgerMode.Album).Entries.Keys.Select(k => k.ToString()).Order().ToArray();
+    /// <summary>The keys of the members the album misses (by their first item), sorted.</summary>
+    private string[] Missing(ItemSlot albumSlot)
+    {
+        var album = store.ReadAlbum(albumSlot.Itemstack!);
+        return album.Missing(album.LevelIn(collection!)!).Select(m => m.Fillers[0].ToString()).Order().ToArray();
+    }
+
+    [Fact]
+    public void Album_remembers_the_item_that_filled_each_member()
+    {
+        var chest = new TestChest(game.Api, Tapestry("a", 2), Tapestry("b"));
+        game.Place(pos, chest);
+        var albumSlot = HoldAlbum(InvoiceSlot, "a", "b", "c");
+
+        Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
+
+        var album = store.ReadAlbum(albumSlot.Itemstack!);
+        Assert.Equal(["a", "b"], album.Collected.Keys);
+        var filled = Assert.IsType<ItemStack>(album.Collected["a"].Stack);
+        Assert.Equal((TapestryKey("a"), 1), (keys.KeyOf(filled).ToString(), filled.StackSize));
+    }
+
+    /// <summary>One member "pair", filled by the tapestry "x" or "y": a level that drops the piece as "any", as seashells by type.</summary>
+    private DefinedCollection Pair()
+    {
+        var definition = new CollectionDefinition("tapestries",
+            [new DimensionDef("picture", []), new DimensionDef("piece", [])],
+            [new LevelDef("pictures", ["picture"], new Dictionary<string, Drop> { ["piece"] = Drop.Any }, [])],
+            [], []);
+        var points = new[] { "x", "y" }.Select(p => new SourcePoint(p,
+            new Dictionary<string, string> { ["picture"] = "pair", ["piece"] = p }, keys.KeyOf(Tapestry(p)), Tapestry(p)));
+        return Assert.IsType<CollectionBuild.Built>(DefinedCollection.Build(definition, points)).Collection;
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_want_list_line_naming_a_member_of_several_items_is_given_by_any_of_them(bool collectionKnown)
+    {
+        // K5 of the collections core plan: the list names the member "pair" and shows its first item, "x"; the chest has only "y".
+        // Without the collection (a mod removed) the line wants exactly the item it shows.
+        var pair = Pair();
+        var album = Album.New(pair, 3, "");
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(pair)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+        var stack = new ItemStack(invoiceItem);
+        store.WriteInvoice(stack, list);
+        InvoiceSlot.Itemstack = stack;
+        game.Place(pos, new TestChest(game.Api, Tapestry("y")));
+        collection = collectionKnown ? pair : null;
+
+        var result = PostWantList();
+
+        if (collectionKnown)
+        {
+            var posted = Assert.IsType<PostInvoiceResult.Posted>(result);
+            Assert.Equal((1, InvoiceFate.Parchment), (posted.Lines, posted.Fate));
+            Assert.Equal([(TapestryKey("y"), 1)], PlayerItems());
+        }
+        else Assert.Equal(PostRefusal.NothingFromList, Assert.IsType<PostInvoiceResult.Refused>(result).Reason);
+    }
+
+    [Fact]
+    public void A_want_list_of_a_collection_switched_off_takes_nothing_and_works_again_when_it_is_on()
+    {
+        // W1 of K7: as taking new, refused with its own reason before the container is looked at; the list stays whole.
+        var pair = Pair();
+        var album = Album.New(pair, 3, "");
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(pair)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+        var stack = new ItemStack(invoiceItem);
+        store.WriteInvoice(stack, list);
+        InvoiceSlot.Itemstack = stack;
+        var chest = new TestChest(game.Api, Tapestry("y"));
+        game.Place(pos, chest);
+        collection = pair;
+        disabled = true;
+        locked = true; // a refusal about the list comes before one about the container
+
+        Assert.Equal(PostRefusal.WantListDisabled, Assert.IsType<PostInvoiceResult.Refused>(PostWantList()).Reason);
+        Assert.Single(chest.Inventory, s => s.Itemstack != null);
+        Assert.Empty(PlayerItems());
+        Assert.Same(stack, InvoiceSlot.Itemstack);
+        Assert.Single(store.ReadInvoice(stack, InvoiceKind.WantList).Entries);
+
+        (disabled, locked) = (false, false);
+        Assert.Equal(1, Assert.IsType<PostInvoiceResult.Posted>(PostWantList()).Lines);
+    }
+
+    [Fact]
+    public void A_member_of_several_items_is_taken_once_by_whichever_the_container_has()
+    {
+        // One member "pair", filled by the tapestry "x" or "y": the chest has both, the album takes one, the first in the member's
+        // order, and remembers it.
+        var chest = new TestChest(game.Api, Tapestry("y"), Tapestry("x"));
+        game.Place(pos, chest);
+        var albumSlot = HoldAlbumOf(InvoiceSlot, Pair());
+
+        var collected = Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
+
+        Assert.Equal((1, 0), (collected.Taken, collected.MissingLeft));
+        Assert.Equal([(TapestryKey("x"), 1)], PlayerItems());
+        Assert.Equal(TapestryKey("x"), store.ReadAlbum(albumSlot.Itemstack!).Collected["pair"].Key.ToString());
+    }
+
+    [Fact]
+    public void Album_of_a_collection_the_game_lacks_or_with_no_level_takes_nothing()
+    {
+        var chest = new TestChest(game.Api, Tapestry("a"));
+        game.Place(pos, chest);
+        var albumSlot = HoldAlbum(InvoiceSlot, "a");
+
+        HoldAlbumOf(albumSlot, TestCollections.TwoLevels(keys, t => Tapestry(t), "a"));
+        Assert.Null(store.ReadAlbum(albumSlot.Itemstack!).Level);
+        Assert.Equal(CollectRefusal.NoLevel, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+
+        collection = null;
+        Assert.Equal(CollectRefusal.NoCollection, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+        Assert.Single(chest.Inventory, s => s.Itemstack != null);
+        Assert.Empty(PlayerItems());
+    }
+
+    [Fact]
+    public void Album_of_a_collection_switched_off_takes_nothing_and_says_so_apart_from_unknown()
+    {
+        var chest = new TestChest(game.Api, Tapestry("a"));
+        game.Place(pos, chest);
+        var albumSlot = HoldAlbum(InvoiceSlot, "a");
+
+        disabled = true;
+
+        Assert.Equal(CollectRefusal.Disabled, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+        Assert.Single(chest.Inventory, s => s.Itemstack != null);
+        Assert.Empty(PlayerItems());
+        // The record of what was collected stays: switched on again, the album works as before.
+        disabled = false;
+        Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
+    }
 
     private CollectResult Collect(ItemSlot albumSlot) => Poster().Collect(player, albumSlot, pos, PlayerSlots, InvoiceSlot);
 
@@ -494,7 +635,7 @@ public class InvoicePosterTests
         Assert.Equal((2, 0, 1), (collected.Taken, collected.NotFitted, collected.MissingLeft));
         Assert.Equal([(TapestryKey("a"), 1), (TapestryKey("b"), 1)], PlayerItems().OrderBy(i => i.Item1));
         Assert.Equal([TapestryKey("c")], Missing(albumSlot));
-        Assert.Equal(4, store.ReadLedger(albumSlot.Itemstack!, LedgerMode.Album).Sheets); // no sheet spent
+        Assert.Equal(4, store.ReadAlbum(albumSlot.Itemstack!).Sheets); // no sheet spent
         Assert.Equal(2 + 5, chest.Inventory.Where(s => s.Itemstack != null).Sum(s => s.StackSize)); // duplicates and the rest stay
     }
 
@@ -563,7 +704,7 @@ public class InvoicePosterTests
         Assert.Equal((InvoiceFate.SheetReturned, (int?)null), (posted.Fate, posted.LedgerBefore));
         Assert.Equal([(TapestryKey("a"), 1)], PlayerItems()); // the invoice's slot was free for it
         Assert.Equal([TapestryKey("a"), TapestryKey("b")], Missing(offhand)); // "a" is not crossed off
-        Assert.Equal(5, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+        Assert.Equal(5, store.ReadAlbum(offhand.Itemstack!).Sheets);
     }
 
     [Fact]
@@ -572,12 +713,12 @@ public class InvoicePosterTests
         game.Place(pos, new TestChest(game.Api, Tapestry("a")));
         HoldInvoice(Tapestry("a"));
         HoldAlbum(offhand, "a");
-        store.WriteLedger(offhand.Itemstack!, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album) with { Sheets = Limits.MaxSheets });
+        store.WriteAlbum(offhand.Itemstack!, store.ReadAlbum(offhand.Itemstack!) with { Sheets = Limits.MaxSheets });
 
         var posted = Assert.IsType<PostInvoiceResult.Posted>(Post());
 
         Assert.Equal(InvoiceFate.Parchment, posted.Fate);
-        Assert.Equal(Limits.MaxSheets, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+        Assert.Equal(Limits.MaxSheets, store.ReadAlbum(offhand.Itemstack!).Sheets);
     }
 
     [Theory]
@@ -592,7 +733,7 @@ public class InvoicePosterTests
         Assert.Equal(InvoiceFate.SheetReturned, Poster().Cancel(InvoiceSlot, offhand));
 
         Assert.Null(InvoiceSlot.Itemstack);
-        Assert.Equal(5, store.ReadLedger(offhand.Itemstack!, LedgerMode.Album).Sheets);
+        Assert.Equal(5, store.ReadAlbum(offhand.Itemstack!).Sheets);
         Assert.Equal(2, Missing(offhand).Length); // the entries stay
     }
 

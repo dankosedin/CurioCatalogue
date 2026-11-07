@@ -15,7 +15,7 @@ Player-facing names in English and Ukrainian (`lang/en.json`, `lang/uk.json`); n
 | **book** | книга | item type `book`, class `ItemLedger` | any of the three books below; one item type `book-<kind>-<cover>` |
 | **ledger** | облікова книга | `book-ledger-*`, `LedgerMode.Types` | a register of item *types* (a set) |
 | **bill of materials** | список матеріалів | `book-materials-*`, `LedgerMode.Counts` | a register of types *with counts* (a multiset) |
-| **album** | альбом | `book-album-*`, `LedgerMode.Album` | a types book filled with a collection; its entries are what is still **missing** |
+| **album** | альбом | `book-album-*`, `LedgerMode.Album`, `Album` | a book of a collection: it remembers what it has collected, and shows what is still **missing** |
 | **entry** | запис | `Entry` | one item type in a book (with a count in a bill of materials); stored as a sample stack |
 | **list** (code: invoice) | накладна | item type `invoice`, class `ItemInvoice` | a standalone document listing real stacks with counts; not bound to a book |
 | **intake list** (code: incoming invoice) | прибуткова накладна | `invoice-incoming` | what a container has that the book lacks |
@@ -23,9 +23,9 @@ Player-facing names in English and Ukrainian (`lang/en.json`, `lang/uk.json`); n
 | **want list** | список бажаного | `invoice-wantlist` | what an album misses, made to hand to another player; technically an invoice (a list in English) |
 | **sheet** | аркуш | | vanilla parchment (`paper-parchment`) held by a book; one per invoice |
 | **cover** | обкладинка | variant `<type>-<colour>` | the book's colour, to tell books apart; `normal-*` or `aged-*` |
-| **collection** | колекція | `Collection` | a set of items worth collecting; tapestries are the first and only one so far |
+| **collection** | колекція | `DefinedCollection` | a set of items worth collecting; tapestries are the first and only one so far |
 | **member**, **piece** | шматок | | one item of a collection; for tapestries, one piece of a picture |
-| **snapshot** | знімок | | the collection's members at the time an album was made or started over |
+| **snapshot** | знімок | | 0.1 only: the collection's members when an album was made; an album of 0.1 is converted when read (format 2 stores what was collected) |
 | **filling** (code: posting) | проведення | `InvoicePoster.Post` | carrying out an invoice on a container: the items move into the player's inventory |
 | **cancelling** | анулювання | | dropping an invoice without moving anything |
 | **taking new** | забрати нове для колекції | `InvoicePoster.Collect` | the album's gesture: take one of each missing member straight from a container |
@@ -117,7 +117,7 @@ A sheet is vanilla parchment; there is no separate blank item.
 ## Albums and collections
 
 - An album is made from an **empty** ledger or bill of materials and a collection member (recipe below). It belongs to the
-  collection of that member, remembers the collection's snapshot, and shows progress: pieces collected X of Y and whole pictures A of B
+  collection of that member, remembers what it has collected (and with which item), and shows progress: pieces collected X of Y and whole pictures A of B
   (tapestries: 88 pieces, 31 pictures). It has sheets but no "entries" line.
 - **Taking new** (Shift + RMB, same two gestures as a book): C ∩ missing, one of each, moved straight into the inventory and crossed
   off. No invoice, no sheet. If not all fits: what fits, in the collection's order (picture by picture, piece by piece); exactly what
@@ -125,16 +125,29 @@ A sheet is vanilla parchment; there is no separate blank item.
 - Shift + Ctrl + RMB with an album does nothing (the click goes to the game). An album never makes ordinary invoices, and posting
   an invoice with an album in the off-hand does not touch it.
 - **Start over** (the album's "Clear"): every member is missing again; sheets and name stay.
-- **An album follows its collection:** if the collection changed (config, a mod adding tapestries), the album reads as up to date:
-  collected stays collected, new members are missing, gone members disappear. The stored data catches up the next time the server writes the album.
+- **A collection switched off** (`Collections.<id>.Disabled` in the server's config) is not the same as one the game lacks (a mod
+  removed). An album of a switched-off collection keeps all it collected and shows "switched off on this server"; taking new,
+  making a want list, choosing a level and Start over are refused with that reason, and so is filling a want list made by such an
+  album (it stays whole and fills again once the collection is on; a want list of a collection the game lacks still fills, each
+  line by exactly its item) ("no longer in the game" is for a collection with no
+  definition); switched on again, the album works as before. Its album recipe is taken out of the server's recipes at load, so
+  clients do not see it. The client builds its collections from the server's `Collections` settings, sent when it joins; the
+  definitions it reads from its own assets, so a mod with a collection must be on the client too.
+- **A collected stack keeps its ignored attributes:** taking new moves the real stack, so a piece that reaches the inventory is as it was (durability and the like stay); the album only counts it by its key.
+- **An album follows its collection:** if the collection changed (config, a mod adding tapestries), the album is up to date by
+  itself: collected stays collected, new members are missing, gone members disappear from the count; a piece excluded for a while
+  keeps its record and comes back collected. An album of 0.1 is converted when read and stored in the new form the next time the
+  server writes it. An album whose level the collection no longer has (an album of 0.1, which had none; a level a mod renamed or
+  removed) moves what it collected to the level that holds the most of it as members (a tie: the first level); what no member
+  holds there is kept and placed when the collection has it again.
 - **Want list:** made with a button in the album window; costs one album sheet, appears in the hand. Whoever holds it posts it with
   Shift + RMB on a container: it takes what it lists (one of each) into their inventory, as much as fits, and crosses off what moved;
   it stays for other chests. When empty, it becomes parchment (with `ConsumeSheets` it disappears). The mod only moves items; giving or trading is up to the players.
 - A tapestry already on a wall gets into an album by taking it down into a chest once.
 
 **Tapestry collection:** generated from the tapestry block's `sizes` attribute (31 pictures = 88 pieces; mods that extend
-`sizes` are included). The member is a piece (`tapestry-north` + `type`, e.g. `ambush1`). Config: `TapestryExclude` (patterns
-with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `symptoms*`) and `TapestryAdd`.
+`sizes` are included). The member is a piece (`tapestry-north` + `type`, e.g. `ambush1`). Config: `Collections.tapestries.Exclude` (patterns
+with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `symptoms*`) and `Add`.
 
 ## Covers
 
@@ -153,7 +166,9 @@ with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `sympt
 
 ## Recipes
 
-Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one slideshow.
+Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one slideshow. The album recipe of a collection is
+the one its definition names (`albumRecipe`, e.g. `curiocatalogue:ledger-album` for the tapestries), so a collection from another
+mod brings its own; the item put in must be a member of that collection.
 
 | Group | Recipe | Result |
 |---|---|---|
@@ -221,10 +236,12 @@ Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one
 | `SoftEntryLimit` | 500 | soft limit of entries, see Books |
 | `ExtraIgnoredAttributes` | `["durability"]` | attributes ignored when comparing items, on top of the game's own |
 | `ConsumeSheets` | false | hardcore: a posted invoice never returns its sheet |
-| `TapestryExclude`, `TapestryAdd` | empty | tune the tapestry collection |
+| `Collections` | `tapestries` with empty lists | per collection id: `Exclude`, `Add`, `Disabled` (0.1's `TapestryExclude`, `TapestryAdd` move into `tapestries` on load) |
 | `Diagnostics` | false | debug lines in the game log (`docs/development.md`) |
 
-Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty.
+Impossible values are corrected on load, with a warning in the log: limits below 1 become 1, a list set to `null` becomes empty (also inside the lists of `Collections`: a `null` entry is dropped).
+
+The server sends `Collections` and `ExtraIgnoredAttributes` to each client on join; the client counts items and builds albums with them, not with its own file. The rest is the server's alone.
 
 ## Scenarios
 

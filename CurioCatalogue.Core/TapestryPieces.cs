@@ -4,8 +4,8 @@ using System.Linq;
 
 namespace CurioCatalogue.Core;
 
-/// <summary>A tapestry piece (the stack's "type") and the picture it belongs to.</summary>
-public sealed record TapestryPiece(string Piece, string Picture);
+/// <summary>A tapestry piece (the stack's "type"), the picture it belongs to and its place in it (1-based, as the digits of its name).</summary>
+public sealed record TapestryPiece(string Piece, string Picture, int X = 1, int Y = 1);
 
 /// <summary>
 /// Lists the collectable tapestry pieces from the tapestry block's "sizes" attribute (picture name → "WxH").
@@ -25,11 +25,11 @@ public static class TapestryPieces
 
             if (w == 1 && h == 1) pieces.Add(new TapestryPiece(name, name));
             else if (w == 1 || h == 1)
-                for (int n = 1; n <= Math.Max(w, h); n++) pieces.Add(new TapestryPiece(name + n, name));
+                for (int n = 1; n <= Math.Max(w, h); n++) pieces.Add(w == 1 ? new TapestryPiece(name + n, name, 1, n) : new TapestryPiece(name + n, name, n, 1));
             else
                 for (int x = 1; x <= w; x++)
                 for (int y = 1; y <= h; y++)
-                    pieces.Add(new TapestryPiece($"{name}{x}{y}", name));
+                    pieces.Add(new TapestryPiece($"{name}{x}{y}", name, x, y));
         }
         return pieces;
     }

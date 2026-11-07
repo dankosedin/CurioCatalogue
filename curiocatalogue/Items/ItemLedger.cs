@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -48,11 +49,20 @@ public class ItemLedger : Item
         return !(IsAlbum && ctrl);
     }
 
-    /// <summary>An album's progress against its collection as the game has it now; null for a ledger.</summary>
-    internal CollectionProgress? ProgressOf(Ledger ledger) =>
-        ledger.Album is { } info && Mod.Collections.Get(info.CollectionId) is { } collection
-            ? collection.Progress(ledger.Entries.Keys)
-            : null;
+    /// <summary>What an album's tooltip and window say of its progress, against its collection as the game has it now.</summary>
+    internal enum AlbumState { NoCollection, Disabled, NoLevel, AtLevel }
+
+    /// <summary>The album's collection and level as the game has them now; the level is null unless <see cref="AlbumState.AtLevel"/>.</summary>
+    internal (AlbumState State, DefinedCollection? Collection, CollectionLevel? Level) StateOf(Album album)
+    {
+        if (Mod.Store.Resolve(album) is CollectionResolution.Disabled) return (AlbumState.Disabled, null, null);
+        if (Mod.Store.CollectionOf(album) is not { } collection) return (AlbumState.NoCollection, null, null);
+        return album.LevelIn(collection) is { } level ? (AlbumState.AtLevel, collection, level) : (AlbumState.NoLevel, collection, null);
+    }
+
+    /// <summary>An album's progress as its level words it (the level's <c>progressKey</c>; a generic line when it has none).</summary>
+    internal static string ProgressText(CollectionLevel level, LevelProgress progress) =>
+        Lang.Get(level.Definition.ProgressKey ?? "curiocatalogue:ledger-info-progress", progress.Collected, progress.Total, progress.GroupsComplete, progress.GroupsTotal);
 
     private CurioCatalogueModSystem Mod => api.ModLoader.GetModSystem<CurioCatalogueModSystem>();
 
@@ -185,7 +195,6 @@ public class ItemLedger : Item
     private const string RestoreRecipe = "ledger-restore";
     private const string SwitchModeRecipe = "ledger-switchmode";
     private const string RechargeRecipe = "ledger-recharge";
-    private const string AlbumRecipe = "ledger-album";
     private const string RecolorRecipe = "ledger-recolor";
 
     /// <summary>Sheets of a new ledger (domain.md, Recipes).</summary>
@@ -194,7 +203,10 @@ public class ItemLedger : Item
 
     private static bool Is(IRecipeBase recipe, string name) => recipe.Name?.Path == name;
 
-    private Ledger Read(ItemStack stack) => Mod.Store.ReadLedger(stack, ((ItemLedger)stack.Collectible).LedgerMode);
+    /// <summary>An album recipe of any collection, of any domain: the one a definition names (<c>albumRecipe</c>).</summary>
+    private bool IsAlbumRecipe(IRecipeBase recipe) => Mod.Collections.AlbumOf(recipe.Name) != null;
+
+    private Book Read(ItemStack stack) => Mod.Store.ReadBook(stack, ((ItemLedger)stack.Collectible).LedgerMode);
 
     /// <summary>
     /// Called for the ledger lying in the grid as an ingredient. Only an empty ledger switches its mode; a ledger
@@ -205,10 +217,10 @@ public class ItemLedger : Item
         if (!base.MatchesForCrafting(inputStack, recipe, ingredient)) return false;
         // Data from a newer build of the mod: our recipes would rewrite it without what this build does not know.
         if (Adapters.LedgerStore.IsNewer(inputStack)) return false;
-        if (Is(recipe, SwitchModeRecipe)) return Read(inputStack) is { IsEmpty: true, Album: null };
+        if (Is(recipe, SwitchModeRecipe)) return Read(inputStack) is Ledger { IsEmpty: true };
         if (Is(recipe, RechargeRecipe)) return Read(inputStack).Sheets < Mod.Config.MaxSheets;
         // An album is made from an empty ledger (domain.md, Recipes).
-        if (Is(recipe, AlbumRecipe)) return Read(inputStack).IsEmpty;
+        if (IsAlbumRecipe(recipe)) return Read(inputStack).IsEmpty;
         // Dyed leather for the colour the book already has would only be wasted.
         if (Is(recipe, RecolorRecipe)) return recipe.RecipeOutput?.ResolvedItemStack?.Collectible is ItemLedger output && output.Cover != Cover;
         return true;
@@ -233,38 +245,41 @@ public class ItemLedger : Item
         int newSheets = Is(byRecipe, FallbackRecipe) ? FallbackSheets : Is(byRecipe, RestoreRecipe) ? RestoreSheets : 0;
         if (newSheets > 0)
         {
+            // Both recipes make a ledger (domain.md, Recipes).
             Mod.Store.WriteLedger(output, Ledger.Empty(LedgerMode, System.Math.Min(newSheets, Mod.Config.MaxSheets)));
             return;
         }
 
-        if (Is(byRecipe, AlbumRecipe))
+        if (Mod.Collections.AlbumOf(byRecipe.Name) is { } collectionId)
         {
-            MakeAlbum(allInputSlots, outputSlot);
+            MakeAlbum(allInputSlots, outputSlot, collectionId);
             return;
         }
 
         if (!Is(byRecipe, RechargeRecipe) || RechargeSlots(allInputSlots) is not { } found) return;
         var (charged, _) = Read(output).AddSheets(found.Paper.StackSize, Mod.Limits);
-        Mod.Store.WriteLedger(output, charged);
+        Mod.Store.WriteBook(output, charged);
     }
 
     /// <summary>
-    /// The album of the sample's collection, every member missing; sheets and name come from the ledger it is made
-    /// from (the recipe copied them). An album needs no recipe to catch up with its collection: it does so by itself
-    /// on every read (LedgerStore, Collection.RefreshIfStale). No collection for the sample (should not happen): no output.
+    /// A new album of the recipe's collection, nothing collected (the level chosen only if the collection has one); sheets and name
+    /// come from the ledger it is made from (the recipe copied them). An album follows its collection by itself: it stores what it
+    /// collected, and what is missing is computed. The sample must be a member of that collection (a recipe's ingredient may be wider
+    /// than the collection: an excluded piece); else, or with the collection off or gone, no output.
     /// </summary>
-    private void MakeAlbum(ItemSlot[] inputSlots, ItemSlot outputSlot)
+    private void MakeAlbum(ItemSlot[] inputSlots, ItemSlot outputSlot, string collectionId)
     {
         var sample = System.Array.Find(inputSlots, s => s.Itemstack is { } st && st.Collectible is not ItemLedger)?.Itemstack;
-        var collection = sample == null ? null : Mod.Collections.ForSample(sample);
-        if (collection == null)
+        if (sample == null || Mod.Collections.Resolve(collectionId) is not CollectionResolution.Found { Value: var collection }
+            || !Mod.Collections.HasMember(collection, sample))
         {
             outputSlot.Itemstack = null;
             return;
         }
-        var from = Read(outputSlot.Itemstack!);
-        Mod.Store.WriteLedger(outputSlot.Itemstack!, collection.NewAlbum(from.Sheets, from.Name));
-        ModLog.Debug(api, $"album of {collection.Id} made, {collection.Members.Count} entries");
+        // The output has the ledger's attributes (copyAttributesFrom): read them as the ledger they were.
+        var from = Mod.Store.ReadLedger(outputSlot.Itemstack!, LedgerMode.Types);
+        Mod.Store.WriteAlbum(outputSlot.Itemstack!, Album.New(collection, from.Sheets, from.Name));
+        ModLog.Debug(api, $"album of {collection.Id} made, levels {string.Join(", ", collection.Levels.Select(l => $"{l.Id} {l.Members.Count}"))}");
     }
 
     /// <summary>Recharging uses exactly the sheets added, not the one parchment the recipe names; the rest stays.</summary>
@@ -299,8 +314,8 @@ public class ItemLedger : Item
     {
         string name = LedgerStore.ReadName(itemStack);
         if (name.Length > 0) return name;
-        if (IsAlbum && LedgerStore.ReadCollectionId(itemStack) is { Length: > 0 } id)
-            return Lang.Get("curiocatalogue:album-name-" + id);
+        if (IsAlbum && LedgerStore.ReadCollectionId(itemStack) is { Length: > 0 } id && Mod.Collections.Defined(id)?.Definition.NameKey is { } nameKey)
+            return Lang.Get("curiocatalogue:album-name", Lang.Get(nameKey));
         return base.GetHeldItemName(itemStack);
     }
 
@@ -316,21 +331,34 @@ public class ItemLedger : Item
         base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
         if (inSlot.Itemstack == null) return;
 
-        var ledger = Mod.Store.ReadLedger(inSlot.Itemstack, LedgerMode);
+        var book = Mod.Store.ReadBook(inSlot.Itemstack, LedgerMode);
         var config = Mod.Config;
         // The title already shows the name; then say what the item is.
-        if (ledger.Name.Length > 0 || ledger.Album != null)
+        if (book.Name.Length > 0 || book is Album)
             dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-kind", base.GetHeldItemName(inSlot.Itemstack)));
         // Shown because the recolouring and ageing recipes depend on it (domain.md, Covers).
         if (Cover.Split('-') is [var age, var colour])
             dsc.AppendLine(Lang.Get(age == "aged" ? "curiocatalogue:ledger-info-cover-aged" : "curiocatalogue:ledger-info-cover",
                 Lang.Get("curiocatalogue:cover-" + colour)));
-        dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-sheets", ledger.Sheets, config.MaxSheets));
-        if (ProgressOf(ledger) is { } progress)
-            dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-album", progress.Collected, progress.Total, progress.GroupsComplete, progress.GroupsTotal));
-        // An album's entries are what it still misses: the progress above says it, and the limit does not matter.
-        else if (!IsAlbum)
-            dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-entries", ledger.Entries.Count, config.SoftEntryLimit));
+        dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-sheets", book.Sheets, config.MaxSheets));
+        switch (book)
+        {
+            // An album's progress against its level; nothing when the game lacks its collection, "no level" until one is chosen.
+            case Album album:
+                var (state, _, level) = StateOf(album);
+                if (state == AlbumState.AtLevel && album.Progress(level!) is var progress)
+                    dsc.AppendLine(ProgressText(level!, progress));
+                else if (state == AlbumState.Disabled)
+                    dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-disabled"));
+                else if (state == AlbumState.NoLevel)
+                    dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-nolevel"));
+                break;
+            case Ledger ledger:
+                dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-entries", ledger.Entries.Count, config.SoftEntryLimit));
+                break;
+            default:
+                throw ExhaustiveMatch.Failed(book);
+        }
         dsc.AppendLine(Lang.Get(LedgerMode switch
         {
             LedgerMode.Album => "curiocatalogue:ledger-info-howto-album",

@@ -1,0 +1,12 @@
+{
+  "source": { "kind": "variants", "code": "game:seashell-{type}-{color}" },
+  "dimensions": [
+    { "code": "type", "values": ["scallop", "sundial", "turritella", "clam", "conch", "seastar", "volute"] },
+    { "code": "color", "values": ["latte", "plain", "seafoam", "darkpurple", "cinnamon", "turquoise"], "anyKey": "cccollections:any-colour" }
+  ],
+  "levels": [
+    { "id": "type", "keep": ["type"], "drop": { "color": "any" } },
+    { "id": "shell", "keep": ["type", "color"] }
+  ],
+  "exclude": []
+}

@@ -8,7 +8,8 @@ using ExhaustiveMatching;
 namespace CurioCatalogue.Adapters;
 
 /// <summary>Why no invoice was made; the code also names the player-facing message ("ingameerror-" + code).</summary>
-public enum MakeRefusal { Unsupported, NoAccess, LedgerFull, NoDifference, NoSheets }
+/// <remarks>NoCollection and NoLevel are a want list's: the album's collection is unknown, or no level is chosen, or the server switched its collection off (Disabled) (as <see cref="CollectRefusal"/>).</remarks>
+public enum MakeRefusal { Unsupported, NoAccess, LedgerFull, NoDifference, NoSheets, NoCollection, NoLevel, Disabled }
 
 [Closed(typeof(MakeInvoiceResult.Made), typeof(MakeInvoiceResult.Refused))]
 public abstract record MakeInvoiceResult
@@ -62,12 +63,15 @@ public sealed class InvoiceMaker
     /// </summary>
     public MakeInvoiceResult MakeWantList(ItemStack albumStack, BlockPos where)
     {
-        var album = store.ReadLedger(albumStack, LedgerMode.Album);
-        var result = album.MakeWantList(world.Calendar.TotalDays, new BlockPosition(where.X, where.Y, where.Z), store.CollectionOf(album));
+        var album = store.ReadAlbum(albumStack);
+        if (store.Resolve(album) is CollectionResolution.Disabled) return new MakeInvoiceResult.Refused(MakeRefusal.Disabled);
+        if (store.CollectionOf(album) is not { } collection) return new MakeInvoiceResult.Refused(MakeRefusal.NoCollection);
+        if (album.LevelIn(collection) is not { } level) return new MakeInvoiceResult.Refused(MakeRefusal.NoLevel);
+        var result = album.MakeWantList(level, world.Calendar.TotalDays, new BlockPosition(where.X, where.Y, where.Z));
         return Finish(result, InvoiceKind.WantList, albumStack);
     }
 
-    private MakeInvoiceResult Finish(CreateInvoiceResult result, InvoiceKind kind, ItemStack ledgerStack)
+    private MakeInvoiceResult Finish(CreateInvoiceResult result, InvoiceKind kind, ItemStack bookStack)
     {
         switch (result)
         {
@@ -85,8 +89,8 @@ public sealed class InvoiceMaker
                     ?? throw new InvalidOperationException($"Item {InvoiceCode(kind)} is not registered");
                 var invoiceStack = new ItemStack(invoiceItem);
                 store.WriteInvoice(invoiceStack, created.Invoice);
-                store.WriteLedger(ledgerStack, created.Ledger);
-                return new MakeInvoiceResult.Made(invoiceStack, created.Invoice, created.Ledger.Sheets);
+                store.WriteBook(bookStack, created.Book);
+                return new MakeInvoiceResult.Made(invoiceStack, created.Invoice, created.Book.Sheets);
 
             default:
                 throw ExhaustiveMatch.Failed(result);

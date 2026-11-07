@@ -17,7 +17,7 @@ public class LedgerTests
     private static Invoice Created(CreateInvoiceResult result, out Ledger ledger)
     {
         var created = Assert.IsType<CreateInvoiceResult.Created>(result);
-        ledger = created.Ledger;
+        ledger = Assert.IsType<Ledger>(created.Book);
         return created.Invoice;
     }
 
@@ -266,14 +266,6 @@ public class LedgerTests
 
         Assert.True(cleared.IsEmpty);
         Assert.Equal((7, "Tools"), (cleared.Sheets, cleared.Name));
-    }
-
-    [Fact]
-    public void Clear_refuses_an_album()
-    {
-        // An album with no entries reads as "all collected"; it starts over instead (Collection.NewAlbum).
-        var album = LedgerOf(LedgerMode.Album, 7, E("a", 1)) with { Album = new AlbumInfo("tapestries") };
-        Assert.Throws<InvalidOperationException>(() => album.Clear());
     }
 
     [Fact]

@@ -141,11 +141,11 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
             Put(player, (0, Book("book-ledger-normal-brickred", 12)), (1, Tapestry("ambush1")));
             var recipe = Shown(player).Recipe;
             var taken = Take(player);
-            var album = ReadBook(taken);
-            return (recipe, (Describe(taken), album.Sheets, album.Album?.CollectionId, album.Entries.Count), Left(player));
+            var album = ReadAlbum(taken);
+            return (recipe, (Describe(taken), album.Sheets, album.CollectionId, MissingOf(album).Count), Left(player));
         });
 
-        int members = game.OnMain(() => Mod.Collections.ForSample(Tapestry("ambush1"))!.Members.Count);
+        int members = game.OnMain(() => Pieces.Members.Count);
         Assert.Equal("ledger-album", recipe);
         Assert.Equal(("book-album-normal-brickred x1", 12, "tapestries", members), album); // sheets kept, every member missing
         Assert.Equal("tapestry-north:ambush1 x1", left);

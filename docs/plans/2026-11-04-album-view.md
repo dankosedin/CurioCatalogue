@@ -86,6 +86,27 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
       temporary switches, for the author to compare in A4.
       Branch: `feat/album-view`. After: A2; the core's plan (`2026-11-07-collections-core.md`) merged into `main` after its review, K7. Model: opus. Author: none.
       Done when: the build and all test projects pass; the author has the exact steps of the in-game check.
+      Split in four (the author, 08.11.2026: one layer each), each on the branch above, After the one before, Model: opus,
+      Author: none:
+  - [x] **A3a. The page model in the core.** Pure C#, no game DLLs: from a level, a layout, the album's collected members and
+        a page's size, the pages (whole groups in order, a group larger than a page going on with "(continued)"), the tabs
+        (when the grouping has names and there is more than one page; ✓ of a complete group; both tab variants), the cells
+        of a table (rows and columns only of values that occur; a point with no member is background) and of a shape (x, y),
+        a cell's state (collected, missing) and what it shows (the stack put in, or the member's stacks to cycle), search
+        matches and the next page with one.
+        Done when: unit tests pass, mutation-checked; nothing draws it yet.
+  - [ ] **A3b. The element that draws a page.** A `GuiElement` of ours: stacks (missing translucent, alpha 0.35), flat tapestry
+        textures, table headings (stacks or text), the rarity corner, cycling stacks (once a second, paused while hovered),
+        the game's tooltip through a slot of ours; a refresh flips flags without composing again.
+        Done when: the build and all test projects pass.
+  - [ ] **A3c. The album window.** `AlbumDialog`, a class of its own (`docs/architecture.md`): the row of controls (level
+        while empty, layout, search, page buttons, "Make a want list", ↺), both tab variants behind a temporary switch, the
+        line of a collection disabled on the server; an album opens it, the ledger and the bill of materials keep
+        `LedgerDialog`.
+        Done when: the build and all test projects pass.
+  - [ ] **A3d. The header, variants A and C** behind a temporary switch: the name with our SVG pencil turning into a text
+        input and "Save" (Enter, Escape), the sheets as parchment with a count, the progress bar with its number.
+        Done when: A3's "Done when".
 - [ ] **A4. Checked in game, docs.** The author checks the window in game (en and uk, memory: in-game checks by language):
       empty, partly full and full album; a refresh while open (taking new from a chest); a long name of a piece in both
       languages; the levels and the layouts; the header variants A and C and the two tab variants side by side, the author
@@ -378,6 +399,25 @@ is decided (collections plan, "Butterflies last").
 8. **`Disabled` seen by the client:** the config is not synced (C5), so how the client knows is C7's.
 - **Stored data** for the upgrade table: the chosen level (and "none"); the code that filled a member of several codes.
 
+### The page model (A3a)
+
+The agent's choices, 08.11.2026 (`AlbumPages`, `docs/architecture.md`, Core); the author may overrule any in A4:
+- **Positions in the caller's units** (`PageMetrics`: the page, a cell, a heading line, a gap, the width of a row heading in
+  words, the narrowest group with a heading). The window measures texts and passes the numbers; the core never draws.
+- **What is collected is not part of the layout:** pages and positions depend on the level, the layout and the metrics only;
+  a refresh reads `Album.StacksToShow` and `MemberGroup.CollectedCount` when drawing.
+- **Groups stand side by side while they fit the page's width, then on the next line** (tapestry pictures three in a row as in
+  the mockup; crystal tables mostly one under another, being wide).
+- **A table wider than the page widens the page** (`AlbumPages.Width`), it is not cut by columns: the window grows to it.
+  Members in order wrap to the width.
+- **A group larger than a page is cut between lines** of cells (table rows, lines of members in order); its first part
+  stands where it would if one line fits there; a table repeats its column headings on every part. A group no larger than a
+  page is never cut, even where some of its lines would fit.
+- **Tabs:** by the layout's outermost grouping dimension, when it has names (`nameKey`) and the groups do not fit one page
+  laid out as `Shared`; then `PerTab` lays them out a tab per page. A tab's ✓: all its groups complete.
+- **Headings:** a dimension with an icon heads its rows and columns with a cell (a stack); one without, with words: a row
+  heading of the measured width, a column heading a line high (a narrow column's word is the drawing's problem, A3b).
+
 ## Where we stopped
 
 - 04.11.2026: A1 (three more GUI questions) and A2 (dimensions, levels, members of several codes, rarity marks, flat and
@@ -387,3 +427,6 @@ is decided (collections plan, "Butterflies last").
 - 07.11.2026: A2 done (final: Decisions, "The view on paper (A2)", with the mockups and the list for C7; `docs/domain.md`,
   Windows). The branch `docs/album-view` waits for the author's pull request into `main`; then C7 of the collections plan.
   Next here: A3 (opus, After: A2, and the core merged after K7).
+- 08.11.2026: A3 split in four (A3a–A3d, the author). A3a done (final): `AlbumPages` in the core with 15 unit tests,
+  mutation-checked (six mutations, each caught); its choices in Decisions, "The page model (A3a)". Nothing draws it yet. Next:
+  A3b (opus, After: A3a), on the same branch `feat/album-view`.

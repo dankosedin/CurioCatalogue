@@ -82,6 +82,11 @@ public sealed record Album(
 
     public LevelProgress Progress(CollectionLevel level) => level.Progress(Collected.Keys);
 
+    /// <summary>What the album window shows in a member's cell: the stack actually put in, or, while missing, the member's stacks
+    /// to cycle through (one for a member of one item; album view, A2, "The cell").</summary>
+    public IReadOnlyList<object> StacksToShow(Member member) =>
+        Collected.TryGetValue(member.Id, out var by) ? [by.Stack] : member.Stacks;
+
     /// <summary>
     /// What to take from a container that has <paramref name="available"/>: each missing member it can fill, in the order of taking
     /// new, with the item that fills it there; of a member filled by any of several items, the first in the member's order. A key

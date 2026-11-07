@@ -29,6 +29,9 @@ public sealed record Member(
 public sealed record MemberGroup(IReadOnlyList<string> Values, IReadOnlyList<Member> Members)
 {
     public bool IsComplete(IReadOnlySet<string> collectedIds) => Members.All(m => collectedIds.Contains(m.Id));
+
+    /// <summary>How many of its members are collected: the "21/34" in its heading.</summary>
+    public int CollectedCount(IReadOnlySet<string> collectedIds) => Members.Count(m => collectedIds.Contains(m.Id));
 }
 
 /// <summary>How far an album is at a level: members, and whole groups of the default layout (tapestry pictures).</summary>

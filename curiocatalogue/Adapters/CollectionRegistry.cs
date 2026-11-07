@@ -10,7 +10,7 @@ namespace CurioCatalogue.Adapters;
 /// The collections the mod knows (domain.md, Albums and collections): the definitions of every domain's
 /// <c>config/curiocatalogue/collections/*.json</c> (patched by other mods or by the server's admin), their points found by the
 /// definition's source in the game's own data, adjusted by the config's <c>Collections.&lt;id&gt;</c>. Built on first use, the same on
-/// the server and the client. A definition that cannot be used is logged and skipped; the others work (docs/architecture.md, Part 1,
+/// the server and the client. A definition that cannot be used is logged and skipped; the others work (docs/decisions.md,
 /// Collections).
 /// </summary>
 public sealed class CollectionRegistry

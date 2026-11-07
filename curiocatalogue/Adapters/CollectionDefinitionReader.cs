@@ -8,7 +8,7 @@ using CurioCatalogue.Core;
 
 namespace CurioCatalogue.Adapters;
 
-/// <summary>Where a collection's points come from: one of the closed set of kinds written in code (docs/architecture.md, Part 1,
+/// <summary>Where a collection's points come from: one of the closed set of kinds written in code (docs/decisions.md,
 /// Collections).</summary>
 [Closed(typeof(CollectionSource.Variants), typeof(CollectionSource.Tapestry))]
 public abstract record CollectionSource
@@ -106,7 +106,7 @@ public static class CollectionDefinitionReader
         if (errors.Count > 0 || source == null) return new DefinitionRead.Bad(id, errors);
         var definition = new CollectionDefinition(id, dimensions!, levels!, rules!, exclude, nameKey, albumRecipe);
         // Good means the core accepts the definition too, whatever the game has: the registry and the recipes choose among the
-        // good ones (docs/architecture.md, Collections).
+        // good ones (docs/decisions.md, Collections).
         var invalid = DefinedCollection.CheckDefinition(definition);
         return invalid.Count > 0 ? new DefinitionRead.Bad(id, invalid) : new DefinitionRead.Good(new ParsedDefinition(definition, source));
     }

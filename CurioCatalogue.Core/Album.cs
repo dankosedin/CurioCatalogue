@@ -32,7 +32,7 @@ public abstract record LevelChoice
 
 /// <summary>
 /// An album (domain.md, Albums and collections): what it collected of its collection, not what it misses (format 2,
-/// docs/architecture.md, Part 1, Collections). What is missing is the collection's level minus <see cref="Collected"/>, so the album
+/// docs/decisions.md, Collections). What is missing is the collection's level minus <see cref="Collected"/>, so the album
 /// follows its collection with no refresh: a new member is missing, a member excluded or disabled for a while keeps its record and
 /// comes back collected.
 /// </summary>

@@ -25,8 +25,16 @@ may run on Sonnet without the context of earlier sessions: the plan and the docs
 ## 2. Prepare
 
 - Read the documents `CLAUDE.md` lists for this kind of work, always following their "Read" column: `docs/modding.md` before code
-  or JSON assets, `docs/development.md` before building, testing or committing, `docs/domain.md` for books, invoices and
-  collections, `docs/architecture.md` before a new class, adapter or message, `DESIGN.md` before a change the player sees.
+  or JSON assets, `docs/development.md` before building or committing, `docs/tests.md` before writing tests,
+  `docs/domain.md` for books, invoices and collections, `docs/architecture.md` and `docs/decisions.md` before a new class,
+  adapter or message, `DESIGN.md` before a change the player sees.
+  A document over ~10 KB: list its headings first (`grep -n '^##' <file>`), then read the sections this step needs
+  (Read with offset and limit); read it whole only when most of it applies.
+- Code the same way: find the place with Grep, read the part around it; read a file whole only when you will rewrite much of it.
+  One wide `grep -rn` with a precise pattern beats several broad ones; cap output with `head`.
+- Size the step before starting. It fits one session when it is about one layer or one flow and some tens of edits. A step that
+  touches the core, the adapters, the server tests and the docs at once, or that plainly needs more: propose to the author how
+  to split it (each part with its own "Done when"), and wait.
 - Branch: the one the step names. A new branch starts from an up-to-date `main` (`git fetch`, then branch from `origin/main`);
   never commit on `main`. An existing branch named by the step: check it out and rebase it on `origin/main` only if the step says so.
 - Before touching code, say in two or three lines what you are going to change.
@@ -37,7 +45,12 @@ may run on Sonnet without the context of earlier sessions: the plan and the docs
   plan; do not fix it now.
 - Follow `docs/critical.md` (always loaded). Tests come with code changes; a test meant to catch a mistake is checked by a mutation
   (break the thing, see the test fail, restore).
-- Build and test as `docs/development.md` says, and report the real result. A red test is reported with its output, not hidden.
+- Build and test as `docs/development.md` and `docs/tests.md` say, and report the real result. A red test is reported with its output, not hidden.
+- A change that lands in a big file or class (several hundred lines, or several jobs in one place): before adding code there,
+  consider splitting that file or class into smaller ones, one job each (principle 8 in `docs/architecture.md`). The split is not
+  part of this step: propose it to the author (as a step before this one or a plan line) and go on as they decide.
+- Checkpoint: after about 60 tool calls, finish the current piece to a green build and tests, then stop. Write "Where we stopped"
+  (section 5), offer the commit, and advise `/clear` before the rest: every further call rereads the whole grown context.
 - Something only the game can show: write the exact in-game check for the author instead of claiming it works.
 - Another mod's code: integration targets may be read; competitors (ask if unsure) only through a subagent that returns a summary
   and never quotes code.

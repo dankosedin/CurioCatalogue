@@ -4,7 +4,7 @@ using CurioCatalogue.Core;
 namespace CurioCatalogue.Core.Tests;
 
 /// <summary>
-/// Collections built from definitions (docs/architecture.md, Part 1, Collections), on the three shapes designed in
+/// Collections built from definitions (docs/decisions.md, Collections), on the three shapes designed in
 /// docs/plans/2026-11-04-collections-design.md: ore crystals (C1: three levels, Cartesian, `max`), seashells (C2: `any`,
 /// rarity by a rule) and tapestries (hierarchical, a picture's shape).
 /// </summary>

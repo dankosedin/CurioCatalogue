@@ -86,7 +86,7 @@ public class CollectionSettingsEntry
 
 /// <summary>
 /// Server → client, on join: the server's <c>Collections</c> config, so the client builds the same collections (a collection off, a
-/// piece left out on the server only) and can say "switched off" (docs/architecture.md, Part 1, Collections), and its
+/// piece left out on the server only) and can say "switched off" (docs/decisions.md, Collections), and its
 /// <c>ExtraIgnoredAttributes</c>, so the client tells items apart as the server does (what a tooltip or window counts as missing; K7,
 /// A9/C7). The definitions are not sent: the client reads them from its own assets.
 /// </summary>

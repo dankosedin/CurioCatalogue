@@ -1,6 +1,6 @@
 <Project>
 
-  <!-- What every test project with a real game server shares (docs/development.md, Server tests): imported by
+  <!-- What every test project with a real game server shares (docs/tests.md, Server tests): imported by
        CurioCatalogue.ServerTests and CurioCatalogue.CompatTests. The game's side (DLLs, the fixture's sources) is
        TestServer.Game.props; this file adds xUnit and our mod from its current build. -->
 

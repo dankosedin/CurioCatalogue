@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace CurioCatalogue;
 
-/// <summary>What the server changes in one collection (<c>Collections.&lt;id&gt;</c> in the config; docs/architecture.md, Part 1,
+/// <summary>What the server changes in one collection (<c>Collections.&lt;id&gt;</c> in the config; docs/decisions.md,
 /// Collections). The patterns and names are each source's own name of a member: an item code without domain for variants, a piece
 /// name for tapestries.</summary>
 public class CollectionSettings

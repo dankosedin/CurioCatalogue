@@ -4,7 +4,7 @@ using Vintagestory.API.Datastructures;
 
 namespace CurioCatalogue.TestServer;
 
-// The reader of a golden set (docs/development.md, Golden stacks; plan backward-compat, Decisions "Ids"). The format is the one
+// The reader of a golden set (docs/tests.md, Golden stacks; plan backward-compat, Decisions "Ids"). The format is the one
 // CurioCatalogue.GoldenCapture/Golden.cs writes; the records here are its twin. Both use only the game's types, so they could be one
 // file; kept apart until the capture is rewritten for 0.2 shows what the format needs (ROADMAP.md). An unknown field fails the load.
 

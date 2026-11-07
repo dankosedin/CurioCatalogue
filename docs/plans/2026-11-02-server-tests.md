@@ -218,7 +218,7 @@ T1 (02.11.2026):
 - **The guard checks `GamePaths.DataPath` itself**, after setting it and before the logger writes: decompiled `ServerMain` reads
   only that static, not `ServerProgramArgs.DataPath`.
 - **The fixture checks our mod is enabled** after start, so a wrong mod path fails every test with the list of loaded mods,
-  not only the smoke test. Our assets still load from the origin without the mod (modding.md, A server inside the test process).
+  not only the smoke test. Our assets still load from the origin without the mod (test-server.md).
 - **Paths from MSBuild as assembly metadata:** the target `TestPathsAsMetadata` asks the mod project for its `TargetPath`
   (`GetTargetPath`) and writes the game folder, the mod's DLL and its `assets` into `AssemblyMetadata` attributes.
 - **On a failed start the temp folder stays** for diagnosis (the error names its log); after a passing run it is deleted, and a

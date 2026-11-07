@@ -164,7 +164,7 @@ Proposed 04.11.2026, to be confirmed by the author (B1 settles the open ones).
 
 ### B2: the capture (04.11.2026)
 
-- **The set of 0.1.1** (`docs/development.md`, Golden stacks): `ledger`, `intake-list`, `pick-list`, `materials`, `recoloured` (the
+- **The set of 0.1.1** (`docs/tests.md`, Golden stacks): `ledger`, `intake-list`, `pick-list`, `materials`, `recoloured` (the
   same book with black leather), `aged` (`ledger-age`, sulfuric acid), `spent` (`ledger-restore`, 32 sheets, three lists made: 29),
   `named` (`Комора № 1`, through the rename request), `album-partial` (3 pieces, then its want list: 7 sheets), `want-list`, `album-full`
   (all 88 pieces). Each stack's inputs are written by the scenario and checked against what 0.1.1 itself reads; a mismatch stops the run.

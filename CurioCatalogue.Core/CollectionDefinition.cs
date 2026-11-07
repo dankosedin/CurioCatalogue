@@ -7,7 +7,7 @@ using ExhaustiveMatching;
 namespace CurioCatalogue.Core;
 
 // The definition of a collection: data, read from an asset config/curiocatalogue/collections/<id>.json of any domain
-// (docs/architecture.md, Part 1, Collections). The members come from a source in the adapters, as SourcePoints; DefinedCollection
+// (docs/decisions.md, Collections). The members come from a source in the adapters, as SourcePoints; DefinedCollection
 // builds them per level. Nothing here knows the asset's JSON: the adapters parse it into these records.
 
 /// <summary>

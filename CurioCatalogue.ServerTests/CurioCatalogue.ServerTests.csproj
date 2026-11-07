@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Tests against a real game server started inside the test process (docs/development.md, Server tests). The fixture,
+  <!-- Tests against a real game server started inside the test process (docs/tests.md, Server tests). The fixture,
        the references and the build steps are shared with CurioCatalogue.CompatTests through this import. -->
   <Import Project="..\CurioCatalogue.TestServer\TestServer.props" />
 
-  <!-- Where the golden sets are (UpgradeTests, docs/development.md, Golden stacks): read from the source folder, not copied. -->
+  <!-- Where the golden sets are (UpgradeTests, docs/tests.md, Golden stacks): read from the source folder, not copied. -->
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>GoldenRoot</_Parameter1>

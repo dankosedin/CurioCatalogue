@@ -113,7 +113,7 @@ DLLs; never start the game.
 2. **C# expert** (Sonnet, read-only). Language and runtime: nullability, disposal, collections, LINQ, async and threads, the
    engine's lifecycle (client and server sides, events, unloading).
 3. **Architect** (Opus, read-only). The structure against `docs/architecture.md`: the pure core, adapters, network messages,
-   where a responsibility lives; whether Part 1 of `docs/architecture.md` records the structural decisions of the change.
+   where a responsibility lives; whether `docs/decisions.md` records the structural decisions of the change.
    **Questions from the future:** the moderator names two or three coming items of `ROADMAP.md` (or of the next plans) and asks
    what in this change those items will touch and where it will hurt.
 4. **QA** (Opus, own worktree; may build and test). A table: each documented case (`docs/testing/functional.md`, `DESIGN.md`,

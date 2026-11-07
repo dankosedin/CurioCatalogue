@@ -12,7 +12,7 @@ namespace CurioCatalogue.ServerTests;
 
 /// <summary>
 /// What players have today must still work after an update: the golden stacks of every released version
-/// (<c>Golden/v&lt;version&gt;/</c>, made by that release's own code; docs/development.md, Golden stacks), read by the current code.
+/// (<c>Golden/v&lt;version&gt;/</c>, made by that release's own code; docs/tests.md, Golden stacks), read by the current code.
 /// The expected values are the capture's inputs (what went into each item), never what the current code reads from it. A stack's
 /// ids are replaced by the codes' ids in this world first (<see cref="GoldenStacks.Read"/>), as a world's own ids would be.
 /// "Reads" also has to mean "works": one action each on the real item classes, chests and grid (as in
@@ -256,7 +256,7 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
     public void An_album_of_0_1_1_is_written_back_as_format_2_with_every_piece_it_collected(string name)
     {
         // Format 1 is migrated on read; the next server write (here a rename, as the window's request does) stores format 2:
-        // what was collected, by member id, with no snapshot and no missing entries (docs/architecture.md, Part 1, Collections).
+        // what was collected, by member id, with no snapshot and no missing entries (docs/decisions.md, Collections).
         var golden = GoldenStacks.Load(V011).Stacks.Single(s => s.Name == name);
         var collected = golden.Inputs.Book!.Album!.Collected.Select(e => e.Type!).Order(StringComparer.Ordinal).ToList();
         var (raw, read) = game.OnMain(() =>

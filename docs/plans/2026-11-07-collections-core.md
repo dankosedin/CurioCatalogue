@@ -1,7 +1,7 @@
 # The core of collections
 
 Started 07.11.2026. `ROADMAP.md`, 0.2, item 3: the core built once for every collection of 0.2, to the shape decided in C7 of
-`2026-11-04-collections-design.md` and written in `docs/architecture.md`, Part 1, "Collections" (read it first: this plan does
+`2026-11-04-collections-design.md` and written in `docs/decisions.md`, "Collections" (read it first: this plan does
 not repeat it). The collections themselves (ore crystals, seashells, butterflies) are item 4, each a plan of its own on this
 core; the album window is A3–A5 of `2026-11-04-album-view.md`, after this plan.
 
@@ -92,7 +92,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
 
 ## Decisions
 
-- **The shape is the one in `docs/architecture.md`, Part 1, "Collections"** (the author, 07.11.2026, C7 of the collections design
+- **The shape is the one in `docs/decisions.md`, "Collections"** (the author, 07.11.2026, C7 of the collections design
   plan: R1–R10 accepted as proposed).
 - **One branch for the plan, one pull request at the end:** the steps change one structure, and a half-built core in `main` would
   hold back the other plans. If the branch grows too large to review, the author may split the pull request after K3.
@@ -154,7 +154,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     excluded, 16 / 118 / 353, and level 2 by grade medium 44, rich 31, bountiful 43 as C1 counted. Bountiful native copper
     occurs in one rock only; quartz gold and silver in 13 (the tests' example of a member of several codes).
 - **The registry from assets, the config (K3, 07.11.2026, final; proposed by the AI assistant in the step, within the shape).** The
-  JSON of a definition and what the registry does are in `docs/architecture.md`, Part 1, Collections ("The JSON of a definition").
+  JSON of a definition and what the registry does are in `docs/decisions.md`, Collections ("The JSON of a definition").
   - *The id of a collection is its file's name* (`tapestries.json`); a second file with the same id is ignored with an error. The
     reader is `CollectionDefinitionReader`, the sources are `variants` and `tapestry`; `Add` works for `tapestry` only.
   - *The config:* `Collections` is a dictionary by id (default `tapestries` with empty lists); the legacy keys are `string[]?`,

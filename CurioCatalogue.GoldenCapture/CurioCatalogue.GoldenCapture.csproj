@@ -3,7 +3,7 @@
   <!-- Golden stacks (docs/plans/2026-11-04-backward-compat.md): the test server with our mod of a release, not the current build.
        A console program, run by hand once per release, so `dotnet test` and CI never run it. It compiles against the release's
        DLLs, taken from the zip of the GitHub release (checked by its hash), so it may use only the types that release has.
-       It writes the golden set of the release into CurioCatalogue.ServerTests/Golden/v<version>/ (docs/development.md, Golden stacks).
+       It writes the golden set of the release into CurioCatalogue.ServerTests/Golden/v<version>/ (docs/tests.md, Golden stacks).
        Not built with the solution (no Build entry in curiocatalogue.sln): its build downloads the release. -->
   <Import Project="..\CurioCatalogue.TestServer\TestServer.Game.props" />
 

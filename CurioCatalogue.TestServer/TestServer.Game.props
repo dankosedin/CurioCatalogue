@@ -1,6 +1,6 @@
 <Project>
 
-  <!-- The game's side of a project with a real game server inside its process (docs/development.md, Server tests): the game's
+  <!-- The game's side of a project with a real game server inside its process (docs/tests.md, Server tests): the game's
        DLLs and the fixture's sources, without our mod. Imported by TestServer.props (the test projects: our mod from its current
        build) and by CurioCatalogue.GoldenCapture (our mod from a release zip). Not a project of its own: the .cs files of this
        folder are compiled into each assembly, so each has its own module initializer (GameAssemblies), which must run before

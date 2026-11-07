@@ -433,7 +433,7 @@ An album of all members missing unless marked.
 ### The shape and the core's plan (C7)
 
 Final. Decided with the author 07.11.2026: ten proposals (R1–R10) accepted as made. The shape, with the alternatives, is in
-`docs/architecture.md`, Part 1, "Collections"; the core's plan is `2026-11-07-collections-core.md` (K1–K6). In short:
+`docs/decisions.md`, "Collections"; the core's plan is `2026-11-07-collections-core.md` (K1–K6). In short:
 - R1 a definition is data (`config/curiocatalogue/collections/<id>.json`, every domain); members come from a source in code
   (`variants`, `tapestry`; later the book, a rule on an attribute);
 - R2 a member: a point in the dimensions with a stable id, its filler (one key or several), stacks to show, attributes;

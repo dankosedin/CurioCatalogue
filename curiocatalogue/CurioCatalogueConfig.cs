@@ -69,12 +69,13 @@ public class CurioCatalogueConfig
         if (TapestryExclude == null && TapestryAdd == null) return moved;
         Collections ??= new();
         if (!Collections.TryGetValue(TapestriesId, out var settings) || settings == null) Collections[TapestriesId] = settings = new();
-        if (TapestryExclude != null)
+        // Empty lists (0.1.1 writes them so) are removed silently: nothing moved, nothing to tell the admin (K7, H14).
+        if (TapestryExclude is { Length: > 0 })
         {
             settings.Exclude = [.. settings.Exclude ?? [], .. TapestryExclude];
             moved.Add($"TapestryExclude [{string.Join(", ", TapestryExclude)}] moved to Collections.{TapestriesId}.Exclude");
         }
-        if (TapestryAdd != null)
+        if (TapestryAdd is { Length: > 0 })
         {
             settings.Add = [.. settings.Add ?? [], .. TapestryAdd];
             moved.Add($"TapestryAdd [{string.Join(", ", TapestryAdd)}] moved to Collections.{TapestriesId}.Add");

@@ -40,8 +40,8 @@ public abstract record LevelChoice
 /// it chosen always (<see cref="LevelIn"/>).</param>
 /// <param name="Collected">By member id: the item that filled the member.</param>
 /// <param name="Unplaced">Items an album of format 1 had collected that are no member of its collection now (the collection is
-/// unknown, or the piece is excluded). Kept, never dropped, and placed when the collection has them again (<see cref="Place"/>).
-/// Format 1 knew only its collection's first level, so they belong to it.</param>
+/// unknown, or the piece is excluded), and those of an album whose level the collection no longer has. Kept, never dropped, and
+/// placed when the collection has them again (<see cref="Place"/>).</param>
 public sealed record Album(
     string CollectionId,
     string? Level,
@@ -117,31 +117,51 @@ public sealed record Album(
     }
 
     /// <summary>
-    /// Gives the unplaced items of format 1 their members where the collection has them (in the album's level; for an album of
-    /// format 1 with no level, the first, the only one format 1 knew, which it then keeps). An item whose member is already
-    /// collected adds nothing; one that is no member stays unplaced.
+    /// Puts what the album holds on the members of the collection as it is now (K7, M1 and M3 of the plan's Decisions):
+    /// <list type="bullet">
+    /// <item>The album's level is the collection's: its unplaced items go to their members there.</item>
+    /// <item>It is not (an album of format 1, which has none; a level renamed or removed by a patch): everything it collected,
+    /// placed and unplaced, goes to the level that gives it the most members (a tie: the first level), which becomes the album's.
+    /// No level takes any of it: the album stays as it is.</item>
+    /// </list>
+    /// An item whose member is already collected adds nothing; one that is no member of the level stays unplaced, so nothing is
+    /// lost and it is placed once the collection has it again.
     /// </summary>
     public Album Place(DefinedCollection collection)
     {
-        if (Unplaced.IsEmpty) return this;
-        var level = LevelIn(collection) ?? (Level == null && collection.Levels.Count > 0 ? collection.Levels[0] : null);
-        if (level == null) return this;
+        if (Level != null && collection.Level(Level) is { } own)
+            return Unplaced.IsEmpty ? this : PlacedOn(own, Collected, Unplaced);
+        if (IsEmpty) return this;
 
-        var collected = Collected.ToBuilder();
-        var unplaced = ImmutableList.CreateBuilder<FilledBy>();
-        foreach (var by in Unplaced)
+        var all = Collected.Values.Concat(Unplaced).ToList();
+        CollectionLevel? best = null;
+        int most = 0;
+        foreach (var level in collection.Levels)
         {
-            if (level.MemberOf(by.Key) is { } member) collected.TryAdd(member.Id, by);
+            int members = all.Select(by => level.MemberOf(by.Key)?.Id).OfType<string>().Distinct().Count();
+            if (members > most) (best, most) = (level, members);
+        }
+        return best == null ? this : PlacedOn(best, NoneCollected, all);
+    }
+
+    private Album PlacedOn(CollectionLevel level, ImmutableSortedDictionary<string, FilledBy> collected, IEnumerable<FilledBy> toPlace)
+    {
+        var placed = collected.ToBuilder();
+        var unplaced = ImmutableList.CreateBuilder<FilledBy>();
+        foreach (var by in toPlace)
+        {
+            if (level.MemberOf(by.Key) is { } member) placed.TryAdd(member.Id, by);
             else unplaced.Add(by);
         }
-        return this with { Level = level.Id, Collected = collected.ToImmutable(), Unplaced = unplaced.ToImmutable() };
+        return this with { Level = level.Id, Collected = placed.ToImmutable(), Unplaced = unplaced.ToImmutable() };
     }
 
     /// <summary>
     /// An album of format 1 (0.1): a snapshot of the collection's members then and the entries still missing. What it collected is
     /// the snapshot less the missing; without a snapshot (development builds before 0.1.0), the collection's first level now less
-    /// the missing, as 0.1 read it. Those items are placed on the collection's first level when it is known (format 1 had only that
-    /// one), else kept unplaced; nothing collected is lost.
+    /// the missing, as 0.1 read it. Those items are placed by <see cref="Place"/> (on the level that takes most of them: format 1
+    /// knew one level, the pieces, which a patch may have moved from the first place) when the collection is known, else kept
+    /// unplaced; nothing collected is lost.
     /// </summary>
     public static Album FromFormat1(string collectionId, int sheets, string name, IReadOnlyList<FilledBy>? snapshot,
         IEnumerable<ItemKey> missing, DefinedCollection? collection)
@@ -150,7 +170,8 @@ public sealed record Album(
         var members = snapshot ?? first?.Members.Select(m => new FilledBy(m.Fillers[0], m.Stacks[0])).ToList() ?? [];
         var stillMissing = missing.ToHashSet();
         var collected = members.Where(m => !stillMissing.Contains(m.Key)).ToImmutableList();
-        var album = new Album(collectionId, first?.Id, NoneCollected, collected, sheets, name);
+        // The level as a new album's: chosen only when there is no choice.
+        var album = new Album(collectionId, collection?.Levels.Count == 1 ? first!.Id : null, NoneCollected, collected, sheets, name);
         return collection != null ? album.Place(collection) : album;
     }
 }

@@ -231,15 +231,43 @@ public class LedgerStoreTests
     // --- Format version ---
 
     [Fact]
-    public void Books_and_invoices_are_written_with_the_format_version()
+    public void A_want_list_names_its_collection_cheaply_and_one_of_format_1_or_another_invoice_names_none()
     {
-        var book = new ItemStack(ledgerItem);
-        store.WriteLedger(book, Ledger.Empty(LedgerMode.Types, 2));
-        var paper = new ItemStack(invoiceItem);
-        store.WriteInvoice(paper, new Invoice(InvoiceKind.Incoming, [], 0, new BlockPosition(0, 0, 0)));
+        // For the hints over a container: a want list of a collection switched off promises nothing (K7, W1).
+        var origin = new BlockPosition(0, 0, 0);
+        var wantList = new ItemStack(invoiceItem);
+        store.WriteInvoice(wantList, new Invoice(InvoiceKind.WantList, [store.ToEntry(Tapestry("a")) with { Member = "a" }], 0, origin,
+            new WantedFrom("tapestries", "pieces")));
+        var old = new ItemStack(invoiceItem);
+        store.WriteInvoice(old, new Invoice(InvoiceKind.WantList, [store.ToEntry(Tapestry("a"))], 0, origin));
 
-        Assert.Equal(LedgerStore.Version, book.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetAsInt("v"));
-        Assert.Equal(LedgerStore.Version, paper.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetAsInt("v"));
+        Assert.Equal("tapestries", LedgerStore.ReadWantedCollectionId(ThroughBytes(wantList)));
+        Assert.Equal("", LedgerStore.ReadWantedCollectionId(old));
+        Assert.Equal("", LedgerStore.ReadWantedCollectionId(new ItemStack(invoiceItem)));
+    }
+
+    [Fact]
+    public void Each_kind_is_written_with_the_oldest_version_of_its_layout()
+    {
+        // H6 of K7: 0.2 changed only albums and want lists; the rest stays version 1, which 0.1.1 still reads (U12).
+        int V(ItemStack stack) => stack.Attributes.GetTreeAttribute(LedgerStore.RootKey).GetAsInt("v");
+        var origin = new BlockPosition(0, 0, 0);
+        var ledger = new ItemStack(ledgerItem);
+        store.WriteLedger(ledger, Ledger.Empty(LedgerMode.Types, 2));
+        var bill = new ItemStack(ledgerItem);
+        store.WriteLedger(bill, Ledger.Empty(LedgerMode.Counts, 2));
+        var intake = new ItemStack(invoiceItem);
+        store.WriteInvoice(intake, new Invoice(InvoiceKind.Incoming, [], 0, origin));
+        var oldWantList = new ItemStack(invoiceItem);
+        store.WriteInvoice(oldWantList, new Invoice(InvoiceKind.WantList, [store.ToEntry(Tapestry("a"))], 0, origin));
+        var album = AlbumItem();
+        store.WriteAlbum(album, new Album("tapestries", null, Album.NoneCollected, [], 3));
+        var wantList = new ItemStack(invoiceItem);
+        store.WriteInvoice(wantList, new Invoice(InvoiceKind.WantList, [store.ToEntry(Tapestry("a")) with { Member = "a" }], 0, origin,
+            new WantedFrom("tapestries", "pieces")));
+
+        Assert.Equal([1, 1, 1, 1], new[] { ledger, bill, intake, oldWantList }.Select(V));
+        Assert.Equal([LedgerStore.Version, LedgerStore.Version], new[] { album, wantList }.Select(V));
     }
 
     [Fact]

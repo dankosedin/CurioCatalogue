@@ -84,7 +84,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   - [x] **K7a. Registry, definitions, the album recipe.** R1, R2, R4, T3, the empty level id, H2, C2, P1–P3 of the Decisions;
         the Teammate's and QA's registry tests. Model: opus. Done when: tests pass, the new ones fail on the old code;
         `docs/domain.md` (Recipes, the definition's `albumRecipe`) and `docs/architecture.md` (the recipe rule) say it.
-  - [ ] **K7b. Albums, want lists, the packet.** M1+M3, W1, H6, A9/C7, H14, T4; QA's tests for M1, Q3, Q4, Q8. Model: opus.
+  - [x] **K7b. Albums, want lists, the packet.** M1+M3, W1, H6, A9/C7, H14, T4; QA's tests for M1, Q3, Q4, Q8. Model: opus.
         Done when: tests pass, the new ones fail on the old code; upgrade table if H6 changes what is written; lang for W1.
   - [ ] **K7c. Docs and the leftovers.** Q6, Q7 (README in both languages; the text shown to the author at release), H16/A7,
         C6 in `docs/domain.md`; H8/H9 to `ROADMAP.md`, A5 to the seashell plan's ideas, A8 to item 4; what the round taught in
@@ -281,6 +281,16 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     is dropped by `Correct()` with a line in the log. `ForSample` is gone: `AlbumOf(recipe)` gives the collection id and
     `HasMember` checks the sample; the test helpers use `Defined("tapestries")`. `albumRecipe` must name its domain (else the
     definition is bad).
+  - *How K7b did it (07.11.2026, final; the AI assistant within the decisions above, H6 and W1's text by the author).*
+    `Album.Place` is the one rule of M1+M3: the album's level is the collection's, so its unplaced go there; else all it collected,
+    placed or not, goes to the level that gives it the most members (tie: the first). If no level takes any of it, the album stays
+    as it is (moving it all to `unplaced` would also fix a level, and a level renamed back would not get it). `FromFormat1` starts with no level
+    (or the only one, as `Album.New`) and lets `Place` choose. W1: `PostRefusal.WantListDisabled`, checked first, before the
+    container (as an album's refusals); its own text `ingameerror-wantlistdisabled` (the author), since `ingameerror-disabled`
+    says "this album's". H6 (the author: invoices too): `LedgerStore.VersionOf` writes `v` 2 only on albums and on want lists
+    that name their album (`wants`); ledgers, bills, intake and pick lists and want lists of 0.1.1 stay 1. `Version` (2) is the
+    newest this build reads, for `IsNewer`. A9/C7: `CollectionSettingsPacket.ExtraIgnoredAttributes`; the client drops its keys,
+    store and registry on it. T4: `OnGroundNear` searches ±4 across and ±64 up and down.
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -317,3 +327,8 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   All five test projects green (Core 133, Tests 211, PageGen 33, Compat 23, Server 192); mutations caught (the guard, ours first,
   logged once, nulls in the config, removing only the disabled's recipe, T3, the empty level id). No in-game check: C3 crafts the
   album as before (`CraftingTests`). Next: K7b (opus).
+- 07.11.2026: K7b done (final): M1+M3, W1, H6, A9/C7, H14, T4; QA's tests for M1, Q3, Q4, Q8 taken. All five test projects green
+  (Core 138, Tests 215, PageGen 33, Compat 23, Server 194); the new tests fail on the old code (4 core for M1/M3; Q4 by the mutation
+  "missing in the members' order"; W1 and H6 by mutation). G7 and W6 of `functional.md` passed by the author on the dedicated
+  server; W6 showed the "Take from the list" hint over a chest for a want list of a collection switched off, now hidden
+  (`LedgerHintsBehavior`, `LedgerStore.ReadWantedCollectionId`; checked in game again). Next: K7c (sonnet).

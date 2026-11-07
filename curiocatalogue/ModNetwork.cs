@@ -86,13 +86,15 @@ public class CollectionSettingsEntry
 
 /// <summary>
 /// Server → client, on join: the server's <c>Collections</c> config, so the client builds the same collections (a collection off, a
-/// piece left out on the server only) and can say "switched off" (docs/architecture.md, Part 1, Collections). The definitions are not
-/// sent: the client reads them from its own assets.
+/// piece left out on the server only) and can say "switched off" (docs/architecture.md, Part 1, Collections), and its
+/// <c>ExtraIgnoredAttributes</c>, so the client tells items apart as the server does (what a tooltip or window counts as missing; K7,
+/// A9/C7). The definitions are not sent: the client reads them from its own assets.
 /// </summary>
 [ProtoContract]
 public class CollectionSettingsPacket
 {
     [ProtoMember(1)] public List<CollectionSettingsEntry> Collections = [];
+    [ProtoMember(2)] public List<string> ExtraIgnoredAttributes = [];
 }
 
 /// <summary>
@@ -153,14 +155,15 @@ internal static class ModNetwork
         channel.SetMessageHandler<CollectionSettingsPacket>(packet =>
         {
             ModLog.Debug(capi, $"the server's collection settings: {string.Join(", ", packet.Collections.Select(c => c.Id + (c.Disabled ? " (off)" : "")))}");
-            mod.UseServerSettings(SettingsOf(packet));
+            mod.UseServerSettings(SettingsOf(packet), packet.ExtraIgnoredAttributes);
         });
     }
 
-    /// <summary>The config's collection settings as a packet, and back.</summary>
-    internal static CollectionSettingsPacket PacketOf(IReadOnlyDictionary<string, CollectionSettings> settings) => new()
+    /// <summary>The settings of the server's config the client must share, as a packet; <see cref="SettingsOf"/> reads its collections back.</summary>
+    internal static CollectionSettingsPacket PacketOf(CurioCatalogueConfig config) => new()
     {
-        Collections = [.. settings.Select(s => new CollectionSettingsEntry { Id = s.Key, Exclude = [.. s.Value.Exclude], Add = [.. s.Value.Add], Disabled = s.Value.Disabled })],
+        Collections = [.. config.Collections.Select(s => new CollectionSettingsEntry { Id = s.Key, Exclude = [.. s.Value.Exclude], Add = [.. s.Value.Add], Disabled = s.Value.Disabled })],
+        ExtraIgnoredAttributes = [.. config.ExtraIgnoredAttributes],
     };
 
     internal static Dictionary<string, CollectionSettings> SettingsOf(CollectionSettingsPacket packet) =>
@@ -208,7 +211,7 @@ internal static class ModNetwork
         channel.SetMessageHandler<ChooseLevelRequest>((player, request) => ChooseLevel(sapi, mod, player, request));
         // Before the player opens anything: the client's handler exists by now and the packet waits in the channel if need be (K1 of the
         // collections core plan, docs/modding.md, Network).
-        sapi.Event.PlayerJoin += player => channel.SendPacket(PacketOf(mod.Config.Collections), player);
+        sapi.Event.PlayerJoin += player => channel.SendPacket(PacketOf(mod.Config), player);
     }
 
     /// <summary>

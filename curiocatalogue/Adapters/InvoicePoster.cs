@@ -9,7 +9,19 @@ using ExhaustiveMatching;
 
 namespace CurioCatalogue.Adapters;
 
-public enum PostRefusal { Unsupported, NoAccess, Missing, NoRoom, NothingFromList, MoveFailed, Blank }
+public enum PostRefusal
+{
+    Unsupported,
+    NoAccess,
+    Missing,
+    NoRoom,
+    NothingFromList,
+    MoveFailed,
+    Blank,
+
+    /// <summary>A want list of a collection the server switched off: it waits, whole, until the collection is on again (K7, W1).</summary>
+    WantListDisabled,
+}
 
 [Closed(typeof(PostInvoiceResult.Posted), typeof(PostInvoiceResult.Refused))]
 public abstract record PostInvoiceResult
@@ -93,13 +105,18 @@ public sealed class InvoicePoster
     public PostInvoiceResult Post(IPlayer player, ItemSlot invoiceSlot, InvoiceKind kind, BlockPos pos,
         IReadOnlyList<ItemSlot> playerSlots, ItemSlot? offhandSlot)
     {
+        var invoice = store.ReadInvoice(invoiceSlot.Itemstack!, kind);
+        // About the list, true of any container, so said first (as an album's refusals). A collection the game lacks is not refused:
+        // its lines want exactly their items, so the list stays of use after a mod is removed (domain.md, Albums and collections).
+        if (invoice.From is { } from && store.Resolve(from.CollectionId) is CollectionResolution.Disabled)
+            return new PostInvoiceResult.Refused(PostRefusal.WantListDisabled);
+
         pos = reader.MainPos(pos);
         var be = world.BlockAccessor.GetBlockEntity(pos);
         if (reader.Classify(be) != ContainerKind.Supported) return new PostInvoiceResult.Refused(PostRefusal.Unsupported);
         if (!access.CanUse(player, pos)) return new PostInvoiceResult.Refused(PostRefusal.NoAccess);
 
         var container = reader.Open(be)!;
-        var invoice = store.ReadInvoice(invoiceSlot.Itemstack!, kind);
         // A blank invoice (from the creative inventory) has nothing to post; it would post as "0 lines" and give the book a sheet.
         if (invoice.Entries.IsEmpty) return new PostInvoiceResult.Refused(PostRefusal.Blank);
         var merge = new MergeClasses();

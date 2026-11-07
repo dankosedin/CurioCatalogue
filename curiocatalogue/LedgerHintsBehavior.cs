@@ -64,7 +64,11 @@ public class LedgerHintsBehavior(Block owner) : BlockBehavior(owner)
             // An album whose collection is off or gone refuses the click, so it promises nothing.
             ItemLedger { IsAlbum: true } => mod.Store.Resolve(LedgerStore.ReadCollectionId(stack!)) is CollectionResolution.Found ? AlbumHints : null,
             ItemLedger => LedgerHints,
-            ItemInvoice { InvoiceKind: InvoiceKind.WantList } when hand?.Empty != true => WantListHints,
+            // A want list of a collection switched off refuses too (K7, W1); one of a collection the game lacks still fills by exact items.
+            ItemInvoice { InvoiceKind: InvoiceKind.WantList } when hand?.Empty != true =>
+                LedgerStore.ReadWantedCollectionId(stack!) is { Length: > 0 } id && mod.Store.Resolve(id) is CollectionResolution.Disabled
+                    ? null
+                    : WantListHints,
             ItemInvoice when hand?.Empty != true => InvoiceHints,
             _ => null,
         };

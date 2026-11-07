@@ -278,6 +278,23 @@ public class UpgradeTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal((expected with { Name = "renamed" }).ToString(), read.ToString());
     }
 
+    [Fact]
+    public void An_album_of_0_1_1_written_while_its_collection_is_off_keeps_every_piece_for_when_it_is_on()
+    {
+        // QA K7 (Q8). The server switched tapestries off; the album of 0.1.1 is written meanwhile (a rename): format 2 with the
+        // pieces unplaced. Switched on again, it reads as 0.1.1 had it.
+        var golden = GoldenStacks.Load(V011).Stacks.Single(s => s.Name == "album-partial");
+        var stack = game.OnMain(() => WithConfig(c => c.Collections["tapestries"].Disabled = true, () =>
+        {
+            var s = GoldenStacks.Read(World, golden);
+            Mod.Store.WriteAlbum(s, Mod.Store.ReadAlbum(s) with { Name = "renamed" });
+            return s;
+        }));
+        var read = game.OnMain(() => Observed(stack));
+
+        Assert.Equal((Expected(golden) with { Name = "renamed" }).ToString(), read.ToString());
+    }
+
     // ---- working: one action on each kind of golden item (the set of 0.1.1)
 
     ItemStack Golden(string name) => GoldenStacks.Read(World, GoldenStacks.Load(V011).Stacks.Single(s => s.Name == name));

@@ -76,6 +76,7 @@ which build, who ran it, and each `❌` with its reason.
 | W3 ⚙ | 0.1.0 | Same with `ConsumeSheets` true | "…The list is done."; the list is gone, no parchment; the album's sheets unchanged |
 | W4 ⚙ | 0.1.0 | Fill with no room for one piece | Partial fill; the list keeps the piece that did not fit |
 | W5 ⚙ | 0.2.0 | An album at a level whose members take any of several items (seashells by type, crystals by ore, once item 4 brings them); make a want list, look at its tooltip, fill it on a chest with a piece of another kind than the one shown (another colour), in `en` and `uk` | Each such line ends with what is free ("…, any colour"); the piece of the other kind is taken and its line crossed off. Until item 4, `CollectionsFromAssetsTests` checks it with the test mod's seashells |
+| W6 ⚙ | 0.2.0 | A want list made by an album, the server's `Collections.tapestries.Disabled: true` (restart); Shift + RMB with the list on a chest that has a piece of it; then `Disabled: false`, restart, again | No "Take from the list" hint over the chest (the client's hints); red "This want list's collection is switched off on this server"; the chest and the list unchanged. Switched on, the list fills as usual (`InvoicePosterTests`) |
 
 ## The ledger and the bill of materials
 
@@ -131,6 +132,7 @@ which build, who ran it, and each `❌` with its reason.
 | G2 ⚙ | 0.1.0 | `ExtraIgnoredAttributes`: `[]` and `["durability"]` | Damaged and plain items count as different, or the same |
 | G3 ⚙ | 0.1.0 | `Collections.tapestries.Exclude` / `Add` (before 0.2: `TapestryExclude` / `TapestryAdd`, which move there on the first start and leave the file) | The collection changes accordingly |
 | G4 ⚙ | 0.1.0 | `Diagnostics` true / false | Debug lines appear / do not |
+| G7 | 0.2.0 | Dedicated server (`VintageStory-ServerData`): `ExtraIgnoredAttributes: []` on the server only (the client's own file keeps `["durability"]`), restart the server, rejoin. A chest with two copper pickaxes, one new and one worn; Shift + RMB on it with an empty bill of materials, fill the intake list with the bill in the off-hand, then open the bill's window | The bill lists the two pickaxes as two lines (the server's setting: wear counts), not one line of 2 as the client's own file would. Put the config back (`RefusalTests` checks that the packet carries the setting) |
 
 ## Languages (S)
 

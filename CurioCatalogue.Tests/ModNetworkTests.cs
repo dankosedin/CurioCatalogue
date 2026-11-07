@@ -151,18 +151,25 @@ public class CollectionSettingsPacketTests
     [Fact]
     public void The_servers_collection_settings_come_back_as_they_went()
     {
-        var settings = new Dictionary<string, CollectionSettings>
+        var config = new CurioCatalogueConfig
         {
-            ["tapestries"] = new() { Exclude = ["aid-*"], Add = ["mymod-banner"], Disabled = false },
-            ["ores"] = new() { Disabled = true },
+            Collections = new()
+            {
+                ["tapestries"] = new() { Exclude = ["aid-*"], Add = ["mymod-banner"], Disabled = false },
+                ["ores"] = new() { Disabled = true },
+            },
+            ExtraIgnoredAttributes = ["durability", "mymod:wear"],
         };
 
         // Through protobuf, as on the wire (ProtoContract classes of the same channel).
         using var stream = new MemoryStream();
-        ProtoBuf.Serializer.Serialize(stream, ModNetwork.PacketOf(settings));
+        ProtoBuf.Serializer.Serialize(stream, ModNetwork.PacketOf(config));
         stream.Position = 0;
-        var back = ModNetwork.SettingsOf(ProtoBuf.Serializer.Deserialize<CollectionSettingsPacket>(stream));
+        var packet = ProtoBuf.Serializer.Deserialize<CollectionSettingsPacket>(stream);
+        var back = ModNetwork.SettingsOf(packet);
 
+        // A9/C7 of K7: the client tells items apart as the server does.
+        Assert.Equal(["durability", "mymod:wear"], packet.ExtraIgnoredAttributes);
         Assert.Equal(["ores", "tapestries"], back.Keys.Order());
         Assert.Equal(["aid-*"], back["tapestries"].Exclude);
         Assert.Equal(["mymod-banner"], back["tapestries"].Add);

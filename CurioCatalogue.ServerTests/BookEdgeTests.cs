@@ -228,9 +228,11 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     /// <summary>
     /// How many items of ours with this code prefix lie on the ground near the player. Main thread. Every test player stands
     /// at the spawn, so a test compares the count before and after its own click.
+    /// The whole column, not a cube: the test chests float at the spawn's height + 6 and the player is above the ground, so a dropped
+    /// item falls onto a chest lid or down to the ground, out of ±4 blocks (the flake of K3, K4 and K7: T4 of the K7 review).
     /// </summary>
     int OnGroundNear(IServerPlayer player, string codePrefix) =>
-        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 4, e => e is EntityItem { Itemstack: { } st }
+        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 64, e => e is EntityItem { Itemstack: { } st }
             && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length;
 
     /// <summary>

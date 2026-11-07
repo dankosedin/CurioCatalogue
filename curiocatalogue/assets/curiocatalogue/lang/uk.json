@@ -139,6 +139,7 @@
   "curiocatalogue:ingameerror-movefailed": "Гра не прийняла частину предметів; нічого не змінено. Повідомте, будь ласка, про цю помилку",
   "curiocatalogue:ingameerror-nocollection": "Колекції цього альбому в грі вже немає (мод видалено?)",
   "curiocatalogue:ingameerror-disabled": "Колекцію цього альбому вимкнено на цьому сервері",
+  "curiocatalogue:ingameerror-wantlistdisabled": "Колекцію цього списку бажаного вимкнено на цьому сервері",
   "curiocatalogue:ingameerror-nolevel": "Виберіть рівень у вікні альбому (ПКМ у повітря)",
   "curiocatalogue:ingameerror-levelfixed": "В альбомі вже є шматки його рівня; щоб вибрати інший, натисніть «Почати заново»",
   "curiocatalogue:ingameerror-outofreach": "Надто далеко",

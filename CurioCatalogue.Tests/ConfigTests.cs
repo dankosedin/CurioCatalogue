@@ -74,6 +74,18 @@ public class ConfigTests
     }
 
     [Fact]
+    public void Empty_tapestry_settings_of_0_1_are_cleared_without_a_line_for_the_log()
+    {
+        // H14 of K7: 0.1.1 writes both as empty lists, so every upgraded server would log two moves of nothing.
+        var config = new CurioCatalogueConfig { TapestryExclude = [], TapestryAdd = [] };
+
+        Assert.Empty(config.MoveLegacy());
+        Assert.Null(config.TapestryExclude);
+        Assert.Null(config.TapestryAdd);
+        Assert.Empty(config.Collections["tapestries"].Exclude);
+    }
+
+    [Fact]
     public void The_legacy_keys_leave_the_file_once_moved()
     {
         var config = new CurioCatalogueConfig { TapestryExclude = ["aid-*"] };

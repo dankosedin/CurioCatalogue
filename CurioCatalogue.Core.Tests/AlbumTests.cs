@@ -213,7 +213,86 @@ public class AlbumTests
 
     // --- Format 1 (0.1): a snapshot of the members and the missing entries, migrated on read ---
 
+    [Fact]
+    public void Taking_new_follows_the_default_layout_not_the_order_of_the_members()
+    {
+        // QA K7 (Q4). The piece dimension has no list of values, so the members keep the source's order; the layout's shape puts
+        // them by place.
+        var tapestries = Built(TapestryDefinition(), PiecesOf("ambush3", "ambush1", "ambush2"));
+        var level = tapestries.Levels[0];
+        Assert.Equal(["ambush3", "ambush1", "ambush2"], Ids(level.Members)); // the premise: the two orders differ
+        var album = Album.New(tapestries, 3, "");
+
+        Assert.Equal(["ambush1", "ambush2", "ambush3"], Ids(album.Missing(level)));
+        Assert.Equal(["ambush1", "ambush2", "ambush3"],
+            album.Wanted(level, new HashSet<ItemKey> { K("ambush3"), K("ambush2"), K("ambush1") }).Select(w => w.Member.Id));
+    }
+
     private static List<FilledBy> Snapshot(params string[] pieces) => pieces.Select(By).ToList();
+
+    /// <summary>The tapestries with a level of whole pictures patched in before the pieces (M1, M3 of K7).</summary>
+    private static DefinedCollection PicturesFirst(string piecesId = "pieces")
+    {
+        var basic = TapestryDefinition();
+        var pictures = new LevelDef("pictures", ["picture"], new Dictionary<string, Drop> { ["piece"] = Drop.Any }, []);
+        var pieces = basic.Levels[0] with { Id = piecesId };
+        return Built(basic with { Levels = [pictures, pieces] }, PiecesOf("ambush1", "ambush2", "ambush3", "notice"));
+    }
+
+    [Fact]
+    public void Format_1_is_placed_on_the_level_of_pieces_even_when_a_patch_puts_another_level_first()
+    {
+        // QA K7 (M1). Format 1 knew the pieces only; placed on "pictures", the three ambush pieces would fall on one member and two
+        // of them would be lost at the next write.
+        var album = Album.FromFormat1("tapestries", 4, "", Snapshot("ambush1", "ambush2", "ambush3", "notice"), [K("notice")],
+            PicturesFirst());
+
+        Assert.Equal("pieces", album.Level);
+        Assert.Equal(["ambush1", "ambush2", "ambush3"], album.Collected.Keys);
+        Assert.Empty(album.Unplaced);
+    }
+
+    [Fact]
+    public void An_album_whose_level_was_renamed_goes_to_the_level_that_takes_most_of_what_it_collected()
+    {
+        // M3 of K7: a patch renames "pieces"; the filled album would be left with no level, its pieces shown nowhere.
+        var album = Collected(Album.New(Tapestries(), 4, ""), "ambush1", "ambush3", "notice");
+
+        var placed = album.Place(PicturesFirst(piecesId: "bypiece"));
+
+        Assert.Equal("bypiece", placed.Level);
+        Assert.Equal(["ambush1", "ambush3", "notice"], placed.Collected.Keys);
+        Assert.Equal(By("ambush3"), placed.Collected["ambush3"]);
+        Assert.Empty(placed.Unplaced);
+    }
+
+    [Fact]
+    public void An_album_whose_level_is_gone_keeps_what_its_new_level_lacks_unplaced()
+    {
+        var withoutNotice = Built(TapestryDefinition("notice") with { Levels = [TapestryDefinition().Levels[0] with { Id = "bypiece" }] },
+            PiecesOf("ambush1", "ambush2", "notice"));
+        var album = Collected(Album.New(Tapestries(), 4, ""), "ambush1", "notice");
+
+        var placed = album.Place(withoutNotice);
+
+        Assert.Equal("bypiece", placed.Level);
+        Assert.Equal(["ambush1"], placed.Collected.Keys);
+        Assert.Equal([By("notice")], placed.Unplaced);
+    }
+
+    [Fact]
+    public void Two_levels_that_take_as_much_go_to_the_first_and_none_leaves_the_album_as_it_is()
+    {
+        // One scallop: one member on either level of the seashells.
+        var shell = new FilledBy(Shell("scallop", "latte"), "stack");
+        var album = new Album("seashells", "colour", Album.NoneCollected.Add("scallop-latte", shell), [], 3);
+
+        Assert.Equal("type", album.Place(Seashells).Level);
+        Assert.Equal(["scallop"], album.Place(Seashells).Collected.Keys);
+
+        var stranger = album with { Collected = Album.NoneCollected.Add("wolf1", By("wolf1")) };
+        Assert.Same(stranger, stranger.Place(Seashells));
+    }
 
     [Fact]
     public void Format_1_becomes_the_members_collected_on_the_first_level()

@@ -27,12 +27,13 @@ public class CurioCatalogueModSystem : ModSystem
     private InvoicePoster? invoicePoster;
     private CollectionRegistry? collections;
     private IReadOnlyDictionary<string, CollectionSettings>? serverSettings;
+    private IReadOnlyList<string>? serverIgnoredAttributes;
     private ProblemLog? problems;
 
     // All are made on first use, when the world and the other mod systems are surely there.
 
-    /// <summary>Item identity: stack → key.</summary>
-    public StackKeys Keys => keys ??= new StackKeys(api.World, Config.ExtraIgnoredAttributes);
+    /// <summary>Item identity: stack → key. On the client, by the server's ignored attributes once they came.</summary>
+    public StackKeys Keys => keys ??= new StackKeys(api.World, serverIgnoredAttributes ?? Config.ExtraIgnoredAttributes);
 
     /// <summary>Reads and writes ledger and invoice data in items.</summary>
     public LedgerStore Store => store ??= new LedgerStore(Keys, id => Collections.Resolve(id));
@@ -59,11 +60,14 @@ public class CurioCatalogueModSystem : ModSystem
     /// again after the server's settings arrive).</summary>
     private ProblemLog Problems => problems ??= new ProblemLog(api.Logger);
 
-    /// <summary>Client: the server's <c>Collections</c> config arrived (on join). The registry is built again on next use, from it instead
-    /// of this machine's file.</summary>
-    public void UseServerSettings(IReadOnlyDictionary<string, CollectionSettings> settings)
+    /// <summary>Client: the server's <c>Collections</c> and <c>ExtraIgnoredAttributes</c> arrived (on join). The keys, the store and the
+    /// registry are built again on next use, from them instead of this machine's file.</summary>
+    public void UseServerSettings(IReadOnlyDictionary<string, CollectionSettings> settings, IReadOnlyList<string> extraIgnoredAttributes)
     {
         serverSettings = settings;
+        serverIgnoredAttributes = extraIgnoredAttributes;
+        keys = null;
+        store = null;
         collections = null;
     }
 

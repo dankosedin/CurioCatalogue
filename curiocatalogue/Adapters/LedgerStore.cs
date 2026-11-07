@@ -30,9 +30,20 @@ public sealed class LedgerStore
 {
     public const string RootKey = "curiocatalogue";
 
-    /// <summary>The format this build writes. Raise it when the layout changes, and read the older ones.
-    /// 2 (0.2): an album stores what it collected, by member (docs/architecture.md, Part 1, Collections).</summary>
+    /// <summary>The newest format this build reads and writes. Raise it when a layout changes, and read the older ones.
+    /// 2 (0.2): an album stores what it collected, by member (docs/architecture.md, Part 1, Collections); a want list names its
+    /// album's collection, level and members.</summary>
     public const int Version = 2;
+
+    /// <summary>
+    /// The version written with a kind of data: the oldest that has its layout, so an older build still reads what did not change
+    /// for it (K7, H6 of the collections core plan). Ledgers, bills of materials, intake and pick lists, and want lists of 0.1 have
+    /// the layout of 1, which 0.1.1 reads: a player who goes back to it keeps them.
+    /// </summary>
+    internal static int VersionOf(Book book) => book is Album ? 2 : 1;
+
+    /// <inheritdoc cref="VersionOf(Book)"/>
+    internal static int VersionOf(Invoice invoice) => invoice.From != null ? 2 : 1;
 
     private readonly StackKeys keys;
     private readonly System.Func<string, CollectionResolution> resolve;
@@ -68,6 +79,11 @@ public sealed class LedgerStore
     /// <summary>An album's collection id, cheaply (for its shown name); empty for a ledger. The same key in both formats.</summary>
     public static string ReadCollectionId(ItemStack book) =>
         book.Attributes.GetTreeAttribute(RootKey)?.GetTreeAttribute("album")?.GetString("id", "") ?? "";
+
+    /// <summary>The collection a want list of format 2 was made for, cheaply (for the hints over a container); empty for format 1 or
+    /// any other invoice.</summary>
+    public static string ReadWantedCollectionId(ItemStack paper) =>
+        paper.Attributes.GetTreeAttribute(RootKey)?.GetTreeAttribute("wants")?.GetString("id", "") ?? "";
 
     /// <summary>
     /// A cheap hash of the book's or invoice's data, the same on client and server: the client gets the attributes as the
@@ -214,7 +230,7 @@ public sealed class LedgerStore
     public void WriteInvoice(ItemStack paper, Invoice invoice)
     {
         var root = new TreeAttribute();
-        root.SetInt("v", Version);
+        root.SetInt("v", VersionOf(invoice));
         root.SetDouble("created", invoice.CreatedTotalDays);
         var pos = root.GetOrAddTreeAttribute("pos");
         pos.SetInt("x", invoice.Position.X);
@@ -233,7 +249,7 @@ public sealed class LedgerStore
     private static TreeAttribute NewRoot(Book book)
     {
         var root = new TreeAttribute();
-        root.SetInt("v", Version);
+        root.SetInt("v", VersionOf(book));
         root.SetInt("sheets", book.Sheets);
         if (book.Name.Length > 0) root.SetString("name", book.Name);
         return root;

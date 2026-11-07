@@ -546,6 +546,32 @@ public class InvoicePosterTests
     }
 
     [Fact]
+    public void A_want_list_of_a_collection_switched_off_takes_nothing_and_works_again_when_it_is_on()
+    {
+        // W1 of K7: as taking new, refused with its own reason before the container is looked at; the list stays whole.
+        var pair = Pair();
+        var album = Album.New(pair, 3, "");
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(pair)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+        var stack = new ItemStack(invoiceItem);
+        store.WriteInvoice(stack, list);
+        InvoiceSlot.Itemstack = stack;
+        var chest = new TestChest(game.Api, Tapestry("y"));
+        game.Place(pos, chest);
+        collection = pair;
+        disabled = true;
+        locked = true; // a refusal about the list comes before one about the container
+
+        Assert.Equal(PostRefusal.WantListDisabled, Assert.IsType<PostInvoiceResult.Refused>(PostWantList()).Reason);
+        Assert.Single(chest.Inventory, s => s.Itemstack != null);
+        Assert.Empty(PlayerItems());
+        Assert.Same(stack, InvoiceSlot.Itemstack);
+        Assert.Single(store.ReadInvoice(stack, InvoiceKind.WantList).Entries);
+
+        (disabled, locked) = (false, false);
+        Assert.Equal(1, Assert.IsType<PostInvoiceResult.Posted>(PostWantList()).Lines);
+    }
+
+    [Fact]
     public void A_member_of_several_items_is_taken_once_by_whichever_the_container_has()
     {
         // One member "pair", filled by the tapestry "x" or "y": the chest has both, the album takes one, the first in the member's

@@ -68,7 +68,7 @@ returns a summary and never quotes code; a mod not on the list that overlaps: as
       server allows. A probe or a test that stays if it is cheap to keep.
       Branch: `docs/collections-design`. After: the plan's own commit. Model: sonnet. Author: none.
       Done when: the numbers and how they were taken are in Decisions, with a verdict: fine as is, or what the core must change.
-- [ ] **C7. The shape and the core's plan.** From C1–C6 and what the album view needs (`2026-11-04-album-view.md`, Decisions,
+- [x] **C7. The shape and the core's plan.** From C1–C6 and what the album view needs (`2026-11-04-album-view.md`, Decisions,
       "The view on paper (A2)", its last part "What the view needs from the shape": dimensions, layouts, groups, members and
       the stacks to show, flat textures, levels, the collection's name, `Disabled` on the client, and two changes of stored
       data, the chosen level and the code that filled a member; the player's side of levels and of a disabled collection is
@@ -430,6 +430,28 @@ An album of all members missing unless marked.
   88, 169 and 400. Result (a probe line in `GetHeldItemInfo`, dev client, the author hovering an album and a ledger in the inventory and on the ground): the text is built **every frame (~60 per second)** in runs of 72-73 calls (~1.2 s) each time the tooltip appears, then no more while the cursor stays; items on the ground are asked every 500 ms (the block info). So the rebuild is real, but short (at most ~75 builds per hover, ~1 ms each at 400 members, asynchronous): **not a problem**; no change in the core. The reason for the stop after ~1.2 s is not known (not looked for). The probe is removed.
 - Not measured, by reasoning: the inventory slot names (`GetHeldItemName`) read only the name, cheaply (`LedgerStore.ReadName`).
 
+### The shape and the core's plan (C7)
+
+Final. Decided with the author 07.11.2026: ten proposals (R1–R10) accepted as made. The shape, with the alternatives, is in
+`docs/architecture.md`, Part 1, "Collections"; the core's plan is `2026-11-07-collections-core.md` (K1–K6). In short:
+- R1 a definition is data (`config/curiocatalogue/collections/<id>.json`, every domain); members come from a source in code
+  (`variants`, `tapestry`; later the book, a rule on an attribute);
+- R2 a member: a point in the dimensions with a stable id, its filler (one key or several), stacks to show, attributes;
+- R3 levels as projections (`keep`, and `any` / `max` for each dimension dropped): the three levels of crystals (C1), the two
+  of seashells (C2);
+- R4 dimensions with ordered values, lang names and icons; layouts per level (group by, table / shape / order), the default
+  giving the order of taking new;
+- R5 attributes by rules in the definition (rarity); what 0.2 shows of them is item 6's;
+- R6 `Collections.<id>.Exclude` / `Add` on the source's own name of a member (a code, a piece name); the 54 crystals that never
+  generate as the definition's default `exclude`; the config id is the stored `tapestries` (C5's example said `tapestry`);
+- R7 the album stores what it collected (member id and the stack that filled it) and its level; format 2, migrated from 1;
+- R8 a want list's line names a member; format 1 read as exact entries;
+- R9 one resolver answering `Found | Disabled | Unknown`;
+- R10 the server's `Collections` sent to clients on join; the recipe of a disabled collection removed at load (to check in K1).
+
+Left open, for later plans: deposits as the source of "never generates" (C1); grouping of butterflies (item 6); reading display
+blocks (Exhibits); malachite in marble (C1, in game).
+
 ## Where we stopped
 
 - 04.11.2026: C1 done (final): the facts, the author's answers and the open points in Decisions, "Ore crystals (C1)". Next: C2
@@ -450,3 +472,6 @@ An album of all members missing unless marked.
   (opus, After: C1–C6).
 - 04.11.2026: C7 waits for A2 of the album view (its `After:` now says so); A1 and A2 were updated by C1–C6 (album view plan,
   Decisions). Next here: C7 (opus, After: A2 merged into `main`).
+- 07.11.2026: C7 done (final): the shape in `docs/architecture.md`, Part 1, "Collections"; the core's plan
+  `2026-11-07-collections-core.md`; `ROADMAP.md`, 0.2, items 3 and 4 updated. The plan is done; the branch goes to `main` by a
+  pull request. Next: K1 of the core's plan (opus, After: this branch merged).

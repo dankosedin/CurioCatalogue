@@ -27,7 +27,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       Branch: `feat/collections-core`. After: the plan's own commit. Model: opus. Author: none.
       Done when: the answers with sources in Decisions; what surprised us in `docs/modding.md`; a change to the shape, if
       any, agreed with the author and written in `docs/architecture.md`.
-- [ ] **K2. Definitions in the core.** Pure types in `CurioCatalogue.Core`: a definition (dimensions with ordered values, names
+- [x] **K2. Definitions in the core.** Pure types in `CurioCatalogue.Core`: a definition (dimensions with ordered values, names
       and icons; levels with `keep` and `any` / `max`; layouts; attribute rules; exclusions), the source points it is applied
       to (point, key, sample: given by the adapters), and what it builds per level: members with ids, fillers and stacks to show,
       groups and order per layout, progress. The check "a key fills at most one member in a level". Unit tests on made-up points
@@ -118,6 +118,31 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
     items and blocks registered, maybe before the grid recipes, and before the client's `LevelFinalize`. K6 stores it in the
     handler and rebuilds the registry at `LevelFinalize`. Reasoned from the code: K6's in-game check on the dedicated server
     watches it.
+- **Definitions in the core (K2, 07.11.2026, final; proposed by the AI assistant in the step, within the shape).** The code is
+  `CurioCatalogue.Core/CollectionDefinition.cs` and `DefinedCollection.cs`, tests `DefinedCollectionTests`.
+  - *Building is a value:* `DefinedCollection.Build(definition, points)` gives `Built` (with warnings for the log) or `Invalid`
+    (the errors). Any error, a key filling two members of a level among them, makes the whole collection invalid; the other
+    collections are untouched (K3 logs and skips it). Warnings: a value missing from a dimension's list, a point given twice by
+    name (the first is kept).
+  - *A member's id* is its kept dimensions' values in the order of the definition's dimensions, joined by `-`
+    (`poor-nativecopper-andesite`, `scallop-latte`, the piece name for tapestries, whose level keeps only `piece`). Albums
+    store it (K4), so a definition must not reorder its dimensions once released; ids that collide are an error.
+  - *A level names every dimension:* kept, or dropped as `any` / `max`; no default. Several `max` dimensions apply in the
+    definition's order.
+  - *A dimension with no list of values* keeps the order in which the source gives its points, with no warning (tapestries:
+    the order of `sizes`, as today); with a list, as `docs/architecture.md` says.
+  - *Hierarchical dimensions need no flag:* a member has a value in every dimension on which all its points agree, so a
+    piece has its picture and size; a layout may group or arrange only by dimensions every member has a value in.
+  - *Attributes:* those the source gives and all the member's points share (a piece's `x`, `y`), then the rules; a rule applies
+    only to members with a value in each of its `where` dimensions (rare colours mark nothing at the seashells' type level).
+  - *Shape* reads integer `x`, `y` and orders a picture's pieces row by row; today's order inside a picture is the pieces'
+    names (x, then y). Only the order of taking new inside one picture changes (K4).
+  - *A level with no layout* gets one group in order. Stacks to show and fillers follow the dimensions' order.
+  - *Names:* `DefinedCollection` beside the MVP's `Collection` until K4 removes it; `NamePattern.Matcher` is the old
+    `Collection.Matcher`, which now calls it.
+  - *Test data:* the 407 allowed codes of `game:crystalizedore` (1.22.7) in `CurioCatalogue.Core.Tests/Data`; with the 54 of C1
+    excluded, 16 / 118 / 353, and level 2 by grade medium 44, rich 31, bountiful 43 as C1 counted. Bountiful native copper
+    occurs in one rock only; quartz gold and silver in 13 (the tests' example of a member of several codes).
 - **Step letter K** (core); A, B, C, F, G, P, R, S and T are taken.
 
 ## Where we stopped
@@ -125,3 +150,6 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
 - 07.11.2026: K1 done (final): the answers in Decisions, "What the game does for the shape (K1)"; the surprises in
   `docs/modding.md`; two changes of the shape agreed and written in `docs/architecture.md` (the order of values a list in the
   definition; definitions read by the client from its own assets, a collection mod universal). Next: K2 (opus, After: K1).
+- 07.11.2026: K2 done (final): the types and `DefinedCollection.Build` in the core, unit tests mutation-checked (`max` read as
+  `any`: 3 tests fail; a duplicate key let through: 1 fails); all five test projects pass; nothing uses the new types yet. The
+  step's choices in Decisions, "Definitions in the core (K2)". Next: K3 (sonnet, After: K2).

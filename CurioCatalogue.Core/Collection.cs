@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace CurioCatalogue.Core;
 
@@ -96,11 +95,5 @@ public sealed class Collection
     /// A test for names that match any of the patterns, with <c>*</c> for any text (config exclusions like "aid-*"). Built
     /// once; case is ignored the same way in every culture (no Turkish dotless i).
     /// </summary>
-    public static Func<string, bool> Matcher(IEnumerable<string> patterns)
-    {
-        var alternatives = patterns.Select(p => Regex.Escape(p).Replace("\\*", ".*")).ToList();
-        if (alternatives.Count == 0) return _ => false;
-        var regex = new Regex("^(?:" + string.Join("|", alternatives) + ")$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        return regex.IsMatch;
-    }
+    public static Func<string, bool> Matcher(IEnumerable<string> patterns) => NamePattern.Matcher(patterns);
 }

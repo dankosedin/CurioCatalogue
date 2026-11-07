@@ -58,6 +58,9 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - **How an invoice ends:** `InvoiceFates` (`Ended`, `WantListPosted`): the one table of sheet returned / parchment / consumed / kept,
   for posting and cancelling alike.
 - **Collections:** `Collection` (members, groups, snapshot, progress, `Refresh` / `RefreshIfStale`), `TapestryPieces` (pieces from `sizes`).
+  Being replaced (plan `2026-11-07-collections-core.md`, not used yet): `CollectionDefinition` (dimensions, levels, layouts,
+  rules, exclusions; `SourcePoint`s from the adapters) and `DefinedCollection.Build` (`Built | Invalid`): per level the members
+  (`Member`: id, values, fillers, stacks, attributes), the member a key fills, groups and order per layout, `LevelProgress`.
 
 #### Adapters (`curiocatalogue/Adapters`)
 

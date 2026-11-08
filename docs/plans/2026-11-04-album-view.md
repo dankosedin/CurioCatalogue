@@ -114,7 +114,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
       come with item 6).
       Branch: `feat/album-view`. After: A3. Model: sonnet. Author: the check in game.
       Done when: the checks pass or their fixes are in; the docs are committed.
-- [ ] **A5. Into `main`.** No review of its own: the code review of the window is part of R1 of the release plan (A2,
+- [x] **A5. Into `main`.** No review of its own: the code review of the window is part of R1 of the release plan (A2,
       Decisions). The branch goes to `main` by a pull request.
       Branch: `feat/album-view`. After: A4. Model: sonnet. Author: approves the pull request.
       Done when: the branch is merged into `main`.
@@ -628,3 +628,4 @@ The agent's choices, 09.11.2026; the author may overrule any:
   to be repeated with note of what was under the mouse.
   Then (the author, 09.11.2026): all of A22 passes in game. **A4 done**; the test mod's copy is removed from
   `VintageStory-DevData\Mods`. The crash did not come back; if it does, a line for `ROADMAP.md`. Next: A5 (sonnet, After: A4).
+- 09.11.2026 (sonnet): A5 done: the branch is in `main` by PR #36 (squash `31483e9`). CI first failed on the server test of the tapestry flat images (the Linux server archive has no block textures); the test now checks the files only where the game has them (`docs/test-server.md`). **The plan is finished**: every step is ticked. The code review of the window waits in R1 of the release plan (After: items 1–7 of 0.2 merged).

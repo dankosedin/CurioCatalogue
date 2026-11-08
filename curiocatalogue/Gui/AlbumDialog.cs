@@ -25,21 +25,20 @@ public sealed class AlbumDialog : HeldItemDialog
     /// </summary>
     private static TabPaging paging = TabPaging.Shared;
 
-    /// <summary>TEMPORARY, until A4: where the album's own row stands (<see cref="AlbumHeader.Variant"/>).</summary>
-    private static AlbumHeader.Variant headerAt = AlbumHeader.Variant.A;
-
     /// <summary>The layout the player chose, by collection and level, for the game session (A2: presentation only, kept on the
     /// client; an album handed over opens in the receiver's own).</summary>
     private static readonly Dictionary<string, string> chosenLayouts = new();
 
     private static readonly double Cell = GuiElementPassiveItemSlot.unscaledSlotSize + GuiElementItemSlotGridBase.unscaledSlotPadding;
-    private const int PageCells = 12;
+    // The page holds GroupsAcross of the narrowest groups side by side, GroupCells each, and so has no empty strip on the right
+    // (A4: at 12 cells three groups of 3 left a fourth of the page empty); a group's name has 4 cells of room.
+    private const int GroupCells = 4, GroupsAcross = 3, GroupGap = 20;
     private const double Line = 30;
 
     // What the window needs besides the page: screen and title bar padding, the dialog's padding, the line over the page, the rows
     // of controls under it, the album's own row (A3d) and the row of temporary switches (A4 removes it, and these 40 can go to the
     // page) (A1, "How much fits": at 768 about 11 rows of cells are left).
-    private const double AroundThePage = 310;
+    private const double AroundThePage = 322; // 310 and the room round the groups
 
     private readonly CurioCatalogueModSystem mod;
     private readonly CairoFont font = CairoFont.WhiteDetailText();
@@ -62,8 +61,13 @@ public sealed class AlbumDialog : HeldItemDialog
     {
         this.mod = mod;
         header = new AlbumHeader(capi, OnRename, Compose);
+        // The game's undo arrow is only a part of a circle, its redo the other way round: ours is a whole ↺ (A4).
+        if (!capi.Gui.Icons.CustomIcons.ContainsKey(RestartIcon))
+            capi.Gui.Icons.CustomIcons[RestartIcon] = capi.Gui.Icons.SvgIconSource(new AssetLocation("curiocatalogue", "textures/icons/restart.svg"));
         Refresh();
     }
+
+    private const string RestartIcon = "curiocatalogue-restart";
 
     private ItemLedger Item => (ItemLedger)Slot.Itemstack!.Collectible;
 
@@ -124,13 +128,13 @@ public sealed class AlbumDialog : HeldItemDialog
             .SelectMany(d => collection.Values[d.Code].Select(v => d.ValueNameKey(v) is { } k ? Lang.Get(k) : v))
             .Select(Width).DefaultIfEmpty(0).Max();
         return new PageMetrics(
-            Width: PageCells * cell,
+            Width: GroupsAcross * GroupCells * cell + (GroupsAcross - 1) * GroupGap,
             Height: Math.Max(3 * cell, (int)(screen - AroundThePage)),
             Cell: cell,
             Heading: 24,
-            Gap: 12,
+            Gap: GroupGap, // between groups: their frames take 6 on each side
             TextHeadingWidth: (int)Math.Ceiling(words) + 8,
-            MinGroupWidth: 3 * cell);
+            MinGroupWidth: GroupCells * cell);
     }
 
     /// <summary>A text's width in the window's font, unscaled.</summary>
@@ -190,14 +194,12 @@ public sealed class AlbumDialog : HeldItemDialog
         composer.BeginChildElements(content);
 
         var controls = Controls();
-        double width = Math.Max(Math.Max(pages?.Width ?? 0, controls.Width), AlbumHeader.MinWidth);
+        double width = Math.Max(Math.Max(pages == null ? 0 : pages.Width + 2 * AlbumPageElement.PadOf(pages), controls.Width), AlbumHeader.MinWidth);
+        // The page buttons stand in the row of controls, in the middle of the room between its left and right parts (A4, the
+        // author: between the search and the want list), when that room holds them; else in a row of their own, centred.
+        bool pagerInRow = pages is { Pages.Count: > 1 } && controls.Left + PagerWidth + controls.Right <= width;
+        double pagerCentre = pagerInRow ? (controls.Left + width - controls.Right) / 2 : width / 2;
         var facts = Facts();
-
-        if (headerAt == AlbumHeader.Variant.A)
-        {
-            header.Add(composer, content, y, width, facts);
-            y += AlbumHeader.Height + 10;
-        }
 
         if (shown.Line is { } text)
         {
@@ -210,7 +212,7 @@ public sealed class AlbumDialog : HeldItemDialog
         pageElement = null;
         if (pages != null && pages.Pages.Count > 0)
         {
-            var pageBounds = ElementBounds.Fixed(0, y, pages.Width, pages.Height);
+            var pageBounds = ElementBounds.Fixed(0, y, pages.Width + 2 * AlbumPageElement.PadOf(pages), pages.Height + 2 * AlbumPageElement.PadOf(pages));
             content.WithChildren(pageBounds);
             composer.AddAlbumPage(pageBounds, pages, page, shown.Metrics!, Look(), "page", out var element);
             pageElement = element;
@@ -221,32 +223,27 @@ public sealed class AlbumDialog : HeldItemDialog
                 content.WithChildren(hover);
                 composer.AddHoverText(cut.Text, font, 300, hover);
             }
-            y += pages.Height + 10;
-            if (pages.Pages.Count > 1)
+            y += pages.Height + 2 * AlbumPageElement.PadOf(pages) + 6;
+            if (pages.Pages.Count > 1 && !pagerInRow)
             {
-                AddPager(composer, content, pages, width, y);
+                AddPager(composer, content, pages, pagerCentre, y);
                 y += Line + 8;
             }
         }
 
         controls.Add(composer, content, y, width);
+        if (pagerInRow) AddPager(composer, content, pages!, pagerCentre, y);
         y += Line + 8;
 
-        if (headerAt == AlbumHeader.Variant.C)
-        {
-            y += 2; // the parchment reaches above the row
-            header.Add(composer, content, y, width, facts);
-            y += AlbumHeader.Height + 10;
-        }
+        // The album's own row, at the bottom (A4: the author chose it over the one under the title).
+        y += 2; // the stack of sheets reaches above the row
+        header.Add(composer, content, y, width, facts);
+        y += AlbumHeader.Height + 10;
 
-        // TEMPORARY until A4: the switches between the variants; English only, never translated.
-        var headerSwitch = ElementBounds.Fixed(0, y, 200, Line);
-        content.WithChildren(headerSwitch);
-        composer.AddSmallButton(headerAt == AlbumHeader.Variant.A ? "Header: A (top)" : "Header: C (bottom)",
-            OnSwitchHeader, headerSwitch, EnumButtonStyle.Small, "headerat");
+        // TEMPORARY until A4: the switch between the tab variants; English only, never translated.
         if (pages is { Tabs.Count: > 0 })
         {
-            var switchBounds = ElementBounds.Fixed(208, y, 260, Line);
+            var switchBounds = ElementBounds.Fixed(0, y, 260, Line);
             content.WithChildren(switchBounds);
             composer.AddSmallButton(paging == TabPaging.Shared ? "Tabs: several groups a page" : "Tabs: one tab, one page",
                 OnSwitchPaging, switchBounds, EnumButtonStyle.Small, "paging");
@@ -280,10 +277,11 @@ public sealed class AlbumDialog : HeldItemDialog
         composer.AddInteractiveElement(tabs, "tabs");
     }
 
-    private void AddPager(GuiComposer composer, ElementBounds content, AlbumPages pages, double width, double y)
+    /// <summary>◀ N / M ▶, PagerWidth wide, centred on <paramref name="centre"/>.</summary>
+    private void AddPager(GuiComposer composer, ElementBounds content, AlbumPages pages, double centre, double y)
     {
-        const double button = 30, number = 80;
-        double x = (width - number) / 2;
+        const double button = 30, number = PagerWidth - 2 * button;
+        double x = centre - number / 2;
         var prev = ElementBounds.Fixed(x - button, y, button, Line);
         var text = ElementBounds.Fixed(x, y + 6, number, Line);
         var next = ElementBounds.Fixed(x + number, y, button, Line);
@@ -294,8 +292,11 @@ public sealed class AlbumDialog : HeldItemDialog
             .AddIconButton("right", _ => Turn(page + 1), next, "next");
     }
 
-    /// <summary>The row under the page: what to add, and its width, before the page's width is known.</summary>
-    private sealed record Row(double Width, Action<GuiComposer, ElementBounds, double, double> Add);
+    /// <summary>The row under the page: what to add, and its width, before the page's width is known. Left and Right are the
+    /// room its left and right parts take, each with a gap towards the middle.</summary>
+    private sealed record Row(double Width, double Left, double Right, Action<GuiComposer, ElementBounds, double, double> Add);
+
+    private const double PagerWidth = 140;
 
     private Row Controls()
     {
@@ -322,17 +323,20 @@ public sealed class AlbumDialog : HeldItemDialog
             string wantList = T("ledgerwindow-wantlist");
             Part(CairoFont.ButtonText().GetTextExtents(wantList).Width / GuiElement.scaled(1) + 24, true,
                 (c, b) => c.AddSmallButton(wantList, OnWantList, b, EnumButtonStyle.Normal, "wantlist"));
-            if (!album.IsEmpty)
+            // The place of ↺ stays when there is nothing to start over, so that the want list does not jump (A4).
+            bool collected = !album.IsEmpty;
+            Part(Line, true, (c, b) =>
             {
-                Part(Line, true, (c, b) => c
-                    .AddIconButton("undo", _ => OnStartOver(), b, "restart")
-                    .AddHoverText(T("ledgerwindow-restart"), font, 200, b.FlatCopy()));
-            }
+                if (collected)
+                    c.AddIconButton(RestartIcon, _ => OnStartOver(), b, "restart")
+                        .AddHoverText(T("ledgerwindow-restart"), font, 200, b.FlatCopy());
+            });
         }
 
         const double gap = 8;
         double total = parts.Sum(p => p.Width) + gap * Math.Max(0, parts.Count - 1);
-        return new Row(total, (composer, content, y, width) =>
+        double leftWidth = parts.Where(p => !p.Right).Sum(p => p.Width + gap), rightWidth = parts.Where(p => p.Right).Sum(p => p.Width + gap);
+        return new Row(total, leftWidth, rightWidth, (composer, content, y, width) =>
         {
             double left = 0, right = width;
             foreach (var p in parts.Where(p => !p.Right))
@@ -360,9 +364,37 @@ public sealed class AlbumDialog : HeldItemDialog
         var dims = collection.Definition.Dimensions.ToDictionary(d => d.Code);
         var groupBy = shown.Layout!.GroupBy;
         return new AlbumPageLook(
-            GroupName: g => string.Join(" · ", groupBy.Select((d, i) => dims[d].ValueNameKey(g.Values[i]) is { } k ? Lang.Get(k) : g.Values[i])),
+            GroupName: g => string.Join(" · ", groupBy.Select((d, i) => ValueName(collection, dims[d], g.Values[i]))),
+            GroupHint: g =>
+            {
+                var parts = groupBy.Select((d, i) => (Dimension: dims[d], Value: g.Values[i])).ToList();
+                if (!parts.Any(p => SharesName(collection, p.Dimension, p.Value))) return null;
+                return string.Join(" · ", parts.Select(p => ValueName(collection, p.Dimension, p.Value)
+                    + (SharesName(collection, p.Dimension, p.Value) ? $" ({p.Value})" : "")));
+            },
             Freedom: m => shown.State == ItemLedger.AlbumState.AtLevel ? ItemInvoice.Freedom(collection, level, m) : null,
             Rarity: _ => null); // no source of rarity yet (item 6)
+    }
+
+    /// <summary>A value's name for a group's heading: its lang key, or for a tapestry picture the game's own name (the keys are
+    /// wildcards, "tapestry-salvation*", as BlockTapestry.cs:359 looks them up); the value itself when nothing names it.</summary>
+    private static string ValueName(DefinedCollection collection, DimensionDef dimension, string value)
+    {
+        if (dimension.ValueNameKey(value) is { } key) return Lang.Get(key);
+        if (collection.Id == "tapestries" && dimension.Code == "picture")
+        {
+            string name = Lang.GetMatching("tapestry-" + value);
+            return name == "tapestry-" + value ? value : name;
+        }
+        return value;
+    }
+
+    /// <summary>Whether another value of the dimension has the same name: the game names "schematic-a" to "schematic-d" alike.
+    /// The heading keeps the short name; the hint on hover adds the value (A4, the author: the code only on hover).</summary>
+    private static bool SharesName(DefinedCollection collection, DimensionDef dimension, string value)
+    {
+        string name = ValueName(collection, dimension, value);
+        return collection.Values[dimension.Code].Count(v => ValueName(collection, dimension, v) == name) > 1;
     }
 
     // --- The level, as the ledger window chose it before 0.2 ---
@@ -407,13 +439,6 @@ public sealed class AlbumDialog : HeldItemDialog
         if (shown is not { Collection: { } collection, Level: { } level, Pages: { } pages } || id == shown.Layout?.Id) return;
         chosenLayouts[collection.Id + "/" + level.Id] = id;
         RelayOut(id, pages);
-    }
-
-    private bool OnSwitchHeader()
-    {
-        headerAt = headerAt == AlbumHeader.Variant.A ? AlbumHeader.Variant.C : AlbumHeader.Variant.A;
-        Compose();
-        return true;
     }
 
     private bool OnSwitchPaging()

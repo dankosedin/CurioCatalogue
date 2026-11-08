@@ -35,7 +35,6 @@ Books and lists are ordinary items. They hold their data themselves, so you can 
 
 Not promised, roughly in this order (details in `ROADMAP.md`):
 
-- a view of the whole album, collected pieces in their slots and missing ones as dim cells;
 - more collections: butterflies, ore crystals, seashells;
 - recipes put into a bill of materials;
 - collections of your own.
@@ -63,8 +62,10 @@ Thanks to these authors: their work makes the game's mod community richer.
 
 2. **The album.** An empty ledger and any tapestry piece in the crafting grid; the piece stays.
 3. **Collect.** Hold the album, or keep it in your off-hand with the main hand empty, and press **Shift + right click** on a chest.
-4. **Look.** Right click into the air opens the album: what is missing, how many pieces and whole pictures you have, a search,
-   and the **Make a want list** button.
+4. **Look.** Right click into the air opens the album as pages: every picture with its pieces in place, the ones you have
+   and the missing ones as dim silhouettes. Turn the pages with the buttons, or pick a group on its tab; a search lights the
+   matches. Under the title: the album's name (click the pencil to change it), a bar with how much is collected, and the sheets
+   left for want lists. The **Make a want list** button is in the row of controls.
 
 The in-game handbook has a Curio Catalogue guide and a page for every book.
 

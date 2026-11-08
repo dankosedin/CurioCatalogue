@@ -63,6 +63,16 @@ which build, who ran it, and each `❌` with its reason.
 | A9 | 0.1.0 | Open the window, then press a hotbar key or scroll | The window closes |
 | A10 ⚙ | 0.1.0 | Open the window of book 1, switch to book 2, press Clear → Yes | Red "the item in the hand is not the one in the window"; book 2 untouched (or the window closed first: also fine) |
 | A11 ⚙ | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
+| A12 | 0.2.0 | Open an empty album of tapestries (en, then uk) | The title bar "Album: tapestries"; our row with "No name", the pencil, the bar at 0/88, the sheets; pages of pictures with every piece a dim silhouette; ◀ 1 / M ▶ turns the pages |
+| A13 | 0.2.0 | The pencil: type a name, Enter; again, type, Escape; a name of 40 characters | The first shows the name in the window and on the item in the hotbar; Escape keeps the old name and the window open; 40 characters are cut with "…", the full name on hover |
+| A14 | 0.2.0 | Window open, Shift + right click a chest with some pieces (the album in hand) | The cells turn full, the bar and its number grow, nothing flickers; the window stays open |
+| A15 | 0.2.0 | An album partly full, then full | The group's "n/m" in its heading, ✓ on a complete group's heading and tab; the bar full at the end |
+| A16 | 0.2.0 | An album of a collection with levels (ore crystals), empty | The level dropdown and "Choose a level to start collecting", no bar; after a level is chosen: tabs, the layout dropdown, the bar; hover the bar: the level's name above the progress line |
+| A17 | 0.2.0 | Switch the layout with a page scrolled to a piece | The first piece of the page stays in view |
+| A18 | 0.2.0 | Type in the search; Enter | The cells that do not match are dimmed; Enter turns to the next page with a match |
+| A19 | 0.2.0 | A piece with a long name, in en and in uk | The name is cut with "…" in group headings and headings in words; the full name on hover; the cut does not change as pieces come |
+| A20 | 0.2.0 | Window at 1024×768 | The page and every row fit on the screen |
+| A21 | 0.2.0 | An album whose collection is switched off (config `Collections`) | One group of what was collected; no level, layout, want list or ↺; the text says the collection is switched off on this server |
 
 ## Want lists
 

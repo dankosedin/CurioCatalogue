@@ -10,27 +10,24 @@ namespace CurioCatalogue.Gui;
 /// <summary>
 /// The album window's own row (album view plan, A2, "The header and the bottom of the window"): the album's name with a pencil
 /// that turns it into a text input and "Save" (Enter saves, Escape cancels), the progress of the whole album as a bar with its
-/// number, and the sheets as parchment with their count, the limit on hover. Under the title bar (variant A) or at the bottom of
+/// number, and the sheets as a stack of parchment, the limit on hover. At the bottom of
 /// the window (variant C). A piece taken or a sheet used changes the bar and the count in place, without composing again.
 /// </summary>
 internal sealed class AlbumHeader
 {
-    /// <summary>
-    /// TEMPORARY, until A4 of the album view plan: where the row stands, both built for the author to compare in game (A2);
-    /// switched by a button in the window, kept for the game session. A4 keeps one and removes the switch.
-    /// </summary>
-    public enum Variant { A, C }
-
     public const double Height = 30;
 
     private const string PencilIcon = "curiocatalogue-pencil";
-    private const double BarWidth = 180, BarHeight = 20, Gap = 8, Pencil = Height;
+    // The name and its pencil have NameRoom on the left, from the window's left edge as the page and the controls (A4: one left
+    // edge); the bar takes all the room between them and the sheets, so that no gap is left empty (A4).
+    private const double MinBarWidth = 120, BarHeight = 20, Gap = 8, Pencil = Height, NameRoom = 230;
 
     // The bar's colour: a muted green, as the group's check mark says "complete".
     private static readonly double[] BarColour = [0.36, 0.55, 0.25];
 
     private readonly CairoFont font = CairoFont.WhiteDetailText();
     private readonly DummySlot parchment;
+    private readonly Item? paper;
     private readonly Action<string> rename;
     private readonly Action recompose;
     private GuiComposer? composed;
@@ -43,10 +40,10 @@ internal sealed class AlbumHeader
     {
         this.rename = rename;
         this.recompose = recompose;
-        // The count is drawn by us, a stack of one under it: the game's own would need a stack of that size, and an empty
-        // book has none.
-        var paper = capi.World.GetItem(InvoicePoster.ParchmentCode);
-        parchment = new DummySlot(paper == null ? null : new ItemStack(paper));
+        // The sheets are a stack of parchment, its count drawn by the slot as in the toolbar (A4: everybody reads that);
+        // an empty book shows no stack. <see cref="Show"/> sets the size.
+        paper = capi.World.GetItem(InvoicePoster.ParchmentCode);
+        parchment = new DummySlot();
         // The game has no pencil icon (A1); ours goes where the icon buttons look for named icons, as the waypoint map's
         // (vsessentialsmod WaypointMapLayer.cs:116#CustomIcons; vsapi IconUtil.cs:122 looks them up by name).
         if (!capi.Gui.Icons.CustomIcons.ContainsKey(PencilIcon))
@@ -57,7 +54,7 @@ internal sealed class AlbumHeader
     public bool Editing { get; private set; }
 
     /// <summary>The narrowest the row can be: a short name and its pencil, the bar, the sheets.</summary>
-    public static double MinWidth => 150 + Pencil + 2 * Gap + BarWidth + GuiElementPassiveItemSlot.unscaledSlotSize;
+    public static double MinWidth => NameRoom + Gap + MinBarWidth + Gap + GuiElementPassiveItemSlot.unscaledSlotSize;
 
     /// <summary>What the row shows.</summary>
     /// <param name="Progress">The whole album, with its tooltip; null without a level (nothing to measure).</param>
@@ -65,7 +62,7 @@ internal sealed class AlbumHeader
 
     public void Add(GuiComposer composer, ElementBounds content, double y, double width, Facts facts)
     {
-        double side = (width - BarWidth) / 2 - Gap; // the room on each side of the bar
+        double side = NameRoom; // the room of the name
         if (Editing)
         {
             string save = T("ledgerwindow-save");
@@ -96,7 +93,8 @@ internal sealed class AlbumHeader
 
         if (facts.Progress != null)
         {
-            var bar = ElementBounds.Fixed((width - BarWidth) / 2, y + (Height - BarHeight) / 2, BarWidth, BarHeight);
+            double barX = NameRoom + Gap, barWidth = width - GuiElementPassiveItemSlot.unscaledSlotSize - Gap - barX;
+            var bar = ElementBounds.Fixed(barX, y + (Height - BarHeight) / 2, barWidth, BarHeight);
             var number = bar.FlatCopy().WithFixedOffset(0, 1);
             content.WithChildren(bar, number);
             composer
@@ -109,13 +107,9 @@ internal sealed class AlbumHeader
         // gaps above and below, where nothing else is drawn.
         double slot = GuiElementPassiveItemSlot.unscaledSlotSize;
         var sheets = ElementBounds.Fixed(width - slot, y + (Height - slot) / 2, slot, slot);
-        var count = ElementBounds.Fixed(width - slot, y + Height - 16, slot - 4, 18);
-        content.WithChildren(sheets, count);
-        var countFont = CairoFont.WhiteDetailText().WithOrientation(EnumTextOrientation.Right);
-        countFont.FontWeight = Cairo.FontWeight.Bold;
+        content.WithChildren(sheets);
         composer
             .AddPassiveItemSlot(sheets, null, parchment, drawBackground: false, "sheets")
-            .AddDynamicText("", countFont, count, "sheets-count")
             .AddHoverText("", font, 250, sheets.FlatCopy(), "sheets-tooltip");
     }
 
@@ -145,7 +139,7 @@ internal sealed class AlbumHeader
             composer.GetDynamicText("progress-number").SetNewText($"{progress.Collected}/{progress.Total}");
             composer.GetHoverText("progress-tooltip").SetNewText(facts.ProgressTooltip ?? "");
         }
-        composer.GetDynamicText("sheets-count")?.SetNewText(facts.Sheets.ToString());
+        parchment.Itemstack = paper != null && facts.Sheets > 0 ? new ItemStack(paper, facts.Sheets) : null;
         composer.GetHoverText("sheets-tooltip")?.SetNewText(Lang.Get("curiocatalogue:ledger-info-sheets", facts.Sheets, facts.MaxSheets));
     }
 

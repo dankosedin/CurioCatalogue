@@ -518,3 +518,63 @@ The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `Album
 - 08.11.2026: A3d done (final as code; its look unchecked until A4): `AlbumHeader` with the name and its pencil, the progress
   bar and the sheets, variants A and C behind a temporary switch. A3 done: its in-game check is in Decisions, "The header
   (A3d)". Next: A4 (sonnet, After: A3), the author's check in game.
+- 08.11.2026: A4 half done (docs final as drafts of text, the in-game part waits for the author): cases A12–A21 in
+  `docs/testing/functional.md` and the album paragraph of both READMEs (the "view of the whole album" line is gone from "What
+  may come next"; screenshots come with item 6). Not done: the author's check in game (the list in Decisions, "The in-game check
+  of A3", en then uk), the choice of one header and one tab variant, and removing the temporary switches and the others (the
+  page then gets back the 40 the switches' row took, `AroundThePage`). Next: after the check, a session to remove the losing
+  variants and fix what the check found; then A5.
+- 08.11.2026, evening: A4 in-game check, first rounds (the author, tapestries in `en`; the test mod's seashells). All of this is
+  **uncommitted work on `feat/album-view`** (a draft, builds, all tests green) and a list of what is still wrong; the next
+  session (the author goes on with opus) starts from here.
+  - **Decided by the author:** header **C** (the row at the bottom); variant A and its switch are removed from the code. The
+    tab variant (several groups a page / one tab one page) is **not decided**: no album shows tabs yet (see below).
+  - **Fixed, to be looked at again in game:** tapestry pieces of a 2×2 picture read as "yx" (row, column; the core, its test and
+    `docs/modding.md`); group headings use the game's picture name (`tapestry-<picture>`, wildcard lang keys, so
+    `Lang.GetMatching`), with the picture's code added when several pictures share a name ("Schematic (schematic-a)"); the group's
+    count stands right after its name, dimmer; the sheets are a stack of parchment with its count as in the toolbar; ↺ is our own
+    `restart.svg` (the game's `undo` is short of a turn, `redo` the wrong way round); each group has a frame (`AlbumPageElement.Pad`,
+    `DrawFrames`), the gap between groups is 20, `AroundThePage` 322; the place of ↺ is kept when the album is empty (the want
+    list no longer jumps); the bottom row: name with an indent, the bar fills the room up to the sheets.
+  - **Still wrong (the author's screenshots 22:23–22:27):**
+    1. Group names and counts, and table headings, are **hard to read, as if pixels were missing**. Padding the textures did not
+       help; try whole-pixel positions (`Render2DLoadedTexture` at rounded x, y), the texture's size against the scaled font, how
+       the game's own text elements draw at the same size. Names are also cut too early ("Schematic (…", "Blackguard…",
+       "Banner of th…"): the room of a name is a picture's width, and the code added to a shared name makes it longer. Think of
+       a shorter tell-apart (a letter, a number) or a wider frame for a name.
+    2. **Pages:** still two for the tapestries (15 groups, then 16), and the right fourth of the page is empty: the three
+       columns of groups fill ~75% of its width. Fewer groups a page (taller frames, the shelf that fits) did not change the count;
+       find why the shelves stop at 3 and what makes the page 12 cells wide.
+    3. **The page buttons still have a row of their own**: the test `pagerInRow` (both sides of the controls row must leave
+       140 + gaps) fails with the want list (~220) and ↺ on the right. Move the pager into the row some other way, or put it
+       elsewhere (beside "Make a want list"? in the bottom row?), or accept the row and fill it.
+    4. **The left edges do not line up:** the name in the bottom row (indent 6) vs the search (tapestries) and the level
+       dropdown (seashells), both at 0; the frames start at 0 too. One left edge for the page, the rows and the name.
+    5. **↺: the author asked for the left horn smaller, the last change made it bigger.** Draw the icon on its own and look at
+       it (render the SVG to a PNG) before putting it in game; ask which end the author means.
+    6. **The ingots album (test mod `cccollections`) is senseless to look at** (metal codes as names, two identical levels, no
+       layout): it exists for `CompatTests`, not for looking at. For the author's check the test mod needs a collection that
+       looks like what item 4 will bring.
+    7. **No album shows tabs**, so the tab variant cannot be chosen: tabs need a dimension with `nameKey` that groups, and more
+       than one page. The seashells at level "shell" give one page of 42 without groups. Either add to the test mod a collection
+       with named groups and enough members for several pages (e.g. seashells by type with `nameKey`, a layout grouped by type),
+       or take the decision with the ore crystals (item 4). The temporary switch "Tabs: …" stays until then, at the bottom.
+  - **Not done in A4:** the check in `uk`, at 1024×768, the search, the pencil (Escape), a full album, a refresh from a chest
+    with the window open, the glDebugMode run (no OpenGL error in the last log, 08.11.2026 21:38–21:48; set `glDebugMode` back to
+    false in `VintageStory-DevData\clientsettings.json` when done); `docs/testing/functional.md` A16 and W5 say "once item 4
+    brings them" (crystals do not exist yet); the plan's "Decisions" (the header chosen; the text of the 08.11 line about the
+    temporary switch of A and C), `AroundThePage` (the row of the tab switch stays until the tabs are decided).
+  - **In game to try the seashells and ingots** (the test mod is copied to `VintageStory-DevData\Mods\cccollections`; remove it
+    afterwards): `/giveitem curiocatalogue:book-album-normal-darkgreen 1 {curiocatalogue:{v:2,sheets:8,album:{id:"ccshells"}}}`
+    (id `ingots` for the ingots).
+- 08.11.2026, late evening (opus): items 1–5 of the list above done in code, not yet seen in game (uncommitted, builds, all
+  tests green). Decided by the author: **the page holds three of the narrowest groups**, a group at least 4 cells (the page
+  3 × 4 cells + 2 gaps of 20 = 652, no empty strip on the right; a name has ~144 of room instead of ~93); **pictures the game
+  names alike keep the short name** ("Schematic"), the picture's code only in the hover text ("Schematic (schematic-a)");
+  **the page buttons in the row of controls**, centred in the room between the search and the want list (their own row only
+  when that room is short); **↺ with the tail of the arc shorter** (it ends at −150°, from four drawn variants). Also: text
+  drawn at whole pixels (the cause of item 1: text textures are not smoothed, `docs/modding.md`, GUI); one left edge (the
+  page has no room round it when no group has a frame; the name in the bottom row without its indent); the page element's
+  bounds include the room round the groups (the hover missed the last 12 on the right and at the bottom). Next: the author
+  looks at tapestries and seashells in game (`en`); then items 6 and 7 (a test collection with tabs, the tab variant), and the
+  rest of "Not done in A4" above.

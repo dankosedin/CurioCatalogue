@@ -229,6 +229,10 @@ In this order:
   `IconUtil.cs:21`); the button draws it in its own colour. `Gui/AlbumHeader`.
 - **A passive item slot is always 48×48** (vsapi `GuiElementPassiveItemSlot.cs:30` sets the bounds' size). **A statbar draws a
   segment line every 10** of its range (`GuiElementStatbar.cs:224`); `SetLineInterval` with a large value removes them.
+- **Text textures need whole pixels.** `TextTextureUtil` loads text without smoothing (`TextTextureUtil.cs:85`, `linearMag`
+  false), so one drawn with `Render2DLoadedTexture` half a pixel off loses rows and columns of its letters ("i" without its dot).
+  A centred window can stand half a pixel off: round every position (`AlbumPageElement.Snap`). Seen in game 08.11.2026 (A4 of
+  the album view plan).
 
 ## Config and logging
 
@@ -278,7 +282,7 @@ In this order:
 - **Tapestries:** block `tapestry-{north|east|south|west}`, the picture is the stack attribute `type` (`blocktypes/cloth/tapestry.json`,
   `BlockTapestry.cs`). Taken off a wall it always drops as `tapestry-north` (`BehaviorHorizontalAttachable`, `dropBlockFace`).
   A rotten tapestry drops nothing (`BlockTapestry.GetDrops`). Large ones are pieces: `ambush` (3×1) = `ambush1..3`, `salvation` (2×2)
-  = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (a mod that extends `sizes` is
+  = `salvation11, 12, 21, 22`, the digits are row then column ("yx": `21` is the bottom left quarter; checked in game 08.11.2026); 31 pictures = 88 pieces, generated from the block attribute `sizes` (a mod that extends `sizes` is
   picked up: `ModdedTapestryTests`; but the mods that add tapestries today add blocks of their own, `ROADMAP.md`). Not in the
   creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
 - **Books:** empty book `book-normal-<colour>` (2 leather + 8 `paper-parchment`; also `book-aged-*`, `book-rotten-*`); parchment

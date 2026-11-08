@@ -12,10 +12,13 @@ namespace CurioCatalogue.Gui;
 
 /// <summary>What the window knows of a page beyond its layout (album view, A2, "The cell"): names and lines.</summary>
 /// <param name="GroupName">A group's heading.</param>
+/// <param name="GroupHint">The text on hover over a group's name when the name alone does not tell it from another
+/// ("Schematic (schematic-a)"); null when it does.</param>
 /// <param name="Freedom">What a member of several items leaves free ("any rock"); null for a member of one item.</param>
 /// <param name="Rarity">The colour of a member's corner (ARGB) and its tooltip line; null for none.</param>
 public sealed record AlbumPageLook(
     System.Func<MemberGroup, string> GroupName,
+    System.Func<MemberGroup, string?> GroupHint,
     System.Func<Member, string?> Freedom,
     System.Func<Member, (int Argb, string Line)?> Rarity);
 
@@ -68,11 +71,13 @@ public sealed class AlbumPageElement : GuiElement
         public LoadedTexture? Text;
     }
 
-    private sealed class Group(GroupBox box, string name, string fitted)
+    private sealed class Group(GroupBox box, string name, string fitted, string? hint)
     {
         public readonly GroupBox Box = box;
         public readonly string FullName = name;
         public readonly string Fitted = fitted;
+        /// <summary>The text on hover: the hint, else the full name when it is cut; null for none.</summary>
+        public readonly string? Hover = hint ?? (fitted != name ? name : null);
         public int Count = -1;
         public bool Complete;
         public LoadedTexture? Name, Progress;
@@ -85,7 +90,17 @@ public sealed class AlbumPageElement : GuiElement
     private readonly Heading[] headings;
     private readonly Group[] groups;
     private static readonly CairoFont GroupFont = CairoFont.WhiteSmallText(), HeadingFont = CairoFont.WhiteDetailText();
-    private const double CheckSize = 16;
+    private static readonly CairoFont ProgressFont = CairoFont.WhiteSmallText().WithColor([1, 1, 1, 0.6]);
+    private const double CheckSize = 16, NameGap = 8;
+
+    /// <summary>The room around the groups (unscaled): their frames reach this far beyond the group's own box, so the element is
+    /// twice this larger than the page (A4). None when no group has a heading, so no frame: the cells then start at the
+    /// window's left edge, as the rows of controls do (A4, one left edge).</summary>
+    public static int PadOf(AlbumPages pages) => pages.Pages.Any(p => p.Groups.Any(g => g.HeadingHeight > 0)) ? FramePad : 0;
+
+    private const int FramePad = 6, TextPad = 2;
+    private readonly int pad;
+    private static readonly TextBackground Padded = new() { HorPadding = TextPad, VerPadding = TextPad };
 
     private IReadOnlySet<string> collected = new HashSet<string>();
     private System.Func<Member, bool>? matches;
@@ -101,8 +116,9 @@ public sealed class AlbumPageElement : GuiElement
         page = pages.Pages[pageIndex];
         this.metrics = metrics;
         this.look = look;
-        bounds.fixedWidth = pages.Width;
-        bounds.fixedHeight = pages.Height;
+        pad = PadOf(pages);
+        bounds.fixedWidth = pages.Width + 2 * pad;
+        bounds.fixedHeight = pages.Height + 2 * pad;
 
         var placedCells = page.Groups.SelectMany(g => g.Cells).ToList();
         var placedHeadings = page.Groups.SelectMany(g => g.Headings).ToList();
@@ -122,8 +138,10 @@ public sealed class AlbumPageElement : GuiElement
         }).ToArray();
         groups = page.Groups.Select(g =>
         {
-            string name = look.GroupName(g.Group) + (g.Continued ? " " + Lang.Get("curiocatalogue:albumwindow-continued") : "");
-            return new Group(g, name, g.HeadingHeight > 0 ? Fit(name, GroupFont, NameRoom(g)) : name);
+            string continued = g.Continued ? " " + Lang.Get("curiocatalogue:albumwindow-continued") : "";
+            string name = look.GroupName(g.Group) + continued;
+            string? hint = look.GroupHint(g.Group) is { } h ? h + continued : null;
+            return new Group(g, name, g.HeadingHeight > 0 ? Fit(name, GroupFont, NameRoom(g)) : name, hint);
         }).ToArray();
     }
 
@@ -132,18 +150,19 @@ public sealed class AlbumPageElement : GuiElement
     private static double NameRoom(GroupBox box)
     {
         int total = box.Group.Members.Count;
-        return box.Width - GroupFont.GetTextExtents($"{total}/{total}").Width / scaled(1) - CheckSize - 2 - 8;
+        return box.Width - ProgressFont.GetTextExtents($"{total}/{total}").Width / scaled(1) - CheckSize - 2 - NameGap - 4;
     }
 
     /// <summary>
-    /// The texts cut with "…" (a group's name, a heading in words), with their full text and where they stand on the page
-    /// (unscaled, from its top left): the window puts a hover text over each (A3b, "Words that do not fit").
+    /// The texts cut with "…" (a group's name, a heading in words) and the group names with a hint, with their full text and
+    /// where they stand on the page (unscaled, from its top left): the window puts a hover text over each (A3b, "Words that do
+    /// not fit").
     /// </summary>
     public IEnumerable<(double X, double Y, double Width, double Height, string Text)> CutTexts =>
-        groups.Where(g => g.Box.HeadingHeight > 0 && g.Fitted != g.FullName)
-            .Select(g => ((double)g.Box.X, (double)g.Box.Y, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.FullName))
+        groups.Where(g => g.Box.HeadingHeight > 0 && g.Hover != null)
+            .Select(g => ((double)g.Box.X + pad, (double)g.Box.Y + pad, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.Hover!))
             .Concat(headings.Where(h => h.Icon == null && h.Fitted != h.Name)
-                .Select(h => ((double)h.Placed.X, (double)h.Placed.Y, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
+                .Select(h => ((double)h.Placed.X + pad, (double)h.Placed.Y + pad, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
 
     /// <summary>Lights the cells whose member matches the search and dims the rest; null lights all. Kept over <see cref="Show"/>.</summary>
     public void Highlight(System.Func<Member, bool>? matching)
@@ -200,6 +219,7 @@ public sealed class AlbumPageElement : GuiElement
         slotTexture = GuiElementItemSlotGridBase.DrawSlotBackground(api, scaled(SlotSize), scaled(SlotSize),
             GuiStyle.DialogSlotBackColor, GuiStyle.DialogSlotFrontColor, null);
         cornerTexture = CornerTexture();
+        DrawFrames(ctxStatic);
         check = api.Gui.LoadSvg(new AssetLocation("game:textures/icons/checkmark.svg"), (int)scaled(CheckSize), (int)scaled(CheckSize),
             (int)scaled(CheckSize), (int)scaled(CheckSize), ColorUtil.ToRgba(255, 132, 255, 132));
         foreach (var cell in cells)
@@ -208,9 +228,26 @@ public sealed class AlbumPageElement : GuiElement
                 cell.FlatTexture = api.Render.GetOrLoadTexture(new AssetLocation(texture)); // cached by the game, not ours to free
         }
         foreach (var heading in headings.Where(h => h.Icon == null))
-            heading.Text = api.Gui.TextTexture.GenTextTexture(heading.Fitted, HeadingFont);
+            heading.Text = api.Gui.TextTexture.GenTextTexture(heading.Fitted, HeadingFont, Padded);
         composed = true;
         ComposeGroupHeadings();
+    }
+
+    /// <summary>A frame round each group, so that one picture is told from the next (A4): a soft dark fill and a thin edge.</summary>
+    private void DrawFrames(Context ctx)
+    {
+        foreach (var group in groups.Where(g => g.Box.HeadingHeight > 0))
+        {
+            var box = group.Box;
+            double x = Bounds.drawX + scaled(pad + box.X - FramePad), y = Bounds.drawY + scaled(pad + box.Y - FramePad);
+            double w = scaled(box.Width + 2 * FramePad), h = scaled(box.Height + 2 * FramePad);
+            GuiElement.RoundRectangle(ctx, x, y, w, h, scaled(4));
+            ctx.SetSourceRGBA(0, 0, 0, 0.14);
+            ctx.FillPreserve();
+            ctx.SetSourceRGBA(0, 0, 0, 0.35);
+            ctx.LineWidth = scaled(1);
+            ctx.Stroke();
+        }
     }
 
     /// <summary>A white triangle in the top right corner; drawn tinted, its colour is the tier's.</summary>
@@ -240,9 +277,9 @@ public sealed class AlbumPageElement : GuiElement
             group.Count = count;
             group.Complete = count == members.Members.Count;
             group.Progress?.Dispose();
-            group.Progress = api.Gui.TextTexture.GenTextTexture($"{count}/{members.Members.Count}", GroupFont);
+            group.Progress = api.Gui.TextTexture.GenTextTexture($"{count}/{members.Members.Count}", ProgressFont, Padded);
             if (group.Name != null) continue;
-            group.Name = api.Gui.TextTexture.GenTextTexture(group.Fitted, GroupFont);
+            group.Name = api.Gui.TextTexture.GenTextTexture(group.Fitted, GroupFont, Padded);
         }
     }
 
@@ -263,7 +300,8 @@ public sealed class AlbumPageElement : GuiElement
 
     public override void RenderInteractiveElements(float deltaTime)
     {
-        double x0 = Bounds.renderX, y0 = Bounds.renderY;
+        // Whole pixels for the page's corner, so that the flat images of the pieces keep their pixels too (see Snap).
+        double x0 = Snap(Bounds.renderX + scaled(pad)), y0 = Snap(Bounds.renderY + scaled(pad));
         foreach (var group in groups) RenderGroupHeading(group, x0, y0);
         foreach (var heading in headings) RenderTableHeading(heading, x0, y0, deltaTime);
         foreach (var cell in cells) RenderCell(cell, x0, y0, deltaTime);
@@ -273,14 +311,18 @@ public sealed class AlbumPageElement : GuiElement
     {
         if (group.Name == null || group.Progress == null) return;
         var box = group.Box;
-        double top = y0 + scaled(box.Y), right = x0 + scaled(box.X + box.Width);
+        double top = y0 + scaled(box.Y);
         double middle = top + scaled(box.HeadingHeight) / 2;
-        api.Render.Render2DLoadedTexture(group.Name, (float)(x0 + scaled(box.X)), (float)(middle - group.Name.Height / 2.0));
-        api.Render.Render2DLoadedTexture(group.Progress, (float)(right - group.Progress.Width), (float)(middle - group.Progress.Height / 2.0));
+        // The count stands right after the name, dimmer: at the group's right edge it read as the next group's (A4). The textures
+        // have TextPad of room around the words, so that no letter is cut.
+        double pad = scaled(TextPad), nameX = x0 + scaled(box.X), wordsEnd = nameX + group.Name.Width - 2 * pad;
+        double progressX = wordsEnd + scaled(NameGap);
+        api.Render.Render2DLoadedTexture(group.Name, Snap(nameX - pad), Snap(middle - group.Name.Height / 2.0));
+        api.Render.Render2DLoadedTexture(group.Progress, Snap(progressX - pad), Snap(middle - group.Progress.Height / 2.0));
         if (group.Complete && check != null)
         {
-            api.Render.Render2DLoadedTexture(check, (float)(right - group.Progress.Width - check.Width - scaled(2)),
-                (float)(middle - check.Height / 2.0));
+            api.Render.Render2DLoadedTexture(check, Snap(progressX + group.Progress.Width - 2 * pad + scaled(2)),
+                Snap(middle - check.Height / 2.0));
         }
     }
 
@@ -297,11 +339,18 @@ public sealed class AlbumPageElement : GuiElement
         {
             // A column's word at the bottom of its line, centred; a row's at the left, in the middle of its cell.
             bool column = h.Width <= metrics.Cell && h.Height < metrics.Cell;
-            double tx = column ? x + (scaled(h.Width) - text.Width) / 2 : x;
-            double ty = y + (scaled(h.Height) - text.Height) / 2;
-            api.Render.Render2DLoadedTexture(text, (float)tx, (float)ty);
+            double tx = (column ? x + (scaled(h.Width) - text.Width) / 2 : x) - scaled(TextPad);
+            double ty = y + (scaled(h.Height) - text.Height) / 2; // the texture is TextPad larger all round, centred as it is
+            api.Render.Render2DLoadedTexture(text, Snap(tx), Snap(ty));
         }
     }
+
+    /// <summary>
+    /// A position on the screen in whole pixels. Text textures are sampled without smoothing (TextTextureUtil.cs:85, linearMag
+    /// false), so one drawn half a pixel off loses rows and columns of its letters: an "i" without its dot (A4, checked in game
+    /// 08.11.2026, when the window's height made it stand half a pixel off).
+    /// </summary>
+    private static float Snap(double position) => (float)Math.Round(position);
 
     private void RenderCell(Cell cell, double x0, double y0, float deltaTime)
     {
@@ -358,7 +407,7 @@ public sealed class AlbumPageElement : GuiElement
         AlbumSlot? now = null;
         if (Bounds.PointInside(args.X, args.Y))
         {
-            int x = (int)((args.X - Bounds.renderX) / scaled(1)), y = (int)((args.Y - Bounds.renderY) / scaled(1));
+            int x = (int)((args.X - Bounds.renderX) / scaled(1)) - pad, y = (int)((args.Y - Bounds.renderY) / scaled(1)) - pad;
             if (page.CellAt(x, y, metrics.Cell) is { } placed) now = cells.First(c => c.Placed == placed).Slot;
             else if (page.HeadingAt(x, y) is { } heading) now = headings.First(h => h.Placed == heading).Icon;
         }

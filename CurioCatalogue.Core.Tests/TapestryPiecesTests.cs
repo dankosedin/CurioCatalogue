@@ -52,10 +52,12 @@ public class TapestryPiecesTests
         var pieces = TapestryPieces.WithPictures(new Dictionary<string, string> { ["wide"] = "3x1", ["tall"] = "1x2", ["big"] = "2x2", ["one"] = "1x1" })
             .ToDictionary(p => p.Piece, p => (p.X, p.Y));
 
-        // The digits of a name are x then y, from 1; a row or a column counts along its length.
+        // A row or a column counts along its length; the two digits of a 2x2 are the row, then the column (the game's "yx":
+        // 21 is the bottom left quarter, BlockTapestry.cs#GetWordedSection).
         Assert.Equal((3, 1), pieces["wide3"]);
         Assert.Equal((1, 2), pieces["tall2"]);
-        Assert.Equal((2, 1), pieces["big21"]);
+        Assert.Equal((1, 2), pieces["big21"]);
+        Assert.Equal((2, 1), pieces["big12"]);
         Assert.Equal((1, 1), pieces["one"]);
     }
 }

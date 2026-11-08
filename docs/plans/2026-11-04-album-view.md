@@ -589,5 +589,5 @@ The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `Album
   **tabs that do not fit the window's height become a dropdown** in the row of controls ("Ore: Native copper ▼", ✓ by complete
   groups). All committed but these three. Next session (A4 still): remove `TabPaging.Shared` and the row of temporary switches
   (the page gets its 40 back, `AroundThePage`), the pager within a tab, the dropdown; then the author looks at `ccores` in game;
-  set `glDebugMode` false and the window back to 1938×1127 in `VintageStory-DevData\clientsettings.json` (now 1600×900); write
+  the window stays 1600×900 and `glDebugMode` stays on (the author's choice, 09.11.2026); write
   "Decisions" for A4 (the header C, the tabs, the dropdown); remove `VintageStory-DevData\Mods\cccollections` at the end. Then A5.

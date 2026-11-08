@@ -30,6 +30,30 @@ public class CollectionsFromAssetsTests(CompatServerFixture server) : BookTestBa
     }
 
     [Fact]
+    public void The_ores_of_the_test_mod_are_a_collection_of_the_allowed_ore_blocks()
+    {
+        // ccores is there for looking at the album's tabs and tables in game (album view plan, A4): an ore a tab, grade × rock a
+        // table. Its members are the game's graded ore blocks (ore-graded.json, allowedVariants). The gems' blocks have the same
+        // shape with a potential in the grade's place (ore-gem.json, "ore-high-emerald-shale"), so the definition excludes them.
+        string[] gems = ["diamond", "emerald", "olivine_peridot"];
+        var seen = game.OnMain(() =>
+        {
+            var ores = Mod.Collections.Defined("ccores")!;
+            var members = ores.Level("deposits")!.Members
+                .Select(m => $"ore-{m.Values["grade"]}-{m.Values["ore"]}-{m.Values["rock"]}").Order().ToList();
+            var registered = World.Blocks.Where(b => b.Code is { Domain: "game" } code
+                    && code.Path.Split('-') is ["ore", "poor" or "medium" or "rich" or "bountiful", var ore, _] && !gems.Contains(ore))
+                .Select(b => b.Code.Path).Distinct().Order().ToList();
+            int kinds = ores.Level("deposits")!.Members.Select(m => m.Values["ore"]).Distinct().Count();
+            return (members, registered, kinds, oreMembers: ores.Level("ores")!.Members.Count);
+        });
+
+        Assert.True(seen.registered.Count > 100, $"only {seen.registered.Count} graded ore blocks");
+        Assert.Equal(seen.registered, seen.members);
+        Assert.Equal(seen.kinds, seen.oreMembers); // a member of the level "ores" for every ore
+    }
+
+    [Fact]
     public void A_patch_of_a_definition_is_in_what_the_registry_reads()
     {
         var exclude = game.OnMain(() => Mod.Collections.Defined("ingots")!.Definition.Exclude);

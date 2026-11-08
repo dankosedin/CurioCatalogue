@@ -25,6 +25,13 @@ internal sealed class AlbumHeader
     // The bar's colour: a muted green, as the group's check mark says "complete".
     private static readonly double[] BarColour = [0.36, 0.55, 0.25];
 
+    // A rename sent but not yet back from the server (A4: the old name flashed before the new one). Shown while the stored
+    // name is still the one it replaces; given up after PendingMs if the server never changes it (e.g. refused).
+    private const int PendingMs = 2000;
+    private string? pending, replaced;
+    private string stored = ""; // the album's name as last composed: what a rename replaces
+
+    private readonly ICoreClientAPI capi;
     private readonly CairoFont font = CairoFont.WhiteDetailText();
     private readonly DummySlot parchment;
     private readonly Item? paper;
@@ -38,6 +45,7 @@ internal sealed class AlbumHeader
     /// <param name="recompose">Composes the window again (the name turned into a text input, or back).</param>
     public AlbumHeader(ICoreClientAPI capi, Action<string> rename, Action recompose)
     {
+        this.capi = capi;
         this.rename = rename;
         this.recompose = recompose;
         // The sheets are a stack of parchment, its count drawn by the slot as in the toolbar (A4: everybody reads that);
@@ -63,6 +71,7 @@ internal sealed class AlbumHeader
     public void Add(GuiComposer composer, ElementBounds content, double y, double width, Facts facts)
     {
         double side = NameRoom; // the room of the name
+        stored = facts.Name;
         if (Editing)
         {
             string save = T("ledgerwindow-save");
@@ -76,19 +85,21 @@ internal sealed class AlbumHeader
         }
         else
         {
-            bool unnamed = facts.Name.Length == 0;
+            if (pending != null && facts.Name != replaced) pending = null; // the server's answer came
+            string name = pending ?? facts.Name;
+            bool unnamed = name.Length == 0;
             var nameFont = unnamed ? font.Clone().WithColor([1, 1, 1, 0.5]) : font;
-            string text = AlbumPageElement.Fit(unnamed ? T("albumwindow-noname") : facts.Name, nameFont, side - Pencil - 4);
+            string text = AlbumPageElement.Fit(unnamed ? T("albumwindow-noname") : name, nameFont, side - Pencil - 4);
             double textWidth = Math.Ceiling(nameFont.GetTextExtents(text).Width / GuiElement.scaled(1)) + 2;
             var label = ElementBounds.Fixed(0, y + 7, textWidth, Height);
             var pencil = ElementBounds.Fixed(textWidth + 4, y, Pencil, Pencil);
             content.WithChildren(label, pencil);
             composer
                 .AddStaticText(text, nameFont, label)
-                .AddIconButton(PencilIcon, _ => Edit(), pencil, "rename")
-                .AddHoverText(T("albumwindow-rename"), font, 200, pencil.FlatCopy());
+                .AddIconTextButton(PencilIcon, () => { Edit(); return true; }, pencil, "rename")
+                .AddAutoSizeHoverText(T("albumwindow-rename"), font, 200, pencil.FlatCopy());
             // A long name cut with "…": its full text on hover, as a group's (A3c).
-            if (text != facts.Name && !unnamed) composer.AddHoverText(facts.Name, font, 300, label.FlatCopy());
+            if (text != name && !unnamed) composer.AddAutoSizeHoverText(name, font, 300, label.FlatCopy());
         }
 
         if (facts.Progress != null)
@@ -100,7 +111,7 @@ internal sealed class AlbumHeader
             composer
                 .AddStatbar(bar, BarColour, "progress")
                 .AddDynamicText("", font.Clone().WithOrientation(EnumTextOrientation.Center), number, "progress-number")
-                .AddHoverText(facts.ProgressTooltip ?? "", font, 300, bar.FlatCopy(), "progress-tooltip");
+                .AddAutoSizeHoverText(facts.ProgressTooltip ?? "", font, 300, bar.FlatCopy(), "progress-tooltip");
         }
 
         // The slot is 48 high whatever its bounds (vsapi GuiElementPassiveItemSlot.cs:30): centred on the row, it reaches into the
@@ -110,7 +121,7 @@ internal sealed class AlbumHeader
         content.WithChildren(sheets);
         composer
             .AddPassiveItemSlot(sheets, null, parchment, drawBackground: false, "sheets")
-            .AddHoverText("", font, 250, sheets.FlatCopy(), "sheets-tooltip");
+            .AddAutoSizeHoverText("", font, 250, sheets.FlatCopy(), "sheets-tooltip");
     }
 
     /// <summary>After composing: the input's text and focus, the bar's settings. The facts follow by <see cref="Show"/>.</summary>
@@ -128,6 +139,10 @@ internal sealed class AlbumHeader
             bar.ShowValueOnHover = false; // the number is always shown, over the bar (A2)
             bar.SetLineInterval(int.MaxValue); // no segment lines (vsapi GuiElementStatbar.cs:224)
         }
+        // The passive slot draws its stack at z 450 (vsapi GuiElementPassiveItemSlot.cs:75) and the count above that, over a
+        // hover text at its default 500 (A4: "4" over "Sheets: 4 of 32"); 1000 as vanilla's own top layer
+        // (vsapi GuiElementHoverText.cs:54; 1000 is used by vanilla elements drawn over everything).
+        if (composer.GetHoverText("sheets-tooltip") is { } sheetsTip) sheetsTip.ZPosition = 1000;
     }
 
     /// <summary>The facts that change without composing: the progress and the sheets.</summary>
@@ -152,10 +167,21 @@ internal sealed class AlbumHeader
     private bool Save()
     {
         // Read before composing again, which drops the input.
-        rename(composed?.GetTextInput("name")?.GetText() ?? "");
+        string typed = composed?.GetTextInput("name")?.GetText() ?? "";
+        rename(typed);
         Editing = false;
+        pending = typed;
+        replaced = stored;
+        capi.Event.RegisterCallback(_ => GiveUpPending(typed), PendingMs);
         recompose();
         return true;
+    }
+
+    private void GiveUpPending(string typed)
+    {
+        if (pending != typed) return; // answered, or another rename since
+        pending = null;
+        if (!Editing) recompose();
     }
 
     /// <summary>Enter in the name's input: saves (a one-line input passes Enter on to the dialog, A1).</summary>

@@ -60,7 +60,7 @@ public sealed class AlbumDialog : HeldItemDialog
     internal AlbumDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot, bool offHand) : base(capi, slot, offHand)
     {
         this.mod = mod;
-        header = new AlbumHeader(capi, OnRename, Compose);
+        header = new AlbumHeader(capi, OnRename, () => { if (IsOpened()) Compose(); });
         // The game's undo arrow is only a part of a circle, its redo the other way round: ours is a whole ↺ (A4).
         if (!capi.Gui.Icons.CustomIcons.ContainsKey(RestartIcon))
             capi.Gui.Icons.CustomIcons[RestartIcon] = capi.Gui.Icons.SvgIconSource(new AssetLocation("curiocatalogue", "textures/icons/restart.svg"));
@@ -221,7 +221,7 @@ public sealed class AlbumDialog : HeldItemDialog
             {
                 var hover = ElementBounds.Fixed(cut.X, y + cut.Y, cut.Width, cut.Height);
                 content.WithChildren(hover);
-                composer.AddHoverText(cut.Text, font, 300, hover);
+                composer.AddAutoSizeHoverText(cut.Text, font, 300, hover);
             }
             y += pages.Height + 2 * AlbumPageElement.PadOf(pages) + 6;
             if (pages.Pages.Count > 1 && !pagerInRow)
@@ -287,9 +287,9 @@ public sealed class AlbumDialog : HeldItemDialog
         var next = ElementBounds.Fixed(x + number, y, button, Line);
         content.WithChildren(prev, text, next);
         composer
-            .AddIconButton("left", _ => Turn(page - 1), prev, "prev")
+            .AddIconTextButton("left", () => { Turn(page - 1); return true; }, prev, "prev")
             .AddStaticText(T("albumwindow-page", page + 1, pages.Pages.Count), font.Clone().WithOrientation(EnumTextOrientation.Center), text)
-            .AddIconButton("right", _ => Turn(page + 1), next, "next");
+            .AddIconTextButton("right", () => { Turn(page + 1); return true; }, next, "next");
     }
 
     /// <summary>The row under the page: what to add, and its width, before the page's width is known. Left and Right are the
@@ -328,8 +328,8 @@ public sealed class AlbumDialog : HeldItemDialog
             Part(Line, true, (c, b) =>
             {
                 if (collected)
-                    c.AddIconButton(RestartIcon, _ => OnStartOver(), b, "restart")
-                        .AddHoverText(T("ledgerwindow-restart"), font, 200, b.FlatCopy());
+                    c.AddIconTextButton(RestartIcon, () => { OnStartOver(); return true; }, b, "restart")
+                        .AddAutoSizeHoverText(T("ledgerwindow-restart"), font, 200, b.FlatCopy());
             });
         }
 

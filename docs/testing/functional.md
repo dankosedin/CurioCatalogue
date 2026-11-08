@@ -65,7 +65,7 @@ which build, who ran it, and each `❌` with its reason.
 | A11 ⚙ | 0.1.0 | A tapestry from another mod, in the game's tapestry list | The album counts it |
 | A12 | 0.2.0 | Open an empty album of tapestries (en, then uk) | The title bar "Album: tapestries"; our row with "No name", the pencil, the bar at 0/88, the sheets; pages of pictures with every piece a dim silhouette; ◀ 1 / M ▶ turns the pages |
 | A13 | 0.2.0 | The pencil: type a name, Enter; again, type, Escape; a name of 40 characters | The first shows the name in the window and on the item in the hotbar; Escape keeps the old name and the window open; 40 characters are cut with "…", the full name on hover |
-| A14 | 0.2.0 | Window open, Shift + right click a chest with some pieces (the album in hand) | The cells turn full, the bar and its number grow, nothing flickers; the window stays open |
+| A14 | 0.2.0 | Window open, "Make a want list" (an open window takes the mouse, so a chest cannot be clicked with it open) | The sheets' count drops by one in place, nothing flickers; the window stays open |
 | A15 | 0.2.0 | An album partly full, then full | The group's "n/m" in its heading, ✓ on a complete group's heading and tab; the bar full at the end |
 | A16 | 0.2.0 | An album of a collection with levels (ore crystals), empty | The level dropdown and "Choose a level to start collecting", no bar; after a level is chosen: tabs, the layout dropdown, the bar; hover the bar: the level's name above the progress line |
 | A17 | 0.2.0 | Switch the layout with a page scrolled to a piece | The first piece of the page stays in view |

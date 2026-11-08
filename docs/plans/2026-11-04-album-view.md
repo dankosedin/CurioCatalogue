@@ -578,3 +578,16 @@ The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `Album
   bounds include the room round the groups (the hover missed the last 12 on the right and at the bottom). Next: the author
   looks at tapestries and seashells in game (`en`); then items 6 and 7 (a test collection with tabs, the tab variant), and the
   rest of "Not done in A4" above.
+- 08.11.2026, night (opus): in game (tapestries, seashells; en and uk; 1024×768): the text, the page width, the names, the pager
+  in the row, the left edge, ↺, the rename (Enter, Escape, a cut name), the search, the want list's sheets, uk and 1024×768 all
+  pass. Fixed and passed in game: the icon buttons (◀ ▶, pencil, ↺) are `IconTextButton`, the game's text button with an icon,
+  so they look as "Make a want list"; a rename shows the typed name at once (the stored one again after 2 s if the server never
+  changes it); hover texts size to their text, the sheets' one above the slot's count. A14 rewritten: an open window takes the
+  mouse, so the refresh is checked by the want list's sheets. The test mod has `ccores` (the game's graded ores; levels "Ores"
+  and "Deposits", layouts by ore and by rock, tables grade × rock) for the tabs, and a compatibility test of it. Decided by the
+  author: **one tab, one page** (the other variant surprises); **◀ ▶ turn the pages of the tab**, "N / M" counts them;
+  **tabs that do not fit the window's height become a dropdown** in the row of controls ("Ore: Native copper ▼", ✓ by complete
+  groups). All committed but these three. Next session (A4 still): remove `TabPaging.Shared` and the row of temporary switches
+  (the page gets its 40 back, `AroundThePage`), the pager within a tab, the dropdown; then the author looks at `ccores` in game;
+  set `glDebugMode` false and the window back to 1938×1127 in `VintageStory-DevData\clientsettings.json` (now 1600×900); write
+  "Decisions" for A4 (the header C, the tabs, the dropdown); remove `VintageStory-DevData\Mods\cccollections` at the end. Then A5.

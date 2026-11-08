@@ -58,7 +58,7 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      what a member accepts differs from what the album shows (a berry bush: any cutting fills, one is drawn) needs them apart.
 5. **Stamp-album view:** [the plan](docs/plans/2026-11-04-album-view.md) (04.11.2026). Pages by group, collected pieces in place,
    missing ones as dim silhouettes. Designed before the shape of collections (C7 of item 2), built after the core (item 3).
-6. **Every vanilla collection, polished in the album:** back to tapestries, ore crystals, seashells and butterflies (last), each one's look
+6. **Every vanilla collection, polished in the album:** [the plan](docs/plans/2026-11-09-album-polish.md) (09.11.2026). Back to tapestries, ore crystals, seashells and butterflies (last), each one's look
    in the stamp-album view (grouping, order, names), and its album recipe if it needs a change. Among them:
    - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
      times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.

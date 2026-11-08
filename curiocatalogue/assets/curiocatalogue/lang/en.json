@@ -113,6 +113,8 @@
   "curiocatalogue:albumwindow-collected": "In the collection",
   "curiocatalogue:albumwindow-missing": "Missing",
   "curiocatalogue:albumwindow-continued": "(continued)",
+  "curiocatalogue:albumwindow-noname": "No name",
+  "curiocatalogue:albumwindow-rename": "Rename",
   "curiocatalogue:ledgerwindow-level-none": "Choose a level",
   "curiocatalogue:ledgerwindow-search": "Search:",
   "curiocatalogue:ledgerwindow-sort-name": "By name",

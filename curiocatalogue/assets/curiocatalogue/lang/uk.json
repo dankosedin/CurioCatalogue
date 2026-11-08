@@ -113,6 +113,8 @@
   "curiocatalogue:albumwindow-collected": "У колекції",
   "curiocatalogue:albumwindow-missing": "Бракує",
   "curiocatalogue:albumwindow-continued": "(далі)",
+  "curiocatalogue:albumwindow-noname": "Без назви",
+  "curiocatalogue:albumwindow-rename": "Перейменувати",
   "curiocatalogue:ledgerwindow-level-none": "Виберіть рівень",
   "curiocatalogue:ledgerwindow-search": "Пошук:",
   "curiocatalogue:ledgerwindow-sort-name": "За назвою",

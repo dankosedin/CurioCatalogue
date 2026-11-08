@@ -78,7 +78,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
       Branch: `docs/album-view`. After: A1. Model: opus. Author: decides; must be done before C7.
       Done when: Decisions has the agreed view with its mockups; C7 of the collections plan names A2's list as an input;
       `docs/domain.md` (Windows) describes the album window as agreed; the branch goes to `main` by a pull request.
-- [ ] **A3. The view built.** The album window by A2, on the collection resolver of the core (item 3). The ledger and the bill
+- [x] **A3. The view built.** The album window by A2, on the collection resolver of the core (item 3). The ledger and the bill
       of materials keep today's window: the album gets a window of its own, or `LedgerDialog` a mode (A2 decides, with
       `docs/architecture.md` if a class is added). The decisions of the view (which page, what is shown where) pulled into
       testable code where they can be, with unit tests (`ROADMAP.md`, Later, tests for the client code). Both header
@@ -104,7 +104,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
         line of a collection disabled on the server; an album opens it, the ledger and the bill of materials keep
         `LedgerDialog`.
         Done when: the build and all test projects pass.
-  - [ ] **A3d. The header, variants A and C** behind a temporary switch: the name with our SVG pencil turning into a text
+  - [x] **A3d. The header, variants A and C** behind a temporary switch: the name with our SVG pencil turning into a text
         input and "Save" (Enter, Escape), the sheets as parchment with a count, the progress bar with its number.
         Done when: A3's "Done when".
 - [ ] **A4. Checked in game, docs.** The author checks the window in game (en and uk, memory: in-game checks by language):
@@ -463,6 +463,39 @@ The agent's choices, 08.11.2026 (`AlbumDialog`, `AlbumTabs`, `BookWindow`, `Held
 - **Cut names get a hover text** with the full name (group headings, headings in words); the room for a group's name is
   measured with its progress full ("34/34"), so the cut does not change as pieces come.
 
+### The header (A3d)
+
+The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `AlbumDialog`); the author may overrule any in A4:
+- **The title bar names the collection in both variants** ("Album: tapestries"; "Album" when the game lacks it); the album's
+  name is only in our row. Before A3d the title bar had the name.
+- **The row:** the name (14, cut with "…" to its half of the row, the full name on hover; "No name", dimmed, for an unnamed
+  album) and the pencil (our SVG, `textures/icons/pencil.svg`, registered as a custom icon; "Rename" on hover) on the left; the
+  bar in the centre, 180 wide, with "57/88" over it (as a group's heading) and, on hover, the level's name (a collection of
+  several levels) and the progress line of the tooltip; the parchment on the right with the count drawn by us (a stack of 0
+  sheets cannot be drawn), "Sheets: 27 of 32" on hover. No bar without a level, nor for a collection the game lacks.
+- **Editing:** the pencil composes the window with a text input and "Save" in the name's place, focused. Enter and "Save" send
+  the rename (`RenameLedgerRequest`, as the ledger window); Escape goes back without sending and keeps the window open.
+  Losing focus does nothing (A1: no event for it). A refresh while editing that composes again (a level chosen) keeps the
+  input but puts the stored name back in it.
+- **The temporary switch** of A and C is a button "Header: A (top)" / "Header: C (bottom)" in a row of temporary switches
+  under everything, beside the tab switch; A is the default. The page is 40 lower for the new row (`AroundThePage` 310); A4
+  gives back what the switches' row took.
+
+**The in-game check of A3** (for A4; setting up: `docs/testing/commands.md`, books and tapestry pieces). In en, then uk:
+1. An album of tapestries, empty: the title bar "Album: tapestries"; the row with "No name", the pencil, the bar at 0/N, the
+   parchment with its count; pages of pictures with every piece dim; ◀ 1 / M ▶ turns pages.
+2. The pencil: a text input with "Save"; type a name, Enter: the name shows, and the item's name in the hotbar too. Again,
+   type, Escape: the old name, the window still open. A name of 40 characters: cut with "…", the full name on hover.
+3. Shift + right-click a chest with some pieces, the window open: the cells turn full, the bar and its number grow, nothing
+   flickers. Make a want list: the sheets' count drops by one.
+4. "Header: A (top)" switches to C: the row moves under the controls; turning pages and the pencil work there too.
+5. An album of ore crystals (several levels), empty: the level dropdown, "Choose a level to start collecting", no bar. Choose
+   level 3: tabs on the left, the layout dropdown, the tab switch beside the header switch; both tab variants; a layout
+   switched keeps the first piece of the page in view. Hover the bar: the level's name above the progress line.
+6. Search: typing dims the cells that do not match; Enter turns to the next page with a match.
+7. ↺ "Start over" after something is collected: the confirmation, then an empty album with the level free again.
+8. A window at 1024×768 (the smallest the game supports): the page and every row fit with no part off the screen.
+
 ## Where we stopped
 
 - 04.11.2026: A1 (three more GUI questions) and A2 (dimensions, levels, members of several codes, rarity marks, flat and
@@ -482,3 +515,6 @@ The agent's choices, 08.11.2026 (`AlbumDialog`, `AlbumTabs`, `BookWindow`, `Held
   the row of controls, search, the temporary tab switch and the view of a collection the game lacks (`Album.CollectedOnly`, 2
   unit tests, mutation-checked). Choices in Decisions, "The window (A3c)". On this branch the album's name cannot be edited and
   its sheets are not shown until A3d. Next: A3d (opus, After: A3c).
+- 08.11.2026: A3d done (final as code; its look unchecked until A4): `AlbumHeader` with the name and its pencil, the progress
+  bar and the sheets, variants A and C behind a temporary switch. A3 done: its in-game check is in Decisions, "The header
+  (A3d)". Next: A4 (sonnet, After: A3), the author's check in game.

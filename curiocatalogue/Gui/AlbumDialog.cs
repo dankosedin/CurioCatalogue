@@ -12,7 +12,8 @@ namespace CurioCatalogue.Gui;
 /// <summary>
 /// The album window, as a stamp album (domain.md, Windows; album view plan, A2): the collection laid out on pages
 /// (<see cref="AlbumPages"/>, drawn by <see cref="AlbumPageElement"/>), tabs at the side when the grouping has names, and a row
-/// of controls: the level while the album is empty, the layout, search, the page buttons, "Make a want list" and "Start over".
+/// of controls: the level while the album is empty, the layout, search, the page buttons, "Make a want list" and "Start over";
+/// and the album's own row (<see cref="AlbumHeader"/>: the name, the progress, the sheets). The title bar names the collection.
 /// A piece taken while the window is open flips its cell without composing again; turning a page, switching the layout or the
 /// level composes. An album whose collection the game does not have (switched off, or gone with its mod) shows what it holds.
 /// </summary>
@@ -24,6 +25,9 @@ public sealed class AlbumDialog : HeldItemDialog
     /// </summary>
     private static TabPaging paging = TabPaging.Shared;
 
+    /// <summary>TEMPORARY, until A4: where the album's own row stands (<see cref="AlbumHeader.Variant"/>).</summary>
+    private static AlbumHeader.Variant headerAt = AlbumHeader.Variant.A;
+
     /// <summary>The layout the player chose, by collection and level, for the game session (A2: presentation only, kept on the
     /// client; an album handed over opens in the receiver's own).</summary>
     private static readonly Dictionary<string, string> chosenLayouts = new();
@@ -33,8 +37,9 @@ public sealed class AlbumDialog : HeldItemDialog
     private const double Line = 30;
 
     // What the window needs besides the page: screen and title bar padding, the dialog's padding, the line over the page, the rows
-    // of controls under it (A1, "How much fits": at 768 about 11 rows of cells are left).
-    private const double AroundThePage = 270;
+    // of controls under it, the album's own row (A3d) and the row of temporary switches (A4 removes it, and these 40 can go to the
+    // page) (A1, "How much fits": at 768 about 11 rows of cells are left).
+    private const double AroundThePage = 310;
 
     private readonly CurioCatalogueModSystem mod;
     private readonly CairoFont font = CairoFont.WhiteDetailText();
@@ -47,6 +52,7 @@ public sealed class AlbumDialog : HeldItemDialog
     private readonly Dictionary<string, string> searchNames = new();
     private AlbumPageElement? pageElement;
     private AlbumTabs? tabs;
+    private readonly AlbumHeader header;
 
     /// <summary>What the window shows: the collection laid out, or (with no level) nothing, and the line above the page.</summary>
     private sealed record View(ItemLedger.AlbumState State, DefinedCollection? Collection, CollectionLevel? Level,
@@ -55,6 +61,7 @@ public sealed class AlbumDialog : HeldItemDialog
     internal AlbumDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot, bool offHand) : base(capi, slot, offHand)
     {
         this.mod = mod;
+        header = new AlbumHeader(capi, OnRename, Compose);
         Refresh();
     }
 
@@ -139,7 +146,28 @@ public sealed class AlbumDialog : HeldItemDialog
             var collected = album.Collected.Keys.ToHashSet();
             tabs.SetComplete(pages.Tabs.Select(t => t.IsComplete(collected)).ToList());
         }
+        header.Show(SingleComposer, Facts());
     }
+
+    /// <summary>What the album's own row shows: the progress only at a level of a collection the game has.</summary>
+    private AlbumHeader.Facts Facts()
+    {
+        LevelProgress? progress = null;
+        string? tooltip = null;
+        if (shown is { State: ItemLedger.AlbumState.AtLevel, Level: { } level })
+        {
+            progress = album.Progress(level);
+            // The level is named here, being fixed once something is collected (A2, "Levels").
+            string text = ItemLedger.ProgressText(level, progress);
+            tooltip = shown.Collection!.Levels.Count > 1 && level.Definition.NameKey is { } key ? Lang.Get(key) + "\n" + text : text;
+        }
+        return new AlbumHeader.Facts(album.Name, album.Sheets, mod.Config.MaxSheets, progress, tooltip);
+    }
+
+    /// <summary>The title bar: the kind of book and the collection ("Album: tapestries"); the name is in the album's own row.</summary>
+    private string Title() => mod.Collections.Defined(album.CollectionId)?.Definition.NameKey is { } key
+        ? T("album-name", Lang.Get(key))
+        : T("ledgerwindow-mode-album");
 
     // --- Composing ---
 
@@ -152,18 +180,24 @@ public sealed class AlbumDialog : HeldItemDialog
         var content = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
         content.BothSizing = ElementSizing.FitToChildren;
         var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
-        string title = album.Name.Length > 0 ? album.Name : Slot.Itemstack!.GetName();
 
         var composer = capi.Gui
             .CreateCompo("curiocatalogue-album", dialogBounds)
             .AddShadedDialogBG(content)
-            .AddDialogTitleBar(title, () => TryClose());
+            .AddDialogTitleBar(Title(), () => TryClose());
         tabs = null;
         if (pages is { Tabs.Count: > 0 }) AddTabs(composer, pages);
         composer.BeginChildElements(content);
 
         var controls = Controls();
-        double width = Math.Max(pages?.Width ?? 0, controls.Width);
+        double width = Math.Max(Math.Max(pages?.Width ?? 0, controls.Width), AlbumHeader.MinWidth);
+        var facts = Facts();
+
+        if (headerAt == AlbumHeader.Variant.A)
+        {
+            header.Add(composer, content, y, width, facts);
+            y += AlbumHeader.Height + 10;
+        }
 
         if (shown.Line is { } text)
         {
@@ -198,10 +232,21 @@ public sealed class AlbumDialog : HeldItemDialog
         controls.Add(composer, content, y, width);
         y += Line + 8;
 
+        if (headerAt == AlbumHeader.Variant.C)
+        {
+            y += 2; // the parchment reaches above the row
+            header.Add(composer, content, y, width, facts);
+            y += AlbumHeader.Height + 10;
+        }
+
+        // TEMPORARY until A4: the switches between the variants; English only, never translated.
+        var headerSwitch = ElementBounds.Fixed(0, y, 200, Line);
+        content.WithChildren(headerSwitch);
+        composer.AddSmallButton(headerAt == AlbumHeader.Variant.A ? "Header: A (top)" : "Header: C (bottom)",
+            OnSwitchHeader, headerSwitch, EnumButtonStyle.Small, "headerat");
         if (pages is { Tabs.Count: > 0 })
         {
-            // TEMPORARY until A4: the switch between the two tab variants; English only, never translated.
-            var switchBounds = ElementBounds.Fixed(0, y, 260, Line);
+            var switchBounds = ElementBounds.Fixed(208, y, 260, Line);
             content.WithChildren(switchBounds);
             composer.AddSmallButton(paging == TabPaging.Shared ? "Tabs: several groups a page" : "Tabs: one tab, one page",
                 OnSwitchPaging, switchBounds, EnumButtonStyle.Small, "paging");
@@ -214,6 +259,7 @@ public sealed class AlbumDialog : HeldItemDialog
             input.SetValue(search, setCaretPosToEnd: true);
         }
         SingleComposer.UnfocusOwnElements();
+        header.Composed(SingleComposer, facts);
         ShowCollected();
     }
 
@@ -363,6 +409,13 @@ public sealed class AlbumDialog : HeldItemDialog
         RelayOut(id, pages);
     }
 
+    private bool OnSwitchHeader()
+    {
+        headerAt = headerAt == AlbumHeader.Variant.A ? AlbumHeader.Variant.C : AlbumHeader.Variant.A;
+        Compose();
+        return true;
+    }
+
     private bool OnSwitchPaging()
     {
         paging = paging == TabPaging.Shared ? TabPaging.PerTab : TabPaging.Shared;
@@ -409,6 +462,11 @@ public sealed class AlbumDialog : HeldItemDialog
     {
         // A one-line input passes Enter on to the dialog (vsapi GuiElementEditableTextBase.cs:656#handled; A1).
         bool enter = args.KeyCode is (int)GlKeys.Enter or (int)GlKeys.KeypadEnter;
+        if (enter && header.OnEnter())
+        {
+            args.Handled = true;
+            return;
+        }
         if (enter && SingleComposer?.GetTextInput("search") is { HasFocus: true } input && Matcher() is { } matches
             && shown.Pages?.NextPageWith(matches, page) is { } next)
         {
@@ -424,7 +482,17 @@ public sealed class AlbumDialog : HeldItemDialog
         base.OnKeyDown(args);
     }
 
+    /// <summary>
+    /// Escape while the name is edited goes back to the label and keeps the window open. False then: the game takes true for
+    /// "closed" and steps back in its list of open dialogs (decompiled GuiManager.OnEscapePressed, <c>i--</c>), which would
+    /// call this again and again.
+    /// </summary>
+    public override bool OnEscapePressed() => !header.Cancel() && base.OnEscapePressed();
+
     // --- Actions: requests to the server about the album as shown ---
+
+    private void OnRename(string name) =>
+        capi.Network.GetChannel(ModNetwork.Channel).SendPacket(new RenameLedgerRequest { Name = name, Book = Shown() });
 
     private bool OnWantList()
     {

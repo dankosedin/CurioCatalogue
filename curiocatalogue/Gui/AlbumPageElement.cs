@@ -247,7 +247,7 @@ public sealed class AlbumPageElement : GuiElement
     }
 
     /// <summary>The text, cut with "…" to fit the unscaled width.</summary>
-    private static string Fit(string text, CairoFont font, double width)
+    internal static string Fit(string text, CairoFont font, double width)
     {
         double max = scaled(width);
         if (font.GetTextExtents(text).Width <= max) return text;

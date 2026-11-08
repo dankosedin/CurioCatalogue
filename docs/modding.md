@@ -221,6 +221,14 @@ In this order:
 - **Vertical tabs light their first tab in the constructor** (vsapi `GuiElementVerticalTabs.cs:52`), whatever the `GuiTab`s say:
   set `Active` after constructing. Several tabs may be lit at once by setting `Active` yourself; a click clears the others unless
   `ToggleTabs` (`GuiElementVerticalTabs.cs:293#SetValue`). `Gui/AlbumTabs`.
+- **`OnEscapePressed` returning true means "closed".** The game calls it on every open dialog and, for each true, steps back in
+  its list (decompiled `GuiManager.OnEscapePressed`, `i--`), assuming the dialog left it. A dialog that uses Escape for itself
+  (cancelling an edit) and stays open must return false. Escape reaches `OnKeyDown` only of a dialog that captures all inputs.
+  `AlbumDialog.OnEscapePressed`.
+- **Our own icon for `AddIconButton`:** `capi.Gui.Icons.CustomIcons[name] = capi.Gui.Icons.SvgIconSource(location)` (vsapi
+  `IconUtil.cs:21`); the button draws it in its own colour. `Gui/AlbumHeader`.
+- **A passive item slot is always 48×48** (vsapi `GuiElementPassiveItemSlot.cs:30` sets the bounds' size). **A statbar draws a
+  segment line every 10** of its range (`GuiElementStatbar.cs:224`); `SetLineInterval` with a large value removes them.
 
 ## Config and logging
 

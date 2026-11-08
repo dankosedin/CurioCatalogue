@@ -22,13 +22,21 @@ public sealed record Member(
     IReadOnlyDictionary<string, string> Values,
     IReadOnlyList<ItemKey> Fillers,
     IReadOnlyList<object> Stacks,
-    IReadOnlyDictionary<string, string> Attributes);
+    IReadOnlyDictionary<string, string> Attributes)
+{
+    /// <summary>The attribute naming a flat image the album draws in place of the stack (a tapestry piece's own texture, so
+    /// that the pieces side by side make the picture; album view, A2, "What the view needs", 5): an asset location.</summary>
+    public const string FlatTexture = "texture";
+}
 
 /// <summary>A group of a layout: its values in the layout's grouping dimensions (none for a layout without groups) and its
 /// members in the layout's order.</summary>
 public sealed record MemberGroup(IReadOnlyList<string> Values, IReadOnlyList<Member> Members)
 {
     public bool IsComplete(IReadOnlySet<string> collectedIds) => Members.All(m => collectedIds.Contains(m.Id));
+
+    /// <summary>How many of its members are collected: the "21/34" in its heading.</summary>
+    public int CollectedCount(IReadOnlySet<string> collectedIds) => Members.Count(m => collectedIds.Contains(m.Id));
 }
 
 /// <summary>How far an album is at a level: members, and whole groups of the default layout (tapestry pictures).</summary>

@@ -209,15 +209,16 @@ mod brings its own; the item put in must be a member of that collection.
   longer holds exactly that item, the server refuses with a message ("no longer the one in the window").
   Irreversible ones ask for confirmation.
 - **Book window:** name (editable, Save), mode, sheets (e.g. 27/32), entries and the limit; search by name in the player's language;
-  sort by name, by mod, by count (bill of materials only); "Clear". Album (0.1): progress line, the grid under "Missing:", "Start over", "Make a want list".
+  sort by name, by mod, by count (bill of materials only); "Clear". The album has a window of its own since 0.2 (below).
 - **Album window** (agreed for 0.2, being built: `docs/plans/2026-11-04-album-view.md`, Decisions, "The view on paper"): a window of
   its own, as a stamp album. Pages hold whole groups in order (a picture, an ore); collected pieces in their places, missing ones
   translucent, points of a table that do not exist left blank. A group of two dimensions is a table with stack headings (rock ×
   grade). The player switches the **layout** at any time (crystals by ore or by rock, tapestries by picture or by size); it is
   presentation only, kept on the client. A collection with several **levels** (crystals 16 / 118 / 353, seashells 7 / 42) has its
   level chosen in the window while the album is empty, fixed by the first piece, freed by "Start over"; with no level chosen the
-  album refuses to take new and makes no want list. Tabs for a grouping with names when there is more than one page, page buttons,
-  ✓ on a complete group. A member filled by any of several codes cycles its possible stacks while missing and shows the stack
+  album refuses to take new and makes no want list. Tabs for a grouping with names when there is more than one page, each tab
+  with pages of its own (a dropdown in the row of controls when the tabs are taller than the screen allows); the page buttons turn the
+  pages of the tab; ✓ on a complete group. A member filled by any of several codes cycles its possible stacks while missing and shows the stack
   put in once collected. Rarity, when a collection has it, is a coloured corner. The name with a pencil, the progress bar and
   the sheets as parchment with a count in one row; search stays, sorting goes. A collection disabled by the config: the album
   shows what it has, takes nothing, keeps its data.

@@ -68,6 +68,11 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   member a key fills, groups and order per layout, `LevelProgress`; `TapestryPieces` (pieces from `sizes`); adapters
   `CollectionResolution` (`Found | Disabled | Unknown`, the one answer to "which collection is this album's"); adapters `CollectionRegistry`,
   `CollectionDefinitionReader`, `AlbumRecipes` (plan `2026-11-07-collections-core.md`).
+- **The album window as data:** `AlbumPages.Build` lays a level's groups in a layout out on pages by `PageMetrics` (whole groups,
+  side by side then under each other; a group larger than a page cut by lines; tables of the values that occur; a picture's
+  shape), with the tabs (each with pages of its own; the pages the page buttons turn, `PagerAt`), search (`NextPageWith`), what is under the mouse (`CellAt`, `HeadingAt`)
+  and a cell's cycling stacks (`Slideshow`). Positions only: what is collected is read when
+  drawing (`Album.StacksToShow`, `MemberGroup.CollectedCount`), so a refresh moves nothing (plan `2026-11-04-album-view.md`, A3).
 
 #### Adapters (`curiocatalogue/Adapters`)
 
@@ -88,7 +93,17 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `Items/ItemLedger`, `Items/ItemInvoice`: the item classes; click handling (`OnHeldInteractStart`), tooltips, crafting hooks.
 - `EmptyHandGesture`: the off-hand gesture, caught on the client in `Input.InWorldAction`.
 - `LedgerHintsBehavior`: hints over containers, added to storage blocks on the client; no "take new" or "take from the list" hint for an album or want list whose collection is not `Found` (switched off or gone).
-- `Gui/GridDialog` (base), `Gui/LedgerDialog`, `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only read-only windows.
+- `Gui/HeldItemDialog` (base: watches the item in the hand, refreshes or closes, names it in requests), `Gui/GridDialog` (base:
+  a read-only slot grid), `Gui/LedgerDialog` (ledger, bill of materials), `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only windows.
+  `Gui/BookWindow` opens the window of a book in a hand, one at a time.
+- `Gui/AlbumDialog`: the album's own window (plan `2026-11-04-album-view.md`, A3c): tabs (`Gui/AlbumTabs`, vanilla's vertical
+  tabs with a check mark), a page, the row of controls (level, layout, search, page buttons, want list, start over) and the
+  album's own row (`Gui/AlbumHeader`, A3d: the name and its pencil, the progress bar, the sheets). A refresh flips cells and
+  sets the bar and the sheets; turning a page, a layout or a level composes. An album whose collection the game lacks shows
+  `Album.CollectedOnly`.
+- `Gui/AlbumPageElement`: one page of the album window drawn by us from `AlbumPages` (stacks, flat tapestry images, headings,
+  the rarity corner, cycling stacks, search dimming); `Show(album)` flips what is collected without composing again; hover
+  gives the game's tooltip through `Gui/AlbumSlot`.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.

@@ -1,0 +1,22 @@
+{
+  "nameKey": "cccollections:collection-ores",
+  "source": { "kind": "variants", "code": "game:ore-{grade}-{ore}-{rock}" },
+  "dimensions": [
+    { "code": "grade", "values": ["poor", "medium", "rich", "bountiful"], "nameKey": "cccollections:grade-{value}" },
+    { "code": "ore", "values": [], "nameKey": "game:ore-{value}", "anyKey": "cccollections:any-ore" },
+    { "code": "rock", "values": [], "nameKey": "game:rock-{value}", "icon": "game:rock-{value}", "anyKey": "cccollections:any-rock" }
+  ],
+  "levels": [
+    { "id": "ores", "nameKey": "cccollections:level-ores", "keep": ["ore"], "drop": { "grade": "max", "rock": "any" } },
+    {
+      "id": "deposits",
+      "nameKey": "cccollections:level-deposits",
+      "keep": ["ore", "rock", "grade"],
+      "layouts": [
+        { "id": "byore", "nameKey": "cccollections:layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock" } },
+        { "id": "byrock", "nameKey": "cccollections:layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore" } }
+      ]
+    }
+  ],
+  "exclude": ["ore-*-diamond-*", "ore-*-emerald-*", "ore-*-olivine_peridot-*"]
+}

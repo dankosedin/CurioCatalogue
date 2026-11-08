@@ -69,7 +69,7 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
       (`album-name-tapestries` and the "whole pictures" of `ledger-info-album` become a collection's name and its group's
       word), `CHANGELOG.md`; `docs/domain.md`, Albums and collections, says what changed (levels, members of several codes,
       disabled collections).
-- [ ] **K7. Code review of the core, before the merge.** The five roles of `docs/review.md` on the branch, scope the diff from
+- [x] **K7. Code review of the core, before the merge.** The five roles of `docs/review.md` on the branch, scope the diff from
       where it left `main`. Weight on what breaks silently and late: the migration of format 1 (albums and want lists of
       0.1.1 must read the same, and nothing collected may be lost), all or nothing in taking new by members, the server re-checking
       the level request, the client and the server disagreeing on a collection (the packet late or missing), a definition patched
@@ -333,3 +333,5 @@ stacks of 0.1.1 stay green through every step (`UpgradeTests`).
   server; W6 showed the "Take from the list" hint over a chest for a want list of a collection switched off, now hidden
   (`LedgerHintsBehavior`, `LedgerStore.ReadWantedCollectionId`; checked in game again). Next: K7c (sonnet).
 - 08.11.2026: K7c done (final, docs only): Q6, Q7 (both READMEs: the config is synced since K6), H16/A7, C6; H8/H9, A5 and A8 in `ROADMAP.md` (A5 under the seashells of item 4: no seashell plan exists yet); the lessons in `docs/review.md`. No code changed, so no test run. Left of K7 (unticked): the pull request into `main`, its text shown to the author first; the README sentence on the config is for the author's read at release. Next: the pull request, then item 4 of the roadmap (a plan for the first collection).
+- 08.11.2026: K7 done (final): the branch `feat/collections-core` merged into `main` by pull request #34. The plan is closed; next
+  here: nothing. The album window goes on in `2026-11-04-album-view.md`, A3.

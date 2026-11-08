@@ -1,3 +1,14 @@
 {
-  "cccollections:any-colour": "any colour"
+  "cccollections:any-colour": "any colour",
+  "cccollections:collection-ores": "ores",
+  "cccollections:grade-poor": "Poor",
+  "cccollections:grade-medium": "Medium",
+  "cccollections:grade-rich": "Rich",
+  "cccollections:grade-bountiful": "Bountiful",
+  "cccollections:any-ore": "any ore",
+  "cccollections:any-rock": "any rock",
+  "cccollections:level-ores": "Ores",
+  "cccollections:level-deposits": "Deposits",
+  "cccollections:layout-byore": "By ore",
+  "cccollections:layout-byrock": "By rock"
 }

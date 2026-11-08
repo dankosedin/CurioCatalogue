@@ -108,3 +108,7 @@ The client takes the output with packet 7 (`ActivateInventorySlot`); the server 
 mouseSlot, op)` (`ServerSystemInventory.HandleActivateInventorySlot`), so a test calls that with `MouseItemSlot` and an
 `ItemStackMoveOperation` whose `ActingPlayer` is set: `CraftSingle` then calls `ConsumeCraftingIngredients` (ours) or the recipe's
 `ConsumeInput`. A liquid ingredient takes `requiresLitres` out of the jug and the jug stays in the grid.
+
+**The server archive has no block textures** (checked 09.11.2026, CI of the album view PR: the Linux server archive of 1.22.7 holds 46 PNGs, none under
+`textures/block/cloth/tapestry/`). A test that asks the asset manager for a vanilla block texture passes on a machine with the full game and fails in
+CI. Such a test checks the file only when the game ships any of that kind (`VanillaContentTests.Every_tapestry_piece_has_the_flat_image_the_album_draws`).

@@ -54,7 +54,7 @@ internal static class EmptyHandGesture
             {
                 handled = EnumHandling.PreventDefault;
                 ModLog.Debug(capi, $"open ledger window from the off-hand, mode={ledgerItem.LedgerMode}");
-                Gui.LedgerDialog.Open(capi, mod, entity.LeftHandItemSlot, offHand: true);
+                Gui.BookWindow.Open(capi, mod, entity.LeftHandItemSlot, offHand: true);
                 return;
             }
 

@@ -210,6 +210,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   and of the whole solution, were green. Which tests failed was not seen. Next time: keep the output (a `trx` logger) and look for a
   timeout under load. Seen again in B6 (04.11.2026): `BookEdgeTests.L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full`
   failed after 30 s in a whole-solution run (server tests 1 min 41 s instead of 1 min 12 s); green alone right after.
+  Seen again after T4's fix (A4 of the album view, 08.11.2026): twice in whole-solution runs, 30 s, green alone. The column search did
+  not end it; next: keep the `trx` output and log the ground items near the player when the wait ends (where the list landed, or
+  whether it was dropped at all).
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.

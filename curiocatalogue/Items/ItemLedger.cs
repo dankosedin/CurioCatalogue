@@ -82,7 +82,7 @@ public class ItemLedger : Item
             if (api is ICoreClientAPI capi && slot.Itemstack != null)
             {
                 ModLog.Debug(api, $"open ledger window, kind={Kind}");
-                LedgerDialog.Open(capi, Mod, slot, offHand: false);
+                BookWindow.Open(capi, Mod, slot, offHand: false);
             }
             return;
         }

@@ -198,12 +198,12 @@ In this order:
   slot). Pass `searchCacheNames` (and `searchCache`); see `GridDialog.FilterByName`.
 - **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129`;
   only `ClearComposers` and `Dispose` free them, `:42-59`). Dispose the old one before recomposing, as vanilla does
-  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `GridDialog.SetComposer`.
+  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `HeldItemDialog.SetComposer`.
 - **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
   only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
-  made per opening must set it and dispose itself on close (`GridDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
+  made per opening must set it and dispose itself on close (`HeldItemDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
 - **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
-  `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`GridDialog.Watch`) and name the
+  `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`HeldItemDialog.Watch`) and name the
   item in its requests (`ShownItem`).
 - **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
 
@@ -218,6 +218,21 @@ In this order:
 - **Tapestry icons are 3D at an angle**; each piece's flat image is `textures/block/cloth/tapestry/{type}.png`
   (`BlockTapestry.cs:40#texturePath`), and drawn side by side the pieces make the picture.
 - **Text smaller than 14** (`WhiteDetailText`) does not read at the default GUI scale (the author, 05.11.2026).
+- **Vertical tabs light their first tab in the constructor** (vsapi `GuiElementVerticalTabs.cs:52`), whatever the `GuiTab`s say:
+  set `Active` after constructing. Several tabs may be lit at once by setting `Active` yourself; a click clears the others unless
+  `ToggleTabs` (`GuiElementVerticalTabs.cs:293#SetValue`). `Gui/AlbumTabs`.
+- **`OnEscapePressed` returning true means "closed".** The game calls it on every open dialog and, for each true, steps back in
+  its list (decompiled `GuiManager.OnEscapePressed`, `i--`), assuming the dialog left it. A dialog that uses Escape for itself
+  (cancelling an edit) and stays open must return false. Escape reaches `OnKeyDown` only of a dialog that captures all inputs.
+  `AlbumDialog.OnEscapePressed`.
+- **Our own icon for `AddIconButton`:** `capi.Gui.Icons.CustomIcons[name] = capi.Gui.Icons.SvgIconSource(location)` (vsapi
+  `IconUtil.cs:21`); the button draws it in its own colour. `Gui/AlbumHeader`.
+- **A passive item slot is always 48×48** (vsapi `GuiElementPassiveItemSlot.cs:30` sets the bounds' size). **A statbar draws a
+  segment line every 10** of its range (`GuiElementStatbar.cs:224`); `SetLineInterval` with a large value removes them.
+- **Text textures need whole pixels.** `TextTextureUtil` loads text without smoothing (`TextTextureUtil.cs:85`, `linearMag`
+  false), so one drawn with `Render2DLoadedTexture` half a pixel off loses rows and columns of its letters ("i" without its dot).
+  A centred window can stand half a pixel off: round every position (`AlbumPageElement.Snap`). Seen in game 08.11.2026 (A4 of
+  the album view plan).
 
 ## Config and logging
 
@@ -267,7 +282,7 @@ In this order:
 - **Tapestries:** block `tapestry-{north|east|south|west}`, the picture is the stack attribute `type` (`blocktypes/cloth/tapestry.json`,
   `BlockTapestry.cs`). Taken off a wall it always drops as `tapestry-north` (`BehaviorHorizontalAttachable`, `dropBlockFace`).
   A rotten tapestry drops nothing (`BlockTapestry.GetDrops`). Large ones are pieces: `ambush` (3×1) = `ambush1..3`, `salvation` (2×2)
-  = `salvation11, 12, 21, 22`; 31 pictures = 88 pieces, generated from the block attribute `sizes` (a mod that extends `sizes` is
+  = `salvation11, 12, 21, 22`, the digits are row then column ("yx": `21` is the bottom left quarter; checked in game 08.11.2026); 31 pictures = 88 pieces, generated from the block attribute `sizes` (a mod that extends `sizes` is
   picked up: `ModdedTapestryTests`; but the mods that add tapestries today add blocks of their own, `ROADMAP.md`). Not in the
   creative inventory; give with `/giveblock tapestry-north 1 s[] {"type":"ambush1"}` (`docs/testing/commands.md`).
 - **Books:** empty book `book-normal-<colour>` (2 leather + 8 `paper-parchment`; also `book-aged-*`, `book-rotten-*`); parchment

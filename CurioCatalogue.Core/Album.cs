@@ -82,6 +82,32 @@ public sealed record Album(
 
     public LevelProgress Progress(CollectionLevel level) => level.Progress(Collected.Keys);
 
+    /// <summary>What the album window shows in a member's cell: the stack actually put in, or, while missing, the member's stacks
+    /// to cycle through (one for a member of one item; album view, A2, "The cell").</summary>
+    public IReadOnlyList<object> StacksToShow(Member member) =>
+        Collected.TryGetValue(member.Id, out var by) ? [by.Stack] : member.Stacks;
+
+    /// <summary>The level of <see cref="CollectedOnly"/>.</summary>
+    public const string CollectedOnlyLevel = "collected";
+
+    /// <summary>
+    /// What the album has collected as a collection of its own: one level, one group in order, a member per collected member
+    /// (same id, by id), filled by the item put in. The album window shows it when the game does not have the album's collection
+    /// (switched off on the server, or gone with its mod): the album keeps its data, and the player sees what it holds (album view,
+    /// A2, "A collection disabled by the config"). Null when nothing is collected, or when two members were filled by the same
+    /// item (a collection changed under the album), which one collection cannot show.
+    /// </summary>
+    public DefinedCollection? CollectedOnly()
+    {
+        if (Collected.IsEmpty) return null;
+        const string piece = "piece";
+        var definition = new CollectionDefinition(CollectionId, [new DimensionDef(piece, [.. Collected.Keys])],
+            [new LevelDef(CollectedOnlyLevel, [piece], ImmutableDictionary<string, Drop>.Empty, [])], [], []);
+        var points = Collected.Select(c =>
+            new SourcePoint(c.Key, new Dictionary<string, string> { [piece] = c.Key }, c.Value.Key, c.Value.Stack));
+        return DefinedCollection.Build(definition, points) is CollectionBuild.Built built ? built.Collection : null;
+    }
+
     /// <summary>
     /// What to take from a container that has <paramref name="available"/>: each missing member it can fill, in the order of taking
     /// new, with the item that fills it there; of a member filled by any of several items, the first in the member's order. A key

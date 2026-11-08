@@ -198,6 +198,12 @@ public class ItemInvoice : ItemRollable
     internal static string? Freedom((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
     {
         if (line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member) return null;
+        return Freedom(collection, level, member);
+    }
+
+    /// <summary>What a member leaves free, as in a want list's line; null for a member of one item (the album window's tooltip).</summary>
+    internal static string? Freedom(DefinedCollection collection, CollectionLevel level, Member member)
+    {
         var free = collection.Free(level, member);
         if (free.Count == 0) return null;
         if (free.Any(d => d.AnyKey == null)) return Lang.Get("curiocatalogue:invoice-info-any-of", member.Fillers.Count);

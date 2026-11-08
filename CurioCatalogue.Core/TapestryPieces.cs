@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace CurioCatalogue.Core;
 
-/// <summary>A tapestry piece (the stack's "type"), the picture it belongs to and its place in it (1-based, as the digits of its name).</summary>
+/// <summary>A tapestry piece (the stack's "type"), the picture it belongs to and its place in it (1-based; the digits of a
+/// two-dimensional name are the row, then the column).</summary>
 public sealed record TapestryPiece(string Piece, string Picture, int X = 1, int Y = 1);
 
 /// <summary>
@@ -27,9 +28,11 @@ public static class TapestryPieces
             else if (w == 1 || h == 1)
                 for (int n = 1; n <= Math.Max(w, h); n++) pieces.Add(w == 1 ? new TapestryPiece(name + n, name, 1, n) : new TapestryPiece(name + n, name, n, 1));
             else
-                for (int x = 1; x <= w; x++)
+                // The digits are row then column ("yx"): 21 is the bottom left quarter (vssurvivalmod BlockTapestry.cs:148 and
+                // GetWordedSection, "Section: Bottom Left Quarter").
                 for (int y = 1; y <= h; y++)
-                    pieces.Add(new TapestryPiece($"{name}{x}{y}", name, x, y));
+                for (int x = 1; x <= w; x++)
+                    pieces.Add(new TapestryPiece($"{name}{y}{x}", name, x, y));
         }
         return pieces;
     }

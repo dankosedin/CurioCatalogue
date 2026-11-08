@@ -211,6 +211,9 @@ public sealed class CollectionRegistry
                     {
                         [Arrangement.Shape.X] = p.X.ToString(System.Globalization.CultureInfo.InvariantCulture),
                         [Arrangement.Shape.Y] = p.Y.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        // The image the game puts on the wall (vssurvivalmod BlockTapestry.cs:40#texturePath, the domain "game"
+                        // there too, also for a piece added by the config).
+                        [Member.FlatTexture] = $"game:textures/block/cloth/tapestry/{p.Piece}.png",
                     });
             }).ToList();
     }

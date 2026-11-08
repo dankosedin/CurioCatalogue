@@ -28,7 +28,8 @@ docs/                      documentation; docs/plans/ holds the implementation p
 - Build: `dotnet build curiocatalogue.sln`. Output: `curiocatalogue\bin\Debug\Mods\mod`. CakeBuild pins
   `System.Security.Cryptography.Pkcs` over the version Cake brings (`NU1903`); drop the pin when Cake brings a fixed one
   (`dotnet list CakeBuild package --vulnerable --include-transitive`).
-- The projects reference the game from `$(VINTAGE_STORY)`: `VintagestoryAPI.dll`, `Mods/VSSurvivalMod.dll`, `Mods/VSEssentials.dll`
+- The projects reference the game from `$(VINTAGE_STORY)`: `VintagestoryAPI.dll`, `Mods/VSSurvivalMod.dll`, `Mods/VSEssentials.dll`;
+  the mod also `Lib/Newtonsoft.Json.dll`, `Lib/protobuf-net.dll` and `Lib/cairo-sharp.dll` (the album page draws its own textures)
   (`Private=false`, never copied into the output). No game DLL is committed.
 - While the game runs, a build compiles but cannot copy `curiocatalogue.dll` into the output (file locked, MSB3027).
   Harmless: the next build after closing the game copies it.

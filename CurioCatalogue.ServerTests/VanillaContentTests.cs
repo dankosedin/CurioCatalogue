@@ -28,17 +28,21 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
     {
         // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod
-        // BlockTapestry.cs:40#texturePath). Textures load on the server too (vsapi AssetCategory.cs:23, Universal).
-        var missing = game.OnMain(() =>
+        // BlockTapestry.cs:40#texturePath). Textures load on the server too (vsapi AssetCategory.cs:23, Universal), but the
+        // Linux server archive CI uses ships no block textures (docs/test-server.md, checked 09.11.2026): there only the
+        // attribute is checked, the files where the game has them.
+        var seen = game.OnMain(() =>
         {
             var members = Mod.Collections.Defined("tapestries")!.Levels.SelectMany(l => l.Members).ToList();
-            return (members.Count, Missing: members
-                .Where(m => !m.Attributes.TryGetValue(CurioCatalogue.Core.Member.FlatTexture, out var t) || !World.AssetManager.Exists(new AssetLocation(t)))
-                .Select(m => m.Id).ToList());
+            var paths = members.Select(m => (m.Id, Path: m.Attributes.GetValueOrDefault(CurioCatalogue.Core.Member.FlatTexture))).ToList();
+            return (members.Count, paths, Shipped: paths.Any(p => p.Path != null && World.AssetManager.Exists(new AssetLocation(p.Path))),
+                Exist: paths.Where(p => p.Path != null && World.AssetManager.Exists(new AssetLocation(p.Path))).Select(p => p.Id).ToHashSet());
         });
 
-        Assert.True(missing.Count > 30, $"only {missing.Count} pieces");
-        Assert.Empty(missing.Missing);
+        Assert.True(seen.Count > 30, $"only {seen.Count} pieces");
+        Assert.Empty(seen.paths.Where(p => p.Path is null || !p.Path.StartsWith("game:textures/block/cloth/tapestry/")).Select(p => p.Id));
+        if (seen.Shipped)
+            Assert.Empty(seen.paths.Where(p => !seen.Exist.Contains(p.Id)).Select(p => p.Id));
     }
 
     [Fact]

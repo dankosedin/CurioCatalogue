@@ -38,8 +38,9 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
 3. **The core of collections:** [the plan](docs/plans/2026-11-07-collections-core.md) (07.11.2026). Definitions as assets
    built by sources, levels, members of several codes, the album storing what it collected, want lists by members, one
    resolver, the server's `Collections` sent to clients. Fills the upgrade table.
-4. **The collections of 0.2,** in this order, by what they give the core (item 2, Decisions); each a definition asset, its
-   album recipe and its lang, and fills the upgrade table. What each needs (collections design plan, Decisions):
+4. **The collections of 0.2:** [the plan](docs/plans/2026-11-09-vanilla-collections.md) (09.11.2026), in this order, by what
+   they give the core (item 2, Decisions); each a definition asset, its album recipe and its lang, and fills the upgrade table.
+   What each needs (collections design plan, Decisions):
    - **Ore crystals** (29.10.2026, players on the author's server collect them): `crystalizedore-{grade}-{ore}-{rock}`, source
      `variants`; three levels (16 / 118 / 353: ore with the richest grade, ore × rock with the richest grade, every combination);
      the 54 combinations that never generate as the definition's `exclude`; rocks' stones as icons; grade names of our own; the

@@ -8,9 +8,8 @@ namespace CurioCatalogue.Gui;
 
 /// <summary>
 /// The album window's tabs (album view, A2: vertical, at the side, as the handbook's): vanilla's vertical tabs with a check
-/// mark beside a complete tab. The mark is vanilla's SVG, not a "✓" in the name: the font may lack the glyph (A3b). Several
-/// tabs may be lit at once (the tabs of every group on a page, <see cref="CurioCatalogue.Core.TabPaging.Shared"/>): the window
-/// sets <see cref="GuiTab.Active"/> itself.
+/// mark beside a complete tab. The mark is vanilla's SVG, not a "✓" in the name: the font may lack the glyph (A3b). The window
+/// lights the tab of the page shown by <see cref="GuiTab.Active"/>.
 /// </summary>
 public sealed class AlbumTabs : GuiElementVerticalTabs
 {

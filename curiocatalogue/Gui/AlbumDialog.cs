@@ -11,20 +11,15 @@ namespace CurioCatalogue.Gui;
 
 /// <summary>
 /// The album window, as a stamp album (domain.md, Windows; album view plan, A2): the collection laid out on pages
-/// (<see cref="AlbumPages"/>, drawn by <see cref="AlbumPageElement"/>), tabs at the side when the grouping has names, and a row
-/// of controls: the level while the album is empty, the layout, search, the page buttons, "Make a want list" and "Start over";
+/// (<see cref="AlbumPages"/>, drawn by <see cref="AlbumPageElement"/>), tabs at the side when the grouping has names (a dropdown
+/// in the row of controls when they are taller than the window), each tab with pages of its own, and a row of controls: the
+/// level while the album is empty, the layout, search, the page buttons of the tab, "Make a want list" and "Start over";
 /// and the album's own row (<see cref="AlbumHeader"/>: the name, the progress, the sheets). The title bar names the collection.
 /// A piece taken while the window is open flips its cell without composing again; turning a page, switching the layout or the
 /// level composes. An album whose collection the game does not have (switched off, or gone with its mod) shows what it holds.
 /// </summary>
 public sealed class AlbumDialog : HeldItemDialog
 {
-    /// <summary>
-    /// TEMPORARY, until A4 of the album view plan: how tabs and pages go together, both built for the author to compare in game
-    /// (A2, "Tabs"); switched by a button in the window, kept for the game session. A4 keeps one and removes the switch.
-    /// </summary>
-    private static TabPaging paging = TabPaging.Shared;
-
     /// <summary>The layout the player chose, by collection and level, for the game session (A2: presentation only, kept on the
     /// client; an album handed over opens in the receiver's own).</summary>
     private static readonly Dictionary<string, string> chosenLayouts = new();
@@ -36,9 +31,12 @@ public sealed class AlbumDialog : HeldItemDialog
     private const double Line = 30;
 
     // What the window needs besides the page: screen and title bar padding, the dialog's padding, the line over the page, the rows
-    // of controls under it, the album's own row (A3d) and the row of temporary switches (A4 removes it, and these 40 can go to the
-    // page) (A1, "How much fits": at 768 about 11 rows of cells are left).
-    private const double AroundThePage = 322; // 310 and the room round the groups
+    // of controls under it, the album's own row (A3d) and the room round the groups (A1, "How much fits": at 768 about 11 rows
+    // of cells are left). A4 gave the page the 40 of the row of temporary switches.
+    private const double AroundThePage = 282;
+
+    // Vanilla's vertical tabs, one under another (AddTabs), from under the title bar.
+    private const double TabHeight = 30, TabsTop = 15;
 
     private readonly CurioCatalogueModSystem mod;
     private readonly CairoFont font = CairoFont.WhiteDetailText();
@@ -51,6 +49,8 @@ public sealed class AlbumDialog : HeldItemDialog
     private readonly Dictionary<string, string> searchNames = new();
     private AlbumPageElement? pageElement;
     private AlbumTabs? tabs;
+    /// <summary>The tabs' ✓ as the dropdown that stands for them was composed with; null when no dropdown shows them.</summary>
+    private bool[]? tabChoiceComplete;
     private readonly AlbumHeader header;
 
     /// <summary>What the window shows: the collection laid out, or (with no level) nothing, and the line above the page.</summary>
@@ -116,7 +116,7 @@ public sealed class AlbumDialog : HeldItemDialog
         string layoutKey = collection.Id + "/" + level.Id;
         var layout = level.Layouts.FirstOrDefault(l => l.Id == (keepLayout ?? chosenLayouts.GetValueOrDefault(layoutKey))) ?? level.DefaultLayout;
         var metrics = Metrics(collection);
-        return new View(state, collection, level, layout, AlbumPages.Build(collection, level, layout, metrics, paging), metrics, line);
+        return new View(state, collection, level, layout, AlbumPages.Build(collection, level, layout, metrics), metrics, line);
     }
 
     private PageMetrics Metrics(DefinedCollection collection)
@@ -145,12 +145,17 @@ public sealed class AlbumDialog : HeldItemDialog
     {
         pageElement?.Show(album);
         pageElement?.Highlight(Matcher());
-        if (tabs != null && shown.Pages is { } pages)
-        {
-            var collected = album.Collected.Keys.ToHashSet();
-            tabs.SetComplete(pages.Tabs.Select(t => t.IsComplete(collected)).ToList());
-        }
+        if (tabs != null) tabs.SetComplete(TabsComplete());
         header.Show(SingleComposer, Facts());
+        // The dropdown's names carry the ✓: a tab completed while the window is open composes it again.
+        if (tabChoiceComplete != null && !tabChoiceComplete.SequenceEqual(TabsComplete())) Compose();
+    }
+
+    private bool[] TabsComplete()
+    {
+        if (shown.Pages is not { } pages) return [];
+        var collected = album.Collected.Keys.ToHashSet();
+        return pages.Tabs.Select(t => t.IsComplete(collected)).ToArray();
     }
 
     /// <summary>What the album's own row shows: the progress only at a level of a collection the game has.</summary>
@@ -190,14 +195,21 @@ public sealed class AlbumDialog : HeldItemDialog
             .AddShadedDialogBG(content)
             .AddDialogTitleBar(Title(), () => TryClose());
         tabs = null;
-        if (pages is { Tabs.Count: > 0 }) AddTabs(composer, pages);
+        tabChoiceComplete = null;
+        // Tabs at the side while they fit the tallest window the screen allows, the page stretched down to them; taller, they
+        // become a dropdown in the row of controls (A4, the author).
+        double tabsHeight = pages is { Tabs.Count: > 0 } ? TabsTop + pages.Tabs.Count * TabHeight : 0;
+        bool tabsAside = tabsHeight > 0 && tabsHeight <= WindowHeight(pages!, shown.Metrics!.Height);
+        if (tabsAside) AddTabs(composer, pages!);
+        else if (tabsHeight > 0) tabChoiceComplete = TabsComplete();
+        double stretch = tabsAside ? Math.Max(0, tabsHeight - WindowHeight(pages!, pages!.Height)) : 0;
         composer.BeginChildElements(content);
 
         var controls = Controls();
         double width = Math.Max(Math.Max(pages == null ? 0 : pages.Width + 2 * AlbumPageElement.PadOf(pages), controls.Width), AlbumHeader.MinWidth);
         // The page buttons stand in the row of controls, in the middle of the room between its left and right parts (A4, the
         // author: between the search and the want list), when that room holds them; else in a row of their own, centred.
-        bool pagerInRow = pages is { Pages.Count: > 1 } && controls.Left + PagerWidth + controls.Right <= width;
+        bool pagerInRow = pages != null && pages.PagerAt(page).Count > 1 && controls.Left + PagerWidth + controls.Right <= width;
         double pagerCentre = pagerInRow ? (controls.Left + width - controls.Right) / 2 : width / 2;
         var facts = Facts();
 
@@ -212,7 +224,7 @@ public sealed class AlbumDialog : HeldItemDialog
         pageElement = null;
         if (pages != null && pages.Pages.Count > 0)
         {
-            var pageBounds = ElementBounds.Fixed(0, y, pages.Width + 2 * AlbumPageElement.PadOf(pages), pages.Height + 2 * AlbumPageElement.PadOf(pages));
+            var pageBounds = ElementBounds.Fixed(0, y, pages.Width + 2 * AlbumPageElement.PadOf(pages), pages.Height + 2 * AlbumPageElement.PadOf(pages) + stretch);
             content.WithChildren(pageBounds);
             composer.AddAlbumPage(pageBounds, pages, page, shown.Metrics!, Look(), "page", out var element);
             pageElement = element;
@@ -223,8 +235,8 @@ public sealed class AlbumDialog : HeldItemDialog
                 content.WithChildren(hover);
                 composer.AddAutoSizeHoverText(cut.Text, font, 300, hover);
             }
-            y += pages.Height + 2 * AlbumPageElement.PadOf(pages) + 6;
-            if (pages.Pages.Count > 1 && !pagerInRow)
+            y += pages.Height + 2 * AlbumPageElement.PadOf(pages) + stretch + 6;
+            if (pages.PagerAt(page).Count > 1 && !pagerInRow)
             {
                 AddPager(composer, content, pages, pagerCentre, y);
                 y += Line + 8;
@@ -238,16 +250,6 @@ public sealed class AlbumDialog : HeldItemDialog
         // The album's own row, at the bottom (A4: the author chose it over the one under the title).
         y += 2; // the stack of sheets reaches above the row
         header.Add(composer, content, y, width, facts);
-        y += AlbumHeader.Height + 10;
-
-        // TEMPORARY until A4: the switch between the tab variants; English only, never translated.
-        if (pages is { Tabs.Count: > 0 })
-        {
-            var switchBounds = ElementBounds.Fixed(0, y, 260, Line);
-            content.WithChildren(switchBounds);
-            composer.AddSmallButton(paging == TabPaging.Shared ? "Tabs: several groups a page" : "Tabs: one tab, one page",
-                OnSwitchPaging, switchBounds, EnumButtonStyle.Small, "paging");
-        }
 
         SetComposer(composer.EndChildElements());
         if (SingleComposer.GetTextInput("search") is { } input)
@@ -260,27 +262,34 @@ public sealed class AlbumDialog : HeldItemDialog
         ShowCollected();
     }
 
+    /// <summary>The window's height from under the title bar to its bottom with a page <paramref name="pageHeight"/> high, as
+    /// <see cref="Compose"/> lays it out, without the row of its own the page buttons take when the row of controls is short of
+    /// room (so the tabs are measured against no more than the window has). With the metrics' height: the tallest window the
+    /// screen allows.</summary>
+    private double WindowHeight(AlbumPages pages, double pageHeight) =>
+        5 + (shown.Line != null ? 26 : 0) + pageHeight + 2 * AlbumPageElement.PadOf(pages) + 6 + Line + 8 + 2 + AlbumHeader.Height;
+
+    /// <summary>A tab's name: its value's.</summary>
+    private static string TabName(AlbumPages pages, AlbumTab tab) =>
+        pages.TabDimension!.ValueNameKey(tab.Value) is { } key ? Lang.Get(key) : tab.Value;
+
     private void AddTabs(GuiComposer composer, AlbumPages pages)
     {
-        var dim = pages.TabDimension!;
-        var lit = pages.TabsOn(page);
-        var guiTabs = pages.Tabs.Select((t, i) => new GuiTab
-        {
-            Name = dim.ValueNameKey(t.Value) is { } key ? Lang.Get(key) : t.Value,
-            DataInt = i,
-        }).ToArray();
+        int? lit = pages.TabAt(page);
+        var guiTabs = pages.Tabs.Select((t, i) => new GuiTab { Name = TabName(pages, t), DataInt = i }).ToArray();
         // Outside the dialog on its left, as the handbook's (vssurvivalmod GuiDialogHandbook.cs:119#tabBounds).
-        var bounds = ElementBounds.Fixed(-200, GuiStyle.TitleBarHeight + 15, 200, pages.Tabs.Count * 30);
+        var bounds = ElementBounds.Fixed(-200, GuiStyle.TitleBarHeight + TabsTop, 200, pages.Tabs.Count * TabHeight);
         tabs = new AlbumTabs(capi, guiTabs, bounds, OnTab);
         // Set after the constructor, which lights the first tab (vsapi GuiElementVerticalTabs.cs:52).
-        for (int i = 0; i < guiTabs.Length; i++) guiTabs[i].Active = lit.Contains(pages.Tabs[i]);
+        for (int i = 0; i < guiTabs.Length; i++) guiTabs[i].Active = i == lit;
         composer.AddInteractiveElement(tabs, "tabs");
     }
 
-    /// <summary>◀ N / M ▶, PagerWidth wide, centred on <paramref name="centre"/>.</summary>
+    /// <summary>◀ N / M ▶ over the pages of the tab, PagerWidth wide, centred on <paramref name="centre"/>.</summary>
     private void AddPager(GuiComposer composer, ElementBounds content, AlbumPages pages, double centre, double y)
     {
         const double button = 30, number = PagerWidth - 2 * button;
+        var (first, count) = pages.PagerAt(page);
         double x = centre - number / 2;
         var prev = ElementBounds.Fixed(x - button, y, button, Line);
         var text = ElementBounds.Fixed(x, y + 6, number, Line);
@@ -288,7 +297,7 @@ public sealed class AlbumDialog : HeldItemDialog
         content.WithChildren(prev, text, next);
         composer
             .AddIconTextButton("left", () => { Turn(page - 1); return true; }, prev, "prev")
-            .AddStaticText(T("albumwindow-page", page + 1, pages.Pages.Count), font.Clone().WithOrientation(EnumTextOrientation.Center), text)
+            .AddStaticText(T("albumwindow-page", page - first + 1, count), font.Clone().WithOrientation(EnumTextOrientation.Center), text)
             .AddIconTextButton("right", () => { Turn(page + 1); return true; }, next, "next");
     }
 
@@ -303,10 +312,19 @@ public sealed class AlbumDialog : HeldItemDialog
         var parts = new List<(double Width, bool Right, Action<GuiComposer, ElementBounds> Add)>();
         void Part(double w, bool right, Action<GuiComposer, ElementBounds> add) => parts.Add((w, right, add));
 
+        // The level leftmost, the tabs' dropdown right after it (A4, the author).
         if (LevelChoices() is { } levels)
         {
             double w = levels.Names.Select(Width).Max() + 40;
             Part(w, false, (c, b) => c.AddDropDown(levels.Codes, levels.Names, levels.Selected, OnLevel, b, "level"));
+        }
+        if (tabChoiceComplete != null && shown.Pages is { } pages)
+        {
+            // The tabs as a dropdown: the tab's name, ✓ when all its groups are complete.
+            string[] ids = pages.Tabs.Select((_, i) => i.ToString()).ToArray();
+            string[] names = pages.Tabs.Select((t, i) => TabName(pages, t) + (tabChoiceComplete[i] ? " " + CompleteMark : "")).ToArray();
+            Part(names.Select(Width).Max() + 40, false,
+                (c, b) => c.AddDropDown(ids, names, pages.TabAt(page) ?? 0, OnTabChosen, b, "tab"));
         }
         if (shown is { State: ItemLedger.AlbumState.AtLevel, Level.Layouts.Count: > 1 } && shown.Layout is { } layout)
         {
@@ -420,9 +438,12 @@ public sealed class AlbumDialog : HeldItemDialog
 
     // --- Pages, tabs, layouts ---
 
+    /// <summary>Turns to a page of the tab shown (◀ ▶ do not leave the tab).</summary>
     private void Turn(int to)
     {
-        if (shown.Pages is not { } pages || to < 0 || to >= pages.Pages.Count || to == page) return;
+        if (shown.Pages is not { } pages || to == page) return;
+        var (first, count) = pages.PagerAt(page);
+        if (to < first || to >= first + count) return;
         page = to;
         Compose();
     }
@@ -434,18 +455,22 @@ public sealed class AlbumDialog : HeldItemDialog
         Compose(); // also when the page stays: the lit tabs are set again
     }
 
+    /// <summary>Marks a complete tab in the dropdown. Vanilla's texts never use "✓" (A3b), so whether the font has the glyph is
+    /// for the in-game check of A4.</summary>
+    private const string CompleteMark = "✓";
+
+    private void OnTabChosen(string index, bool selected)
+    {
+        if (shown.Pages is not { } pages || !int.TryParse(index, out int i) || i < 0 || i >= pages.Tabs.Count) return;
+        page = pages.Tabs[i].FirstPage;
+        Compose();
+    }
+
     private void OnLayout(string id, bool selected)
     {
         if (shown is not { Collection: { } collection, Level: { } level, Pages: { } pages } || id == shown.Layout?.Id) return;
         chosenLayouts[collection.Id + "/" + level.Id] = id;
         RelayOut(id, pages);
-    }
-
-    private bool OnSwitchPaging()
-    {
-        paging = paging == TabPaging.Shared ? TabPaging.PerTab : TabPaging.Shared;
-        if (shown.Pages is { } pages) RelayOut(shown.Layout?.Id, pages);
-        return true;
     }
 
     /// <summary>Lays the level out again and stays with the first piece of the page shown.</summary>

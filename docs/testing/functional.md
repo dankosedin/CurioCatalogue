@@ -73,6 +73,7 @@ which build, who ran it, and each `❌` with its reason.
 | A19 | 0.2.0 | A piece with a long name, in en and in uk | The name is cut with "…" in group headings and headings in words; the full name on hover; the cut does not change as pieces come |
 | A20 | 0.2.0 | Window at 1024×768 | The page and every row fit on the screen |
 | A21 | 0.2.0 | An album whose collection is switched off (config `Collections`) | One group of what was collected; no level, layout, want list or ↺; the text says the collection is switched off on this server |
+| A22 | 0.2.0 | An album with tabs (ore crystals by ore and by rock, once item 4 brings them; until then the test mod's `ccores`, level "Deposits"); turn pages with ◀ ▶, pick tabs; then a screen too short for the tabs (1024×768) | Each tab starts a page of its own and only its tab is lit, the window as tall as its tabs; "N / M" counts the pages of the tab and ◀ ▶ stay in it (no page buttons for a tab of one page); tabs taller than the screen allows are a dropdown in the row of controls, right after the level (while the album is empty), a complete tab with ✓ in its name (a box instead of ✓: the font lacks the glyph) |
 
 ## Want lists
 

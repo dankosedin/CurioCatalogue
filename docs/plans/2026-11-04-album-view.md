@@ -107,7 +107,7 @@ written by the agent. Mockups are ASCII or screenshots of a probe in game.
   - [x] **A3d. The header, variants A and C** behind a temporary switch: the name with our SVG pencil turning into a text
         input and "Save" (Enter, Escape), the sheets as parchment with a count, the progress bar with its number.
         Done when: A3's "Done when".
-- [ ] **A4. Checked in game, docs.** The author checks the window in game (en and uk, memory: in-game checks by language):
+- [x] **A4. Checked in game, docs.** The author checks the window in game (en and uk, memory: in-game checks by language):
       empty, partly full and full album; a refresh while open (taking new from a chest); a long name of a piece in both
       languages; the levels and the layouts; the header variants A and C and the two tab variants side by side, the author
       keeps one of each and the others are removed. `docs/testing/functional.md` gets the cases; both READMEs say what the album window shows (the screenshots
@@ -479,7 +479,7 @@ The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `Album
   input but puts the stored name back in it.
 - **The temporary switch** of A and C is a button "Header: A (top)" / "Header: C (bottom)" in a row of temporary switches
   under everything, beside the tab switch; A is the default. The page is 40 lower for the new row (`AroundThePage` 310); A4
-  gives back what the switches' row took.
+  gives back what the switches' row took. *Superseded by A4: C kept, both switches and their row removed (below).*
 
 **The in-game check of A3** (for A4; setting up: `docs/testing/commands.md`, books and tapestry pieces). In en, then uk:
 1. An album of tapestries, empty: the title bar "Album: tapestries"; the row with "No name", the pencil, the bar at 0/N, the
@@ -495,6 +495,32 @@ The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `Album
 6. Search: typing dims the cells that do not match; Enter turns to the next page with a match.
 7. ↺ "Start over" after something is collected: the confirmation, then an empty album with the level free again.
 8. A window at 1024×768 (the smallest the game supports): the page and every row fit with no part off the screen.
+
+### Checked in game (A4)
+
+Decided by the author, 08.11.2026, from the check in game (tapestries, seashells, `ccores` of the test mod; en and uk):
+- **Header C:** the album's own row (name and pencil, progress bar, sheets) at the bottom, under the row of controls. A, the
+  row under the title bar, is removed with its switch.
+- **One tab, one page:** a tab's groups start a page of their own (`AlbumPages.Build`). Rejected: several groups of different
+  tabs on a page, with every tab of the page lit: it surprises.
+- **◀ ▶ turn the pages of the tab**, "N / M" counts them (`AlbumPages.PagerAt`); no page buttons for a tab of one page. Another
+  tab is reached by its tab only.
+- **Tabs taller than the window become a dropdown** in the row of controls, a complete tab with ✓ after its name.
+- (09.11.2026) **Tabs are measured against the screen:** at the side while they fit the tallest window the screen allows, the
+  page stretched down to them (`AlbumDialog.WindowHeight` with the metrics' height); the dropdown only when they do not (ores
+  by ore at 1600×900 showed the dropdown when measured against the window, a page of an ore being 4 rows high).
+- (09.11.2026) **The level dropdown leftmost, the tabs' dropdown right after it**, then the layout and search.
+- The text of cut names, the page 3 × 4 cells wide, the pager in the row of controls, one left edge, ↺ as our own icon, the icon
+  buttons as the game's text buttons, the rename shown at once: see "Where we stopped", 08.11.2026 (late evening, night).
+
+The agent's choices, 09.11.2026; the author may overrule any:
+- **No "Ore:" before the dropdown:** a dimension has a name key for its values only (`DimensionDef.NameKey`, "game:ore-{value}"),
+  none for itself. A name of the dimension would be a field of the collection's shape (C7); a line for item 6 if wanted.
+- **✓ in the dropdown is the glyph** (the dropdown draws text only, no icons, vsapi `GuiElementDropDown`); vanilla's texts never
+  use it (A3b), so whether the font has it is for the check in game (A22 of `docs/testing/functional.md`).
+- **A tab completed while the window is open composes the window** when the dropdown shows the tabs (its names carry the ✓); the
+  tabs at the side flip their mark without composing, as before.
+- **The page got back the 40** of the row of temporary switches (`AroundThePage` 282).
 
 ## Where we stopped
 
@@ -591,3 +617,14 @@ The agent's choices, 08.11.2026 (`AlbumHeader`, a class of its own beside `Album
   (the page gets its 40 back, `AroundThePage`), the pager within a tab, the dropdown; then the author looks at `ccores` in game;
   the window stays 1600×900 and `glDebugMode` stays on (the author's choice, 09.11.2026); write
   "Decisions" for A4 (the header C, the tabs, the dropdown); remove `VintageStory-DevData\Mods\cccollections` at the end. Then A5.
+- 09.11.2026 (opus): done in code (final as code, builds, all tests green; not yet seen in game): `TabPaging.Shared` and the row
+  of temporary switches removed (the page got its 40 back), a tab's pages of its own with the pager within the tab
+  (`AlbumPages.PagerAt`, `TabAt`; two unit tests, mutation-checked), the dropdown for tabs taller than the window; Decisions,
+  "Checked in game (A4)"; case A22 in `docs/testing/functional.md`. Next: the author looks at `ccores` in game (A22, en and uk),
+  then removes `VintageStory-DevData\Mods\cccollections`; A4 is ticked when that passes. Then A5.
+  First look (the author, 00:11–00:13): both layouts showed the dropdown; now tabs are measured against the screen and the level
+  stands leftmost. The client crashed at 00:13:01 in the game's item tooltip (`GuiElementItemstackInfo.AsyncRecompose`,
+  `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture`, fatal with `glDebugMode` on), hovering the album window; cause not found,
+  to be repeated with note of what was under the mouse.
+  Then (the author, 09.11.2026): all of A22 passes in game. **A4 done**; the test mod's copy is removed from
+  `VintageStory-DevData\Mods`. The crash did not come back; if it does, a line for `ROADMAP.md`. Next: A5 (sonnet, After: A4).

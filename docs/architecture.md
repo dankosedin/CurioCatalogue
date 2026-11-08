@@ -70,7 +70,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   `CollectionDefinitionReader`, `AlbumRecipes` (plan `2026-11-07-collections-core.md`).
 - **The album window as data:** `AlbumPages.Build` lays a level's groups in a layout out on pages by `PageMetrics` (whole groups,
   side by side then under each other; a group larger than a page cut by lines; tables of the values that occur; a picture's
-  shape), with the tabs (`TabPaging.Shared | PerTab`), search (`NextPageWith`), what is under the mouse (`CellAt`, `HeadingAt`)
+  shape), with the tabs (each with pages of its own; the pages the page buttons turn, `PagerAt`), search (`NextPageWith`), what is under the mouse (`CellAt`, `HeadingAt`)
   and a cell's cycling stacks (`Slideshow`). Positions only: what is collected is read when
   drawing (`Album.StacksToShow`, `MemberGroup.CollectedCount`), so a refresh moves nothing (plan `2026-11-04-album-view.md`, A3).
 

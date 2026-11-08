@@ -6,7 +6,7 @@ namespace CurioCatalogue.Core.Tests;
 /// <summary>
 /// The album window's pages as data (docs/plans/2026-11-04-album-view.md, A2, "The view on paper"): whole groups in order, side
 /// by side then under each other; a group larger than a page cut by lines; tables of the values that occur; a picture's shape;
-/// tabs in both variants; search. On made-up collections with round sizes: a cell 10, a heading line 5, a gap 2.
+/// tabs with pages of their own; search. On made-up collections with round sizes: a cell 10, a heading line 5, a gap 2.
 /// </summary>
 public class AlbumPagesTests
 {
@@ -23,10 +23,10 @@ public class AlbumPagesTests
             _ => throw new InvalidOperationException(),
         };
 
-    private static AlbumPages Pages(DefinedCollection c, string level, string layout, PageMetrics m, TabPaging paging = TabPaging.Shared)
+    private static AlbumPages Pages(DefinedCollection c, string level, string layout, PageMetrics m)
     {
         var l = c.Level(level)!;
-        return AlbumPages.Build(c, l, l.Layouts.Single(x => x.Id == layout), m, paging);
+        return AlbumPages.Build(c, l, l.Layouts.Single(x => x.Id == layout), m);
     }
 
     private static string[][] GroupsByPage(AlbumPages pages) =>
@@ -197,25 +197,30 @@ public class AlbumPagesTests
     }
 
     [Fact]
-    public void Shared_pages_light_every_tab_with_a_group_on_the_page_and_a_tab_turns_to_its_first_group()
+    public void A_tab_has_pages_of_its_own_though_its_groups_would_share_a_page()
     {
-        // Copper 60 wide, tin 50, iron 40: copper and tin side by side (35 high), iron (25) would end at 37 + 25 = 62 > 60.
+        // Copper 60 wide, tin 50, iron 40: all together copper and tin would stand side by side (35 high), iron on a second page.
         var pages = Pages(Crystals, "all", "by-ore", Metrics(130, 60));
-        Assert.Equal([["copper", "tin"], ["iron"]], GroupsByPage(pages));
 
         Assert.Equal("ore", pages.TabDimension!.Code);
-        Assert.Equal([("copper", 0), ("tin", 0), ("iron", 1)], pages.Tabs.Select(t => (t.Value, t.FirstPage)).ToArray());
-        Assert.Equal(["copper", "tin"], pages.TabsOn(0).Select(t => t.Value).ToArray());
+        Assert.Equal([["copper"], ["tin"], ["iron"]], GroupsByPage(pages));
+        Assert.Equal([("copper", 0, 1), ("tin", 1, 1), ("iron", 2, 1)], pages.Tabs.Select(t => (t.Value, t.FirstPage, t.PageCount)).ToArray());
+        Assert.Equal(1, pages.TabAt(1));
     }
 
     [Fact]
-    public void A_page_per_tab_gives_each_tab_its_own_pages()
+    public void The_page_buttons_turn_the_pages_of_the_tab_and_without_tabs_all_pages()
     {
-        var pages = Pages(Crystals, "all", "by-ore", Metrics(130, 60), TabPaging.PerTab);
+        // A page of 25: copper (35 high) and tin (35) take two pages each, iron (25) one.
+        var pages = Pages(Crystals, "all", "by-ore", Metrics(200, 25));
 
-        Assert.Equal([["copper"], ["tin"], ["iron"]], GroupsByPage(pages));
-        Assert.Equal([0, 1, 2], pages.Tabs.Select(t => t.FirstPage).ToArray());
-        Assert.Equal(["tin"], pages.TabsOn(1).Select(t => t.Value).ToArray());
+        Assert.Equal([["copper"], ["copper+"], ["tin"], ["tin+"], ["iron"]], GroupsByPage(pages));
+        Assert.Equal([(0, 2), (0, 2), (2, 2), (2, 2), (4, 1)], Enumerable.Range(0, 5).Select(pages.PagerAt).ToArray());
+
+        var untabbed = Pages(Tapestries, "pieces", "pictures", Metrics(30, 15));
+        Assert.Empty(untabbed.Tabs);
+        Assert.Null(untabbed.TabAt(1));
+        Assert.Equal((0, untabbed.Pages.Count), untabbed.PagerAt(1));
     }
 
     [Fact]
@@ -233,7 +238,7 @@ public class AlbumPagesTests
     [Fact]
     public void Search_turns_to_the_next_page_with_a_match_going_round_and_ending_with_the_page_itself()
     {
-        var pages = Pages(Crystals, "all", "by-ore", Metrics(130, 60), TabPaging.PerTab);
+        var pages = Pages(Crystals, "all", "by-ore", Metrics(130, 60));
         bool Tin(Member m) => m.Values["ore"] == "tin";
 
         Assert.Equal(1, pages.NextPageWith(Tin, 0));

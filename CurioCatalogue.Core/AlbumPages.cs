@@ -6,7 +6,7 @@ using ExhaustiveMatching;
 namespace CurioCatalogue.Core;
 
 // The album window's pages as data (docs/plans/2026-11-04-album-view.md, A2, "The view on paper"): which groups go on which
-// page, where each cell and heading stands, the tabs. Built when a page's size, the level or the layout changes; what is
+// page, where each cell and heading stands, the tabs and the pages each turns. Built when a page's size, the level or the layout changes; what is
 // collected is not part of it, so taking a piece while the window is open changes no position (A2: a refresh flips flags
 // without composing again). Positions are in the caller's units (the GUI's unscaled pixels); the core never draws.
 
@@ -20,17 +20,6 @@ namespace CurioCatalogue.Core;
 /// <param name="TextHeadingWidth">A table's row heading in words (a crystal's grade); the caller measures the widest name.</param>
 /// <param name="MinGroupWidth">The narrowest a group with a heading is, so that its name and progress fit over one piece.</param>
 public sealed record PageMetrics(int Width, int Height, int Cell, int Heading, int Gap, int TextHeadingWidth, int MinGroupWidth);
-
-/// <summary>How tabs and pages go together (A2: two variants, compared in game in A4).</summary>
-public enum TabPaging
-{
-    /// <summary>Pages hold as many groups as fit, of any tab; a tab turns to the page of its first group, and every tab with a
-    /// group on the page is lit.</summary>
-    Shared,
-
-    /// <summary>A tab's groups start a page of their own: one tab, one page (more when its groups do not fit on one).</summary>
-    PerTab,
-}
 
 /// <summary>A member's cell on a page, at its top left corner.</summary>
 public sealed record PlacedMember(Member Member, int X, int Y);
@@ -95,8 +84,9 @@ public sealed record Slideshow(int Index, double Shown)
     }
 }
 
-/// <summary>A tab: a value of the layout's outermost grouping dimension and its groups.</summary>
-public sealed record AlbumTab(string Value, int FirstPage, IReadOnlyList<MemberGroup> Groups)
+/// <summary>A tab: a value of the layout's outermost grouping dimension, its groups and its pages (one tab, one page; more when
+/// its groups do not fit on one).</summary>
+public sealed record AlbumTab(string Value, int FirstPage, int PageCount, IReadOnlyList<MemberGroup> Groups)
 {
     /// <summary>Every member of every group collected: the tab gets its ✓.</summary>
     public bool IsComplete(IReadOnlySet<string> collectedIds) => Groups.All(g => g.IsComplete(collectedIds));
@@ -131,10 +121,10 @@ public sealed class AlbumPages
     /// <summary>
     /// Lays out the groups of <paramref name="layout"/> on pages. A page holds whole groups in order, side by side while they fit
     /// its width, then on the next line; a group larger than a page goes on over the next pages by whole lines of cells, a table
-    /// repeating its column headings.
+    /// repeating its column headings. With tabs, a tab's groups start a page of their own (A4, the author: one tab, one page;
+    /// several groups of different tabs on a page surprised).
     /// </summary>
-    public static AlbumPages Build(DefinedCollection collection, CollectionLevel level, LayoutDef layout, PageMetrics metrics,
-        TabPaging paging)
+    public static AlbumPages Build(DefinedCollection collection, CollectionLevel level, LayoutDef layout, PageMetrics metrics)
     {
         var groups = level.Groups(layout);
         var dims = collection.Definition.Dimensions.ToDictionary(d => d.Code);
@@ -144,25 +134,33 @@ public sealed class AlbumPages
         DimensionDef? tabDim = layout.GroupBy.Count > 0 && dims[layout.GroupBy[0]].NameKey != null ? dims[layout.GroupBy[0]] : null;
         string? TabOf(MemberGroup g) => tabDim == null ? null : g.Values[0];
 
-        var shared = Paginate(boxes, width, metrics, _ => null);
-        if (tabDim == null || shared.Count < 2) return new AlbumPages(shared, [], width, null);
+        // Tabs only when everything does not fit one page as it is.
+        var together = Paginate(boxes, width, metrics, _ => null);
+        if (tabDim == null || together.Count < 2) return new AlbumPages(together, [], width, null);
 
-        var pages = paging switch
-        {
-            TabPaging.Shared => shared,
-            TabPaging.PerTab => Paginate(boxes, width, metrics, TabOf),
-            _ => throw ExhaustiveMatch.Failed(paging),
-        };
+        var pages = Paginate(boxes, width, metrics, TabOf);
         var tabs = groups
             .GroupBy(g => TabOf(g)!)
-            .Select(t => new AlbumTab(t.Key, pages.FindIndex(p => p.Groups.Any(b => TabOf(b.Group) == t.Key)), t.ToList()))
+            .Select(t =>
+            {
+                bool Has(AlbumPage p) => p.Groups.Any(b => TabOf(b.Group) == t.Key);
+                return new AlbumTab(t.Key, pages.FindIndex(Has), pages.Count(Has), t.ToList());
+            })
             .ToList();
         return new AlbumPages(pages, tabs, width, tabDim);
     }
 
-    /// <summary>The tabs lit on a page: those with a group on it (one, with a page per tab).</summary>
-    public IReadOnlyList<AlbumTab> TabsOn(int page) =>
-        Tabs.Where(t => Pages[page].Groups.Any(b => t.Groups.Contains(b.Group))).ToList();
+    /// <summary>The tab a page belongs to (its index); null with no tabs.</summary>
+    public int? TabAt(int page)
+    {
+        int i = Tabs.ToList().FindIndex(t => page >= t.FirstPage && page < t.FirstPage + t.PageCount);
+        return i < 0 ? null : i;
+    }
+
+    /// <summary>The pages the page buttons turn from <paramref name="page"/>: its tab's (A4, the author: ◀ ▶ turn the pages of
+    /// the tab, "N / M" counts them), or all with no tabs.</summary>
+    public (int First, int Count) PagerAt(int page) =>
+        TabAt(page) is { } tab ? (Tabs[tab].FirstPage, Tabs[tab].PageCount) : (0, Pages.Count);
 
     /// <summary>The page with this member; null when no page has it.</summary>
     public int? PageOf(string memberId)

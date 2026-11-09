@@ -54,14 +54,14 @@ through every step (`UpgradeTests`).
         Branch: `feat/crystals`. After: V2b. Model: sonnet. Author: the in-game check (en, then uk): an album made from a
         crystal, the level chosen, tabs and both layouts at level 3, taking new from a chest, a want list naming the rock.
         Done when: the cases passed in game; the branch goes to `main` by a pull request.
-- [ ] **V3. Seashells.** The definition `seashells.json` by C2: source `variants` on `game:seashell-{type}-{color}`; two levels
+- [x] **V3. Seashells.** The definition `seashells.json` by C2: source `variants` on `game:seashell-{type}-{color}`; two levels
       (type, any colour, 7; type × colour, 42), level 2 a table type × colour; type and colour names our own lang keys (the game has
       only full names, K1; ours also avoid the vanilla uk bug of two codes sharing a name, C2), "мушля" in uk; rarity (seafoam,
       turquoise) as an attribute rule in the definition, data only (showing it is item 6's). The album recipe and `albumRecipe`.
       Server tests as V2 (counts, crafting, taking new at the type level with a shell of another colour).
       Branch: `feat/seashells`. After: V2 merged. Model: sonnet. Author: the in-game check (en, uk).
       Done when: tests pass, mutation-checked; cases in `functional.md` passed; upgrade table; `CHANGELOG.md`; pull request.
-- [ ] **V4. Butterflies.** The definition `butterflies.json` by C3: source `variants` on `game:butterfly-dead-{type}`, members from
+- [x] **V4. Butterflies.** The definition `butterflies.json` by C3: source `variants` on `game:butterfly-dead-{type}`, members from
       the loaded items (169; `reedbutterfly` has no item); one level, no grouping (decided in item 6), pages by count; the game's
       own names. The album recipe and `albumRecipe`. Server tests: the count, crafting, taking new.
       Branch: `feat/butterflies`. After: V3 merged. Model: sonnet. Author: the in-game check (en, uk).
@@ -129,3 +129,5 @@ Open points:
   ~6 letters ("Бісму…"): the author will polish the album's UI in a step of its own. A game flaw, not ours: the stack's long name
   ("…самородного золота у кварці") wraps over the icon in the tooltip. The in-game checks of V2c are to be repeated for these four.
 - 09.11.2026: V2 is in `main` (pull request #39, V1–V2); V2c ticked. V3 done except the author's part (final data, to be looked at in game) on `feat/seashells`, not pushed: `seashells.json` (levels `types` 7 and `colors` 42 as one table; the rule `rarity: rare` on seafoam and turquoise), lang en/uk (19 keys), the recipe `ledger-album-seashells` (the shell is a `block` ingredient), `SeashellsTests`, crafting and recipe tests, `functional.md` A25 and W5, the upgrade table line, `CHANGELOG.md`; mutation-checked (the rule narrowed, `any` made `max`). Level ids `types` and `colors` are stored in albums: not to be renamed. The uk type names follow the game where it has one: clam "Молюск", conch "Черепашка" (the author, 09.11.2026, after the in-game look; the ban on "черепашка" is for the collection's own word, "мушлі"). Rows of the want list (V3 follow-up): the author wants items in a want list to change (cycle) as in the album, a UI polish for item 6, not here. Not ticked: the in-game check (en, uk) and the pull request.
+- 09.11.2026: V3 is in `main` (pull request #40); V3 ticked. Next: V4 on `feat/butterflies`.
+- 09.11.2026: V4 done (final data, checked in game by the author) on `feat/butterflies`, not pushed: `butterflies.json` (one level `all`, the 169 types listed in the game's order; the level id is stored in albums: not to be renamed), lang en/uk (2 keys), the recipe `ledger-album-butterflies`, `ButterfliesTests`, crafting and recipe tests, `functional.md` A26, the upgrade table line, `CHANGELOG.md`; all test projects green, mutation-checked (a type dropped from the list). The look seen in game is plain; the window's width and rows are L6 of the album polish plan. Next: the pull request, then V5.

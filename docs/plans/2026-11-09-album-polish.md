@@ -48,6 +48,12 @@ sees a change.
 - [ ] **L4b. Butterflies: the grouping built.** By L4a; then the author's notes from the game, as L2. The album recipe kept or changed.
       Branch: `feat/butterflies-look`. After: L4a. Model: sonnet. Author: plays, writes the notes.
       Done when: tests pass (every one of the 169 in exactly one group), mutation-checked; the notes fixed or rejected; pull request.
+- [ ] **L6. The album window's width and rows.** The window's width follows the bottom rows of controls, not the page of cells (seen with
+      the butterflies, 09.11.2026): a column of cells more on the page and the controls spread a little, so the window is one clean block.
+      Looks at every collection (tapestries, crystals, seashells, butterflies), at both layouts and the tabs of crystals; the author's
+      notes from the game as L2. The earlier tab-heading cut-off ("Бісму…", V2) belongs here too.
+      Branch: `feat/album-layout`. After: V4 merged. Model: opus. Author: plays, writes the notes.
+      Done when: the notes fixed or rejected with reasons (Decisions); pull request.
 - [ ] **L5. The album recipes final.** One pass over the four album recipes as L2–L4b left them: the same pattern, each named by its
       definition, all in the handbook. F3 of `2026-11-04-fixes-0.2.md` waits for this.
       Branch: `feat/album-recipes` (none if nothing changes). After: L1–L4b. Model: sonnet. Author: yes or no.

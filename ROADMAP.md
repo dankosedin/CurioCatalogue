@@ -61,6 +61,9 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
      times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.
      Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
+   - **Album window: width set by the control row, not the cells** (seen 09.11.2026, after V4): the window is as wide as the bottom
+     rows of controls need, which shows with butterflies (a narrow grid under wide controls, a plain look). Add another column of
+     butterflies and spread the controls a little, so the window reads as one clean block; check the other collections too.
    - **Want list window: a line cycles through its items** (asked 09.11.2026, after V3): a line that any of several items fills
      (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do.
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by

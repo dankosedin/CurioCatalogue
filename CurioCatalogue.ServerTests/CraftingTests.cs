@@ -241,6 +241,26 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal("seashell-volute-turquoise x1", left);
     }
 
+    [Fact]
+    public void C3_an_empty_ledger_and_a_dead_butterfly_make_an_album_of_butterflies_and_the_butterfly_stays()
+    {
+        var client = FakeClient.Join(game, "c3-butterflies");
+        var (recipe, album, left) = game.OnMain(() =>
+        {
+            var player = client.Player;
+            Put(player, (0, Book("book-ledger-normal-teal", 9)), (1, Vanilla("butterfly-dead-monarch")));
+            var recipe = Shown(player).Recipe;
+            var taken = Take(player);
+            var album = ReadAlbum(taken);
+            return (recipe, (Describe(taken), album.Sheets, album.CollectionId, album.Level), Left(player));
+        });
+
+        Assert.Equal("ledger-album-butterflies", recipe);
+        // One level: it is the album's from the start.
+        Assert.Equal(("book-album-normal-teal x1", 9, "butterflies", "all"), album);
+        Assert.Equal("butterfly-dead-monarch x1", left);
+    }
+
     // ---- C4: books made from an old book (one with entries)
 
     [Fact]

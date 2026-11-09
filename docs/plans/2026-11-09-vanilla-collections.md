@@ -49,7 +49,7 @@ through every step (`UpgradeTests`).
         `crystals.json`. Tests: core, the reader, a server test of the want list's line.
         Branch: `feat/crystals`. After: V2a. Model: opus. Author: none.
         Done when: tests pass, mutation-checked (the flag ignored).
-  - [ ] **V2c. Into `main`.** A16, A22, W5 of `functional.md` on crystals instead of the test mod; the upgrade table (the recipe
+  - [x] **V2c. Into `main`.** A16, A22, W5 of `functional.md` on crystals instead of the test mod; the upgrade table (the recipe
         and the lang keys); `CHANGELOG.md`; the pull request.
         Branch: `feat/crystals`. After: V2b. Model: sonnet. Author: the in-game check (en, then uk): an album made from a
         crystal, the level chosen, tabs and both layouts at level 3, taking new from a chest, a want list naming the rock.
@@ -128,3 +128,4 @@ Open points:
   only shapes a want list sheet's text; (5) uk level name "Руда в кожній породі". Not done: the heading is still cut at
   ~6 letters ("Бісму…"): the author will polish the album's UI in a step of its own. A game flaw, not ours: the stack's long name
   ("…самородного золота у кварці") wraps over the icon in the tooltip. The in-game checks of V2c are to be repeated for these four.
+- 09.11.2026: V2 is in `main` (pull request #39, V1–V2); V2c ticked. V3 done except the author's part (final data, to be looked at in game) on `feat/seashells`, not pushed: `seashells.json` (levels `types` 7 and `colors` 42 as one table; the rule `rarity: rare` on seafoam and turquoise), lang en/uk (19 keys), the recipe `ledger-album-seashells` (the shell is a `block` ingredient), `SeashellsTests`, crafting and recipe tests, `functional.md` A25 and W5, the upgrade table line, `CHANGELOG.md`; mutation-checked (the rule narrowed, `any` made `max`). Level ids `types` and `colors` are stored in albums: not to be renamed. The uk type names follow the game where it has one: clam "Молюск", conch "Черепашка" (the author, 09.11.2026, after the in-game look; the ban on "черепашка" is for the collection's own word, "мушлі"). Rows of the want list (V3 follow-up): the author wants items in a want list to change (cycle) as in the album, a UI polish for item 6, not here. Not ticked: the in-game check (en, uk) and the pull request.

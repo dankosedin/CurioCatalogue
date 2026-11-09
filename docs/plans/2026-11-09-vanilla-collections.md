@@ -42,7 +42,7 @@ through every step (`UpgradeTests`).
         new and a want list on the level of several codes (`CrystalsTests`).
         Branch: `feat/crystals`. After: V1. Model: opus. Author: none.
         Done when: tests pass, mutation-checked (an `exclude` dropped; `max` read as `any` on the real data).
-  - [ ] **V2b. The rock in the lists.** A flag on a dimension of the definition, `"inLists": true` (the author, 09.11.2026):
+  - [x] **V2b. The rock in the lists.** A flag on a dimension of the definition, `"inLists": true` (the author, 09.11.2026):
         the value's name (its `nameKey`) said after the item's name where a missing piece is listed, as the free part is said
         today ("{0}, {1}"): "Bountiful crystallized chunk of native copper, basalt". In the core (`DimensionDef`), the reader,
         the want list's lines (`ItemInvoice`), and the album window's tooltip if it lists the same name; set on `rock` in
@@ -101,6 +101,12 @@ through every step (`UpgradeTests`).
 - **The ores' names are ours too** (V2a, 09.11.2026, the agent; the author may overrule): the game's `uk` names of ores are in
   the genitive and lower case ("самородної міді", made for "Щедрий кристал. шматок {0}"), wrong as a tab or a row heading.
   `curiocatalogue:crystals-ore-*` for all 18 ores, `en` as the game's.
+- **The rock in the lists** (V2b, 09.11.2026; the agent's choices, the author may overrule): a member's value is said when all
+  its items share it, kept by the level or not (the richest native copper is found in basalt only, so its line says "Basalt";
+  quartz gold of 13 rocks says "any rock" instead). The name is the game's `game:rock-*` as it is, capitalised
+  ("…native copper, Basalt"): lower-casing it would break languages that capitalise nouns, and own keys would be 17 more per
+  language. In the album window the value is a line of the cell's tooltip, collected or not (the title is the game's name of
+  the stack).
 - **Step letter V** (vanilla collections); A, B, C, F, G, K, P, R, S and T are taken.
 
 Open points:
@@ -111,3 +117,6 @@ Open points:
 
 - 09.11.2026: V1 done (final) on `feat/crystals`, not pushed: `AlbumStanding`/`AlbumRefusal` in the core is the one ladder (store, items, network; the hints ask the resolver by id, as before); `Transfer.PlanWhatFits` chooses the item of a member of several with the room (A5), for albums and want lists; decisions in `docs/decisions.md`, Collections; functional A23; all test projects green. Next: V2 on the same branch.
 - 09.11.2026: V2 split into V2a–V2c (the author). V2a done (final data, to be looked at in game in V2c) on `feat/crystals`, not pushed: `crystals.json`, lang en/uk, the recipe `ledger-album-crystals`, `CrystalsTests` and the recipe and crafting tests; only 398 crystals are registered (no stibnite, `docs/modding.md`). Next: V2b, the rock in the want list's lines.
+- 09.11.2026: V2b done (final; the look checked in game in V2c) on `feat/crystals`, not pushed: `inLists` on a dimension
+  (`DimensionDef`, the reader, `DefinedCollection.Listed`), said in the want list's lines and the album cell's tooltip; set on
+  `rock` in `crystals.json`; all test projects green, mutation-checked. Next: V2c.

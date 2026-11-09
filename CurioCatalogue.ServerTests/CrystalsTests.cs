@@ -1,6 +1,7 @@
 using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 
 namespace CurioCatalogue.ServerTests;
 
@@ -128,9 +129,11 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
         });
         var (info, firstName, lines, left, inventory) = seen;
 
-        // The first line is native copper (the dimension's order), bountiful in basalt only: one crystal, nothing left free.
+        // The first line is native copper (the dimension's order), bountiful in basalt only: one crystal, nothing left free,
+        // its rock said after its name (V2b: crystals of two rocks share a name).
         var infoLines = info.Split(["\r\n", "\n"], StringSplitOptions.None);
-        Assert.Contains(LangText("en", "invoice-info-line", 1, firstName), infoLines);
+        string basalt = game.OnMain(() => Lang.Get("game:rock-basalt"));
+        Assert.Contains(LangText("en", "invoice-info-line", 1, LangText("en", "invoice-info-member-free", firstName, basalt)), infoLines);
         // Quartz gold, the third: any of 13 rocks.
         string gold = game.OnMain(() => Vanilla("crystalizedore-bountiful-quartz_nativegold-andesite").GetName());
         Assert.Contains(LangText("en", "invoice-info-line", 1, LangText("en", "invoice-info-member-free", gold, LangText("en", "crystals-any-rock"))), infoLines);

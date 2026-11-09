@@ -391,6 +391,7 @@ public sealed class AlbumDialog : HeldItemDialog
                 return string.Join(" · ", parts.Select(p => ValueName(collection, p.Dimension, p.Value)
                     + (SharesName(collection, p.Dimension, p.Value) ? $" ({p.Value})" : "")));
             },
+            Listed: m => shown.Refused == null ? ItemInvoice.Listed(collection, m) : null,
             Freedom: m => shown.Refused == null ? ItemInvoice.Freedom(collection, level, m) : null,
             Rarity: _ => null); // no source of rarity yet (item 6)
     }

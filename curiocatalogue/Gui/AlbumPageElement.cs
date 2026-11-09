@@ -19,6 +19,7 @@ namespace CurioCatalogue.Gui;
 public sealed record AlbumPageLook(
     System.Func<MemberGroup, string> GroupName,
     System.Func<MemberGroup, string?> GroupHint,
+    System.Func<Member, string?> Listed,
     System.Func<Member, string?> Freedom,
     System.Func<Member, (int Argb, string Line)?> Rarity);
 
@@ -206,6 +207,7 @@ public sealed class AlbumPageElement : GuiElement
                 ? $"<font color=\"#84ff84\">{Lang.Get("curiocatalogue:albumwindow-collected")}</font>"
                 : $"<font color=\"#ff8484\">{Lang.Get("curiocatalogue:albumwindow-missing")}</font>",
         };
+        if (look.Listed(member) is { } listed) lines.Add(listed); // the item's name does not say it (a crystal's rock)
         if (!isCollected && look.Freedom(member) is { } free) lines.Add(free);
         if (look.Rarity(member) is { } rarity) lines.Add(rarity.Line);
         return string.Join("\n", lines);

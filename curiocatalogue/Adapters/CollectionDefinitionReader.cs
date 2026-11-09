@@ -133,7 +133,14 @@ public static class CollectionDefinitionReader
         return code == null
             ? null
             : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
-                Text(o, "anyKey", errors, required: false));
+                Text(o, "anyKey", errors, required: false), Flag(o, "inLists", errors));
+    }
+
+    private static bool Flag(JObject o, string name, List<string> errors)
+    {
+        if (o[name] is { Type: JTokenType.Boolean } t) return (bool)t;
+        if (o[name] != null) errors.Add($"'{name}' is not true or false");
+        return false;
     }
 
     private static LevelDef? ReadLevel(JToken token, List<string> errors)

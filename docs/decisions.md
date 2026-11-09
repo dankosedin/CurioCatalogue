@@ -74,7 +74,8 @@ members, the resolver, the packet and the recipe of a disabled collection are in
   example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
   `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
   "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`, `anyKey`: a phrase in lower case for what a member of several items leaves
-free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
+free, "any colour"; `inLists`: `true` to say the member's value by its `nameKey` after the item's name in the want list's lines and
+the album cell's tooltip, when the name does not say it, a crystal's rock), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
   complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
   `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",

@@ -23,7 +23,8 @@
         "limestone", "chert", "conglomerate", "whitemarble", "redmarble", "greenmarble", "kimberlite"],
       "nameKey": "game:rock-{value}",
       "icon": "game:stone-{value}",
-      "anyKey": "curiocatalogue:crystals-any-rock"
+      "anyKey": "curiocatalogue:crystals-any-rock",
+      "inLists": true
     }
   ],
   "levels": [

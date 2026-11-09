@@ -145,6 +145,19 @@ A sheet is vanilla parchment; there is no separate blank item.
   it stays for other chests. When empty, it becomes parchment (with `ConsumeSheets` it disappears). The mod only moves items; giving or trading is up to the players.
 - A tapestry already on a wall gets into an album by taking it down into a chest once.
 
+**The collections of the game** (0.2; definitions in `config/curiocatalogue/collections/`, the shape in `docs/decisions.md`, "Collections"):
+
+| Id | Member | Levels (ids are stored in albums: not to be renamed) | Album recipe |
+|---|---|---|---|
+| `tapestries` | a tapestry piece | one | `ledger-album` |
+| `crystals` | an ore crystal (`crystalizedore-{grade}-{ore}-{rock}`; 398 registered, 54 combinations excluded as never generated) | `richest` 16 (the richest grade of each ore), `rocks` 118 (ore × rock at its richest grade), `all` 353 | `ledger-album-crystals` |
+| `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data | `ledger-album-seashells` |
+| `butterflies` | a dead butterfly (`butterfly-dead-{type}`; `reedbutterfly` has no item) | `all` 169, one entry each, the game's own names | `ledger-album-butterflies` |
+
+A member kept at a level by `any` takes any of its items (a want list says "any colour", "any rock"); a dimension flagged
+`inLists` (the crystals' rock) is said in a want list's lines when all items of the member share it. Butterflies on shelves,
+display cases and display mods are not read yet (`ROADMAP.md`, Exhibits).
+
 **Tapestry collection:** generated from the tapestry block's `sizes` attribute (31 pictures = 88 pieces; mods that extend
 `sizes` are included). The member is a piece (`tapestry-north` + `type`, e.g. `ambush1`). Config: `Collections.tapestries.Exclude` (patterns
 with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `symptoms*`) and `Add`.
@@ -176,7 +189,7 @@ mod brings its own; the item put in must be a member of that collection.
 | 1 | restoration: a found large book (clutter `bookshelves/large-book-closed` or `-open`; must be repaired with glue to drop at all) + jug of lime water (1 L, jug stays) + ink and quill | ledger, 32 sheets, darkgreen |
 | 2 | an empty ledger or bill of materials alone | the other mode (name and sheets kept) |
 | 3 | book + parchment | sheets up to 32 in one craft; spare parchment stays in the grid; not with a full book |
-| 4 | empty ledger or bill of materials + a tapestry piece (stays) | tapestry album (sheets carried over) |
+| 4 | empty ledger or bill of materials + a tapestry piece, an ore crystal, a seashell or a dead butterfly (stays; one recipe per collection) | album of that collection (sheets carried over) |
 | 5 | book or album + dyed leather (used up) | recolour |
 | 6 | book or album + jug of sulfuric acid (1 L, jug stays) | aged cover |
 

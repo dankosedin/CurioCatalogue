@@ -16,7 +16,7 @@ Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
 
 ## What's inside
 
-- **The album:** a collector's catalogue that knows what you are still missing, and takes one of each missing piece from a chest. The first collection is tapestries: 88 pieces in 31 pictures.
+- **The album:** a collector's catalogue that knows what you are still missing, and takes one of each missing piece from a chest. Four collections: tapestries (88 pieces in 31 pictures), ore crystals, seashells (42) and butterflies (169); see "Collections" below.
 - **The want list:** made by the album; give it to a friend and it gathers what you miss from their chests.
 - **The ledger:** a book that notes which kinds of items you have, by type.
 - **The bill of materials:** a book that notes how many of each, a shopping list for a project that shrinks as you take what you need from chests.
@@ -35,7 +35,7 @@ Books and lists are ordinary items. They hold their data themselves, so you can 
 
 Not promised, roughly in this order (details in `ROADMAP.md`):
 
-- more collections: butterflies, ore crystals, seashells;
+- albums that also see what is on display (walls, shelves, display cases), not only what lies in chests;
 - recipes put into a bill of materials;
 - collections of your own.
 
@@ -60,7 +60,8 @@ Thanks to these authors: their work makes the game's mod community richer.
 
    ![The first ledger in the crafting grid, with its tooltip](docs/images/first-ledger.en.png)
 
-2. **The album.** An empty ledger and any tapestry piece in the crafting grid; the piece stays.
+2. **The album.** An empty ledger and any piece of the collection (a tapestry piece, an ore crystal, a seashell, a dead butterfly)
+   in the crafting grid; the piece stays. The piece you use decides the collection.
 3. **Collect.** Hold the album, or keep it in your off-hand with the main hand empty, and press **Shift + right click** on a chest.
 4. **Look.** Right click into the air opens the album as pages: every picture with its pieces in place, the ones you have
    and the missing ones as dim silhouettes. Turn the pages with the buttons, or pick a group on its tab; a search lights the
@@ -68,6 +69,23 @@ Thanks to these authors: their work makes the game's mod community richer.
    left for want lists. The **Make a want list** button is in the row of controls.
 
 The in-game handbook has a Curio Catalogue guide and a page for every book.
+
+## Collections
+
+An album collects one collection, chosen by the piece it is made from. Where a collection has levels, you choose one in the
+album window while the album is empty; the first piece taken fixes it, and "Start over" frees it.
+
+| Collection | Made from | Levels |
+|---|---|---|
+| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures |
+| Ore crystals | an ore crystal | the richest crystal of each ore (16); each ore in each rock (118); every crystal (353) |
+| Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
+| Butterflies | a dead butterfly | one: all 169 |
+
+- A want list says what is missing, not one item: where several items will do (a seashell of any colour, a crystal in any rock)
+  it says "any colour" or "any rock" and takes whichever there is room for. Crystals of one rock name that rock.
+- Butterflies on shelves, in display cases and in display mods are not read yet: take them into a chest first. The same holds for
+  tapestries on a wall.
 
 ## Gestures
 

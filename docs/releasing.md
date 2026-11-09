@@ -65,6 +65,10 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
     - **"What's inside":** a list of exactly six items, one thing each, in the order of the icons (album, want list, ledger,
       bill of materials, intake list, pick list), then a paragraph, then `###` subsections (each a nested accordion).
     - **No HTML** in README; images and links by relative paths; screenshots with the language suffix (`*.en.png`, `*.uk.png`).
+    - **After any change to a README** (a new, renamed or removed `##` section above all), run the real generator before the
+      commit: `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=HEAD`. `PageGen.Tests` use sample
+      READMEs, so only this step (and the `ModDB page` step of CI) sees the real ones. A new section also goes into
+      `Contract.cs` (`AccordionKeys` or `OtherKeys`, in README order) and into the sample of `ModDbPageTests.cs`.
 - **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
   release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
   the date in `CHANGELOG.md` and the version in both READMEs' early-development warning. A fresh Fendragon invite in both READMEs'

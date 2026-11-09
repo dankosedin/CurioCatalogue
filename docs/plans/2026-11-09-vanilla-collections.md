@@ -29,19 +29,31 @@ through every step (`UpgradeTests`).
       is known, so a member of several items may take one when another would fit). No change the player sees but A5's.
       Branch: `feat/crystals`. After: the plan's own commit. Model: opus. Author: none.
       Done when: all test projects pass; a test for A5 fails on the old code; the `ROADMAP.md` line is removed.
-- [ ] **V2. Ore crystals.** The definition `crystals.json` by C1 and A2: source `variants` on `game:crystalizedore-{grade}-{ore}-{rock}`;
-      three levels (the richest of each ore, 16; ore × rock at its richest grade, 118; every combination, 353), the layouts of A2
-      (level 2 ores as rows and rocks as columns; level 3 by ore and by rock, a table grade × rock or grade × ore); the 54
-      combinations that never generate as the definition's `exclude`; the rocks' stones as icons; the grade names our own lang keys
-      (`game:ore-grade-*` says "Quality: …", K1), en and uk; `anyKey` for rock and grade. The rock shown wherever a missing piece is
-      listed (pieces of two rocks share a name, C1): at least the want list's lines. The album recipe (decided: as the tapestries'),
-      its `albumRecipe`. Server tests: the counts 16 / 118 / 353 on the real registry, the album crafted from a crystal
-      (`CraftingTests`), taking new and a want list on a level of several codes.
-      Branch: `feat/crystals`. After: V1. Model: opus. Author: the in-game check (en, then uk): an album made from a crystal, the
-      level chosen, tabs and both layouts at level 3, taking new from a chest, a want list naming the rock.
-      Done when: tests pass, mutation-checked (an `exclude` dropped; `max` read as `any` on the real data); A16, A22, W5 of
-      `functional.md` run on crystals instead of the test mod and passed; upgrade table: the recipe and the lang keys; `CHANGELOG.md`;
-      the branch goes to `main` by a pull request.
+- **V2. Ore crystals,** in three parts (split by the author, 09.11.2026: data, the rock in the lists, the release of the branch).
+  The definition `crystals.json` by C1 and A2: source `variants` on `game:crystalizedore-{grade}-{ore}-{rock}`; three levels (the
+  richest of each ore, 16; ore × rock at its richest grade, 118; every combination, 353), the layouts of A2 (level 2 ores as rows
+  and rocks as columns; level 3 by ore and by rock, a table grade × rock or grade × ore); the 54 combinations that never generate
+  as the definition's `exclude`; the rocks' stones as icons; the grade names our own lang keys (`game:ore-grade-*` says
+  "Quality: …", K1), en and uk; `anyKey` for rock and grade. The rock shown wherever a missing piece is listed (pieces of two
+  rocks share a name, C1): at least the want list's lines. The album recipe (decided: as the tapestries'), its `albumRecipe`.
+  - [x] **V2a. The data and its tests.** `crystals.json`, its lang keys (en, uk), the recipe `ledger-album-crystals` and
+        `albumRecipe`. Server tests: the counts 16 / 118 / 353 on the real registry, the richest grade per ore and per ore and
+        rock, the album crafted from a crystal and none from a uranium one (`CraftingTests`), the recipes (`RecipeTests`), taking
+        new and a want list on the level of several codes (`CrystalsTests`).
+        Branch: `feat/crystals`. After: V1. Model: opus. Author: none.
+        Done when: tests pass, mutation-checked (an `exclude` dropped; `max` read as `any` on the real data).
+  - [ ] **V2b. The rock in the lists.** A flag on a dimension of the definition, `"inLists": true` (the author, 09.11.2026):
+        the value's name (its `nameKey`) said after the item's name where a missing piece is listed, as the free part is said
+        today ("{0}, {1}"): "Bountiful crystallized chunk of native copper, basalt". In the core (`DimensionDef`), the reader,
+        the want list's lines (`ItemInvoice`), and the album window's tooltip if it lists the same name; set on `rock` in
+        `crystals.json`. Tests: core, the reader, a server test of the want list's line.
+        Branch: `feat/crystals`. After: V2a. Model: opus. Author: none.
+        Done when: tests pass, mutation-checked (the flag ignored).
+  - [ ] **V2c. Into `main`.** A16, A22, W5 of `functional.md` on crystals instead of the test mod; the upgrade table (the recipe
+        and the lang keys); `CHANGELOG.md`; the pull request.
+        Branch: `feat/crystals`. After: V2b. Model: sonnet. Author: the in-game check (en, then uk): an album made from a
+        crystal, the level chosen, tabs and both layouts at level 3, taking new from a chest, a want list naming the rock.
+        Done when: the cases passed in game; the branch goes to `main` by a pull request.
 - [ ] **V3. Seashells.** The definition `seashells.json` by C2: source `variants` on `game:seashell-{type}-{color}`; two levels
       (type, any colour, 7; type × colour, 42), level 2 a table type × colour; type and colour names our own lang keys (the game has
       only full names, K1; ours also avoid the vanilla uk bug of two codes sharing a name, C2), "мушля" in uk; rarity (seafoam,
@@ -81,6 +93,14 @@ through every step (`UpgradeTests`).
 - **Malachite in marble is not excluded** (the author, 09.11.2026) until seen otherwise; an open point below.
 - **The test mod's `ccores` and `ccshells` stay** (the author, 09.11.2026): `CompatTests` need a collection from another domain.
   The in-game checks move to the real collections.
+- **The crystals' data** (V2a, 09.11.2026; the agent's choices within C1 and A2, to look at in game): level ids `richest`,
+  `rocks`, `all` (stored in albums: not to be renamed); level 2 one table with no grouping, level 3 `byore` (default, so its
+  progress counts whole ores) and `byrock`; the ores in the order of `worldproperties/block/ore-graded.json`, the rocks in the
+  order of the item's `allowedVariants` (igneous, metamorphic, sedimentary, the marbles, kimberlite); the icon of a rock is its
+  stone, `game:stone-{rock}`; the recipe `ledger-album-crystals` in the album's handbook group (4) with the tapestries'.
+- **The ores' names are ours too** (V2a, 09.11.2026, the agent; the author may overrule): the game's `uk` names of ores are in
+  the genitive and lower case ("самородної міді", made for "Щедрий кристал. шматок {0}"), wrong as a tab or a row heading.
+  `curiocatalogue:crystals-ore-*` for all 18 ores, `en` as the game's.
 - **Step letter V** (vanilla collections); A, B, C, F, G, K, P, R, S and T are taken.
 
 Open points:
@@ -90,3 +110,4 @@ Open points:
 ## Where we stopped
 
 - 09.11.2026: V1 done (final) on `feat/crystals`, not pushed: `AlbumStanding`/`AlbumRefusal` in the core is the one ladder (store, items, network; the hints ask the resolver by id, as before); `Transfer.PlanWhatFits` chooses the item of a member of several with the room (A5), for albums and want lists; decisions in `docs/decisions.md`, Collections; functional A23; all test projects green. Next: V2 on the same branch.
+- 09.11.2026: V2 split into V2a–V2c (the author). V2a done (final data, to be looked at in game in V2c) on `feat/crystals`, not pushed: `crystals.json`, lang en/uk, the recipe `ledger-album-crystals`, `CrystalsTests` and the recipe and crafting tests; only 398 crystals are registered (no stibnite, `docs/modding.md`). Next: V2b, the rock in the want list's lines.

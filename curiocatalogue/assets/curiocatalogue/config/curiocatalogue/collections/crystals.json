@@ -1,0 +1,66 @@
+{
+  "nameKey": "curiocatalogue:collection-crystals",
+  "albumRecipe": "curiocatalogue:ledger-album-crystals",
+  "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}" },
+  "dimensions": [
+    {
+      "code": "grade",
+      "values": ["poor", "medium", "rich", "bountiful"],
+      "nameKey": "curiocatalogue:crystals-grade-{value}",
+      "anyKey": "curiocatalogue:crystals-any-grade"
+    },
+    {
+      "code": "ore",
+      "values": ["nativecopper", "limonite", "quartz_nativegold", "galena", "cassiterite", "chromite", "ilmenite", "sphalerite",
+        "quartz_nativesilver", "galena_nativesilver", "bismuthinite", "magnetite", "hematite", "malachite", "pentlandite",
+        "rhodochrosite", "uranium", "stibnite"],
+      "nameKey": "curiocatalogue:crystals-ore-{value}",
+      "anyKey": "curiocatalogue:crystals-any-ore"
+    },
+    {
+      "code": "rock",
+      "values": ["andesite", "granite", "basalt", "peridotite", "phyllite", "slate", "claystone", "sandstone", "shale", "chalk",
+        "limestone", "chert", "conglomerate", "whitemarble", "redmarble", "greenmarble", "kimberlite"],
+      "nameKey": "game:rock-{value}",
+      "icon": "game:stone-{value}",
+      "anyKey": "curiocatalogue:crystals-any-rock"
+    }
+  ],
+  "levels": [
+    {
+      "id": "richest",
+      "nameKey": "curiocatalogue:crystals-level-richest",
+      "progressKey": "curiocatalogue:crystals-progress",
+      "keep": ["ore"],
+      "drop": { "grade": "max", "rock": "any" }
+    },
+    {
+      "id": "rocks",
+      "nameKey": "curiocatalogue:crystals-level-rocks",
+      "progressKey": "curiocatalogue:crystals-progress",
+      "keep": ["ore", "rock"],
+      "drop": { "grade": "max" },
+      "layouts": [
+        { "id": "table", "groupBy": [], "arrange": { "kind": "table", "rows": "ore", "columns": "rock" } }
+      ]
+    },
+    {
+      "id": "all",
+      "nameKey": "curiocatalogue:crystals-level-all",
+      "progressKey": "curiocatalogue:crystals-progress-byore",
+      "keep": ["ore", "rock", "grade"],
+      "layouts": [
+        { "id": "byore", "nameKey": "curiocatalogue:crystals-layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock" } },
+        { "id": "byrock", "nameKey": "curiocatalogue:crystals-layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore" } }
+      ]
+    }
+  ],
+  "exclude": [
+    "crystalizedore-*-uranium-*",
+    "crystalizedore-*-stibnite-*",
+    "crystalizedore-*-hematite-sandstone",
+    "crystalizedore-rich-magnetite-slate",
+    "crystalizedore-bountiful-magnetite-slate",
+    "crystalizedore-rich-ilmenite-peridotite"
+  ]
+}

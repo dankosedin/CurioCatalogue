@@ -30,8 +30,13 @@ public abstract record TransferPlan
     public sealed record NoRoom(int SlotsShort) : TransferPlan;
 }
 
-/// <summary>What fitted: the moves to carry out, the lines they take, and the lines left behind (no room, or not in the container).</summary>
-public sealed record PartialPlan(IReadOnlyList<Move> Moves, IReadOnlyList<Entry> Taken, IReadOnlyList<Entry> Left);
+/// <summary>A line of <see cref="Transfer.PlanWhatFits(IEnumerable{IReadOnlyList{Entry}}, IReadOnlyList{SourceSlot}, IReadOnlyList{TargetSlot}, Func{int, SourceSlot, int})"/>
+/// that is taken: its index among the lines given, and the item chosen for it.</summary>
+public sealed record TakenLine(int Line, Entry Entry);
+
+/// <summary>What fitted: the moves to carry out, the lines they take, and the lines left behind for lack of room (their indices).
+/// A line with nothing to take (its items not in the container, or each taken by an earlier line) is in neither.</summary>
+public sealed record PartialPlan(IReadOnlyList<Move> Moves, IReadOnlyList<TakenLine> Taken, IReadOnlyList<int> Left);
 
 /// <summary>
 /// Plans posting an invoice (domain.md, Posting an invoice) as a list of moves from container slots to player slots, so that the
@@ -89,14 +94,27 @@ public static class Transfer
         return new TransferPlan.Ready(moves);
     }
 
+    /// <summary>As <see cref="PlanWhatFits(IEnumerable{IReadOnlyList{Entry}}, IReadOnlyList{SourceSlot}, IReadOnlyList{TargetSlot}, Func{int, SourceSlot, int})"/>
+    /// with one item per line.</summary>
+    public static PartialPlan PlanWhatFits(
+        IEnumerable<Entry> lines,
+        IReadOnlyList<SourceSlot> sources,
+        IReadOnlyList<TargetSlot> targets,
+        Func<int, SourceSlot, int> capacity) =>
+        PlanWhatFits(lines.Select(line => (IReadOnlyList<Entry>)[line]), sources, targets, capacity);
+
     /// <summary>
     /// Plans as many whole lines as fit, in the given order (domain.md, Albums and collections: what does not fit stays behind).
     /// A line is taken whole or not at all; a line that does not fit is skipped and later lines may still fit.
+    /// <para>The one rule that chooses the item for a line wanting any of several (a member of several items, of an album or a
+    /// want list): the first of its options, in their order, that the container has, that no earlier line took, and that fits
+    /// (A5 of the collections core's code review: an item that does not fit no longer keeps out one that would). An item goes to
+    /// one line at most, so its key names the line it was taken for.</para>
     /// Sources and room are chosen as in <see cref="Plan"/>.
     /// </summary>
-    /// <param name="lines">Distinct items, in the order to take them.</param>
+    /// <param name="lines">The lines in the order to take them; each its options in the order to try them.</param>
     public static PartialPlan PlanWhatFits(
-        IEnumerable<Entry> lines,
+        IEnumerable<IReadOnlyList<Entry>> lines,
         IReadOnlyList<SourceSlot> sources,
         IReadOnlyList<TargetSlot> targets,
         Func<int, SourceSlot, int> capacity)
@@ -105,34 +123,43 @@ public static class Transfer
         var content = targets.ToDictionary(t => t.Index, t => new Held(t.Key, t.Stack, t.Count));
         var order = targets.Select(t => t.Index).ToList();
         var moves = new List<Move>();
-        var taken = new List<Entry>();
-        var left = new List<Entry>();
+        var taken = new List<TakenLine>();
+        var left = new List<int>();
+        var used = new HashSet<ItemKey>();
 
-        foreach (var line in lines)
+        int index = -1;
+        foreach (var options in lines)
         {
-            var takes = new List<(SourceSlot From, int Amount)>();
-            int needed = line.Count;
-            foreach (var source in sources.Where(s => s.Key == line.Key && available[s.Index] > 0).OrderBy(s => available[s.Index]).ThenBy(s => s.Index))
+            index++;
+            bool offered = false;
+            foreach (var line in options)
             {
-                if (needed == 0) break;
-                int amount = Math.Min(needed, available[source.Index]);
-                takes.Add((source, amount));
-                needed -= amount;
-            }
+                if (used.Contains(line.Key)) continue;
+                var takes = new List<(SourceSlot From, int Amount)>();
+                int needed = line.Count;
+                foreach (var source in sources.Where(s => s.Key == line.Key && available[s.Index] > 0).OrderBy(s => available[s.Index]).ThenBy(s => s.Index))
+                {
+                    if (needed == 0) break;
+                    int amount = Math.Min(needed, available[source.Index]);
+                    takes.Add((source, amount));
+                    needed -= amount;
+                }
+                if (needed > 0) continue;
+                offered = true;
 
-            // Try the line on a copy of the inventory; keep it only when all of it fits.
-            var tryContent = new Dictionary<int, Held>(content);
-            var tryMoves = new List<Move>();
-            bool fits = needed == 0 && takes.All(t => Place(t.From, t.Amount, tryContent, order, capacity, tryMoves) == 0);
-            if (!fits)
-            {
-                left.Add(line);
-                continue;
+                // Try the option on a copy of the inventory; keep it only when all of it fits.
+                var tryContent = new Dictionary<int, Held>(content);
+                var tryMoves = new List<Move>();
+                if (!takes.All(t => Place(t.From, t.Amount, tryContent, order, capacity, tryMoves) == 0)) continue;
+                content = tryContent;
+                moves.AddRange(tryMoves);
+                foreach (var (from, amount) in takes) available[from.Index] -= amount;
+                used.Add(line.Key);
+                taken.Add(new TakenLine(index, line));
+                break;
             }
-            content = tryContent;
-            moves.AddRange(tryMoves);
-            foreach (var (from, amount) in takes) available[from.Index] -= amount;
-            taken.Add(line);
+            // In the container, yet no option fitted: left for lack of room.
+            if (offered && (taken.Count == 0 || taken[^1].Line != index)) left.Add(index);
         }
         return new PartialPlan(moves, taken, left);
     }

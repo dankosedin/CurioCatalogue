@@ -44,21 +44,15 @@ public enum CollectRefusal
     NoAccess,
     NothingNew,
     NoRoom,
-
-    /// <summary>The game does not have the album's collection (a mod removed).</summary>
-    NoCollection,
-
-    /// <summary>The server's config switched the album's collection off.</summary>
-    Disabled,
-
-    /// <summary>The collection has several levels and the album has none chosen (A2 of the album view plan).</summary>
-    NoLevel,
 }
 
 /// <summary>An album taking new items for its collection straight from a container (domain.md, Albums and collections).</summary>
-[Closed(typeof(CollectResult.Collected), typeof(CollectResult.Refused))]
+[Closed(typeof(CollectResult.Collected), typeof(CollectResult.Refused), typeof(CollectResult.AlbumRefused))]
 public abstract record CollectResult
 {
+    /// <summary>The album does nothing with its collection now (off, gone, no level), whatever the container.</summary>
+    public sealed record AlbumRefused(AlbumRefusal Reason) : CollectResult;
+
     /// <param name="Taken">Items taken into the inventory and crossed off the album.</param>
     /// <param name="NotFitted">New items left in the container for lack of room.</param>
     /// <param name="MissingLeft">What the album still misses.</param>
@@ -190,8 +184,7 @@ public sealed class InvoicePoster
         // A line naming a member goes the album's way: any item that fills it (format 2); else exactly its item. No two lines share
         // an item, so an item's key names its line.
         var wanted = invoice.Wanted(store.LevelOf(invoice), samples.Keys.ToHashSet());
-        var lineOf = wanted.ToDictionary(w => w.Key, w => w.Line);
-        var lines = wanted.Select(w => new Entry(w.Key, 1, samples[w.Key])).ToList();
+        var lines = wanted.Select(w => Options(w.Keys, samples)).ToList();
         if (lines.Count == 0) return new PostInvoiceResult.Refused(PostRefusal.NothingFromList);
 
         var plan = PlanWhatFits(lines, sources, container, playerSlots, invoiceSlot, merge);
@@ -201,7 +194,7 @@ public sealed class InvoicePoster
         // A want list takes as much as fits anyway: what the game did not move just stays on the list.
         var moved = Carry(player, plan.Moves, container, playerSlots);
         var taken = FullyMoved(plan.Taken, moved, sources);
-        var listLeft = invoice.CrossOff(taken.Select(e => lineOf[e.Key]));
+        var listLeft = invoice.CrossOff(taken.Select(t => wanted[t.Line].Line));
         var fate = InvoiceFates.WantListPosted(done: listLeft.Entries.IsEmpty, consumeSheets());
         if (fate == InvoiceFate.Kept) store.WriteInvoice(invoiceSlot.Itemstack!, listLeft);
         else invoiceSlot.Itemstack = fate == InvoiceFate.Parchment ? Parchment() : null;
@@ -223,9 +216,9 @@ public sealed class InvoicePoster
     public CollectResult Collect(IPlayer player, ItemSlot albumSlot, BlockPos pos, IReadOnlyList<ItemSlot> playerSlots, ItemSlot? handSlot)
     {
         var album = store.ReadAlbum(albumSlot.Itemstack!);
-        if (store.Resolve(album) is CollectionResolution.Disabled) return new CollectResult.Refused(CollectRefusal.Disabled);
-        if (store.CollectionOf(album) is not { } collection) return new CollectResult.Refused(CollectRefusal.NoCollection);
-        if (album.LevelIn(collection) is not { } level) return new CollectResult.Refused(CollectRefusal.NoLevel);
+        var standing = store.StandingOf(album);
+        if (standing is AlbumStanding.Refused refused) return new CollectResult.AlbumRefused(refused.Reason);
+        var level = standing.LevelOrNull!;
 
         pos = reader.MainPos(pos);
         var be = world.BlockAccessor.GetBlockEntity(pos);
@@ -235,10 +228,8 @@ public sealed class InvoicePoster
         var container = reader.Open(be)!;
         var merge = new MergeClasses();
         var (sources, samples) = Sources(container, merge);
-        // A key fills at most one member of a level, so a line's key names its member.
         var wanted = album.Wanted(level, samples.Keys.ToHashSet());
-        var memberOf = wanted.ToDictionary(w => w.Key, w => w.Member.Id);
-        var lines = wanted.Select(w => new Entry(w.Key, 1, samples[w.Key])).ToList();
+        var lines = wanted.Select(w => Options(w.Keys, samples)).ToList();
         if (lines.Count == 0) return new CollectResult.Refused(CollectRefusal.NothingNew);
 
         var plan = PlanWhatFits(lines, sources, container, playerSlots, handSlot, merge);
@@ -249,7 +240,8 @@ public sealed class InvoicePoster
         // as the stack that filled the member (a member of several items shows the one put in, A2).
         var moved = Carry(player, plan.Moves, container, playerSlots);
         var taken = FullyMoved(plan.Taken, moved, sources);
-        var after = album.Collect(taken.Select(e => (memberOf[e.Key], new FilledBy(e.Key, store.ToEntry((ItemStack)e.Sample).Sample))));
+        var after = album.Collect(taken.Select(t =>
+            (wanted[t.Line].Member.Id, new FilledBy(t.Entry.Key, store.ToEntry((ItemStack)t.Entry.Sample).Sample))));
         store.WriteAlbum(albumSlot.Itemstack!, after);
         albumSlot.MarkDirty();
         return new CollectResult.Collected(moved.Sum(m => m.Amount), plan.Left.Count + plan.Taken.Count - taken.Count, after.Missing(level).Count);
@@ -303,16 +295,20 @@ public sealed class InvoicePoster
             .OrderBy(t => playerSlots[t.Index] == last)
             .ToList();
 
-    /// <summary>As much of the list as fits; no player slot is freed.</summary>
-    private PartialPlan PlanWhatFits(IEnumerable<Entry> lines, List<SourceSlot> sources, ContainerSlots container,
+    /// <summary>A line wanting any of these items, one of each, in the order to try them.</summary>
+    private static IReadOnlyList<Entry> Options(IEnumerable<ItemKey> keys, Dictionary<ItemKey, ItemStack> samples) =>
+        keys.Select(key => new Entry(key, 1, samples[key])).ToList();
+
+    /// <summary>As much of the list as fits, each line by the first of its options that fits; no player slot is freed.</summary>
+    private PartialPlan PlanWhatFits(IEnumerable<IReadOnlyList<Entry>> lines, List<SourceSlot> sources, ContainerSlots container,
         IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last, MergeClasses merge) =>
         Transfer.PlanWhatFits(lines, sources, Targets(playerSlots, last, lastFrees: false, merge),
             (target, source) => CapacityOf(playerSlots[target], container.Slots[source.Index].Itemstack!, _ => false));
 
-    /// <summary>How many more free slots would take the whole list: for the message when nothing fits.</summary>
-    private int SlotsShort(IEnumerable<Entry> lines, List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples,
+    /// <summary>How many more free slots would take the whole list (each line by its first option): for the message when nothing fits.</summary>
+    private int SlotsShort(IEnumerable<IReadOnlyList<Entry>> options, List<SourceSlot> sources, Dictionary<ItemKey, ItemStack> samples,
         ContainerSlots container, IReadOnlyList<ItemSlot> playerSlots, ItemSlot? last, MergeClasses merge) =>
-        Transfer.Plan(lines, sources, Targets(playerSlots, last, lastFrees: false, merge),
+        Transfer.Plan(options.Select(o => o[0]).DistinctBy(e => e.Key), sources, Targets(playerSlots, last, lastFrees: false, merge),
             (target, source) => CapacityOf(playerSlots[target], container.Slots[source.Index].Itemstack!, _ => false),
             key => Math.Max(1, samples[key].Collectible.MaxStackSize)) is TransferPlan.NoRoom noRoom ? noRoom.SlotsShort : 1;
 
@@ -343,12 +339,12 @@ public sealed class InvoicePoster
         return moved;
     }
 
-    /// <summary>The planned lines whose items all moved.</summary>
-    private static List<Entry> FullyMoved(IEnumerable<Entry> planned, IEnumerable<Move> moved, List<SourceSlot> sources)
+    /// <summary>The planned lines whose items all moved (an item goes to one line at most, so its key names the line).</summary>
+    private static List<TakenLine> FullyMoved(IEnumerable<TakenLine> planned, IEnumerable<Move> moved, List<SourceSlot> sources)
     {
         var keyOf = sources.ToDictionary(s => s.Index, s => s.Key);
         var amounts = moved.GroupBy(m => keyOf[m.Source]).ToDictionary(g => g.Key, g => g.Sum(m => m.Amount));
-        return planned.Where(line => amounts.GetValueOrDefault(line.Key) >= line.Count).ToList();
+        return planned.Where(t => amounts.GetValueOrDefault(t.Entry.Key) >= t.Entry.Count).ToList();
     }
 
     /// <summary>Copies of every slot the moves touch, and of <paramref name="extra"/>, to put back with <see cref="Restore"/>.</summary>

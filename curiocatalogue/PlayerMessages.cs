@@ -2,6 +2,7 @@ using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
+using CurioCatalogue.Core;
 
 namespace CurioCatalogue;
 
@@ -14,6 +15,9 @@ internal static class PlayerMessages
     /// <param name="code">Lang key suffix: the text is "curiocatalogue:ingameerror-{code}".</param>
     public static void Refuse(IServerPlayer player, string code, params object[] args) =>
         player.SendIngameError(code, Text(player, "ingameerror-" + code, args));
+
+    /// <summary>Why an album does nothing now, in the same words for every action (taking new, a want list, starting over, a level).</summary>
+    public static void Refuse(IServerPlayer player, AlbumRefusal reason) => Refuse(player, reason.ToString().ToLowerInvariant());
 
     /// <summary>
     /// Refuses an action on books or invoices whose data is from a newer build of the mod (after a downgrade): writing

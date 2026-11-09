@@ -49,16 +49,8 @@ public class ItemLedger : Item
         return !(IsAlbum && ctrl);
     }
 
-    /// <summary>What an album's tooltip and window say of its progress, against its collection as the game has it now.</summary>
-    internal enum AlbumState { NoCollection, Disabled, NoLevel, AtLevel }
-
-    /// <summary>The album's collection and level as the game has them now; the level is null unless <see cref="AlbumState.AtLevel"/>.</summary>
-    internal (AlbumState State, DefinedCollection? Collection, CollectionLevel? Level) StateOf(Album album)
-    {
-        if (Mod.Store.Resolve(album) is CollectionResolution.Disabled) return (AlbumState.Disabled, null, null);
-        if (Mod.Store.CollectionOf(album) is not { } collection) return (AlbumState.NoCollection, null, null);
-        return album.LevelIn(collection) is { } level ? (AlbumState.AtLevel, collection, level) : (AlbumState.NoLevel, collection, null);
-    }
+    /// <summary>Where the album stands against its collection as the game has it now (what its tooltip and window say).</summary>
+    internal AlbumStanding StandingOf(Album album) => Mod.Store.StandingOf(album);
 
     /// <summary>An album's progress as its level words it (the level's <c>progressKey</c>; a generic line when it has none).</summary>
     internal static string ProgressText(CollectionLevel level, LevelProgress progress) =>
@@ -133,6 +125,10 @@ public class ItemLedger : Item
                 PlayerMessages.Refuse(player, code, Mod.Config.SoftEntryLimit);
                 break;
 
+            case MakeInvoiceResult.AlbumRefused albumRefused:
+                PlayerMessages.Refuse(player, albumRefused.Reason);
+                break;
+
             case MakeInvoiceResult.Made made:
                 ledgerSlot.MarkDirty();
                 if (intoSlot is { Empty: true })
@@ -165,6 +161,9 @@ public class ItemLedger : Item
                 if (refused.Reason == CollectRefusal.NoRoom) PlayerMessages.Refuse(player, "noroom", refused.SlotsShort);
                 else PlayerMessages.Refuse(player, refused.Reason.ToString().ToLowerInvariant());
                 break;
+            case CollectResult.AlbumRefused albumRefused:
+                PlayerMessages.Refuse(player, albumRefused.Reason);
+                break;
             case CollectResult.Collected collected:
                 var text = collected.MissingLeft == 0
                     ? PlayerMessages.Text(player, "album-collected-done", collected.Taken)
@@ -186,6 +185,7 @@ public class ItemLedger : Item
     {
         MakeInvoiceResult.Made made => $"made, {made.Invoice.Entries.Length} lines, {made.SheetsLeft} sheets left",
         MakeInvoiceResult.Refused refused => $"refused, {refused.Reason}",
+        MakeInvoiceResult.AlbumRefused refused => $"refused, {refused.Reason}",
         _ => throw ExhaustiveMatch.Failed(result),
     };
 
@@ -345,13 +345,18 @@ public class ItemLedger : Item
         {
             // An album's progress against its level; nothing when the game lacks its collection, "no level" until one is chosen.
             case Album album:
-                var (state, _, level) = StateOf(album);
-                if (state == AlbumState.AtLevel && album.Progress(level!) is var progress)
-                    dsc.AppendLine(ProgressText(level!, progress));
-                else if (state == AlbumState.Disabled)
-                    dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-disabled"));
-                else if (state == AlbumState.NoLevel)
-                    dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-nolevel"));
+                switch (StandingOf(album))
+                {
+                    case AlbumStanding.AtLevel at:
+                        dsc.AppendLine(ProgressText(at.Level, album.Progress(at.Level)));
+                        break;
+                    case AlbumStanding.Refused { Reason: AlbumRefusal.Disabled }:
+                        dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-disabled"));
+                        break;
+                    case AlbumStanding.Refused { Reason: AlbumRefusal.NoLevel }:
+                        dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-nolevel"));
+                        break;
+                }
                 break;
             case Ledger ledger:
                 dsc.AppendLine(Lang.Get("curiocatalogue:ledger-info-entries", ledger.Entries.Count, config.SoftEntryLimit));

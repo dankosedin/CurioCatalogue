@@ -74,6 +74,7 @@ which build, who ran it, and each `❌` with its reason.
 | A20 | 0.2.0 | Window at 1024×768 | The page and every row fit on the screen |
 | A21 | 0.2.0 | An album whose collection is switched off (config `Collections`) | One group of what was collected; no level, layout, want list or ↺; the text says the collection is switched off on this server |
 | A22 | 0.2.0 | An album with tabs (ore crystals by ore and by rock, once item 4 brings them; until then the test mod's `ccores`, level "Deposits"); turn pages with ◀ ▶, pick tabs; then a screen too short for the tabs (1024×768) | Each tab starts a page of its own and only its tab is lit, the window as tall as its tabs; "N / M" counts the pages of the tab and ◀ ▶ stay in it (no page buttons for a tab of one page); tabs taller than the screen allows are a dropdown in the row of controls, right after the level (while the album is empty), a complete tab with ✓ in its name (a box instead of ✓: the font lacks the glyph) |
+| A23 ⚙ | 0.2.0 | An album at a level whose members take any of several items (seashells by type, once item 4 brings them), the backpack full except a stack of one colour of a shell with room; Shift + right click on a chest with that shell in two colours, the other one first in the member's order. The same with a want list of the album | The colour there is room for is taken (topping up the stack) and the member collected, or its line crossed off; not "no room". ⚙ `InvoicePosterTests` (V1 of the vanilla collections plan) |
 
 ## Want lists
 

@@ -21,7 +21,7 @@ through every step (`UpgradeTests`).
 
 ## Steps
 
-- [ ] **V1. One resolve, one filler.** The two tails the core's code review left for this item (`ROADMAP.md`, Technical, "The
+- [x] **V1. One resolve, one filler.** The two tails the core's code review left for this item (`ROADMAP.md`, Technical, "The
       collections' code, one resolve and one filler"; K7 H8/H9 and A5 in the core plan's Decisions): the ladder that answers "which
       collection: found, switched off or gone" written once instead of in four places (store, items, network, hints), with one
       refusal type where the three enums say the same; `Album.Wanted` and `Invoice.Wanted` choosing the filler of a member by one
@@ -88,3 +88,5 @@ Open points:
   when convenient. If it never does, its combinations join `exclude`.
 
 ## Where we stopped
+
+- 09.11.2026: V1 done (final) on `feat/crystals`, not pushed: `AlbumStanding`/`AlbumRefusal` in the core is the one ladder (store, items, network; the hints ask the resolver by id, as before); `Transfer.PlanWhatFits` chooses the item of a member of several with the room (A5), for albums and want lists; decisions in `docs/decisions.md`, Collections; functional A23; all test projects green. Next: V2 on the same branch.

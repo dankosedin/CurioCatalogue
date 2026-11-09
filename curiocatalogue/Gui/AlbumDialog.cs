@@ -54,7 +54,7 @@ public sealed class AlbumDialog : HeldItemDialog
     private readonly AlbumHeader header;
 
     /// <summary>What the window shows: the collection laid out, or (with no level) nothing, and the line above the page.</summary>
-    private sealed record View(ItemLedger.AlbumState State, DefinedCollection? Collection, CollectionLevel? Level,
+    private sealed record View(AlbumRefusal? Refused, DefinedCollection? Collection, CollectionLevel? Level,
         LayoutDef? Layout, AlbumPages? Pages, PageMetrics? Metrics, string? Line);
 
     internal AlbumDialog(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot, bool offHand) : base(capi, slot, offHand)
@@ -82,41 +82,42 @@ public sealed class AlbumDialog : HeldItemDialog
         if (!StillShows(Slot.Itemstack)) return;
         album = (Album)mod.Store.ReadBook(Slot.Itemstack!, LedgerMode.Album);
         searchNames.Clear();
-        var (state, collection, level) = Item.StateOf(album);
+        var standing = Item.StandingOf(album);
+        var (refusal, collection, level) = (standing.Refusal, standing.Collection, standing.LevelOrNull);
         // Without the collection, what it holds is all there is to lay out; it changes only by starting over.
-        string key = $"{state}|{collection?.Id}|{level?.Id}|{album.IsEmpty}|{album.Name}|"
-            + (state == ItemLedger.AlbumState.AtLevel ? "" : album.Collected.Count.ToString());
+        string key = $"{refusal}|{collection?.Id}|{level?.Id}|{album.IsEmpty}|{album.Name}|"
+            + (refusal == null ? "" : album.Collected.Count.ToString());
         if (key == composedFor && pageElement != null)
         {
             ShowCollected();
             return;
         }
         composedFor = key;
-        shown = Read(state, collection, level, keepLayout: null);
+        shown = Read(refusal, collection, level, keepLayout: null);
         page = Math.Min(page, Math.Max(0, (shown.Pages?.Pages.Count ?? 1) - 1));
         Compose();
     }
 
-    private View Read(ItemLedger.AlbumState state, DefinedCollection? collection, CollectionLevel? level, string? keepLayout)
+    private View Read(AlbumRefusal? refusal, DefinedCollection? collection, CollectionLevel? level, string? keepLayout)
     {
-        string? line = state switch
+        string? line = refusal switch
         {
-            ItemLedger.AlbumState.Disabled => T("ledger-info-disabled"),
-            ItemLedger.AlbumState.NoCollection => T("albumwindow-unknown"),
-            ItemLedger.AlbumState.NoLevel => T("albumwindow-nolevel"),
+            AlbumRefusal.Disabled => T("ledger-info-disabled"),
+            AlbumRefusal.NoCollection => T("albumwindow-unknown"),
+            AlbumRefusal.NoLevel => T("albumwindow-nolevel"),
             _ => null,
         };
-        if (state is ItemLedger.AlbumState.Disabled or ItemLedger.AlbumState.NoCollection)
+        if (refusal is AlbumRefusal.Disabled or AlbumRefusal.NoCollection)
         {
             collection = album.CollectedOnly();
             level = collection == null ? null : album.LevelIn(collection);
         }
-        if (collection == null || level == null) return new View(state, collection, null, null, null, null, line);
+        if (collection == null || level == null) return new View(refusal, collection, null, null, null, null, line);
 
         string layoutKey = collection.Id + "/" + level.Id;
         var layout = level.Layouts.FirstOrDefault(l => l.Id == (keepLayout ?? chosenLayouts.GetValueOrDefault(layoutKey))) ?? level.DefaultLayout;
         var metrics = Metrics(collection);
-        return new View(state, collection, level, layout, AlbumPages.Build(collection, level, layout, metrics), metrics, line);
+        return new View(refusal, collection, level, layout, AlbumPages.Build(collection, level, layout, metrics), metrics, line);
     }
 
     private PageMetrics Metrics(DefinedCollection collection)
@@ -163,7 +164,7 @@ public sealed class AlbumDialog : HeldItemDialog
     {
         LevelProgress? progress = null;
         string? tooltip = null;
-        if (shown is { State: ItemLedger.AlbumState.AtLevel, Level: { } level })
+        if (shown is { Refused: null, Level: { } level })
         {
             progress = album.Progress(level);
             // The level is named here, being fixed once something is collected (A2, "Levels").
@@ -326,7 +327,7 @@ public sealed class AlbumDialog : HeldItemDialog
             Part(names.Select(Width).Max() + 40, false,
                 (c, b) => c.AddDropDown(ids, names, pages.TabAt(page) ?? 0, OnTabChosen, b, "tab"));
         }
-        if (shown is { State: ItemLedger.AlbumState.AtLevel, Level.Layouts.Count: > 1 } && shown.Layout is { } layout)
+        if (shown is { Refused: null, Level.Layouts.Count: > 1 } && shown.Layout is { } layout)
         {
             var all = shown.Level.Layouts;
             string[] ids = all.Select(l => l.Id).ToArray();
@@ -335,7 +336,7 @@ public sealed class AlbumDialog : HeldItemDialog
                 (c, b) => c.AddDropDown(ids, names, Array.IndexOf(ids, layout.Id), OnLayout, b, "layout"));
         }
         if (shown.Pages is { Pages.Count: > 0 }) Part(140, false, (c, b) => c.AddTextInput(b, OnSearch, font, "search"));
-        if (shown.State == ItemLedger.AlbumState.AtLevel)
+        if (shown.Refused == null)
         {
             // The want list: the main action, a text button (A2); none without a level, nor for a switched-off collection.
             string wantList = T("ledgerwindow-wantlist");
@@ -390,7 +391,7 @@ public sealed class AlbumDialog : HeldItemDialog
                 return string.Join(" · ", parts.Select(p => ValueName(collection, p.Dimension, p.Value)
                     + (SharesName(collection, p.Dimension, p.Value) ? $" ({p.Value})" : "")));
             },
-            Freedom: m => shown.State == ItemLedger.AlbumState.AtLevel ? ItemInvoice.Freedom(collection, level, m) : null,
+            Freedom: m => shown.Refused == null ? ItemInvoice.Freedom(collection, level, m) : null,
             Rarity: _ => null); // no source of rarity yet (item 6)
     }
 
@@ -421,7 +422,7 @@ public sealed class AlbumDialog : HeldItemDialog
     /// collected something, or a collection of one level. With none chosen, the first entry asks for one.</summary>
     private (string[] Codes, string[] Names, int Selected)? LevelChoices()
     {
-        if (!album.IsEmpty || shown.State is not (ItemLedger.AlbumState.AtLevel or ItemLedger.AlbumState.NoLevel)
+        if (!album.IsEmpty || shown.Refused is not (null or AlbumRefusal.NoLevel)
             || shown.Collection is not { Levels.Count: > 1 } collection) return null;
         var levels = collection.Levels;
         string[] codes = [.. (album.LevelIn(collection) == null ? [""] : Array.Empty<string>()), .. levels.Select(l => l.Id)];
@@ -477,7 +478,7 @@ public sealed class AlbumDialog : HeldItemDialog
     private void RelayOut(string? layout, AlbumPages before)
     {
         string? first = before.Pages[page].Members.FirstOrDefault()?.Id;
-        shown = Read(shown.State, shown.Collection, shown.Level, layout) with { Line = shown.Line };
+        shown = Read(shown.Refused, shown.Collection, shown.Level, layout) with { Line = shown.Line };
         page = (first != null ? shown.Pages?.PageOf(first) : null) ?? 0;
         Compose();
     }

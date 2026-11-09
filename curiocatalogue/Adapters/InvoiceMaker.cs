@@ -8,12 +8,14 @@ using ExhaustiveMatching;
 namespace CurioCatalogue.Adapters;
 
 /// <summary>Why no invoice was made; the code also names the player-facing message ("ingameerror-" + code).</summary>
-/// <remarks>NoCollection and NoLevel are a want list's: the album's collection is unknown, or no level is chosen, or the server switched its collection off (Disabled) (as <see cref="CollectRefusal"/>).</remarks>
-public enum MakeRefusal { Unsupported, NoAccess, LedgerFull, NoDifference, NoSheets, NoCollection, NoLevel, Disabled }
+public enum MakeRefusal { Unsupported, NoAccess, LedgerFull, NoDifference, NoSheets }
 
-[Closed(typeof(MakeInvoiceResult.Made), typeof(MakeInvoiceResult.Refused))]
+[Closed(typeof(MakeInvoiceResult.Made), typeof(MakeInvoiceResult.Refused), typeof(MakeInvoiceResult.AlbumRefused))]
 public abstract record MakeInvoiceResult
 {
+    /// <summary>A want list's: the album does nothing with its collection now (off, gone, no level), as <see cref="CollectResult.AlbumRefused"/>.</summary>
+    public sealed record AlbumRefused(AlbumRefusal Reason) : MakeInvoiceResult;
+
     /// <param name="InvoiceStack">The new invoice item, still to be handed to the player.</param>
     public sealed record Made(ItemStack InvoiceStack, Invoice Invoice, int SheetsLeft) : MakeInvoiceResult;
 
@@ -64,9 +66,9 @@ public sealed class InvoiceMaker
     public MakeInvoiceResult MakeWantList(ItemStack albumStack, BlockPos where)
     {
         var album = store.ReadAlbum(albumStack);
-        if (store.Resolve(album) is CollectionResolution.Disabled) return new MakeInvoiceResult.Refused(MakeRefusal.Disabled);
-        if (store.CollectionOf(album) is not { } collection) return new MakeInvoiceResult.Refused(MakeRefusal.NoCollection);
-        if (album.LevelIn(collection) is not { } level) return new MakeInvoiceResult.Refused(MakeRefusal.NoLevel);
+        var standing = store.StandingOf(album);
+        if (standing is AlbumStanding.Refused refused) return new MakeInvoiceResult.AlbumRefused(refused.Reason);
+        var level = standing.LevelOrNull!;
         var result = album.MakeWantList(level, world.Calendar.TotalDays, new BlockPosition(where.X, where.Y, where.Z));
         return Finish(result, InvoiceKind.WantList, albumStack);
     }

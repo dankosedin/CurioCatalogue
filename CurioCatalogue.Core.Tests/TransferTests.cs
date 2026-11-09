@@ -133,8 +133,8 @@ public class TransferTests
         var plan = WhatFits([Line("c", 1), Line("a", 1), Line("b", 1)], [S(0, "a", 1), S(1, "b", 1), S(2, "c", 1)], [Empty(7)]);
 
         Assert.Equal([new Move(2, 7, 1)], plan.Moves);
-        Assert.Equal([K("c")], plan.Taken.Select(e => e.Key));
-        Assert.Equal([K("a"), K("b")], plan.Left.Select(e => e.Key));
+        Assert.Equal([K("c")], plan.Taken.Select(t => t.Entry.Key));
+        Assert.Equal([1, 2], plan.Left);
     }
 
     [Fact]
@@ -143,8 +143,8 @@ public class TransferTests
         var plan = WhatFits([Line("a", 1), Line("b", 1)], [S(0, "a", 1), S(1, "b", 1)], [T(4, "b", 10)]);
 
         Assert.Equal([new Move(1, 4, 1)], plan.Moves);
-        Assert.Equal([K("b")], plan.Taken.Select(e => e.Key));
-        Assert.Equal([K("a")], plan.Left.Select(e => e.Key));
+        Assert.Equal([K("b")], plan.Taken.Select(t => t.Entry.Key));
+        Assert.Equal([0], plan.Left);
     }
 
     [Fact]
@@ -155,16 +155,57 @@ public class TransferTests
 
         Assert.Empty(plan.Moves);
         Assert.Empty(plan.Taken);
-        Assert.Equal([K("a")], plan.Left.Select(e => e.Key));
+        Assert.Equal([0], plan.Left);
     }
 
     [Fact]
-    public void What_fits_leaves_a_line_the_container_does_not_have()
+    public void What_fits_neither_takes_nor_leaves_a_line_the_container_does_not_have()
     {
         var plan = WhatFits([Line("a", 1), Line("b", 1)], [S(0, "b", 1)], [Empty(1), Empty(2)]);
 
-        Assert.Equal([K("b")], plan.Taken.Select(e => e.Key));
-        Assert.Equal([K("a")], plan.Left.Select(e => e.Key));
+        Assert.Equal([K("b")], plan.Taken.Select(t => t.Entry.Key));
+        Assert.Empty(plan.Left); // nothing to take, so not left for lack of room
+    }
+
+    // --- A line wanting any of several items (a member of several items; A5 of the collections core's code review) ---
+
+    private static PartialPlan WhatFits(Entry[][] lines, SourceSlot[] sources, TargetSlot[] targets, Func<int, SourceSlot, int>? capacity = null) =>
+        Transfer.PlanWhatFits(lines, sources, targets, capacity ?? Holds64);
+
+    [Fact]
+    public void What_fits_takes_the_first_option_that_fits_not_the_first_the_container_has()
+    {
+        // The container has both; there is no empty slot, but a stack of b to top up: a does not fit, b does.
+        var plan = WhatFits([[Line("a", 1), Line("b", 1)]], [S(0, "a", 1), S(1, "b", 1)], [T(4, "b", 10)]);
+
+        Assert.Equal([(0, K("b"))], plan.Taken.Select(t => (t.Line, t.Entry.Key)));
+        Assert.Equal([new Move(1, 4, 1)], plan.Moves);
+        Assert.Empty(plan.Left);
+    }
+
+    [Fact]
+    public void What_fits_prefers_the_options_order_when_several_fit()
+    {
+        var plan = WhatFits([[Line("a", 1), Line("b", 1)]], [S(0, "b", 1), S(1, "a", 1)], [Empty(4)]);
+
+        Assert.Equal([K("a")], plan.Taken.Select(t => t.Entry.Key));
+    }
+
+    [Fact]
+    public void What_fits_gives_an_item_to_one_line_only_and_a_later_line_takes_its_next_option()
+    {
+        var plan = WhatFits([[Line("a", 1)], [Line("a", 1), Line("b", 1)]], [S(0, "a", 2), S(1, "b", 1)], [Empty(4), Empty(5)]);
+
+        Assert.Equal([(0, K("a")), (1, K("b"))], plan.Taken.Select(t => (t.Line, t.Entry.Key)));
+    }
+
+    [Fact]
+    public void What_fits_leaves_a_line_none_of_whose_options_fits()
+    {
+        var plan = WhatFits([[Line("a", 1), Line("b", 1)]], [S(0, "a", 1), S(1, "b", 1)], [T(4, "c", 10)]);
+
+        Assert.Empty(plan.Taken);
+        Assert.Equal([0], plan.Left);
     }
 
     // --- The game's merge rule (code review 28.10.2026) ---
@@ -196,7 +237,7 @@ public class TransferTests
     public void What_fits_follows_the_merge_rule_too()
     {
         var plan = WhatFits([Line("a", 2), Line("b", 1)], [S(0, "a", 1, stack: 1), S(1, "a", 1, stack: 2), S(2, "b", 1)], [Empty(7), Empty(8)]);
-        Assert.Equal([K("a")], plan.Taken.Select(e => e.Key));
+        Assert.Equal([K("a")], plan.Taken.Select(t => t.Entry.Key));
         Assert.Equal([new Move(0, 7, 1), new Move(1, 8, 1)], plan.Moves);
     }
 }

@@ -19,7 +19,7 @@ public class ModDbPageTests
     // The section titles of the sample; the Ukrainian README has other words at the same places.
     static readonly string[] EnTitles =
     {
-        "What's inside", "Getting started", "Gestures", "Fair play on servers", "Configuration",
+        "What's inside", "Getting started", "Collections", "Gestures", "Fair play on servers", "Configuration",
         "Compatibility and known limitations", "Removing the mod", "Languages", "Contributing",        "AI and human work", "Credits", "License",
     };
 

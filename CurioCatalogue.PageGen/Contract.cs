@@ -15,7 +15,7 @@ public static class Contract
     /// <summary>Sections that are an accordion each, in the page's order.</summary>
     public static readonly string[] AccordionKeys =
     {
-        "getting-started", "gestures", "fair-play-on-servers", "configuration",
+        "getting-started", "collections", "gestures", "fair-play-on-servers", "configuration",
         "compatibility-and-known-limitations", "removing-the-mod",
     };
 

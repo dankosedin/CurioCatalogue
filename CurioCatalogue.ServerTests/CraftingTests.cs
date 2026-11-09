@@ -221,6 +221,26 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal(("ledger-album-crystals", (string?)null), shown);
     }
 
+    [Fact]
+    public void C3_an_empty_ledger_and_a_seashell_make_an_album_of_seashells_and_the_shell_stays()
+    {
+        var client = FakeClient.Join(game, "c3-shells");
+        var (recipe, album, left) = game.OnMain(() =>
+        {
+            var player = client.Player;
+            Put(player, (0, Book("book-ledger-normal-teal", 9)), (1, Vanilla("seashell-volute-turquoise")));
+            var recipe = Shown(player).Recipe;
+            var taken = Take(player);
+            var album = ReadAlbum(taken);
+            return (recipe, (Describe(taken), album.Sheets, album.CollectionId, album.Level), Left(player));
+        });
+
+        Assert.Equal("ledger-album-seashells", recipe);
+        // Two levels: none is chosen until the player chooses one in the window.
+        Assert.Equal(("book-album-normal-teal x1", 9, "seashells", (string?)null), album);
+        Assert.Equal("seashell-volute-turquoise x1", left);
+    }
+
     // ---- C4: books made from an old book (one with entries)
 
     [Fact]

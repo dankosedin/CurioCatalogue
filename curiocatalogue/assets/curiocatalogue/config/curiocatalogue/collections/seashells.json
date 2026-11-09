@@ -1,0 +1,40 @@
+{
+  "nameKey": "curiocatalogue:collection-seashells",
+  "albumRecipe": "curiocatalogue:ledger-album-seashells",
+  "source": { "kind": "variants", "code": "game:seashell-{type}-{color}" },
+  "dimensions": [
+    {
+      "code": "type",
+      "values": ["scallop", "sundial", "turritella", "clam", "conch", "seastar", "volute"],
+      "nameKey": "curiocatalogue:seashells-type-{value}",
+      "anyKey": "curiocatalogue:seashells-any-type"
+    },
+    {
+      "code": "color",
+      "values": ["latte", "plain", "seafoam", "darkpurple", "cinnamon", "turquoise"],
+      "nameKey": "curiocatalogue:seashells-color-{value}",
+      "anyKey": "curiocatalogue:seashells-any-color"
+    }
+  ],
+  "levels": [
+    {
+      "id": "types",
+      "nameKey": "curiocatalogue:seashells-level-types",
+      "progressKey": "curiocatalogue:seashells-progress",
+      "keep": ["type"],
+      "drop": { "color": "any" }
+    },
+    {
+      "id": "colors",
+      "nameKey": "curiocatalogue:seashells-level-colors",
+      "progressKey": "curiocatalogue:seashells-progress",
+      "keep": ["type", "color"],
+      "layouts": [
+        { "id": "table", "groupBy": [], "arrange": { "kind": "table", "rows": "type", "columns": "color" } }
+      ]
+    }
+  ],
+  "rules": [
+    { "where": { "color": ["seafoam", "turquoise"] }, "set": { "rarity": "rare" } }
+  ]
+}

@@ -9,6 +9,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 - **Want lists name what the album misses** rather than one item each: where any of several items will do (a shell of any colour), the list says so and takes any of them, the one there is room for (an album taking new does the same). Want lists of 0.1 work as before.
 - **A collection switched off is told from one that is gone.** An album of a collection the server switched off says so and is refused with that reason (and works again when it is switched on, with everything collected still counted), and so is a want list of it; its album recipe is removed, and each client builds its collections and tells items apart by the server's settings (`Collections`, `ExtraIgnoredAttributes`), sent on join.
 - **Ore crystals are the second collection.** An album made from an empty ledger or bill of materials and a crystal (the crystal stays) collects the ore crystals of the game at three levels: the richest of each ore, each ore in each rock, or every crystal; the window shows them by ore or by rock. Want lists name the rock where one rock holds a crystal and say "any rock" where several do. English and Ukrainian.
+- **Seashells are the third collection.** An album made from an empty ledger or bill of materials and a seashell (the shell stays) collects the 42 seashells of the game at two levels: every type in any colour (7), or every type in every colour (42, one table of types by colours). A want list says "any colour" where any will do. English and Ukrainian.
 
 ## 0.1.1 (2026-10-31)
 

@@ -203,8 +203,14 @@ public class ItemInvoice : ItemRollable
         return parts.Length == 0 ? null : string.Join(", ", parts);
     }
 
+    /// <summary>What a want list's line leaves free ("any rock"), for its slot's tooltip in the window: the item shown is one of
+    /// those that fill the line, and its own text names its rock. Null when the line leaves nothing free.</summary>
+    internal static string? FreeOf((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
+        line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member
+            ? null : Freedom(collection, level, member);
+
     /// <summary>A member's values in the dimensions marked <c>inLists</c>, by their names ("Basalt"); null when none. The want
-    /// list's line and the album cell's tooltip.</summary>
+    /// list's line (its sheet's text; the window's slots show the item's own text, which names its rock).</summary>
     internal static string? Listed(DefinedCollection collection, Member member)
     {
         var listed = collection.Listed(member);

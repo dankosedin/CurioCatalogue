@@ -120,3 +120,11 @@ Open points:
 - 09.11.2026: V2b done (final; the look checked in game in V2c) on `feat/crystals`, not pushed: `inLists` on a dimension
   (`DimensionDef`, the reader, `DefinedCollection.Listed`), said in the want list's lines and the album cell's tooltip; set on
   `rock` in `crystals.json`; all test projects green, mutation-checked. Next: V2c.
+- 09.11.2026: V2c half done (final texts) on `feat/crystals`, not pushed: `functional.md` A16, A22, W5 on crystals and a new A24 (album recipe, ore names, the rock in lists), the upgrade table line, `CHANGELOG.md`. Not ticked: the in-game check (en, then uk) waits for the author; then the pull request (text in the scratchpad, to show first).
+- 09.11.2026, after the author's in-game look (en, uk) at V2: taken and done on `feat/crystals`, not pushed, all test projects green:
+  (1) the want list window's slot says what the line leaves free ("any rock") over the item's own text (it showed one rock of 13);
+  (3) `shortNameKey` on a dimension (a short name for a table heading; ores: "Copper", "Au in quartz", "Ag in galena"), the full name on hover;
+  (4) the album cell no longer says the rock (the game's "Parent Material" line did already, one line twice); `inLists` now
+  only shapes a want list sheet's text; (5) uk level name "Руда в кожній породі". Not done: the heading is still cut at
+  ~6 letters ("Бісму…"): the author will polish the album's UI in a step of its own. A game flaw, not ours: the stack's long name
+  ("…самородного золота у кварці") wraps over the icon in the tooltip. The in-game checks of V2c are to be repeated for these four.

@@ -30,7 +30,7 @@ public abstract class GridDialog : HeldItemDialog
         base.OnGuiClosed();
     }
     /// <summary>Fills the client-only inventory with the stacks to show, at least one row.</summary>
-    protected int FillView(IReadOnlyList<ItemStack> stacks)
+    protected int FillView(IReadOnlyList<ItemStack> stacks, IReadOnlyList<string?>? lines = null)
     {
         int slots = Math.Max(Cols, (stacks.Count + Cols - 1) / Cols * Cols);
         view = new InventoryGeneric(slots, "curiocatalogue-view", "view-" + capi.World.Player.PlayerUID, capi, (_, inv) => new ReadOnlySlot(inv))
@@ -38,7 +38,11 @@ public abstract class GridDialog : HeldItemDialog
             TakeLocked = true,
             PutLocked = true,
         };
-        for (int i = 0; i < stacks.Count; i++) view[i].Itemstack = stacks[i];
+        for (int i = 0; i < stacks.Count; i++)
+        {
+            view[i].Itemstack = stacks[i];
+            if (lines != null && view[i] is ReadOnlySlot slot) slot.Lines = lines[i];
+        }
         return slots / Cols;
     }
 

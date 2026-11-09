@@ -402,4 +402,13 @@ public class DefinedCollectionTests
 
         Assert.Contains(errors, e => e.Contains("'odd'") && e.Contains("color"));
     }
+
+    [Fact]
+    public void A_dimension_names_a_value_short_for_a_heading_or_as_in_full_when_it_has_no_short_name()
+    {
+        var full = new DimensionDef("ore", [], NameKey: "k:ore-{value}");
+        Assert.Equal("k:ore-galena", full.ValueShortNameKey("galena"));
+        Assert.Equal("k:ore-short-galena", (full with { ShortNameKey = "k:ore-short-{value}" }).ValueShortNameKey("galena"));
+        Assert.Null(new DimensionDef("ore", []).ValueShortNameKey("galena"));
+    }
 }

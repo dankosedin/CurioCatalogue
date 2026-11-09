@@ -142,4 +142,19 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
         Assert.DoesNotContain("quartz_nativegold", left);
         Assert.Equal("crystalizedore-bountiful-quartz_nativegold-granite x1", inventory);
     }
+
+    [Fact]
+    public void Every_ore_has_a_short_name_for_a_table_heading_and_a_full_one_for_its_tooltip()
+    {
+        var missing = game.OnMain(() =>
+        {
+            var ore = Crystals.Definition.Dimensions.Single(d => d.Code == "ore");
+            // Lang.Get gives the key back when nothing names it.
+            return ore.Values.SelectMany(v => new[] { ore.ValueNameKey(v)!, ore.ValueShortNameKey(v)! })
+                .Where(key => Lang.Get(key) == key).ToList();
+        });
+        Assert.Empty(missing);
+        Assert.Equal("curiocatalogue:crystals-oreshort-galena", game.OnMain(() =>
+            Crystals.Definition.Dimensions.Single(d => d.Code == "ore").ValueShortNameKey("galena")));
+    }
 }

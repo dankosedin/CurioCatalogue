@@ -133,7 +133,7 @@ public static class CollectionDefinitionReader
         return code == null
             ? null
             : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
-                Text(o, "anyKey", errors, required: false), Flag(o, "inLists", errors));
+                Text(o, "anyKey", errors, required: false), Flag(o, "inLists", errors), Text(o, "shortNameKey", errors, required: false));
     }
 
     private static bool Flag(JObject o, string name, List<string> errors)

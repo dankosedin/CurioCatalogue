@@ -15,6 +15,7 @@
         "quartz_nativesilver", "galena_nativesilver", "bismuthinite", "magnetite", "hematite", "malachite", "pentlandite",
         "rhodochrosite", "uranium", "stibnite"],
       "nameKey": "curiocatalogue:crystals-ore-{value}",
+      "shortNameKey": "curiocatalogue:crystals-oreshort-{value}",
       "anyKey": "curiocatalogue:crystals-any-ore"
     },
     {

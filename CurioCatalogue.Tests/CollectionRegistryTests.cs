@@ -181,7 +181,7 @@ public class CollectionRegistryTests
         {
           "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}" },
           "dimensions": [
-            { "code": "ore", "values": [] }, { "code": "rock", "values": [], "inLists": true },
+            { "code": "ore", "values": [], "shortNameKey": "k:short-{value}" }, { "code": "rock", "values": [], "inLists": true },
             { "code": "grade", "values": ["poor", "medium", "rich"] }
           ],
           "levels": [
@@ -217,6 +217,7 @@ public class CollectionRegistryTests
         Assert.Equal(["ores", "tapestries"], registry.All.Keys.Order());
         // The rock is said in the lists; the others are not (no "inLists").
         Assert.Equal(["rock"], ores.Definition.Dimensions.Where(d => d.InLists).Select(d => d.Code));
+        Assert.Equal("k:short-quartz", ores.Definition.Dimensions.Single(d => d.Code == "ore").ValueShortNameKey("quartz"));
     }
 
     [Fact]

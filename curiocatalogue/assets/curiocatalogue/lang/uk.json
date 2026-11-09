@@ -176,6 +176,8 @@
   "curiocatalogue:seashells-color-darkpurple": "Темно-фіолетова",
   "curiocatalogue:seashells-color-cinnamon": "Корична",
   "curiocatalogue:seashells-color-turquoise": "Бірюзова",
+  "curiocatalogue:collection-butterflies": "метелики",
+  "curiocatalogue:butterflies-progress": "Метеликів {0} з {1}",
   "curiocatalogue:albumwindow-unknown": "Цієї колекції в грі більше немає: ось що зберігає альбом",
   "curiocatalogue:albumwindow-nolevel": "Виберіть рівень, щоб почати збирати",
   "curiocatalogue:albumwindow-search": "Пошук",

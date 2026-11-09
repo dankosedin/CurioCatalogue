@@ -56,13 +56,13 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      what a member accepts differs from what the album shows (a berry bush: any cutting fills, one is drawn) needs them apart.
 5. **Stamp-album view:** [the plan](docs/plans/2026-11-04-album-view.md) (04.11.2026). Pages by group, collected pieces in place,
    missing ones as dim silhouettes. Designed before the shape of collections (C7 of item 2), built after the core (item 3).
-   - **Want list window: a line cycles through its items** (asked 09.11.2026, after V3): a line that any of several items fills
-     (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do.
 6. **Every vanilla collection, polished in the album:** [the plan](docs/plans/2026-11-09-album-polish.md) (09.11.2026). Back to tapestries, ore crystals, seashells and butterflies (last), each one's look
    in the stamp-album view (grouping, order, names), and its album recipe if it needs a change. Among them:
    - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
      times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.
      Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
+   - **Want list window: a line cycles through its items** (asked 09.11.2026, after V3): a line that any of several items fills
+     (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do.
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
      the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
 7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for

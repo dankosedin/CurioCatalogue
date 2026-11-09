@@ -131,7 +131,8 @@ public sealed class AlbumPageElement : GuiElement
         {
             var s = (AlbumSlot)inventory[slot++];
             string name = h.Dimension.ValueNameKey(h.Value) is { } key ? Lang.Get(key) : h.Value;
-            if (IconOf(h) is not { } icon) return new Heading(h, null, name, Fit(name, HeadingFont, h.Width));
+            string shortName = h.Dimension.ValueShortNameKey(h.Value) is { } shortKey ? Lang.Get(shortKey) : name;
+            if (IconOf(h) is not { } icon) return new Heading(h, null, name, Fit(shortName, HeadingFont, h.Width));
             s.Itemstack = icon;
             s.HeadingName = name;
             return new Heading(h, s, name, name);

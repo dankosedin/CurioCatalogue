@@ -22,12 +22,20 @@ namespace CurioCatalogue.Core;
 /// <param name="Icon">An item code for a value's icon, <c>{value}</c> replaced (<c>game:rock-{value}</c>); null when none.</param>
 /// <param name="AnyKey">A lang key for what a member of several items leaves free in this dimension, a phrase in lower case
 /// ("any rock", "будь-яка порода"; whole, for the grammar of each language); null when none, and a generic "any of N" is said.</param>
+/// <param name="InLists">Whether a member's value here is said after the item's name where a missing piece is listed (the want
+/// list's lines): the item's name does not say it, and pieces of two values share a name (a crystal's
+/// rock). Said by <see cref="NameKey"/>.</param>
+/// <param name="ShortNameKey">A lang key for a value's short name in a table heading, <c>{value}</c> replaced; null: the <see cref="NameKey"/>.
+/// The full name stays the heading's tooltip.</param>
 public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null,
-    string? AnyKey = null)
+    string? AnyKey = null, bool InLists = false, string? ShortNameKey = null)
 {
     public const string ValuePlaceholder = "{value}";
 
     public string? ValueNameKey(string value) => NameKey?.Replace(ValuePlaceholder, value);
+
+    /// <summary>The key of a value's short name, for a table heading with little room: <see cref="ShortNameKey"/>, else the full name's.</summary>
+    public string? ValueShortNameKey(string value) => (ShortNameKey ?? NameKey)?.Replace(ValuePlaceholder, value);
 
     public string? ValueIcon(string value) => Icon?.Replace(ValuePlaceholder, value);
 }

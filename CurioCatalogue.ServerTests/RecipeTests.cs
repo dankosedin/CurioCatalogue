@@ -117,6 +117,16 @@ public class RecipeTests(GameServerFixture game)
     }
 
     [Fact]
+    public void Album_of_crystals_is_made_from_a_ledger_or_a_bill_of_materials_and_an_ore_crystal()
+    {
+        AssertSame("ledger-album-crystals",
+            from kind in new[] { "ledger", "materials" }
+            from cover in Covers
+            select $"curiocatalogue:book-album-{cover} x1 <- C=game:crystalizedore-* x1 tool(0), L=curiocatalogue:book-{kind}-{cover} x1",
+            Actual("ledger-album-crystals", 2, 1, true, 4));
+    }
+
+    [Fact]
     public void Recolour_gives_the_cover_of_the_leather_and_keeps_the_kind()
     {
         AssertSame("ledger-recolor",
@@ -173,6 +183,6 @@ public class RecipeTests(GameServerFixture game)
     {
         // A new recipe name in the JSON without a test here would pass unseen.
         var names = game.OnMain(() => game.Api.World.GridRecipes.Where(r => r.Output?.Code?.Domain == "curiocatalogue").Select(r => r.Name?.Path).Distinct().Order().ToList());
-        Assert.Equal(["ledger-age", "ledger-album", "ledger-fallback", "ledger-recharge", "ledger-recolor", "ledger-restore", "ledger-switchmode"], names);
+        Assert.Equal(["ledger-age", "ledger-album", "ledger-album-crystals", "ledger-fallback", "ledger-recharge", "ledger-recolor", "ledger-restore", "ledger-switchmode"], names);
     }
 }

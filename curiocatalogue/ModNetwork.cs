@@ -293,21 +293,11 @@ internal static class ModNetwork
     /// switched it off ("disabled on this server").</summary>
     private static DefinedCollection? CollectionOrRefuse(ICoreServerAPI sapi, CurioCatalogueModSystem mod, IServerPlayer player, Album album, string action)
     {
-        var resolution = mod.Store.Resolve(album);
-        switch (resolution)
-        {
-            case CollectionResolution.Found found:
-                return found.Value;
-            case CollectionResolution.Disabled _:
-                PlayerMessages.Refuse(player, "disabled");
-                break;
-            case CollectionResolution.Unknown _:
-                PlayerMessages.Refuse(player, "nocollection");
-                break;
-            default:
-                throw ExhaustiveMatch.Failed(resolution);
-        }
-        ModLog.Debug(sapi, $"{player.PlayerName}: {action} refused: {resolution}");
+        // A level is not needed here (starting over frees it; choosing one sets it): only the collection.
+        var standing = mod.Store.StandingOf(album);
+        if (standing.Collection is { } collection) return collection;
+        PlayerMessages.Refuse(player, standing.Refusal!.Value);
+        ModLog.Debug(sapi, $"{player.PlayerName}: {action} refused: {standing.Refusal}");
         return null;
     }
 
@@ -360,6 +350,10 @@ internal static class ModNetwork
             case MakeInvoiceResult.Refused refused:
                 // Nothing missing reads better as "all collected" than as "no difference".
                 PlayerMessages.Refuse(player, refused.Reason == MakeRefusal.NoDifference ? "allcollected" : refused.Reason.ToString().ToLowerInvariant());
+                break;
+
+            case MakeInvoiceResult.AlbumRefused albumRefused:
+                PlayerMessages.Refuse(player, albumRefused.Reason);
                 break;
 
             case MakeInvoiceResult.Made made:

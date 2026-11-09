@@ -193,10 +193,10 @@ public class InvoiceMakerTests
     public void No_want_list_from_an_album_of_a_collection_the_game_lacks_or_with_no_level()
     {
         var twoLevels = Album(TestCollections.TwoLevels(keys, t => Tapestry(t), "a"));
-        Assert.Equal(MakeRefusal.NoLevel, Refusal(maker.MakeWantList(twoLevels, pos)));
+        Assert.Equal(AlbumRefusal.NoLevel, RefusalOfAlbum(maker.MakeWantList(twoLevels, pos)));
 
         collection = null;
-        Assert.Equal(MakeRefusal.NoCollection, Refusal(maker.MakeWantList(twoLevels, pos)));
+        Assert.Equal(AlbumRefusal.NoCollection, RefusalOfAlbum(maker.MakeWantList(twoLevels, pos)));
         Assert.Equal(2, store.ReadAlbum(twoLevels).Sheets); // no sheet spent
     }
 
@@ -205,7 +205,7 @@ public class InvoiceMakerTests
     {
         var album = Album(TestCollections.Tapestries(keys, t => Tapestry(t), "a"));
         disabled = true;
-        Assert.Equal(MakeRefusal.Disabled, Refusal(maker.MakeWantList(album, pos)));
+        Assert.Equal(AlbumRefusal.Disabled, RefusalOfAlbum(maker.MakeWantList(album, pos)));
         Assert.Equal(2, store.ReadAlbum(album).Sheets); // no sheet spent
         disabled = false;
         Assert.IsType<MakeInvoiceResult.Made>(maker.MakeWantList(album, pos));
@@ -224,4 +224,6 @@ public class InvoiceMakerTests
     }
 
     private static MakeRefusal Refusal(MakeInvoiceResult result) => Assert.IsType<MakeInvoiceResult.Refused>(result).Reason;
+
+    private static AlbumRefusal RefusalOfAlbum(MakeInvoiceResult result) => Assert.IsType<MakeInvoiceResult.AlbumRefused>(result).Reason;
 }

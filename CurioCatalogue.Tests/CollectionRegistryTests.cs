@@ -181,7 +181,7 @@ public class CollectionRegistryTests
         {
           "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}" },
           "dimensions": [
-            { "code": "ore", "values": [] }, { "code": "rock", "values": [] },
+            { "code": "ore", "values": [], "shortNameKey": "k:short-{value}" }, { "code": "rock", "values": [], "inLists": true },
             { "code": "grade", "values": ["poor", "medium", "rich"] }
           ],
           "levels": [
@@ -215,6 +215,9 @@ public class CollectionRegistryTests
         // Quartz is filled by its richest grade in any rock: two codes.
         Assert.Equal(2, ores.Level("ores")!.Find("quartz")!.Fillers.Count);
         Assert.Equal(["ores", "tapestries"], registry.All.Keys.Order());
+        // The rock is said in the lists; the others are not (no "inLists").
+        Assert.Equal(["rock"], ores.Definition.Dimensions.Where(d => d.InLists).Select(d => d.Code));
+        Assert.Equal("k:short-quartz", ores.Definition.Dimensions.Single(d => d.Code == "ore").ValueShortNameKey("quartz"));
     }
 
     [Fact]
@@ -251,6 +254,8 @@ public class CollectionRegistryTests
     // K7 (T3): max on a dimension with no list of values; an empty level id.
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}-{b}" }, "dimensions": [ { "code": "a" }, { "code": "b" } ], "levels": [ { "id": "l", "keep": ["a"], "drop": { "b": "max" } } ] }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "", "keep": ["a"] } ] }""")]
+    // V2b: a flag that is not true or false.
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "inLists": "yes" } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);

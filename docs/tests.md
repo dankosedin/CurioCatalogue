@@ -57,7 +57,7 @@ the engine ran it. How it works and its traps: `docs/test-server.md`.
   The fixture sets `VerifyPlayerAuth = false` for it. `FakeClient` reads the ids of our messages from the server's channel,
   so `ModNetwork.Register` may change freely. How and its traps: `docs/test-server.md`, "A player without a client".
 - **`RecipeTests`** compares the server's grid recipes of our domain with expected sets written out in the test (output, ingredient
-  codes, counts, tools, shape, group): 1067 recipes in 7 groups. A recipe change in `recipes/grid/ledger.json` is made in two places;
+  codes, counts, tools, shape, group): 1115 recipes under 8 names. A recipe change in `recipes/grid/ledger.json` is made in two places;
   a new recipe name fails `All_our_recipes_are_covered_by_a_test_above` until it has a test.
 - **`ContainerTests`** puts real vanilla blocks into the world (`BlockAccessor.SetBlock`, a trunk with `DoPlaceBlock` and a joined player)
   near the spawn and runs `ContainerReader` and the mod's own `ContainerAccess` (`CurioCatalogueModSystem.Access`) on them: chest, trunk,
@@ -100,6 +100,9 @@ the engine ran it. How it works and its traps: `docs/test-server.md`.
   reflection), in the server's English, expected as `en.json` says (`BookTestBase.LangText`, as in `LanguageTests`). The client calls them,
   but they need no client; the key names fall back to "Shift" and "Ctrl".
 - **`VanillaContentTests`**: the server twins of assumptions the adapter tests make about vanilla stacks (a tapestry taken off a wall, a hot ingot).
+- **`CrystalsTests`**: our collection `crystals.json` on the game's real items (V2 of the vanilla collections plan): the members of
+  each level (16, 118, 353; none of the 54 that never generate), the richest grade per ore and per ore and rock, an album of the
+  richest taking a crystal of any rock and leaving a poorer one, a want list saying "any rock" and filled by another rock.
 - **`UpgradeTests`** (the golden stacks, "Golden stacks" below): every stack of every set under `Golden/v<version>/` is read by `GoldenStacks` (the reader in
   `CurioCatalogue.TestServer`: the bytes into a stack, each numeric id replaced by the id its code has in the test world, in the stack, in nested stacks and in
   tree arrays) and read by the current code (`LedgerStore`), and what it reads must equal the set's **inputs** (mode, sheets, name, entries, the album's

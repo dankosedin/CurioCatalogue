@@ -183,7 +183,7 @@ public class ItemInvoice : ItemRollable
         foreach (var line in invoice.Entries.Take(TooltipLines))
         {
             string name = NameOf((ItemStack)line.Sample);
-            if (Freedom(wantedIn, line) is { } free) name = Lang.Get("curiocatalogue:invoice-info-member-free", name, free);
+            if (AfterName(wantedIn, line) is { } more) name = Lang.Get("curiocatalogue:invoice-info-member-free", name, more);
             dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, name));
         }
         if (invoice.Entries.Length > TooltipLines)
@@ -191,14 +191,31 @@ public class ItemInvoice : ItemRollable
     }
 
     /// <summary>
-    /// What a want list's line leaves free when it names a member of several items: "any colour" by each free dimension's
-    /// <c>anyKey</c>, or "any of 6 items" when a dimension has none; null for a line of one item (or of format 1, or of a collection
-    /// the game does not have: the line then wants exactly the item it shows).
+    /// What a want list's line says after the item's name: the member's values its item's name does not say ("Basalt", by
+    /// <see cref="Listed"/>), then what it leaves free ("any rock", by <see cref="Freedom(DefinedCollection, CollectionLevel, Member)"/>);
+    /// null when neither (or for a line of format 1, or of a collection the game does not have: the line then wants exactly the
+    /// item it shows).
     /// </summary>
-    internal static string? Freedom((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
+    internal static string? AfterName((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
     {
         if (line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member) return null;
-        return Freedom(collection, level, member);
+        string[] parts = [.. new[] { Listed(collection, member), Freedom(collection, level, member) }.OfType<string>()];
+        return parts.Length == 0 ? null : string.Join(", ", parts);
+    }
+
+    /// <summary>What a want list's line leaves free ("any rock"), for its slot's tooltip in the window: the item shown is one of
+    /// those that fill the line, and its own text names its rock. Null when the line leaves nothing free.</summary>
+    internal static string? FreeOf((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
+        line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member
+            ? null : Freedom(collection, level, member);
+
+    /// <summary>A member's values in the dimensions marked <c>inLists</c>, by their names ("Basalt"); null when none. The want
+    /// list's line (its sheet's text; the window's slots show the item's own text, which names its rock).</summary>
+    internal static string? Listed(DefinedCollection collection, Member member)
+    {
+        var listed = collection.Listed(member);
+        if (listed.Count == 0) return null;
+        return string.Join(", ", listed.Select(l => l.Dimension.ValueNameKey(l.Value) is { } key ? Lang.Get(key) : l.Value));
     }
 
     /// <summary>What a member leaves free, as in a want list's line; null for a member of one item (the album window's tooltip).</summary>

@@ -587,6 +587,48 @@ public class InvoicePosterTests
         Assert.Equal(TapestryKey("x"), store.ReadAlbum(albumSlot.Itemstack!).Collected["pair"].Key.ToString());
     }
 
+    /// <summary>No empty slot; slot 2 holds a "y" with room on its stack, the rest is full of ingots.</summary>
+    private void RoomOnlyForY()
+    {
+        for (int i = 1; i < 6; i++) playerInventory[i].Itemstack = i == 2 ? Tapestry("y") : new ItemStack(ingot, 64);
+    }
+
+    [Fact]
+    public void A_member_of_several_items_takes_the_one_there_is_room_for()
+    {
+        // A5 of the collections core's code review: "x" comes first in the member's order but has no room; "y" tops up a stack.
+        var chest = new TestChest(game.Api, Tapestry("x"), Tapestry("y"));
+        game.Place(pos, chest);
+        var albumSlot = HoldAlbumOf(InvoiceSlot, Pair());
+        RoomOnlyForY();
+
+        var collected = Assert.IsType<CollectResult.Collected>(Collect(albumSlot));
+
+        Assert.Equal((1, 0, 0), (collected.Taken, collected.NotFitted, collected.MissingLeft));
+        Assert.Equal((TapestryKey("y"), 2), (keys.KeyOf(playerInventory[2].Itemstack!).ToString(), playerInventory[2].StackSize));
+        Assert.Equal(TapestryKey("y"), store.ReadAlbum(albumSlot.Itemstack!).Collected["pair"].Key.ToString());
+    }
+
+    [Fact]
+    public void A_want_list_line_naming_a_member_of_several_items_takes_the_one_there_is_room_for()
+    {
+        // A5, the want list's way: the line shows "x"; the chest has both; only "y" fits.
+        var pair = Pair();
+        var album = Album.New(pair, 3, "");
+        var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(pair)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+        var stack = new ItemStack(invoiceItem);
+        store.WriteInvoice(stack, list);
+        InvoiceSlot.Itemstack = stack;
+        game.Place(pos, new TestChest(game.Api, Tapestry("x"), Tapestry("y")));
+        collection = pair;
+        RoomOnlyForY();
+
+        var posted = Assert.IsType<PostInvoiceResult.Posted>(PostWantList());
+
+        Assert.Equal((1, 0, 0), (posted.Lines, posted.ListLeft, posted.NotFitted));
+        Assert.Equal(2, playerInventory[2].StackSize);
+    }
+
     [Fact]
     public void Album_of_a_collection_the_game_lacks_or_with_no_level_takes_nothing()
     {
@@ -596,10 +638,10 @@ public class InvoicePosterTests
 
         HoldAlbumOf(albumSlot, TestCollections.TwoLevels(keys, t => Tapestry(t), "a"));
         Assert.Null(store.ReadAlbum(albumSlot.Itemstack!).Level);
-        Assert.Equal(CollectRefusal.NoLevel, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+        Assert.Equal(AlbumRefusal.NoLevel, Assert.IsType<CollectResult.AlbumRefused>(Collect(albumSlot)).Reason);
 
         collection = null;
-        Assert.Equal(CollectRefusal.NoCollection, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+        Assert.Equal(AlbumRefusal.NoCollection, Assert.IsType<CollectResult.AlbumRefused>(Collect(albumSlot)).Reason);
         Assert.Single(chest.Inventory, s => s.Itemstack != null);
         Assert.Empty(PlayerItems());
     }
@@ -613,7 +655,7 @@ public class InvoicePosterTests
 
         disabled = true;
 
-        Assert.Equal(CollectRefusal.Disabled, Assert.IsType<CollectResult.Refused>(Collect(albumSlot)).Reason);
+        Assert.Equal(AlbumRefusal.Disabled, Assert.IsType<CollectResult.AlbumRefused>(Collect(albumSlot)).Reason);
         Assert.Single(chest.Inventory, s => s.Itemstack != null);
         Assert.Empty(PlayerItems());
         // The record of what was collected stays: switched on again, the album works as before.

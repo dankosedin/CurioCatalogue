@@ -26,8 +26,9 @@ public sealed record WantedFrom(string CollectionId, string Level)
     public CollectionLevel? LevelIn(DefinedCollection collection) => collection.LevelOrOnly(Level);
 }
 
-/// <summary>A line of a want list a container can give now (its index in the list) and the item there that gives it.</summary>
-public sealed record WantedLine(int Line, ItemKey Key);
+/// <summary>A line of a want list a container can give now (its index in the list) and the items there that give it, in the
+/// order to try them; which one is taken is chosen with the room, as an album's (<see cref="WantedMember"/>).</summary>
+public sealed record WantedLine(int Line, IReadOnlyList<ItemKey> Keys);
 
 /// <summary>
 /// A self-contained document: real stacks with counts, not tied to the ledger that made it.
@@ -41,28 +42,19 @@ public sealed record Invoice(InvoiceKind Kind, ImmutableArray<Entry> Entries, do
     WantedFrom? From = null)
 {
     /// <summary>
-    /// For a want list: the lines a container that has <paramref name="available"/> can give now, in the list's order, one item
-    /// each. A line naming a member of <paramref name="level"/> goes the album's way (<see cref="Album.Wanted"/>): any item that
-    /// fills the member, the first in the member's order. A line of format 1, or one whose member the level no longer has (or no
-    /// level: the collection unknown), wants exactly its own item. No item is given to two lines.
+    /// For a want list: the lines a container that has <paramref name="available"/> can give now, in the list's order, with the
+    /// items there that give each. A line naming a member of <paramref name="level"/> goes the album's way (<see cref="Album.Wanted"/>):
+    /// any item that fills the member, in the member's order. A line of format 1, or one whose member the level no longer has (or
+    /// no level: the collection unknown), wants exactly its own item. Two lines may offer the same item; the plan gives it to one
+    /// (<see cref="Transfer.PlanWhatFits(IEnumerable{IReadOnlyList{Entry}}, IReadOnlyList{SourceSlot}, IReadOnlyList{TargetSlot}, System.Func{int, SourceSlot, int})"/>).
     /// </summary>
     /// <param name="level">The level of <see cref="From"/> as the collection is now; null when unknown.</param>
-    public IReadOnlyList<WantedLine> Wanted(CollectionLevel? level, IReadOnlySet<ItemKey> available)
-    {
-        var used = new HashSet<ItemKey>();
-        var wanted = new List<WantedLine>();
-        for (int i = 0; i < Entries.Length; i++)
-        {
-            var line = Entries[i];
-            IEnumerable<ItemKey> fillers = line.Member != null && level?.Find(line.Member) is { } member ? member.Fillers : [line.Key];
-            if (fillers.FirstOrDefault(k => available.Contains(k) && !used.Contains(k)) is { } key)
-            {
-                used.Add(key);
-                wanted.Add(new WantedLine(i, key));
-            }
-        }
-        return wanted;
-    }
+    public IReadOnlyList<WantedLine> Wanted(CollectionLevel? level, IReadOnlySet<ItemKey> available) =>
+        Entries
+            .Select((line, i) => new WantedLine(i,
+                (line.Member != null && level?.Find(line.Member) is { } member ? member.Fillers : [line.Key]).Where(available.Contains).ToList()))
+            .Where(w => w.Keys.Count > 0)
+            .ToList();
 
     /// <summary>The invoice with these lines (by index) crossed off its list (what a want list has delivered).</summary>
     public Invoice CrossOff(IEnumerable<int> lines)

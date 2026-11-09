@@ -131,6 +131,25 @@ public class DefinedCollectionTests
     }
 
     [Fact]
+    public void A_member_lists_its_value_of_a_dimension_in_lists_when_all_its_items_share_it()
+    {
+        var plain = Crystals();
+        var definition = plain with { Dimensions = [.. plain.Dimensions.Select(d => d.Code == "rock" ? d with { InLists = true } : d)] };
+        var crystals = Built(DefinedCollection.Build(definition, CrystalPoints));
+        var richest = crystals.Level("richest")!;
+        var oreRock = crystals.Level("ore-rock")!;
+        IEnumerable<(string, string)> Listed(DefinedCollection c, Member m) => c.Listed(m).Select(l => (l.Dimension.Code, l.Value));
+
+        // The level drops the rock, but bountiful native copper occurs in basalt only: one item, its rock said.
+        Assert.Equal([("rock", "basalt")], Listed(crystals, richest.Find("nativecopper")!));
+        // Quartz gold of any of 13 rocks: the rock is free ("any rock"), not listed.
+        Assert.Empty(Listed(crystals, richest.Find("quartz_nativegold")!));
+        Assert.Equal([("rock", "claystone")], Listed(crystals, oreRock.Find("galena-claystone")!));
+        // No dimension marked, nothing listed.
+        Assert.Empty(Listed(Built(DefinedCollection.Build(plain, CrystalPoints)), oreRock.Find("galena-claystone")!));
+    }
+
+    [Fact]
     public void The_ore_and_rock_level_is_filled_by_the_richest_grade_each_rock_gets()
     {
         var level = Built(DefinedCollection.Build(Crystals(), CrystalPoints)).Level("ore-rock")!;
@@ -382,5 +401,14 @@ public class DefinedCollectionTests
         var errors = Errors(DefinedCollection.Build(Seashells, points));
 
         Assert.Contains(errors, e => e.Contains("'odd'") && e.Contains("color"));
+    }
+
+    [Fact]
+    public void A_dimension_names_a_value_short_for_a_heading_or_as_in_full_when_it_has_no_short_name()
+    {
+        var full = new DimensionDef("ore", [], NameKey: "k:ore-{value}");
+        Assert.Equal("k:ore-galena", full.ValueShortNameKey("galena"));
+        Assert.Equal("k:ore-short-galena", (full with { ShortNameKey = "k:ore-short-{value}" }).ValueShortNameKey("galena"));
+        Assert.Null(new DimensionDef("ore", []).ValueShortNameKey("galena"));
     }
 }

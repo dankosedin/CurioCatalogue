@@ -184,6 +184,43 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal(("ledger-album", (string?)null), shown);
     }
 
+    [Fact]
+    public void C3_an_empty_bill_of_materials_and_an_ore_crystal_make_an_album_of_crystals_and_the_crystal_stays()
+    {
+        var client = FakeClient.Join(game, "c3-crystals");
+        var (recipe, album, left) = game.OnMain(() =>
+        {
+            var player = client.Player;
+            Put(player, (0, Book("book-materials-normal-teal", 7)), (1, Vanilla("crystalizedore-poor-nativecopper-andesite")));
+            var recipe = Shown(player).Recipe;
+            var taken = Take(player);
+            var album = ReadAlbum(taken);
+            return (recipe, (Describe(taken), album.Sheets, album.CollectionId, album.Level), Left(player));
+        });
+
+        Assert.Equal("ledger-album-crystals", recipe);
+        // Three levels: none is chosen until the player chooses one in the window (album view plan, A2, "Levels").
+        Assert.Equal(("book-album-normal-teal x1", 7, "crystals", (string?)null), album);
+        Assert.Equal("crystalizedore-poor-nativecopper-andesite x1", left);
+    }
+
+    [Fact]
+    public void C3_a_crystal_that_never_generates_makes_no_album()
+    {
+        // The recipe takes any "game:crystalizedore-*" (ledger.json); uranium is excluded by crystals.json (it has no deposit),
+        // so it is not a member and the grid shows the recipe without an output.
+        var client = FakeClient.Join(game, "c3-uranium");
+        var shown = game.OnMain(() =>
+        {
+            var player = client.Player;
+            Put(player, (0, Book("book-ledger-normal-brickred", 12)), (1, Vanilla("crystalizedore-poor-uranium-granite")));
+            var (recipe, output) = Shown(player);
+            return (recipe, output == null ? null : Describe(output));
+        });
+
+        Assert.Equal(("ledger-album-crystals", (string?)null), shown);
+    }
+
     // ---- C4: books made from an old book (one with entries)
 
     [Fact]

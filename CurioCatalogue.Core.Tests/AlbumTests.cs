@@ -71,7 +71,7 @@ public class AlbumTests
 
         var wanted = album.Wanted(level, new HashSet<ItemKey> { K("notice"), K("ambush2"), K("ambush1"), K("other") });
 
-        Assert.Equal([("ambush1", K("ambush1")), ("notice", K("notice"))], wanted.Select(w => (w.Member.Id, w.Key)));
+        Assert.Equal([("ambush1", K("ambush1")), ("notice", K("notice"))], wanted.Select(w => (w.Member.Id, Assert.Single(w.Keys))));
     }
 
     [Fact]
@@ -202,9 +202,11 @@ public class AlbumTests
         var album = Assert.IsType<LevelChoice.Chosen>(Album.New(Seashells, 3, "").ChooseLevel(Seashells, "type")).Album;
         var level = album.LevelIn(Seashells)!;
 
-        // The container has a seafoam and a plain clam, and no scallop: the clam is wanted once, by the first in the member's order.
+        // The container has a seafoam and a plain clam, and no scallop: the clam is wanted once, by either, in the member's order
+        // (which one is taken is chosen with the room, Transfer.PlanWhatFits).
         var wanted = album.Wanted(level, new HashSet<ItemKey> { Shell("clam", "seafoam"), Shell("clam", "plain") });
-        Assert.Equal([("clam", Shell("clam", "plain"))], wanted.Select(w => (w.Member.Id, w.Key)));
+        Assert.Equal("clam", Assert.Single(wanted).Member.Id);
+        Assert.Equal([Shell("clam", "plain"), Shell("clam", "seafoam")], wanted[0].Keys);
 
         var after = album.Collect([("clam", new FilledBy(Shell("clam", "seafoam"), "the seafoam one"))]);
         Assert.Equal(["scallop"], Ids(after.Missing(level)));
@@ -374,8 +376,12 @@ public class AlbumTests
 
         var wanted = invoice.Wanted(Tapestries().Levels[0], new HashSet<ItemKey> { K("ambush2"), K("notice"), K("other") });
 
-        Assert.Equal([new WantedLine(1, K("ambush2")), new WantedLine(2, K("notice"))], wanted);
+        Assert.Equal([(1, K("ambush2")), (2, K("notice"))], Flat(wanted));
     }
+
+    /// <summary>Each wanted line with each item it offers, in order.</summary>
+    private static List<(int Line, ItemKey Key)> Flat(IEnumerable<WantedLine> wanted) =>
+        wanted.SelectMany(w => w.Keys.Select(k => (w.Line, k))).ToList();
 
     [Fact]
     public void Delivered_lines_are_crossed_off_a_want_list_by_their_place()
@@ -413,10 +419,10 @@ public class AlbumTests
         var level = album.LevelIn(Seashells)!;
         var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(level, 5, Pos)).Invoice;
 
-        // No latte shell anywhere: the clam is given by a seafoam or a plain one, the first in the member's order.
+        // No latte shell anywhere: the clam is given by a plain or a seafoam one, in the member's order.
         var wanted = list.Wanted(level, new HashSet<ItemKey> { Shell("clam", "seafoam"), Shell("clam", "plain") });
 
-        Assert.Equal([new WantedLine(1, Shell("clam", "plain"))], wanted);
+        Assert.Equal([(1, Shell("clam", "plain")), (1, Shell("clam", "seafoam"))], Flat(wanted));
         Assert.Equal(["scallop"], list.CrossOff(wanted.Select(w => w.Line)).Entries.Select(e => e.Member));
     }
 
@@ -429,20 +435,26 @@ public class AlbumTests
         var chest = new HashSet<ItemKey> { Shell("clam", "plain"), Shell("scallop", "plain"), Shell("scallop", "latte") };
 
         // The collection unknown: both lines exact, so only the latte scallop.
-        Assert.Equal([new WantedLine(1, Shell("scallop", "latte"))], list.Wanted(null, chest));
+        Assert.Equal([(1, Shell("scallop", "latte"))], Flat(list.Wanted(null, chest)));
         // Known: the clam by any colour; the gone member still by its own item.
-        Assert.Equal([new WantedLine(0, Shell("clam", "plain")), new WantedLine(1, Shell("scallop", "latte"))],
-            list.Wanted(Seashells.Level("type"), chest));
+        Assert.Equal([(0, Shell("clam", "plain")), (1, Shell("scallop", "latte"))], Flat(list.Wanted(Seashells.Level("type"), chest)));
     }
 
     [Fact]
-    public void No_item_is_given_to_two_lines()
+    public void Two_lines_may_offer_one_item_and_the_plan_gives_it_to_the_first()
     {
         // A list a player could not make, but data may hold: two lines for one item, and two members one item could fill.
         var list = new Invoice(InvoiceKind.WantList,
             [new(Shell("clam", "latte"), 1, ""), new(Shell("clam", "latte"), 1, "", Member: "clam")], 0, Pos, new WantedFrom("seashells", "type"));
 
-        Assert.Equal([new WantedLine(0, Shell("clam", "latte"))], list.Wanted(Seashells.Level("type"), new HashSet<ItemKey> { Shell("clam", "latte") }));
+        var wanted = list.Wanted(Seashells.Level("type"), new HashSet<ItemKey> { Shell("clam", "latte") });
+        Assert.Equal([(0, Shell("clam", "latte")), (1, Shell("clam", "latte"))], Flat(wanted));
+
+        // The chest has two: still one line gets it (an item's key names the line it was taken for).
+        var plan = Transfer.PlanWhatFits(wanted.Select(w => (IReadOnlyList<Entry>)w.Keys.Select(k => new Entry(k, 1, "")).ToList()),
+            [new SourceSlot(0, Shell("clam", "latte"), 2)], [new TargetSlot(5, null, 0)], (_, _) => 64);
+        Assert.Equal([0], plan.Taken.Select(t => t.Line));
+        Assert.Empty(plan.Left);
     }
 
     [Fact]

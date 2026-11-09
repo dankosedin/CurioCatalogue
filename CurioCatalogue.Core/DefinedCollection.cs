@@ -143,6 +143,17 @@ public sealed class DefinedCollection
                 .Where(d => level.Definition.Drop.TryGetValue(d.Code, out var drop) && drop == Drop.Any && !member.Values.ContainsKey(d.Code))
                 .ToList();
 
+    /// <summary>
+    /// What a listed member says after the item's name: its value in each dimension marked <see cref="DimensionDef.InLists"/>, in
+    /// the definition's order. A value all its items share counts, kept by the level or not (the richest native copper, found in
+    /// basalt only: "basalt"); a dimension the member leaves free is said by <see cref="Free"/> instead.
+    /// </summary>
+    public IReadOnlyList<(DimensionDef Dimension, string Value)> Listed(Member member) =>
+        Definition.Dimensions
+            .Where(d => d.InLists && member.Values.ContainsKey(d.Code))
+            .Select(d => (d, member.Values[d.Code]))
+            .ToList();
+
     public const string IdSeparator = "-";
 
     private static readonly LayoutDef ImplicitLayout = new("order", [], new Arrangement.InOrder());

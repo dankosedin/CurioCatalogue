@@ -195,6 +195,9 @@ public sealed class LedgerStore
     /// <summary>What the game says of the album's collection: there, off on this server, or unknown.</summary>
     public CollectionResolution Resolve(Album album) => resolve(album.CollectionId);
 
+    /// <summary>Where the album stands against its collection now: at a level, or refused (off, gone, no level).</summary>
+    public AlbumStanding StandingOf(Album album) => AlbumStanding.Of(album, Resolve(album));
+
     /// <summary>The same by the collection's id, for what needs no more than the id (the hints over a container).</summary>
     public CollectionResolution Resolve(string collectionId) => resolve(collectionId);
 

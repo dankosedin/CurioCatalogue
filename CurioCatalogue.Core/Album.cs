@@ -10,8 +10,9 @@ namespace CurioCatalogue.Core;
 /// (the game's ItemStack; the core never reads it).</summary>
 public sealed record FilledBy(ItemKey Key, object Stack);
 
-/// <summary>A missing member a container can fill now, and the key of the item there that fills it.</summary>
-public sealed record WantedMember(Member Member, ItemKey Key);
+/// <summary>A missing member a container can fill now, and the items there that fill it, in the member's order; which one is
+/// taken is chosen with the room (<see cref="Transfer.PlanWhatFits(IEnumerable{IReadOnlyList{Entry}}, IReadOnlyList{SourceSlot}, IReadOnlyList{TargetSlot}, Func{int, SourceSlot, int})"/>).</summary>
+public sealed record WantedMember(Member Member, IReadOnlyList<ItemKey> Keys);
 
 public enum LevelRefusal
 {
@@ -110,13 +111,13 @@ public sealed record Album(
 
     /// <summary>
     /// What to take from a container that has <paramref name="available"/>: each missing member it can fill, in the order of taking
-    /// new, with the item that fills it there; of a member filled by any of several items, the first in the member's order. A key
-    /// fills at most one member of a level, so no two lines share a key.
+    /// new, with the items there that fill it, in the member's order. A key fills at most one member of a level, so no two
+    /// members share a key.
     /// </summary>
     public IReadOnlyList<WantedMember> Wanted(CollectionLevel level, IReadOnlySet<ItemKey> available) =>
         Missing(level)
-            .Select(m => m.Fillers.FirstOrDefault(available.Contains) is { } key ? new WantedMember(m, key) : null)
-            .OfType<WantedMember>()
+            .Select(m => new WantedMember(m, m.Fillers.Where(available.Contains).ToList()))
+            .Where(w => w.Keys.Count > 0)
             .ToList();
 
     /// <summary>The album with these members collected, each with the item that filled it; a member already collected keeps its record.</summary>

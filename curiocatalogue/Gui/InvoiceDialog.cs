@@ -42,12 +42,14 @@ public class InvoiceDialog : GridDialog
         invoice = mod.Store.ReadInvoice(Slot.Itemstack!, item.InvoiceKind);
 
         // Lines keep their order, as found in the container.
+        // A line that leaves something free says so over the item's own text ("any rock"): the stack shown is one of several.
+        var wantedIn = mod.Store.WantedIn(invoice);
         int rows = FillView(invoice.Entries.Select(line =>
         {
             var shown = ((ItemStack)line.Sample).Clone();
             shown.StackSize = line.Count;
             return shown;
-        }).ToList());
+        }).ToList(), invoice.Entries.Select(line => ItemInvoice.FreeOf(wantedIn, line)).ToList());
 
         var font = CairoFont.WhiteSmallText();
         double width = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, Cols, 1).fixedWidth + 12;

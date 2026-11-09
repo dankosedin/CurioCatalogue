@@ -74,7 +74,8 @@ members, the resolver, the packet and the recipe of a disabled collection are in
   example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
   `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
   "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`, `anyKey`: a phrase in lower case for what a member of several items leaves
-free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
+free, "any colour"; `inLists`: `true` to say the member's value by its `nameKey` after the item's name in the want list sheet's lines, when the name does not say it, a crystal's rock; `shortNameKey`: a shorter name of a value for a table heading with little room, the full name stays the heading's tooltip),
+`levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
   complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
   `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",
@@ -130,7 +131,13 @@ free, "any colour"), `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   (`Entry.Member`) beside the member's first item; a line whose member or collection the game lacks wants exactly that item.
 - **One resolver** for the store, the items and the network: given an album (its id now, the book stack later for custom
   collections), it answers `Found | Disabled | Unknown`, a closed type, so "disabled on this server" and "no longer in the game"
-  are different refusals.
+  are different refusals. On it, one ladder for an album (V1 of the vanilla collections plan, 09.11.2026): `AlbumStanding` in
+  the core says "at a level" or refused with an `AlbumRefusal` (`Disabled`, `NoCollection`, `NoLevel`); taking new, the want
+  list, starting over, choosing a level, the tooltip and the window all ask it, and the refusal names the same message everywhere.
+  Rejected: an `AlbumState` per use and the same three values in each result's enum (as built in K3–K6), which drifted apart.
+- **The item for a member of several is chosen with the room** (V1, 09.11.2026; A5 of K7): `Album.Wanted` and `Invoice.Wanted`
+  list every item the container has for a line, in the member's order; `Transfer.PlanWhatFits` takes the first that no earlier line
+  took and that fits. Rejected: choosing the first item before room is known (an item that does not fit kept out one that would).
 - **The server's `Collections` reach the client in a packet on join;** the client's registry is rebuilt when it arrives. Without
   it the client builds albums with its own config file (already true of `TapestryExclude` in 0.1) and cannot show `Disabled`.
   The handler only stores the section and drops the registry and the client's item keys at once (so nothing is read with the old

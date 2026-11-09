@@ -295,6 +295,9 @@ In this order:
   The name has no rock ("Poor crystallized chunk of {ore}"), only the tooltip and the icon do: two codes, one name.
   Names of the values (07.11.2026): `game:ore-{ore}` and `game:rock-{rock}` exist in `en` and `uk` for every value of
   `block/ore-graded` and `block/rockwithdeposit`; the grade has only `game:ore-grade-{grade}`, "Quality: Poor", so its names are ours.
+  In `uk` the ore's names are in the genitive and lower case ("самородної міді", for "кристал. шматок {0}"), unusable as a heading,
+  so ours too (09.11.2026). **Only 398 are registered** (server tests, 09.11.2026): the `ore` group is loaded from
+  `worldproperties/block/ore-graded.json`, which has no stibnite, so its 9 allowed variants never become items.
 - **The order of a variant group is not kept at run time** (07.11.2026): an item knows only its own values
   (RegistryObject.cs:25#VariantStrict), item ids follow the world's history (`ServerSystemItemIdRemapper`: an item new to a world
   gets the next free id, whatever its place in the group), and `itemtypes` are not read on the client

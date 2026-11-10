@@ -133,7 +133,22 @@ public static class CollectionDefinitionReader
         return code == null
             ? null
             : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
-                Text(o, "anyKey", errors, required: false), Flag(o, "inLists", errors), Text(o, "shortNameKey", errors, required: false));
+                Text(o, "anyKey", errors, required: false), Flag(o, "inLists", errors), Text(o, "shortNameKey", errors, required: false),
+                TextMap(o, "icons", $"dimension '{code}'", errors));
+    }
+
+    /// <summary>An optional object of texts (a dimension's <c>icons</c>, value → icon); null when absent.</summary>
+    private static Dictionary<string, string>? TextMap(JObject o, string name, string what, List<string> errors)
+    {
+        if (o[name] == null) return null;
+        if (o[name] is not JObject map) { errors.Add($"{what}: '{name}' is not an object"); return null; }
+        var result = new Dictionary<string, string>();
+        foreach (var (key, value) in map)
+        {
+            if (value?.Type == JTokenType.String) result[key] = (string)value!;
+            else errors.Add($"{what}: '{name}' gives '{key}' something that is not a text");
+        }
+        return result;
     }
 
     private static bool Flag(JObject o, string name, List<string> errors)
@@ -179,7 +194,8 @@ public static class CollectionDefinitionReader
                 case "table":
                     var rows = Text(a, "rows", errors);
                     var columns = Text(a, "columns", errors);
-                    if (rows != null && columns != null) arrange = new Arrangement.Table(rows, columns);
+                    bool reverseRows = Flag(a, "reverseRows", errors);
+                    if (rows != null && columns != null) arrange = new Arrangement.Table(rows, columns, reverseRows);
                     break;
                 case "shape": arrange = new Arrangement.Shape(); break;
                 case "order": arrange = new Arrangement.InOrder(); break;

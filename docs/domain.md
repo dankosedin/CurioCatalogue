@@ -225,8 +225,8 @@ mod brings its own; the item put in must be a member of that collection.
   sort by name, by mod, by count (bill of materials only); "Clear". The album has a window of its own since 0.2 (below).
 - **Album window** (agreed for 0.2, being built: `docs/plans/2026-11-04-album-view.md`, Decisions, "The view on paper"): a window of
   its own, as a stamp album. Pages hold whole groups in order (a picture, an ore); collected pieces in their places, missing ones
-  translucent, points of a table that do not exist left blank. A group of two dimensions is a table with stack headings (rock ×
-  grade). The player switches the **layout** at any time (crystals by ore or by rock, tapestries by picture or by size); it is
+  translucent, points of a table that do not exist left blank. A group of two dimensions is a table headed by icons (rock ×
+  grade: stones and round marks; words for a dimension with no icon), each value's name on hover. The player switches the **layout** at any time (crystals by ore or by rock, tapestries by picture or by size); it is
   presentation only, kept on the client. A collection with several **levels** (crystals 16 / 118 / 353, seashells 7 / 42) has its
   level chosen in the window while the album is empty, fixed by the first piece, freed by "Start over"; with no level chosen the
   album refuses to take new and makes no want list. Tabs for a grouping with names when there is more than one page, each tab

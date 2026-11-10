@@ -19,7 +19,8 @@ namespace CurioCatalogue.Core;
 /// dimension cannot be dropped as <see cref="Drop.Max"/>, which needs an order of its own.</param>
 /// <param name="NameKey">A lang key for a value's name, <c>{value}</c> replaced by the value (<c>game:ore-{value}</c>); null
 /// when the values have no names.</param>
-/// <param name="Icon">An item code for a value's icon, <c>{value}</c> replaced (<c>game:rock-{value}</c>); null when none.</param>
+/// <param name="Icon">A value's icon, <c>{value}</c> replaced: an item or block code (<c>game:rock-{value}</c>), or an SVG of
+/// ours by its path (<c>curiocatalogue:textures/icons/grade-{value}.svg</c>, <see cref="IsSvg"/>); null when none.</param>
 /// <param name="AnyKey">A lang key for what a member of several items leaves free in this dimension, a phrase in lower case
 /// ("any rock", "будь-яка порода"; whole, for the grammar of each language); null when none, and a generic "any of N" is said.</param>
 /// <param name="InLists">Whether a member's value here is said after the item's name where a missing piece is listed (the want
@@ -27,8 +28,10 @@ namespace CurioCatalogue.Core;
 /// rock). Said by <see cref="NameKey"/>.</param>
 /// <param name="ShortNameKey">A lang key for a value's short name in a table heading, <c>{value}</c> replaced; null: the <see cref="NameKey"/>.
 /// The full name stays the heading's tooltip.</param>
+/// <param name="Icons">The icons of the values <see cref="Icon"/> does not fit, value → icon in the same forms (a crystal's
+/// <c>quartz_nativegold</c> → <c>game:nugget-nativegold</c>); without <see cref="Icon"/>, a whole table by hand. Null when none.</param>
 public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null,
-    string? AnyKey = null, bool InLists = false, string? ShortNameKey = null)
+    string? AnyKey = null, bool InLists = false, string? ShortNameKey = null, IReadOnlyDictionary<string, string>? Icons = null)
 {
     public const string ValuePlaceholder = "{value}";
 
@@ -37,7 +40,15 @@ public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, str
     /// <summary>The key of a value's short name, for a table heading with little room: <see cref="ShortNameKey"/>, else the full name's.</summary>
     public string? ValueShortNameKey(string value) => (ShortNameKey ?? NameKey)?.Replace(ValuePlaceholder, value);
 
-    public string? ValueIcon(string value) => Icon?.Replace(ValuePlaceholder, value);
+    /// <summary>A value's icon: its own in <see cref="Icons"/>, else <see cref="Icon"/> with the value; null when none.</summary>
+    public string? ValueIcon(string value) =>
+        Icons != null && Icons.TryGetValue(value, out var own) ? own : Icon?.Replace(ValuePlaceholder, value);
+
+    /// <summary>The values are headed by icons, not words (a table's heading is then a cell, not a line of text).</summary>
+    public bool HasIcons => Icon != null || Icons is { Count: > 0 };
+
+    /// <summary>An icon that is an SVG drawn by us, not an item or block: its path ends in <c>.svg</c>.</summary>
+    public static bool IsSvg(string icon) => icon.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>What a level does with a dimension it does not keep.</summary>
@@ -55,8 +66,10 @@ public enum Drop
 [Closed(typeof(Arrangement.Table), typeof(Arrangement.Shape), typeof(Arrangement.InOrder))]
 public abstract record Arrangement
 {
-    /// <summary>A table of two dimensions: rows and columns, each a dimension's values in order.</summary>
-    public sealed record Table(string Rows, string Columns) : Arrangement;
+    /// <summary>A table of two dimensions: rows and columns, each a dimension's values in order; with
+    /// <paramref name="ReverseRows"/> the rows highest first (a crystal's richest grade on top, L2b), the dimension's own order
+    /// (lowest first, for <see cref="Drop.Max"/>) unchanged.</summary>
+    public sealed record Table(string Rows, string Columns, bool ReverseRows = false) : Arrangement;
 
     /// <summary>The group's own shape: each member at its integer attributes <c>x</c> and <c>y</c> (a tapestry piece in
     /// its picture), in reading order (row by row).</summary>

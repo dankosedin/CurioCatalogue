@@ -36,16 +36,23 @@ sees a change.
       Done when: the author's notes are fixed or rejected with reasons (Decisions); pull request.
       The notes (10.11.2026), each in Decisions: the table of `rocks` fullest first (tried, rejected in game); the row of
       `richest` and the frame of a tab's page (to L6); icons for words (L2b); the album recipe kept.
-- [ ] **L2b. Ore crystals: icons for words.** Ores as the game's nuggets (`nugget-{ore}`; gold and silver in quartz or galena by a
-      value → icon table, the game has one `nativegold` and one `nativesilver`), the grade as one round mark of four sizes; then the
-      level and layout choices with icons: a dropdown of our own that shows an icon beside or instead of the name (a new element, of
-      use beyond crystals: the seashells' colours, the tapestries' layouts). How the definition carries an icon per value and what
-      the element is: decided at the start of the session, before code. The words stay in tooltips.
-      Branch: `feat/crystals-icons`. After: L9 merged. Model: opus. Author: the icons and the element, then plays and checks.
+- [x] **L2b. Ore crystals: icons for words.** Ores as the game's nuggets (`nugget-{ore}`; gold and silver in quartz or galena by a
+      value → icon table, the game has one `nativegold` and one `nativesilver`), the grade as one round mark of four sizes. How the
+      definition carries an icon per value: decided at the start of the session (Decisions, "Icons for words"). The words stay in
+      tooltips. Split 10.11.2026 (the author): the dropdown with icons is L2c.
+      Branch: `feat/crystals-icons`. After: L9 merged. Model: opus. Author: the icons, then plays and checks.
       Done when: the decisions in Decisions; tests pass, mutation-checked; the author's in-game check; pull request.
+- [ ] **L2c. A dropdown with icons.** The level, layout and tab choices with icons: a dropdown of our own (closed: the icon and the
+      name, or the icon alone when short of room; open: lines of icon and name, scrolled when long: 17 tabs of crystals, the
+      butterflies' species after L4a), and the side tabs with an icon beside the name. The icons of levels and layouts (an `icon`
+      on `levels` and `layouts` in the definition, the same forms as a value's) decided at the start, before code; a look at
+      every collection as in "Icons for words". The element lands in `AlbumControls` (L9).
+      Branch: `feat/icon-dropdown`. After: L2b merged. Model: opus. Author: the icons of levels and layouts, the in-game check.
+      Done when: tests pass, mutation-checked; A27 and a case of its own in `functional.md` passed; pull request.
 - [ ] **L3. Seashells: the look and rarity.** Whether 0.2 shows the rarity corner of A2 (a coloured triangle by the attribute the
       definition of V3 gives seafoam and turquoise; `ROADMAP.md`, Maybe, "Rarity in the album", for the full feature); if so, the page
-      element draws it and the cell's tooltip names it. Then the author's notes from the game, as L2. The album recipe kept or changed.
+      element draws it and the cell's tooltip names it; its colour and name from the definition, not code (other mods' authors
+      have only the asset; `ROADMAP.md`, item 6, 10.11.2026). Then the author's notes from the game, as L2. The album recipe kept or changed.
       Branch: `feat/seashells-look`. After: V3 merged. Model: sonnet. Author: decides on the corner, plays, writes the notes.
       Done when: the decision in Decisions; the notes fixed or rejected; pull request.
 - [ ] **L4a. Butterflies: the grouping on paper.** By species, from the Latin names in the game's assets (110 species by genus and
@@ -125,8 +132,29 @@ sees a change.
     a long level name ran under the dropdown's arrow (measured in the window's font, drawn in vanilla's larger `WhiteSmallText`).
   - A crash on opening the level dropdown (seashells, `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture`, fatal with
     `glDebugMode`; the same kind as A4's in the item tooltip, 09.11.2026) with quick clicks; not reproduced with slow ones.
-    Cause not found; not put down to L6 (the window there was small, the layout unchanged in height). (the author, 10.11.2026): L7, L8; both were `ROADMAP.md` lines of item 6
-  with no step.
+    Cause not found; not put down to L6 (the window there was small, the layout unchanged in height).
+- **Icons for words (L2b, the author, 10.11.2026, on the agent's proposal):**
+  - A dimension's `icon` stays a template with `{value}`; `icons` (value → icon) gives the values the template does not fit, and
+    may stand alone, a whole table by hand (the butterflies' species after L4a). Crystals: `game:nugget-{value}`, the three ores
+    in a host (`quartz_nativegold`, `quartz_nativesilver`, `galena_nativesilver`) by the table, to the game's `nativegold` and
+    `nativesilver` nuggets.
+  - The two silvers share one nugget: the cells at the crossing are what is collected, the heading only points (the author).
+    Rejected: the graded ore chunk (`ore-medium-{ore}-granite`, the game shapes the three hosts apart) out of style with nuggets;
+    a nugget with the host in a corner, a composed kind of icon.
+  - An icon is an item or block code, or an SVG of ours by its path ending in `.svg`: the grade is four round marks
+    (`curiocatalogue:textures/icons/grade-{value}.svg`), drawn by us in the heading. Data, so other collections may use marks too
+    (a seashell colour as a round swatch).
+  - An SVG is drawn in its own colours, not tinted by code: a mod sets the look by its files alone (the author: what we can change
+    in code, other mods' authors cannot). The grades yellow, the small mark dim, the large one full (the author, after A28's
+    first look in game, 10.11.2026: the size right, white too plain). The ores' short names (`shortNameKey`) unused now, kept.
+  - The richer grade above the poorer in the tables of `all` (the author, 10.11.2026): a table's `"reverseRows": true` in the
+    definition, not the grades' value list reversed (that order is "lowest first" for `max`). Taking new in that layout follows
+    the rows, richest first, as the page shows them.
+  - The other collections looked at: seashells fit (a type as `seashell-{value}-plain`, a colour as a shell or a swatch); butterflies
+    fit with a table by hand; tapestries do not fit and need none (values known only from the game, pieces told by attributes,
+    one level and one layout). An icon "a sample of the group's first member" would serve them: not now.
+  - The dropdown with icons and the icons of levels and layouts: a step of their own, L2c (the author: one session is not enough).
+- **Two more steps** (the author, 10.11.2026): L7, L8; both were `ROADMAP.md` lines of item 6 with no step.
 
 ## Where we stopped
 
@@ -141,3 +169,9 @@ sees a change.
   row of controls (`Build`: the parts, the width, the left and right placing; the dropdowns' widths) and the page buttons; the dialog
   says what the row holds now (`Content()`) and keeps the actions. `AlbumDialog` 600 → about 530 lines. All test projects green
   (no test of its own: a client-only GUI refactoring, no mocks of the dialog). Check: A27 and A22, nothing changed to the eye.
+- 10.11.2026: L2b's code done on `feat/crystals-icons` (final unless the game says otherwise): `DimensionDef.Icons` and `IsSvg`,
+  the reader's `icons`, the page element draws SVG headings with the name on hover, `crystals.json` (nuggets, the table, four
+  `grade-*.svg` marks); tests mutation-checked (core, reader, every icon in the game on the server); case A28 in `functional.md`,
+  `CHANGELOG.md`, `docs/decisions.md`, `docs/domain.md`. Then, by A28 in game (the author): the marks yellow, dim to full, in the
+  SVG's own colours (drawn through Cairo: `LoadSvg` swaps red and blue, `docs/modding.md`); the richest grade on top
+  (`reverseRows`). A28 passed; L2b done (final). Next: the pull request, then L2c.

@@ -24,7 +24,7 @@ public sealed record PageMetrics(int Width, int Height, int Cell, int Heading, i
 /// <summary>A member's cell on a page, at its top left corner.</summary>
 public sealed record PlacedMember(Member Member, int X, int Y);
 
-/// <summary>A table's heading: a value of its row or column dimension, drawn as the value's icon (<see cref="DimensionDef.Icon"/>)
+/// <summary>A table's heading: a value of its row or column dimension, drawn as the value's icon (<see cref="DimensionDef.ValueIcon"/>)
 /// or its name.</summary>
 public sealed record PlacedHeading(DimensionDef Dimension, string Value, int X, int Y, int Width, int Height);
 
@@ -236,9 +236,10 @@ public sealed class AlbumPages
                 DimensionDef rowDim = dims[t.Rows], colDim = dims[t.Columns];
                 // Only the values that occur in the group, in the dimension's order.
                 var rowValues = collection.Values[t.Rows].Where(v => members.Any(mem => mem.Values[t.Rows] == v)).ToList();
+                if (t.ReverseRows) rowValues.Reverse();
                 var colValues = collection.Values[t.Columns].Where(v => members.Any(mem => mem.Values[t.Columns] == v)).ToList();
-                int rowHeadWidth = rowDim.Icon != null ? m.Cell : m.TextHeadingWidth;
-                int colHeadHeight = colDim.Icon != null ? m.Cell : m.Heading;
+                int rowHeadWidth = rowDim.HasIcons ? m.Cell : m.TextHeadingWidth;
+                int colHeadHeight = colDim.HasIcons ? m.Cell : m.Heading;
                 int top = heading + colHeadHeight;
                 var colHeadings = colValues
                     .Select((v, i) => new PlacedHeading(colDim, v, rowHeadWidth + i * m.Cell, heading, m.Cell, colHeadHeight))

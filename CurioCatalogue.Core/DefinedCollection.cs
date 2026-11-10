@@ -281,7 +281,8 @@ public sealed class DefinedCollection
         // Members come in the level's order; OrderBy is stable, so it breaks every tie below.
         Func<Member, int[]> within = layout.Arrange switch
         {
-            Arrangement.Table t => m => [orders[t.Rows].Index(m.Values[t.Rows]), orders[t.Columns].Index(m.Values[t.Columns])],
+            Arrangement.Table t => m =>
+                [(t.ReverseRows ? -1 : 1) * orders[t.Rows].Index(m.Values[t.Rows]), orders[t.Columns].Index(m.Values[t.Columns])],
             Arrangement.Shape _ => m => [Coordinate(m, Arrangement.Shape.Y)!.Value, Coordinate(m, Arrangement.Shape.X)!.Value],
             Arrangement.InOrder _ => _ => [],
             _ => throw ExhaustiveMatch.Failed(layout.Arrange),

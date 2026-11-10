@@ -61,14 +61,18 @@ public sealed class AlbumPageElement : GuiElement
         public int FlatTexture;
     }
 
-    private sealed class Heading(PlacedHeading placed, AlbumSlot? icon, string name, string fitted)
+    /// <summary>A table's heading: an item or block (<paramref name="icon"/>, its tooltip the game's), an SVG of ours
+    /// (<paramref name="svg"/>, its name on hover) or words.</summary>
+    private sealed class Heading(PlacedHeading placed, AlbumSlot? icon, AssetLocation? svg, string name, string fitted)
     {
         public readonly PlacedHeading Placed = placed;
         public readonly AlbumSlot? Icon = icon;
+        public readonly AssetLocation? Svg = svg;
         public readonly string Name = name;
         /// <summary>The name in words, cut with "…" to the heading's width.</summary>
         public readonly string Fitted = fitted;
-        public LoadedTexture? Text;
+        public bool InWords => Icon == null && Svg == null;
+        public LoadedTexture? Text, Mark;
     }
 
     private sealed class Group(GroupBox box, string name, string fitted, string? hint)
@@ -135,10 +139,17 @@ public sealed class AlbumPageElement : GuiElement
             var s = (AlbumSlot)inventory[slot++];
             string name = h.Dimension.ValueNameKey(h.Value) is { } key ? Lang.Get(key) : h.Value;
             string shortName = h.Dimension.ValueShortNameKey(h.Value) is { } shortKey ? Lang.Get(shortKey) : name;
-            if (IconOf(h) is not { } icon) return new Heading(h, null, name, Fit(shortName, HeadingFont, h.Width));
-            s.Itemstack = icon;
-            s.HeadingName = name;
-            return new Heading(h, s, name, name);
+            switch (IconOf(h))
+            {
+                case ItemStack icon:
+                    s.Itemstack = icon;
+                    s.HeadingName = name;
+                    return new Heading(h, s, null, name, name);
+                case AssetLocation svg:
+                    return new Heading(h, null, svg, name, name);
+                default:
+                    return new Heading(h, null, null, name, Fit(shortName, HeadingFont, h.Width));
+            }
         }).ToArray();
         groups = page.Groups.Select(g =>
         {
@@ -158,14 +169,14 @@ public sealed class AlbumPageElement : GuiElement
     }
 
     /// <summary>
-    /// The texts cut with "…" (a group's name, a heading in words) and the group names with a hint, with their full text and
-    /// where they stand on the page (unscaled, from its top left): the window puts a hover text over each (A3b, "Words that do
-    /// not fit").
+    /// The texts cut with "…" (a group's name, a heading in words), the group names with a hint and the headings drawn as an SVG
+    /// (a crystal's grade, L2b), with their full text and where they stand on the page (unscaled, from its top left): the window
+    /// puts a hover text over each (A3b, "Words that do not fit").
     /// </summary>
     public IEnumerable<(double X, double Y, double Width, double Height, string Text)> CutTexts =>
         groups.Where(g => g.Box.HeadingHeight > 0 && g.Hover != null)
             .Select(g => ((double)g.Box.X + left, (double)g.Box.Y + pad, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.Hover!))
-            .Concat(headings.Where(h => h.Icon == null && h.Fitted != h.Name)
+            .Concat(headings.Where(h => h.Svg != null || (h.InWords && h.Fitted != h.Name))
                 .Select(h => ((double)h.Placed.X + left, (double)h.Placed.Y + pad, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
 
     /// <summary>Lights the cells whose member matches the search and dims the rest; null lights all. Kept over <see cref="Show"/>.</summary>
@@ -175,10 +186,13 @@ public sealed class AlbumPageElement : GuiElement
         foreach (var cell in cells) cell.Lit = matching?.Invoke(cell.Placed.Member) ?? true;
     }
 
-    private ItemStack? IconOf(PlacedHeading heading)
+    /// <summary>A heading's icon: a stack of the item or block, an SVG's location (<see cref="DimensionDef.IsSvg"/>), or null when
+    /// there is none or the game lacks it (a removed mod's item, a missing file): the heading is then in words.</summary>
+    private object? IconOf(PlacedHeading heading)
     {
         if (heading.Dimension.ValueIcon(heading.Value) is not { } code) return null;
         var location = new AssetLocation(code);
+        if (DimensionDef.IsSvg(code)) return api.Assets.Exists(location) ? location : null;
         if (api.World.GetItem(location) is { } item) return new ItemStack(item);
         return api.World.GetBlock(location) is { } block ? new ItemStack(block) : null;
     }
@@ -231,8 +245,9 @@ public sealed class AlbumPageElement : GuiElement
             if (cell.Placed.Member.Attributes.TryGetValue(Member.FlatTexture, out var texture))
                 cell.FlatTexture = api.Render.GetOrLoadTexture(new AssetLocation(texture)); // cached by the game, not ours to free
         }
-        foreach (var heading in headings.Where(h => h.Icon == null))
+        foreach (var heading in headings.Where(h => h.InWords))
             heading.Text = api.Gui.TextTexture.GenTextTexture(heading.Fitted, HeadingFont, Padded);
+        foreach (var heading in headings.Where(h => h.Svg != null)) heading.Mark = SvgTexture(heading.Svg!);
         composed = true;
         ComposeGroupHeadings();
     }
@@ -257,6 +272,22 @@ public sealed class AlbumPageElement : GuiElement
             ctx.LineWidth = scaled(1);
             ctx.Stroke();
         }
+    }
+
+    /// <summary>
+    /// An SVG heading, as large as an item in a slot, in the file's own colours, so that a mod's definition sets the look by its
+    /// files alone (L2b). Drawn into a Cairo surface, as vanilla's icons are (vsapi IconUtil.cs:31): with no colour given the game
+    /// swaps red and blue for Cairo's byte order, and <c>LoadSvg</c> uploads those bytes as RGBA, so it draws yellow as blue
+    /// (decompiled SvgLoader.rasterizeSvg and LoadSvg; seen in game 10.11.2026).
+    /// </summary>
+    private LoadedTexture SvgTexture(AssetLocation location)
+    {
+        int size = (int)scaled(ItemSize);
+        using var surface = new ImageSurface(Format.Argb32, size, size);
+        api.Gui.DrawSvg(api.Assets.Get(location), surface, 0, 0, size, size);
+        var texture = new LoadedTexture(api);
+        generateTexture(surface, ref texture);
+        return texture;
     }
 
     /// <summary>A white triangle in the top right corner; drawn tinted, its colour is the tier's.</summary>
@@ -343,6 +374,10 @@ public sealed class AlbumPageElement : GuiElement
         {
             api.Render.RenderItemstackToGui(heading.Icon, x + scaled(SlotSize) / 2, y + scaled(SlotSize) / 2, ItemZ,
                 (float)scaled(ItemSize), ColorUtil.WhiteArgb, deltaTime, showStackSize: false);
+        }
+        else if (heading.Mark is { } mark)
+        {
+            api.Render.Render2DLoadedTexture(mark, Snap(x + (scaled(SlotSize) - mark.Width) / 2), Snap(y + (scaled(SlotSize) - mark.Height) / 2));
         }
         else if (heading.Text is { } text)
         {
@@ -441,7 +476,11 @@ public sealed class AlbumPageElement : GuiElement
         if (slotTexture != 0) api.Render.GLDeleteTexture(slotTexture);
         if (cornerTexture != 0) api.Render.GLDeleteTexture(cornerTexture);
         check?.Dispose();
-        foreach (var heading in headings) heading.Text?.Dispose();
+        foreach (var heading in headings)
+        {
+            heading.Text?.Dispose();
+            heading.Mark?.Dispose();
+        }
         foreach (var group in groups)
         {
             group.Name?.Dispose();

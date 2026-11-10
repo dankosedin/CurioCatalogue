@@ -181,12 +181,12 @@ public class CollectionRegistryTests
         {
           "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}" },
           "dimensions": [
-            { "code": "ore", "values": [], "shortNameKey": "k:short-{value}" }, { "code": "rock", "values": [], "inLists": true },
+            { "code": "ore", "values": [], "shortNameKey": "k:short-{value}", "icon": "k:nugget-{value}", "icons": { "quartz": "k:crystal" } }, { "code": "rock", "values": [], "inLists": true },
             { "code": "grade", "values": ["poor", "medium", "rich"] }
           ],
           "levels": [
             { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" } },
-            { "id": "all", "keep": ["ore", "rock", "grade"] }
+            { "id": "all", "keep": ["ore", "rock", "grade"], "layouts": [ { "id": "t", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } } ] }
           ],
           "exclude": ["*-granite"]
         }
@@ -217,7 +217,12 @@ public class CollectionRegistryTests
         Assert.Equal(["ores", "tapestries"], registry.All.Keys.Order());
         // The rock is said in the lists; the others are not (no "inLists").
         Assert.Equal(["rock"], ores.Definition.Dimensions.Where(d => d.InLists).Select(d => d.Code));
-        Assert.Equal("k:short-quartz", ores.Definition.Dimensions.Single(d => d.Code == "ore").ValueShortNameKey("quartz"));
+        var ore = ores.Definition.Dimensions.Single(d => d.Code == "ore");
+        Assert.Equal("k:short-quartz", ore.ValueShortNameKey("quartz"));
+        // The icons: the value's own from "icons", else the template's (L2b).
+        Assert.Equal(("k:crystal", "k:nugget-galena"), (ore.ValueIcon("quartz"), ore.ValueIcon("galena")));
+        // A table with its rows reversed (L2b); the default is the dimension's order.
+        Assert.Equal(new Arrangement.Table("grade", "rock", ReverseRows: true), ores.Level("all")!.Definition.Layouts.Single().Arrange);
     }
 
     [Fact]
@@ -256,6 +261,10 @@ public class CollectionRegistryTests
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "", "keep": ["a"] } ] }""")]
     // V2b: a flag that is not true or false.
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "inLists": "yes" } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}-{b}" }, "dimensions": [ { "code": "a" }, { "code": "b" } ], "levels": [ { "id": "l", "keep": ["a", "b"], "layouts": [ { "id": "t", "groupBy": [], "arrange": { "kind": "table", "rows": "a", "columns": "b", "reverseRows": "yes" } } ] } ] }""")]
+    // L2b: icons that are not an object, or give a value something that is not a text.
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "icons": ["game:x"] } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "icons": { "1": 5 } } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);

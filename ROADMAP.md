@@ -241,8 +241,10 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   computed from the game (loot table weights, butterfly spawn by climate; needs research) or set in the collection's config.
   Rarity is a property of a cell, not a dimension; perhaps a sort key. Several tiers (e.g. rare, epic, legendary), decided with
   the feature (the author, 04.11.2026). Butterflies carry it in their assets: six steps of spawn chance (the collections design
-  plan, C3). The mark on a cell is a coloured corner, the tier its colour (the album view plan, A2, 07.11.2026); a frame or a foil
+  plan, C3); 0.2 shows them as a layout of the butterfly album by those steps (the album polish plan, L4a). The mark on a cell is a coloured corner, the tier its colour (the album view plan, A2, 07.11.2026); a frame or a foil
   effect, as on MTG cards, are ideas for the feature.
+- **Butterflies by species:** a second level of the butterfly album, 109 members, any form of a species fills one (male,
+  female, a colour morph, a season). Data only once the species is a dimension (the album polish plan, L4a, 11.11.2026).
 - **An album that improves:** one cell per kind holding the best specimen, with a quality order: e.g. per berry bush type the
   cutting with the most good traits and no bad ones; a better one found replaces the one kept (the author, 04.11.2026). Another
   kind of album beside "is it collected"; the berry bush traits in the collections design plan, C4.

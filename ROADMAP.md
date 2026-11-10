@@ -65,10 +65,10 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      rows of controls need, which shows with butterflies (a narrow grid under wide controls, a plain look). Add another column of
      butterflies and spread the controls a little, so the window reads as one clean block; check the other collections too.
    - **Want list window: a line cycles through its items** (asked 09.11.2026, after V3): a line that any of several items fills
-     (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do.
+     (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do. L7 of the plan.
    - **The in-game guide and the album's handbook text name only tapestries** (seen 09.11.2026, V5): `guide-text` and
      `handbook-use-album-text` in `lang/*.json` still say "the first collection is tapestries" and describe the album by
-     "pictures"; say there are four collections (en and uk).
+     "pictures"; say there are four collections (en and uk). L8 of the plan.
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
      the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
 7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for

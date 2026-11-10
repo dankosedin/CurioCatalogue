@@ -12,6 +12,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 - **Seashells are the third collection.** An album made from an empty ledger or bill of materials and a seashell (the shell stays) collects the 42 seashells of the game at two levels: every type in any colour (7), or every type in every colour (42, one table of types by colours). A want list says "any colour" where any will do. English and Ukrainian.
 - **Butterflies are the fourth collection.** An album made from an empty ledger or bill of materials and a dead butterfly (the butterfly stays) collects the 169 dead butterflies of the game, one level, every butterfly its own entry, in the game's own names. A want list names each butterfly missing. English and Ukrainian.
 - **The album window is one block.** The page is as wide as the rows under it, in whole cells (no empty strip on the right); cells in order spread evenly over their lines (16 crystals as 8 + 8, not 12 + 4); a page narrower than the window stands centred, and a tab of one group has its frame out to the window's edges.
+- **Crystal tables are headed by icons, not words:** an ore by the game's nugget, a grade by a yellow round mark that grows and brightens with it, a rock by its stone; the full name shows on hover. The richest grade is the top row. A collection's definition gives its values icons by a template, a table of values (`icons`) or our own SVG marks.
 
 ## 0.1.1 (2026-10-31)
 

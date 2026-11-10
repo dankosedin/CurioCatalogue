@@ -7,6 +7,7 @@
       "code": "grade",
       "values": ["poor", "medium", "rich", "bountiful"],
       "nameKey": "curiocatalogue:crystals-grade-{value}",
+      "icon": "curiocatalogue:textures/icons/grade-{value}.svg",
       "anyKey": "curiocatalogue:crystals-any-grade"
     },
     {
@@ -16,6 +17,12 @@
         "rhodochrosite", "uranium", "stibnite"],
       "nameKey": "curiocatalogue:crystals-ore-{value}",
       "shortNameKey": "curiocatalogue:crystals-oreshort-{value}",
+      "icon": "game:nugget-{value}",
+      "icons": {
+        "quartz_nativegold": "game:nugget-nativegold",
+        "quartz_nativesilver": "game:nugget-nativesilver",
+        "galena_nativesilver": "game:nugget-nativesilver"
+      },
       "anyKey": "curiocatalogue:crystals-any-ore"
     },
     {
@@ -52,8 +59,8 @@
       "progressKey": "curiocatalogue:crystals-progress-byore",
       "keep": ["ore", "rock", "grade"],
       "layouts": [
-        { "id": "byore", "nameKey": "curiocatalogue:crystals-layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock" } },
-        { "id": "byrock", "nameKey": "curiocatalogue:crystals-layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore" } }
+        { "id": "byore", "nameKey": "curiocatalogue:crystals-layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } },
+        { "id": "byrock", "nameKey": "curiocatalogue:crystals-layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore", "reverseRows": true } }
       ]
     }
   ],

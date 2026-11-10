@@ -122,7 +122,7 @@ public sealed class AlbumDialog : HeldItemDialog
         double screen = capi.Render.FrameHeight / RuntimeEnv.GUIScale;
         int cell = (int)Cell;
         // The widest name of a value headed by words (a crystal's grade), for a table's row headings.
-        double words = collection.Definition.Dimensions.Where(d => d.Icon == null)
+        double words = collection.Definition.Dimensions.Where(d => !d.HasIcons)
             .SelectMany(d => collection.Values[d.Code].Select(v => d.ValueNameKey(v) is { } k ? Lang.Get(k) : v))
             .Select(Width).DefaultIfEmpty(0).Max();
         return new PageMetrics(

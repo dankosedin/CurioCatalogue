@@ -25,6 +25,27 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     }
 
     [Fact]
+    public void Every_icon_a_collection_gives_its_values_is_in_the_game()
+    {
+        // A table's heading draws the value's icon: an item or block, or an SVG of ours (AlbumPageElement.IconOf, L2b); one the
+        // game lacks falls back to words, silently, so a misspelt code or file is caught here. Our SVGs are in our mod, which this
+        // server loads (textures are universal: vsapi AssetCategory.cs:23).
+        var seen = game.OnMain(() => Mod.Collections.All.Values
+            .SelectMany(c => c.Definition.Dimensions.SelectMany(d => c.Values[d.Code].Select(v => (Name: $"{c.Id} {d.Code} {v}", Icon: d.ValueIcon(v)))))
+            .Where(i => i.Icon != null)
+            .Select(i => (i.Name, i.Icon, Found: CurioCatalogue.Core.DimensionDef.IsSvg(i.Icon!)
+                ? World.AssetManager.Exists(new AssetLocation(i.Icon))
+                : World.GetItem(new AssetLocation(i.Icon)) != null || World.GetBlock(new AssetLocation(i.Icon)) != null))
+            .ToList());
+
+        Assert.DoesNotContain(seen, i => !i.Found);
+        // The crystals' ores, grades and rocks (16 + 4 + 17), the ores in a host by the definition's table.
+        Assert.Equal(37, seen.Count(i => i.Name.StartsWith("crystals ")));
+        Assert.Contains(("crystals ore galena_nativesilver", "game:nugget-nativesilver", true), seen);
+        Assert.Contains(("crystals grade rich", "curiocatalogue:textures/icons/grade-rich.svg", true), seen);
+    }
+
+    [Fact]
     public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
     {
         // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod

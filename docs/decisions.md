@@ -73,11 +73,14 @@ members, the resolver, the packet and the recipe of a disabled collection are in
 - **The JSON of a definition** (K3, 11-07; read by `CollectionDefinitionReader` into the core's records; `tapestries.json` is the
   example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
   `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
-  "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`, `anyKey`: a phrase in lower case for what a member of several items leaves
+  "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`: a value's icon with `{value}`, an item or block
+  code or an SVG by its path ending in `.svg`, drawn in the file's own colours, a table's heading drawn as it and its name on hover; `icons`: value → icon
+  for the values the template does not fit, or alone a whole table (L2b of the album polish plan), `anyKey`: a phrase in lower case for what a member of several items leaves
 free, "any colour"; `inLists`: `true` to say the member's value by its `nameKey` after the item's name in the want list sheet's lines, when the name does not say it, a crystal's rock; `shortNameKey`: a shorter name of a value for a table heading with little room, the full name stays the heading's tooltip),
 `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
-  complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` / `{"kind": "shape"}` / `{"kind": "order"}`),
+  complete, `{3}` groups, in each language's grammar; `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` (with `"reverseRows": true` the rows highest first, the
+  dimension's order and `max` unchanged; it orders taking new too) / `{"kind": "shape"}` / `{"kind": "order"}`),
   `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",
   `albumRecipe`: the grid recipe that makes its album, by name with the domain (`curiocatalogue:ledger-album`). A definition that
   does not read, or that the core refuses (`DefinedCollection.CheckDefinition`, also called by the reader: e.g. a level dropping

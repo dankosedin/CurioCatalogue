@@ -227,6 +227,10 @@ In this order:
   `AlbumDialog.OnEscapePressed`.
 - **Our own icon for `AddIconButton`:** `capi.Gui.Icons.CustomIcons[name] = capi.Gui.Icons.SvgIconSource(location)` (vsapi
   `IconUtil.cs:21`); the button draws it in its own colour. `Gui/AlbumHeader`.
+- **An SVG in its own colours: draw it into a Cairo surface, not with `LoadSvg`.** With no colour given, the game's rasterizer
+  swaps red and blue for Cairo's byte order, and `LoadSvg` uploads those bytes as RGBA: yellow comes out blue (decompiled
+  `SvgLoader.rasterizeSvg`, `LoadSvg`; seen in game 10.11.2026). With a colour given both are right (the file's shape, one colour).
+  `capi.Gui.DrawSvg` into an `ImageSurface`, then `generateTexture`, as vanilla's icons (vsapi `IconUtil.cs:31`): `AlbumPageElement.SvgTexture`.
 - **A passive item slot is always 48×48** (vsapi `GuiElementPassiveItemSlot.cs:30` sets the bounds' size). **A statbar draws a
   segment line every 10** of its range (`GuiElementStatbar.cs:224`); `SetLineInterval` with a large value removes them.
 - **Text textures need whole pixels.** `TextTextureUtil` loads text without smoothing (`TextTextureUtil.cs:85`, `linearMag`

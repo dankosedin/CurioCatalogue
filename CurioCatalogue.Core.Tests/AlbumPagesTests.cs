@@ -104,8 +104,8 @@ public class AlbumPagesTests
 
     private static readonly string[] Grades = ["poor", "rich"], Ores = ["copper", "tin", "iron"], Rocks = ["granite", "basalt", "slate"];
 
-    private static readonly DefinedCollection Crystals = Built(
-        new CollectionDefinition("crystals",
+    private static readonly CollectionDefinition CrystalsDefinition =
+        new("crystals",
             [
                 new DimensionDef("grade", Grades),
                 new DimensionDef("ore", Ores, NameKey: "game:ore-{value}"),
@@ -120,14 +120,57 @@ public class AlbumPagesTests
                     new LayoutDef("by-rock", ["rock"], new Arrangement.Table("grade", "ore")),
                 ]),
             ],
-            [], []),
+            [], []);
+
+    private static readonly SourcePoint[] CrystalPoints = (
         from g in Grades
         from o in Ores
         from r in Rocks
         // Tin never in slate; iron only in basalt and only poor.
         where !(o == "tin" && r == "slate") && !(o == "iron" && (r != "basalt" || g != "poor"))
         let code = $"crystal-{g}-{o}-{r}"
-        select new SourcePoint(code, V(("grade", g), ("ore", o), ("rock", r)), new ItemKey(CollectibleKind.Item, "game:" + code, ""), code));
+        select new SourcePoint(code, V(("grade", g), ("ore", o), ("rock", r)), new ItemKey(CollectibleKind.Item, "game:" + code, ""), code))
+        .ToArray();
+
+    private static readonly DefinedCollection Crystals = Built(CrystalsDefinition, CrystalPoints);
+
+    [Fact]
+    public void A_table_with_its_rows_reversed_has_the_highest_value_on_top_and_its_members_in_that_order()
+    {
+        // The crystals' grades, richest on top (L2b): the layout reverses the rows, the dimension keeps its order for max.
+        var definition = CrystalsDefinition with
+        {
+            Levels = CrystalsDefinition.Levels
+                .Select(l => l with { Layouts = l.Layouts.Select(y => y.Arrange is Arrangement.Table t ? y with { Arrange = t with { ReverseRows = true } } : y).ToList() })
+                .ToList(),
+        };
+        var collection = Built(definition, CrystalPoints);
+        var tin = Pages(collection, "all", "by-ore", Metrics(200, 200)).Pages[0].Groups.Single(g => g.Group.Values[0] == "tin");
+
+        Assert.Equal([("rich", 15), ("poor", 25)],
+            tin.Headings.Where(h => h.Dimension.Code == "grade").Select(h => (h.Value, h.Y - tin.Y)).OrderBy(h => h.Item2).ToArray());
+        Assert.Equal((tin.X + 40, tin.Y + 15), At(tin, "rich-tin-basalt"));
+        // The group's members, in the order taking new follows: rich before poor, by rock within each.
+        Assert.Equal(["rich-tin-granite", "rich-tin-basalt", "poor-tin-granite", "poor-tin-basalt"], tin.Group.Members.Select(m => m.Id));
+        // The richest of each ore is still the rich crystal: the dimension's order is unchanged.
+        Assert.Equal("rich", collection.Level("richest")!.Find("copper")!.Values["grade"]);
+    }
+
+    [Fact]
+    public void A_dimension_with_icons_only_by_its_table_is_headed_by_icons_a_cell_large()
+    {
+        // The ores given icons by a table alone, no template (L2b): by rock, the ore columns are a cell high, not a line of words.
+        var definition = CrystalsDefinition with
+        {
+            Dimensions = CrystalsDefinition.Dimensions
+                .Select(d => d.Code == "ore" ? d with { Icons = new Dictionary<string, string> { ["copper"] = "game:nugget-nativecopper" } } : d)
+                .ToList(),
+        };
+        var basalt = Pages(Built(definition, CrystalPoints), "all", "by-rock", Metrics(200, 200)).Pages[0].Groups.Single(g => g.Group.Values[0] == "basalt");
+
+        Assert.All(basalt.Headings.Where(h => h.Dimension.Code == "ore"), h => Assert.Equal((5, 10), (h.Y - basalt.Y, h.Height)));
+        Assert.Equal(5 + 10, basalt.Headings.Where(h => h.Dimension.Code == "grade").Min(h => h.Y) - basalt.Y);
+    }
 
     [Fact]
     public void A_table_has_only_the_values_that_occur_in_its_group_and_no_cell_where_no_member_is()

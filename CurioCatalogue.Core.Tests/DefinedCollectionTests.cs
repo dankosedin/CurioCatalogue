@@ -411,4 +411,27 @@ public class DefinedCollectionTests
         Assert.Equal("k:ore-short-galena", (full with { ShortNameKey = "k:ore-short-{value}" }).ValueShortNameKey("galena"));
         Assert.Null(new DimensionDef("ore", []).ValueShortNameKey("galena"));
     }
+
+    [Fact]
+    public void A_value_s_icon_is_its_own_from_the_table_else_the_template_s()
+    {
+        var icons = new Dictionary<string, string> { ["quartz_nativegold"] = "game:nugget-nativegold" };
+        var ore = new DimensionDef("ore", [], Icon: "game:nugget-{value}", Icons: icons);
+        Assert.Equal("game:nugget-galena", ore.ValueIcon("galena"));
+        Assert.Equal("game:nugget-nativegold", ore.ValueIcon("quartz_nativegold"));
+
+        // A table alone: the values it lacks have no icon, but the dimension is still headed by icons.
+        var byHand = new DimensionDef("ore", [], Icons: icons);
+        Assert.Null(byHand.ValueIcon("galena"));
+        Assert.True(byHand.HasIcons);
+        Assert.False(new DimensionDef("ore", [], Icons: new Dictionary<string, string>()).HasIcons);
+        Assert.False(new DimensionDef("ore", []).HasIcons);
+    }
+
+    [Theory]
+    [InlineData("curiocatalogue:textures/icons/grade-poor.svg", true)]
+    [InlineData("curiocatalogue:textures/icons/grade-poor.SVG", true)]
+    [InlineData("game:nugget-galena", false)]
+    [InlineData("game:svgplant", false)]
+    public void An_icon_is_an_svg_by_its_path_s_ending(string icon, bool svg) => Assert.Equal(svg, DimensionDef.IsSvg(icon));
 }

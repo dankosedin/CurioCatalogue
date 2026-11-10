@@ -21,7 +21,7 @@ sees a change.
 
 ## Steps
 
-- [ ] **L1. Members named by their values.** One rule for naming a member wherever members are listed (a want list's line, the
+- [x] **L1. Members named by their values.** One rule for naming a member wherever members are listed (a want list's line, the
       title of a cell's tooltip, a chat message that names a piece), from its values in the dimensions it keeps and the freedom
       of those it drops: "Nightfall, 2 of 3" for a tapestry piece (`ROADMAP.md`, 0.2, item 6: pieces of one picture share a name),
       "Native copper, bountiful, andesite" for a crystal, "Scallop, any colour" for a seashell at the type level. Replaces the
@@ -33,7 +33,7 @@ sees a change.
   - [x] **L1a. The core and the data.** `DefinedCollection.NameParts` in place of `Listed`, `LevelDef.MemberKey`, `inLists` gone;
         the tapestries' `section` from `TapestryPieces`; the four definitions, the section and member lang keys (en, uk); the
         reader and its tests; `docs/decisions.md` and `docs/domain.md`. Done when: core and adapter tests pass, mutation-checked.
-  - [ ] **L1b. Shown, and released.** One adapter helper for a value's name (`Lang.GetMatchingIfExists`) and a member's name
+  - [x] **L1b. Shown, and released.** One adapter helper for a value's name (`Lang.GetMatchingIfExists`) and a member's name
         (parts, lower case after the first, `memberKey`, freedom; no part: the first item's name); the want list sheet's line,
         the album cell's tooltip, the want list window's slot; the window's `ValueName` through the helper; the server tests
         (`CrystalsTests`, `SeashellsTests`, `CollectionsFromAssetsTests`); `functional.md`, the upgrade table, `CHANGELOG.md`; the
@@ -231,5 +231,7 @@ sees a change.
   `AlbumDialog.Metrics` measures every dimension's value names with `Lang.Get`, now also the pieces and sections: through the helper.
 - 10.11.2026: L1b code done (final) on `feat/member-names`: `MemberNames`, the want list's line and slot, the cell's tooltip, the
   window's value names; server tests (`TooltipTests`, `CrystalsTests`, `SeashellsTests`, `ButterfliesTests`), mutation-checked;
-  `functional.md` A29 (new; A27 when written, renumbered after L6 and L2b), A24, W5; the upgrade table; `CHANGELOG.md`. Next: the author's in-game check A29 (en, uk), then the
-  pull request; L1 and L1b are ticked after both.
+  `functional.md` A29 (new; A27 when written, renumbered after L6 and L2b), A24, W5; the upgrade table; `CHANGELOG.md`.
+- 10.11.2026: `feat/member-names` rebased on `main` after L6, L9 and L2b (`inLists` gone next to L2b's `icons`; the window's
+  widths by `HasIcons` and `ValueName`); all test projects green. A29 passed in game (en, uk; the author). L1 and L1b done (final).
+  Next: the pull request, then L2c.

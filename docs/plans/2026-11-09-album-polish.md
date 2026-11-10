@@ -104,6 +104,33 @@ sees a change.
 - **No code review of its own** (the author, 09.11.2026): R1 of the release plan reads it, as item 4 and the album window.
 - **A branch and a pull request per step** (the author, 09.11.2026).
 - **Step letter L** (look); A, B, C, F, G, K, P, R, S, T and V are taken.
+- **Members named by their values (L1, the author, 10.11.2026).** Where shown: a want list sheet's line (in place of the first
+  item's name), the first line of an album cell's tooltip (above "Missing"; the stack's own name stays the title), the want list
+  window's slot (in place of the freedom line). Not the album's search (a roadmap line if wanted). The phrasing (en / uk):
+  - tapestries: the picture's name from the game, then the place by our own words, not the game's "Section: …" (its words for
+    `4x1` say "top quarter", but the game lays `4x1` out in a row, vssurvivalmod BlockTapestry.cs `neighbours4x1`): "Nightfall,
+    left third" / "Сутінки, ліва третина"; a `1x1` picture its name alone. Rejected: "Nightfall, 2 of 3" (less clear for `2x2`).
+    Pictures the game names alike (`schematic-a`, `-b`, `-d`; `-c`, `-c-bloody`: "Schematic") stay alike (the author): the album
+    tells them apart by place;
+  - crystals: `richest` "Native copper, any rock" / "Самородна мідь, будь-яка порода" (the grade by `max` is not said; a rock all its
+    items share is: "…, basalt"); `rocks` "Native copper, andesite"; `all` "Native copper, bountiful, andesite" / "Самородна мідь,
+    щедра, андезит";
+  - seashells: `types` "Scallop, any colour" / "Гребінець будь-якого кольору"; `colors` "Scallop, seafoam" / "Гребінець, морська піна";
+  - butterflies: the game's name of the item (the type has no names in the definition).
+- **The rule and how the definition carries it (L1, the author, 10.11.2026).** The parts: the member's value in each dimension the
+  level keeps, in `keep` order, then each other dimension not dropped as `max` in which all its items share a value, in the
+  definition's order; only dimensions with a `nameKey` and values that have a translation (looked up with wildcards,
+  `Lang.GetMatchingIfExists`, so `game:tapestry-{value}` names a piece by its picture, as BlockTapestry.cs:359). Parts after the
+  first start in lower case. Then the freedom (`anyKey`, as today). A level's optional `memberKey` words the whole name for a
+  language's grammar: `{0}`, `{1}`… the parts, the freedom written in the text (seashells `types`). No part: the first item's name and
+  the freedom (butterflies; a piece a mod added). `inLists` goes (the rock is now in the name). Planned shape, for the session
+  that builds it: `DefinedCollection.NameParts(level, member)` in the core replaces `Listed`; `LevelDef.MemberKey`; a third
+  tapestry dimension `section` (`3x1-2`, `2x2-21`, `1x1`; dropped `any`; from `TapestryPieces`, a config-added piece `1x1`) named
+  by our keys `curiocatalogue:tapestries-section-{value}` (18, none for `1x1`); `nameKey` on the tapestries' `piece` (not on
+  `picture`: a named first `groupBy` makes tabs, AlbumPages.cs:134); `crystals.json` `all` keeps `["ore", "grade", "rock"]` (the
+  member id follows the definition's dimension order, not `keep`, DefinedCollection.cs:211, so stored ids do not change); one
+  adapter helper for a value's name used by the window too (`AlbumDialog` widths, tabs, `ValueName`, which today special-cases
+  the tapestry picture).
 - **The crystals' look, the author's notes (L2, the author, 10.11.2026):**
   - `rocks`: the table keeps the definition's order. Tried in game: a table's `"sort": "fullest"` (the fullest column left, the
     fullest row on top), on `rocks` only. Rejected (the author): it does not look better, and to match it the tables of `all`
@@ -158,6 +185,10 @@ sees a change.
 
 ## Where we stopped
 
+- 10.11.2026: L1 decided (final, Decisions: "Members named by their values", "The rule and how the definition carries it"), branch
+  `feat/member-names` from `main`, no code yet. Next: L1's code by the planned shape (core and tests, the adapters and the window,
+  lang en / uk, the server tests' want list lines in `CrystalsTests`), then `functional.md`, the upgrade table, `CHANGELOG.md`,
+  the in-game check (en, uk) for the author, the pull request.
 - 10.11.2026: L2's notes all decided (Decisions, "The crystals' look"): the sort tried and dropped, no code change in L2; the
   rest went to L6 and L2b. Branch `feat/crystals-look` from `main` before L1 is merged: the plan's Decisions and this section
   will meet L1's in the merge. L2 done; its pull request carries only the plan and `ROADMAP.md`.

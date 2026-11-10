@@ -41,7 +41,7 @@ sees a change.
       level and layout choices with icons: a dropdown of our own that shows an icon beside or instead of the name (a new element, of
       use beyond crystals: the seashells' colours, the tapestries' layouts). How the definition carries an icon per value and what
       the element is: decided at the start of the session, before code. The words stay in tooltips.
-      Branch: `feat/crystals-icons`. After: L2 merged. Model: opus. Author: the icons and the element, then plays and checks.
+      Branch: `feat/crystals-icons`. After: L9 merged. Model: opus. Author: the icons and the element, then plays and checks.
       Done when: the decisions in Decisions; tests pass, mutation-checked; the author's in-game check; pull request.
 - [ ] **L3. Seashells: the look and rarity.** Whether 0.2 shows the rarity corner of A2 (a coloured triangle by the attribute the
       definition of V3 gives seafoam and turquoise; `ROADMAP.md`, Maybe, "Rarity in the album", for the full feature); if so, the page
@@ -57,7 +57,7 @@ sees a change.
 - [ ] **L4b. Butterflies: the grouping built.** By L4a; then the author's notes from the game, as L2. The album recipe kept or changed.
       Branch: `feat/butterflies-look`. After: L4a. Model: sonnet. Author: plays, writes the notes.
       Done when: tests pass (every one of the 169 in exactly one group), mutation-checked; the notes fixed or rejected; pull request.
-- [ ] **L6. The album window's width and rows.** The window's width follows the bottom rows of controls, not the page of cells (seen with
+- [x] **L6. The album window's width and rows.** The window's width follows the bottom rows of controls, not the page of cells (seen with
       the butterflies, 09.11.2026): a column of cells more on the page and the controls spread a little, so the window is one clean block.
       Looks at every collection (tapestries, crystals, seashells, butterflies), at both layouts and the tabs of crystals; the author's
       notes from the game as L2. The earlier tab-heading cut-off ("Бісму…", V2) belongs here too. From L2 (the author, 10.11.2026):
@@ -66,6 +66,13 @@ sees a change.
       and the window's right edge, with the margins; the tapestries' frames per picture looked at alike.
       Branch: `feat/album-layout`. After: V4 merged. Model: opus. Author: plays, writes the notes.
       Done when: the notes fixed or rejected with reasons (Decisions); pull request.
+- [ ] **L9. The album window's rows of controls, a class of their own.** `AlbumDialog` is about 600 lines with several jobs
+      (principle 8 in `docs/architecture.md`): move the row of controls (`Controls`, `Arrange`, the pager, the dropdowns' widths)
+      into a class of its own (`AlbumControls`, as `AlbumHeader` holds the album's own row), so that L2b's dropdown with icons
+      lands there. A refactoring: no change the player sees. Proposed 10.11.2026 after L6, the author agreed.
+      Branch: `refactor/album-controls`. After: L6 merged. Model: sonnet. Author: none.
+      Done when: all test projects pass; the album window looks and works as before (A27 and A22 in `functional.md`, the agent
+      writes the check, the author runs it); pull request.
 - [ ] **L5. The album recipes final.** One pass over the four album recipes as L2–L4b left them: the same pattern, each named by its
       definition, all in the handbook. F3 of `2026-11-04-fixes-0.2.md` waits for this.
       Branch: `feat/album-recipes` (none if nothing changes). After: L1–L4b. Model: sonnet. Author: yes or no.
@@ -126,7 +133,7 @@ sees a change.
 - 10.11.2026: L2's notes all decided (Decisions, "The crystals' look"): the sort tried and dropped, no code change in L2; the
   rest went to L6 and L2b. Branch `feat/crystals-look` from `main` before L1 is merged: the plan's Decisions and this section
   will meet L1's in the merge. L2 done; its pull request carries only the plan and `ROADMAP.md`.
-- 10.11.2026: L6 code done on `feat/album-layout` (final as code, the look unchecked): Decisions, "The album window's width and
+- 10.11.2026: L6 done on `feat/album-layout` (final, checked in game by the author): Decisions, "The album window's width and
   rows"; `AlbumPagesTests` (even lines, mutation-checked; the used width), all test projects green; case A27 in
-  `functional.md`, `CHANGELOG.md`. Played in uk (Decisions, "In game"), the dropdown width fixed after it. Next: the author
-  plays the rest of A27 (en; butterflies, tapestries; the dropdown fix) and writes notes; the agent fixes them; then the pull request.
+  `functional.md`, `CHANGELOG.md`. A27 passed (uk: crystals, seashells; then en, butterflies, tapestries, the dropdown fix).
+  Next: the pull request; then L9 before L2b.

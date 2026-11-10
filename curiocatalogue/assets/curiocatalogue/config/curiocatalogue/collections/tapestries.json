@@ -4,14 +4,15 @@
   "source": { "kind": "tapestry", "block": "game:tapestry-north" },
   "dimensions": [
     { "code": "picture", "values": [] },
-    { "code": "piece", "values": [] }
+    { "code": "piece", "values": [], "nameKey": "game:tapestry-{value}" },
+    { "code": "section", "values": [], "nameKey": "curiocatalogue:tapestries-section-{value}" }
   ],
   "levels": [
     {
       "id": "pieces",
       "progressKey": "curiocatalogue:tapestries-progress",
       "keep": ["piece"],
-      "drop": { "picture": "any" },
+      "drop": { "picture": "any", "section": "any" },
       "layouts": [
         { "id": "pictures", "groupBy": ["picture"], "arrange": { "kind": "shape" } }
       ]

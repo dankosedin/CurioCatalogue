@@ -60,4 +60,17 @@ public class TapestryPiecesTests
         Assert.Equal((2, 1), pieces["big12"]);
         Assert.Equal((1, 1), pieces["one"]);
     }
+
+    [Fact]
+    public void A_piece_names_its_place_by_the_size_and_its_number()
+    {
+        var sections = TapestryPieces.WithPictures(new Dictionary<string, string> { ["wide"] = "3x1", ["tall"] = "1x2", ["big"] = "2x2", ["one"] = "1x1" })
+            .ToDictionary(p => p.Piece, p => p.Section);
+
+        Assert.Equal("3x1-3", sections["wide3"]);
+        Assert.Equal("1x2-2", sections["tall2"]);
+        Assert.Equal("2x2-21", sections["big21"]); // row, then column, as the piece's own digits
+        Assert.Equal(TapestryPiece.Whole, sections["one"]);
+        Assert.Equal(TapestryPiece.Whole, new TapestryPiece("added", "added").Section); // a piece the config adds
+    }
 }

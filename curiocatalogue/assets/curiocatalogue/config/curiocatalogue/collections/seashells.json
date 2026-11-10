@@ -21,6 +21,7 @@
       "id": "types",
       "nameKey": "curiocatalogue:seashells-level-types",
       "progressKey": "curiocatalogue:seashells-progress",
+      "memberKey": "curiocatalogue:seashells-member-type",
       "keep": ["type"],
       "drop": { "color": "any" }
     },

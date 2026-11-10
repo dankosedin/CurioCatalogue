@@ -62,6 +62,8 @@ public class CollectionRegistryTests
         Assert.Equal(6, collection.Members.Count); // ambush 3 + aid-arm 2 + notice 1
         Assert.Equal(["aid-arm", "ambush", "notice"], collection.Members.Select(m => m.Values["picture"]).Distinct().Order());
         Assert.Contains(keys.KeyOf(Tapestry("ambush2")), collection.Members.Select(m => m.Fillers[0]));
+        // Each piece's place for words (L1): the size and its number, a picture of one piece "1x1".
+        Assert.Equal(["3x1-1", "3x1-2", "3x1-3", "1x2-1", "1x2-2", "1x1"], collection.Members.Select(m => m.Values["section"]));
     }
 
     [Fact]
@@ -82,7 +84,8 @@ public class CollectionRegistryTests
         Assert.DoesNotContain(keys.KeyOf(Tapestry("aid-arm1")), collection.Members.Select(m => m.Fillers[0]));
         Assert.Contains(keys.KeyOf(Tapestry("mymod-banner")), collection.Members.Select(m => m.Fillers[0]));
         // An added piece is its own picture.
-        Assert.Equal("mymod-banner", collection.Members.Single(m => m.Fillers[0] == keys.KeyOf(Tapestry("mymod-banner"))).Values["picture"]);
+        var added = collection.Members.Single(m => m.Fillers[0] == keys.KeyOf(Tapestry("mymod-banner")));
+        Assert.Equal(("mymod-banner", "1x1"), (added.Values["picture"], added.Values["section"]));
     }
 
     [Fact]
@@ -181,11 +184,11 @@ public class CollectionRegistryTests
         {
           "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}" },
           "dimensions": [
-            { "code": "ore", "values": [], "shortNameKey": "k:short-{value}", "icon": "k:nugget-{value}", "icons": { "quartz": "k:crystal" } }, { "code": "rock", "values": [], "inLists": true },
+            { "code": "ore", "values": [], "shortNameKey": "k:short-{value}", "icon": "k:nugget-{value}", "icons": { "quartz": "k:crystal" } }, { "code": "rock", "values": [] },
             { "code": "grade", "values": ["poor", "medium", "rich"] }
           ],
           "levels": [
-            { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" } },
+            { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" }, "memberKey": "k:member-ore" },
             { "id": "all", "keep": ["ore", "rock", "grade"], "layouts": [ { "id": "t", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } } ] }
           ],
           "exclude": ["*-granite"]
@@ -215,8 +218,8 @@ public class CollectionRegistryTests
         // Quartz is filled by its richest grade in any rock: two codes.
         Assert.Equal(2, ores.Level("ores")!.Find("quartz")!.Fillers.Count);
         Assert.Equal(["ores", "tapestries"], registry.All.Keys.Order());
-        // The rock is said in the lists; the others are not (no "inLists").
-        Assert.Equal(["rock"], ores.Definition.Dimensions.Where(d => d.InLists).Select(d => d.Code));
+        // A level words its members' names its own way; the other does not.
+        Assert.Equal(["k:member-ore", null], ores.Levels.Select(l => l.Definition.MemberKey));
         var ore = ores.Definition.Dimensions.Single(d => d.Code == "ore");
         Assert.Equal("k:short-quartz", ore.ValueShortNameKey("quartz"));
         // The icons: the value's own from "icons", else the template's (L2b).
@@ -260,11 +263,12 @@ public class CollectionRegistryTests
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}-{b}" }, "dimensions": [ { "code": "a" }, { "code": "b" } ], "levels": [ { "id": "l", "keep": ["a"], "drop": { "b": "max" } } ] }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "", "keep": ["a"] } ] }""")]
     // V2b: a flag that is not true or false.
-    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "inLists": "yes" } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}-{b}" }, "dimensions": [ { "code": "a" }, { "code": "b" } ], "levels": [ { "id": "l", "keep": ["a", "b"], "layouts": [ { "id": "t", "groupBy": [], "arrange": { "kind": "table", "rows": "a", "columns": "b", "reverseRows": "yes" } } ] } ] }""")]
     // L2b: icons that are not an object, or give a value something that is not a text.
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "icons": ["game:x"] } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "icons": { "1": 5 } } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
+    // L1: a level's member key that is not a text.
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "memberKey": true } ] }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);

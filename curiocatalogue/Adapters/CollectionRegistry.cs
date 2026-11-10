@@ -205,7 +205,7 @@ public sealed class CollectionRegistry
                 var stack = new ItemStack(block);
                 stack.Attributes.SetString("type", p.Piece);
                 return new SourcePoint(p.Piece,
-                    new Dictionary<string, string> { ["piece"] = p.Piece, ["picture"] = p.Picture },
+                    new Dictionary<string, string> { ["piece"] = p.Piece, ["picture"] = p.Picture, ["section"] = p.Section },
                     keys.KeyOf(stack), stack,
                     new Dictionary<string, string>
                     {

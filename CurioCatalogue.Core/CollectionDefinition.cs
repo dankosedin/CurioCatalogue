@@ -18,20 +18,18 @@ namespace CurioCatalogue.Core;
 /// order in which the source gives its points, with no warning (tapestries: the order of the block's <c>sizes</c>); such a
 /// dimension cannot be dropped as <see cref="Drop.Max"/>, which needs an order of its own.</param>
 /// <param name="NameKey">A lang key for a value's name, <c>{value}</c> replaced by the value (<c>game:ore-{value}</c>); null
-/// when the values have no names.</param>
+/// when the values have no names. The key may match a wildcard key of the game (<c>game:tapestry-{value}</c> for a piece,
+/// the game's <c>tapestry-ambush*</c>). A member's name is made of these names (<see cref="DefinedCollection.NameParts"/>).</param>
 /// <param name="Icon">A value's icon, <c>{value}</c> replaced: an item or block code (<c>game:rock-{value}</c>), or an SVG of
 /// ours by its path (<c>curiocatalogue:textures/icons/grade-{value}.svg</c>, <see cref="IsSvg"/>); null when none.</param>
 /// <param name="AnyKey">A lang key for what a member of several items leaves free in this dimension, a phrase in lower case
 /// ("any rock", "будь-яка порода"; whole, for the grammar of each language); null when none, and a generic "any of N" is said.</param>
-/// <param name="InLists">Whether a member's value here is said after the item's name where a missing piece is listed (the want
-/// list's lines): the item's name does not say it, and pieces of two values share a name (a crystal's
-/// rock). Said by <see cref="NameKey"/>.</param>
 /// <param name="ShortNameKey">A lang key for a value's short name in a table heading, <c>{value}</c> replaced; null: the <see cref="NameKey"/>.
 /// The full name stays the heading's tooltip.</param>
 /// <param name="Icons">The icons of the values <see cref="Icon"/> does not fit, value → icon in the same forms (a crystal's
 /// <c>quartz_nativegold</c> → <c>game:nugget-nativegold</c>); without <see cref="Icon"/>, a whole table by hand. Null when none.</param>
 public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null,
-    string? AnyKey = null, bool InLists = false, string? ShortNameKey = null, IReadOnlyDictionary<string, string>? Icons = null)
+    string? AnyKey = null, string? ShortNameKey = null, IReadOnlyDictionary<string, string>? Icons = null)
 {
     public const string ValuePlaceholder = "{value}";
 
@@ -95,6 +93,9 @@ public sealed record LayoutDef(string Id, IReadOnlyList<string> GroupBy, Arrange
 /// <param name="ProgressKey">A lang key of the line that tells an album's progress at this level, whole, for each language's grammar:
 /// <c>{0}</c> members collected, <c>{1}</c> of all, <c>{2}</c> groups complete, <c>{3}</c> groups ("Pieces {0} of {1} · whole
 /// pictures {2} of {3}"). Null: a generic line.</param>
+/// <param name="MemberKey">A lang key that words a member's whole name at this level, for each language's grammar: <c>{0}</c>,
+/// <c>{1}</c>… its <see cref="DefinedCollection.NameParts"/> by name, what it leaves free written in the text ("{0}, any colour",
+/// "{0} будь-якого кольору"). Null: the parts joined by commas, then what it leaves free.</param>
 /// </summary>
 public sealed record LevelDef(
     string Id,
@@ -102,7 +103,8 @@ public sealed record LevelDef(
     IReadOnlyDictionary<string, Drop> Drop,
     IReadOnlyList<LayoutDef> Layouts,
     string? NameKey = null,
-    string? ProgressKey = null);
+    string? ProgressKey = null,
+    string? MemberKey = null);
 
 /// <summary>
 /// Sets attributes on the members whose values match: each dimension in <paramref name="Where"/> must be one the member has a

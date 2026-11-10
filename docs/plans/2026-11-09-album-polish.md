@@ -29,6 +29,15 @@ sees a change.
       definition (each language's grammar, as `progressKey` and `anyKey`).
       Branch: `feat/member-names`. After: V3 merged. Model: opus. Author: the phrasing for each collection, the in-game check (en, uk).
       Done when: tests pass, mutation-checked; the cases in `functional.md` passed; upgrade table: the lang keys; pull request.
+      Split in two sessions (the author, 10.11.2026), one branch and one pull request:
+  - [x] **L1a. The core and the data.** `DefinedCollection.NameParts` in place of `Listed`, `LevelDef.MemberKey`, `inLists` gone;
+        the tapestries' `section` from `TapestryPieces`; the four definitions, the section and member lang keys (en, uk); the
+        reader and its tests; `docs/decisions.md` and `docs/domain.md`. Done when: core and adapter tests pass, mutation-checked.
+  - [ ] **L1b. Shown, and released.** One adapter helper for a value's name (`Lang.GetMatchingIfExists`) and a member's name
+        (parts, lower case after the first, `memberKey`, freedom; no part: the first item's name); the want list sheet's line,
+        the album cell's tooltip, the want list window's slot; the window's `ValueName` through the helper; the server tests
+        (`CrystalsTests`, `SeashellsTests`, `CollectionsFromAssetsTests`); `functional.md`, the upgrade table, `CHANGELOG.md`; the
+        in-game check (en, uk); the pull request. Done when: L1's "Done when". Model: opus. After: L1a.
 - [x] **L2. Ore crystals: the look.** The author plays the crystal album (all three levels, both layouts) and writes what is
       wrong: the order of ores and rocks (the definition's value lists), the names of levels and layouts, table headings, the
       default layout, the tabs. The agent fixes by the notes. The album recipe kept or changed.
@@ -131,6 +140,14 @@ sees a change.
   member id follows the definition's dimension order, not `keep`, DefinedCollection.cs:211, so stored ids do not change); one
   adapter helper for a value's name used by the window too (`AlbumDialog` widths, tabs, `ValueName`, which today special-cases
   the tapestry picture).
+- **Three points of L1 settled before the code (the author, 10.11.2026).** (1) The picture's group heading keeps its own case
+  (the picture has no `nameKey`, else tabs), looked up through the same helper as `game:tapestry-{value}`. (2) A member with no
+  part (butterflies) has no name line in the album cell's tooltip: the stack's title already is that name; only the freedom, as
+  before. The want list's line names it by the item as before. (3) Chat messages are not changed in L1 (not in "Where shown");
+  a roadmap line if wanted.
+- **The section's words (L1a, 10.11.2026; drafts, reviewed with the lang at release):** halves and thirds by side ("left third",
+  "top half"), a 2x2 piece as "top left quarter", a 4x1 piece as "first quarter from the left" (the game's own words for `4x1`
+  are wrong, above). Until L1b, the want list's line says the parts its level does not keep, as `inLists` did (`ItemInvoice.Listed`).
 - **The crystals' look, the author's notes (L2, the author, 10.11.2026):**
   - `rocks`: the table keeps the definition's order. Tried in game: a table's `"sort": "fullest"` (the fullest column left, the
     fullest row on top), on `rocks` only. Rejected (the author): it does not look better, and to match it the tables of `all`
@@ -206,3 +223,5 @@ sees a change.
   `CHANGELOG.md`, `docs/decisions.md`, `docs/domain.md`. Then, by A28 in game (the author): the marks yellow, dim to full, in the
   SVG's own colours (drawn through Cairo: `LoadSvg` swaps red and blue, `docs/modding.md`); the richest grade on top
   (`reverseRows`). A28 passed; L2b done (final). Next: the pull request, then L2c.
+- 10.11.2026: L1a done (final) on `feat/member-names`, not pushed. Next: L1b (see the step). Note for L1b: in the window,
+  `AlbumDialog.Metrics` measures every dimension's value names with `Lang.Get`, now also the pieces and sections: through the helper.

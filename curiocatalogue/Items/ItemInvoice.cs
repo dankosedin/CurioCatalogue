@@ -199,7 +199,7 @@ public class ItemInvoice : ItemRollable
     internal static string? AfterName((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
     {
         if (line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member) return null;
-        string[] parts = [.. new[] { Listed(collection, member), Freedom(collection, level, member) }.OfType<string>()];
+        string[] parts = [.. new[] { Listed(collection, level, member), Freedom(collection, level, member) }.OfType<string>()];
         return parts.Length == 0 ? null : string.Join(", ", parts);
     }
 
@@ -209,13 +209,16 @@ public class ItemInvoice : ItemRollable
         line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member
             ? null : Freedom(collection, level, member);
 
-    /// <summary>A member's values in the dimensions marked <c>inLists</c>, by their names ("Basalt"); null when none. The want
-    /// list's line (its sheet's text; the window's slots show the item's own text, which names its rock).</summary>
-    internal static string? Listed(DefinedCollection collection, Member member)
+    /// <summary>A member's name parts in the dimensions its level does not keep, by their names ("Basalt"); null when none. The want
+    /// list's line (its sheet's text; the window's slots show the item's own text, which names its rock).
+    /// Until L1b names the whole member (docs/plans/2026-11-09-album-polish.md).</summary>
+    internal static string? Listed(DefinedCollection collection, CollectionLevel level, Member member)
     {
-        var listed = collection.Listed(member);
-        if (listed.Count == 0) return null;
-        return string.Join(", ", listed.Select(l => l.Dimension.ValueNameKey(l.Value) is { } key ? Lang.Get(key) : l.Value));
+        var listed = collection.NameParts(level, member)
+            .Where(p => !level.Definition.Keep.Contains(p.Dimension.Code))
+            .Select(p => Lang.GetMatchingIfExists(p.Dimension.ValueNameKey(p.Value)!))
+            .OfType<string>().ToList();
+        return listed.Count == 0 ? null : string.Join(", ", listed);
     }
 
     /// <summary>What a member leaves free, as in a want list's line; null for a member of one item (the album window's tooltip).</summary>

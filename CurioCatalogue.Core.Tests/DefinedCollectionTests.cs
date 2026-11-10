@@ -239,7 +239,8 @@ public class DefinedCollectionTests
             new LevelDef("all", ["type", "color"], D(), [new LayoutDef("table", [], new Arrangement.Table("type", "color"))]),
         ],
         [new AttributeRule(new Dictionary<string, IReadOnlyList<string>> { ["color"] = ["seafoam", "turquoise"] }, V(("rarity", "rare")))],
-        []);
+        [],
+        Marks: [new MarkDef("rarity", "common", 1), new MarkDef("rarity", "rare", 2, "k:rare"), new MarkDef("color", "turquoise", 3)]);
 
     // In the source's order colour by colour, to see that the dimensions' order wins.
     private static readonly IReadOnlyList<SourcePoint> ShellPoints =
@@ -273,6 +274,21 @@ public class DefinedCollectionTests
         Assert.Equal("scallop-plain", all.Order[1].Id);
         Assert.Equal(14, all.Members.Count(m => m.Attributes.GetValueOrDefault("rarity") == "rare"));
         Assert.Equal("rare", all.Find("volute-turquoise")!.Attributes["rarity"]);
+    }
+
+    [Fact]
+    public void A_member_shows_the_first_mark_its_attributes_fit_and_none_without_one()
+    {
+        var shells = Built(DefinedCollection.Build(Seashells, ShellPoints));
+        var all = shells.Level("all")!;
+
+        // Rare by the rule: the mark of "rarity" = "rare", not the later one of "color" (no attribute here) nor "common".
+        Assert.Equal(2, shells.Definition.MarkOf(all.Find("volute-turquoise")!)?.Argb);
+        Assert.Equal("k:rare", shells.Definition.MarkOf(all.Find("clam-seafoam")!)?.NameKey);
+        Assert.Null(shells.Definition.MarkOf(all.Find("clam-plain")!));
+        // A type of any colour has no rarity, so no mark.
+        Assert.All(shells.Level("type")!.Members, m => Assert.Null(shells.Definition.MarkOf(m)));
+        Assert.Null((Seashells with { Marks = null }).MarkOf(all.Find("volute-turquoise")!));
     }
 
     // --- Tapestries: hierarchical dimensions and a picture's shape, made-up pieces ---

@@ -118,6 +118,13 @@ public sealed record LevelDef(
 public sealed record AttributeRule(IReadOnlyDictionary<string, IReadOnlyList<string>> Where, IReadOnlyDictionary<string, string> Set);
 
 /// <summary>
+/// How the album marks a member whose <paramref name="Attribute"/> is <paramref name="Value"/> (a rare seashell colour): a corner of
+/// its cell in <paramref name="Argb"/> and, when <paramref name="NameKey"/> is given, a line of its tooltip in the same colour. Data,
+/// so a collection of another mod marks its own attributes in its own colours (the album polish plan, L3).
+/// </summary>
+public sealed record MarkDef(string Attribute, string Value, int Argb, string? NameKey = null);
+
+/// <summary>
 /// A collection as data. The member's id is made of the kept dimensions' values in the order of <paramref name="Dimensions"/>,
 /// joined by <c>-</c>: albums store it, so the order of the dimensions must not change once released.
 /// </summary>
@@ -126,6 +133,7 @@ public sealed record AttributeRule(IReadOnlyDictionary<string, IReadOnlyList<str
 /// <param name="AlbumRecipe">The grid recipe that makes an album of this collection, by its name with the domain
 /// (<c>curiocatalogue:ledger-album</c>); null when the collection has none. The core only carries it: the adapters find the
 /// recipe and take it away when the collection is switched off.</param>
+/// <param name="Marks">The marks of members by their attributes, in the definition's order: a member shows the first that fits.</param>
 public sealed record CollectionDefinition(
     string Id,
     IReadOnlyList<DimensionDef> Dimensions,
@@ -133,7 +141,13 @@ public sealed record CollectionDefinition(
     IReadOnlyList<AttributeRule> Rules,
     IReadOnlyList<string> Exclude,
     string? NameKey = null,
-    string? AlbumRecipe = null);
+    string? AlbumRecipe = null,
+    IReadOnlyList<MarkDef>? Marks = null)
+{
+    /// <summary>The mark a member shows: the first whose attribute the member has with that value; null for none.</summary>
+    public MarkDef? MarkOf(Member member) =>
+        Marks?.FirstOrDefault(m => member.Attributes.TryGetValue(m.Attribute, out var v) && v == m.Value);
+}
 
 /// <summary>A point the source found: its own name (for exclusions), its value in each dimension, the item that fills it, a
 /// sample stack to show (the game's ItemStack; the core never reads it) and attributes the source knows (a piece's x and y).</summary>

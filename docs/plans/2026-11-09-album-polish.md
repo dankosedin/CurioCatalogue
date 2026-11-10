@@ -67,7 +67,7 @@ sees a change.
         GuiElementListMenu.cs:237, where an `<itemstack>` is not drawn); the side tabs with an icon; `functional.md` (A27 and a
         case of its own), `CHANGELOG.md`, `docs/domain.md` ("Album window"); the in-game check; the pull request.
         Done when: L2c's "Done when". Model: opus. After: L2ca.
-- [ ] **L3. Seashells: the look and rarity.** Whether 0.2 shows the rarity corner of A2 (a coloured triangle by the attribute the
+- [x] **L3. Seashells: the look and rarity.** Whether 0.2 shows the rarity corner of A2 (a coloured triangle by the attribute the
       definition of V3 gives seafoam and turquoise; `ROADMAP.md`, Maybe, "Rarity in the album", for the full feature); if so, the page
       element draws it and the cell's tooltip names it; its colour and name from the definition, not code (other mods' authors
       have only the asset; `ROADMAP.md`, item 6, 10.11.2026). Then the author's notes from the game, as L2. The album recipe kept or changed.
@@ -233,6 +233,19 @@ sees a change.
     takes it, `docs/modding.md`, GUI); the page shows no cell tooltip under an open list.
   - The side tabs keep vanilla's element: the icon's room is half leading spaces, half more padding (vanilla sizes a tab by its
     name's ink, which leading spaces are not), the icon drawn in it; the tabs' bounds 260 wide, not 200, for the longest ore name.
+- **The rarity corner of seashells (L3, the author, 10.11.2026):**
+  - 0.2 shows it: seafoam and turquoise cells (14 at `colors`; none at `types`, a type of any colour has no rarity) get A2's
+    corner and a tooltip line. Rejected: leaving it all to `ROADMAP.md`, Maybe, "Rarity in the album".
+  - How the definition carries it: `marks` in each collection, attribute → value → `color` and `nameKey`, the first that fits a
+    member shown; any attribute, so another mod marks its own by its file alone. Rejected: one table of tiers for the whole mod
+    (rare, epic…) that collections name (alike everywhere, but another mod could not have its own colours without a patch).
+  - Gold (`#E0B040`), "Rare colour" / "Рідкісний колір" (says what is rare). Rejected: blue "Rare" (the game tradition, but
+    lost on the blue-green shells), violet (reads as "epic" in games).
+  - Small points (agent; the author may overturn at the in-game check): the colour as `#RRGGBB` or `#AARRGGBB`; the tooltip line
+    under "In the collection" / "Missing", in the mark's colour; no line for a mark without `nameKey`; a collection switched off
+    shows no mark line, as no name line (L1b); `AlbumPageLook.Rarity` renamed `Mark`.
+  - In game (the author, 11.11.2026): works; the corner moved to the bottom right (A2 of the album view plan had the top right).
+  - The seashells' look otherwise: no notes, the crystals' fixes (L6, L2b, L2c) covered it. The album recipe kept as it is.
 
 ## Where we stopped
 
@@ -277,4 +290,11 @@ sees a change.
   `docs/modding.md` (GUI). Next: A30 and A27 in game (the author, `en` and `uk`), then the pull request; L2cb and L2c ticked then.
 - 10.11.2026: by A30's first look (the author): the level dropdown of an empty album whose level is chosen, and the layout
   dropdown always, show the icon alone (Decisions, "Small points of L2cb"). A30 passed in game (the author). L2cb and L2c done
+  (final). Next: the pull request.
+- 10.11.2026: L3's corner done on `feat/seashells-look` (final unless the game says otherwise; Decisions, "The rarity corner of
+  seashells"): `MarkDef` and `CollectionDefinition.MarkOf` in the core, `marks` in the reader, the window's `Mark`, `seashells.json`,
+  lang en / uk; tests mutation-checked (`DefinedCollectionTests`, `CollectionRegistryTests`, `SeashellsTests`); case A31 in
+  `functional.md`, the upgrade table, `CHANGELOG.md`, `docs/domain.md`, `docs/decisions.md`. Next: the author plays the seashell
+  album (A31, both levels, `en` and `uk`) and writes the notes, as L2; the album recipe kept or changed; then the pull request.
+- 11.11.2026: A31 passed in game (the author), the corner moved to the bottom right; no other notes, the recipe kept. L3 done
   (final). Next: the pull request.

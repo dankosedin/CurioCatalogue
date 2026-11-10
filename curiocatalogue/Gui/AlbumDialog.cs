@@ -369,8 +369,13 @@ public sealed class AlbumDialog : HeldItemDialog
             },
             Name: m => shown.Refused == null ? MemberNames.Name(collection, level, m) : null,
             Freedom: m => shown.Refused == null ? MemberNames.Freedom(collection, level, m) : null,
-            Rarity: _ => null); // no source of rarity yet (item 6)
+            Mark: m => shown.Refused == null ? Mark(collection.Definition.MarkOf(m)) : null);
     }
+
+    /// <summary>A mark's corner colour and its tooltip line, the name in the mark's own colour (L3: the definition's, not ours).</summary>
+    private static (int Argb, string? Line)? Mark(MarkDef? mark) =>
+        mark == null ? null
+        : (mark.Argb, mark.NameKey == null ? null : $"<font color=\"#{mark.Argb & 0xFFFFFF:X6}\">{Lang.Get(mark.NameKey)}</font>");
 
     /// <summary>A value's name for a group's heading, a tab, a table's heading in words: by <see cref="MemberNames.ValueName"/>, or
     /// for a tapestry picture the game's own name (no <c>nameKey</c> on the picture, else it would make tabs: the plan's L1,

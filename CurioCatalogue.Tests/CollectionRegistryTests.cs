@@ -191,7 +191,8 @@ public class CollectionRegistryTests
             { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" }, "memberKey": "k:member-ore", "icon": "k:crystal" },
             { "id": "all", "keep": ["ore", "rock", "grade"], "layouts": [ { "id": "t", "icon": "k:nugget-galena", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } } ] }
           ],
-          "exclude": ["*-granite"]
+          "exclude": ["*-granite"],
+          "marks": { "rarity": { "rare": { "color": "#E0B040", "nameKey": "k:rare" }, "odd": { "color": "#80ff0000" } } }
         }
         """;
 
@@ -229,6 +230,9 @@ public class CollectionRegistryTests
         Assert.Equal("k:nugget-galena", ores.Level("all")!.Definition.Layouts.Single().Icon);
         // A table with its rows reversed (L2b); the default is the dimension's order.
         Assert.Equal(new Arrangement.Table("grade", "rock", ReverseRows: true), ores.Level("all")!.Definition.Layouts.Single().Arrange);
+        // The marks in the file's order, #RRGGBB opaque, #AARRGGBB as written, the name optional (L3).
+        Assert.Equal([new MarkDef("rarity", "rare", unchecked((int)0xFFE0B040), "k:rare"), new MarkDef("rarity", "odd", unchecked((int)0x80FF0000))],
+            ores.Definition.Marks!);
     }
 
     [Fact]
@@ -275,6 +279,12 @@ public class CollectionRegistryTests
     // L2c: a level's or a layout's icon that is not a text.
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "icon": ["game:x"] } ] }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "layouts": [ { "id": "t", "groupBy": [], "icon": 5 } ] } ] }""")]
+    // L3: marks that are not an object; a value's mark that is not an object; a colour missing, not a colour, or of a wrong length.
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": ["rare"] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": "#E0B040" } } }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": { "nameKey": "k:rare" } } } }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": { "color": "gold" } } } }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": { "color": "#E0B04" } } } }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);

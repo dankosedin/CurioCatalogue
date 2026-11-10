@@ -39,18 +39,24 @@ public class SeashellsTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
-    public void Seafoam_and_turquoise_shells_are_rare_and_the_others_are_not()
+    public void Seafoam_and_turquoise_shells_are_rare_and_marked_and_the_others_are_not()
     {
-        // C2: the game's own split is the colour (BlockShell.cs:13). The rule is data; showing it is item 6's.
+        // C2: the game's own split is the colour (BlockShell.cs:13). The rule is data, and so is its mark (L3 of the album polish
+        // plan): a golden corner and "Rare colour", from seashells.json and the lang.
         var seen = game.OnMain(() =>
         {
             var members = Shells.Level("colors")!.Members;
+            var marked = members.Where(m => Shells.Definition.MarkOf(m) != null).ToList();
             return (string.Join(",", members.Where(m => m.Attributes.GetValueOrDefault("rarity") == "rare").Select(m => m.Values["color"]).Distinct().Order()),
                 members.Count(m => m.Attributes.GetValueOrDefault("rarity") == "rare"),
-                Shells.Level("types")!.Members.Count(m => m.Attributes.ContainsKey("rarity")));
+                Shells.Level("types")!.Members.Count(m => m.Attributes.ContainsKey("rarity") || Shells.Definition.MarkOf(m) != null),
+                string.Join(",", marked.Select(m => m.Values["color"]).Distinct().Order()),
+                marked.Select(m => Shells.Definition.MarkOf(m)).Distinct().Single());
         });
 
-        Assert.Equal(("seafoam,turquoise", 14, 0), seen);
+        Assert.Equal(("seafoam,turquoise", 14, 0, "seafoam,turquoise"), (seen.Item1, seen.Item2, seen.Item3, seen.Item4));
+        Assert.Equal(new MarkDef("rarity", "rare", unchecked((int)0xFFE0B040), "curiocatalogue:seashells-rarity-rare"), seen.Item5);
+        Assert.NotEqual("curiocatalogue:seashells-rarity-rare", game.OnMain(() => Lang.Get("curiocatalogue:seashells-rarity-rare")));
     }
 
     [Fact]

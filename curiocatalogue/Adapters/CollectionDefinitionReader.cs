@@ -98,6 +98,7 @@ public static class CollectionDefinitionReader
         var dimensions = Items(root, "dimensions", errors).Select(d => ReadDimension(d, errors)).ToList();
         var levels = Items(root, "levels", errors).Select(l => ReadLevel(l, errors)).ToList();
         var rules = Items(root, "rules", errors, required: false).Select(r => ReadRule(r, errors)).ToList();
+        var marks = ReadMarks(root["marks"], errors);
         var exclude = Strings(root["exclude"], "exclude", errors);
         var nameKey = Text(root, "nameKey", errors, required: false);
         var albumRecipe = Text(root, "albumRecipe", errors, required: false);
@@ -105,7 +106,7 @@ public static class CollectionDefinitionReader
             errors.Add($"'albumRecipe' must name the recipe's domain ('curiocatalogue:ledger-album', not '{albumRecipe}')");
 
         if (errors.Count > 0 || source == null) return new DefinitionRead.Bad(id, errors);
-        var definition = new CollectionDefinition(id, dimensions!, levels!, rules!, exclude, nameKey, albumRecipe);
+        var definition = new CollectionDefinition(id, dimensions!, levels!, rules!, exclude, nameKey, albumRecipe, marks);
         // Good means the core accepts the definition too, whatever the game has: the registry and the recipes choose among the
         // good ones (docs/decisions.md, Collections).
         var invalid = DefinedCollection.CheckDefinition(definition);
@@ -230,6 +231,36 @@ public static class CollectionDefinitionReader
         }
         else errors.Add("A rule has no 'set' object");
         return new AttributeRule(where, set);
+    }
+
+    /// <summary><c>marks</c>: attribute → value → <c>{ "color": "#E0B040", "nameKey": … }</c>, in the file's order (the first that
+    /// fits a member is shown). The colour as <c>#RRGGBB</c> or <c>#AARRGGBB</c>.</summary>
+    private static List<MarkDef> ReadMarks(JToken? token, List<string> errors)
+    {
+        var marks = new List<MarkDef>();
+        if (token == null) return marks;
+        if (token is not JObject attributes) { errors.Add("'marks' is not an object"); return marks; }
+        foreach (var (attribute, values) in attributes)
+        {
+            if (values is not JObject byValue) { errors.Add($"'marks' gives '{attribute}' something that is not an object"); continue; }
+            foreach (var (value, mark) in byValue)
+            {
+                string at = $"The mark of '{attribute}' = '{value}'";
+                if (mark is not JObject o) { errors.Add($"{at} is not an object"); continue; }
+                int? argb = Colour(Text(o, "color", errors) ?? "");
+                if (argb == null) { errors.Add($"{at}: 'color' is not #RRGGBB or #AARRGGBB"); continue; }
+                marks.Add(new MarkDef(attribute, value, argb.Value, Text(o, "nameKey", errors, required: false)));
+            }
+        }
+        return marks;
+    }
+
+    /// <summary>A colour <c>#RRGGBB</c> (opaque) or <c>#AARRGGBB</c> as ARGB; null when it is neither.</summary>
+    internal static int? Colour(string text)
+    {
+        if (!System.Text.RegularExpressions.Regex.IsMatch(text, "^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$")) return null;
+        uint v = uint.Parse(text.AsSpan(1), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+        return unchecked((int)(text.Length == 7 ? 0xFF000000u | v : v));
     }
 
     private static IEnumerable<JToken> Items(JObject o, string name, List<string> errors, bool required = true)

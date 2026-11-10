@@ -39,5 +39,10 @@
   ],
   "rules": [
     { "where": { "color": ["seafoam", "turquoise"] }, "set": { "rarity": "rare" } }
-  ]
+  ],
+  "marks": {
+    "rarity": {
+      "rare": { "color": "#E0B040", "nameKey": "curiocatalogue:seashells-rarity-rare" }
+    }
+  }
 }

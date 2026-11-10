@@ -19,19 +19,19 @@ namespace CurioCatalogue.Gui;
 /// of its cell's tooltip under the stack's own name; null when no value names it (butterflies: the stack's name is its name).</param>
 /// <param name="Freedom">What a member of several items leaves free ("any rock"); null for a member of one item. Said on its own
 /// line only for a member with no <paramref name="Name"/>.</param>
-/// <param name="Rarity">The colour of a member's corner (ARGB) and its tooltip line; null for none.</param>
+/// <param name="Mark">The colour of a member's corner (ARGB) and its tooltip line (none when the mark has no name); null for no mark.</param>
 public sealed record AlbumPageLook(
     System.Func<MemberGroup, string> GroupName,
     System.Func<MemberGroup, string?> GroupHint,
     System.Func<Member, string?> Name,
     System.Func<Member, string?> Freedom,
-    System.Func<Member, (int Argb, string Line)?> Rarity);
+    System.Func<Member, (int Argb, string? Line)?> Mark);
 
 /// <summary>
 /// One page of the album window, drawn by us (album view, A2, "The cell"): stacks in slots, missing ones translucent; a
 /// piece with a flat image (<see cref="Member.FlatTexture"/>) as that image, edge to edge, so the pieces make the picture;
-/// group headings with their progress and a check mark; table headings as stacks or words; the rarity corner; a missing
-/// member of several items cycling through them. Hover shows the game's tooltip through an <see cref="AlbumSlot"/>.
+/// group headings with their progress and a check mark; table headings as stacks or words; a member's mark (a coloured
+/// corner: a rare seashell colour); a missing member of several items cycling through them. Hover shows the game's tooltip through an <see cref="AlbumSlot"/>.
 /// <see cref="Show"/> changes what is collected without composing again (A1: composing costs per grid; here only the
 /// headings whose count changed are redrawn).
 /// </summary>
@@ -223,7 +223,7 @@ public sealed class AlbumPageElement : GuiElement
             ? $"<font color=\"#84ff84\">{Lang.Get("curiocatalogue:albumwindow-collected")}</font>"
             : $"<font color=\"#ff8484\">{Lang.Get("curiocatalogue:albumwindow-missing")}</font>");
         if (name == null && !isCollected && look.Freedom(member) is { } free) lines.Add(free);
-        if (look.Rarity(member) is { } rarity) lines.Add(rarity.Line);
+        if (look.Mark(member) is { Line: { } markLine }) lines.Add(markLine);
         return string.Join("\n", lines);
     }
 
@@ -275,16 +275,16 @@ public sealed class AlbumPageElement : GuiElement
     /// <summary>An SVG heading, as large as an item in a slot, in the file's own colours (<see cref="SvgIcons"/>).</summary>
     private LoadedTexture SvgTexture(AssetLocation location) => SvgIcons.Texture(api, location, (int)scaled(ItemSize));
 
-    /// <summary>A white triangle in the top right corner; drawn tinted, its colour is the tier's.</summary>
+    /// <summary>A white triangle in the bottom right corner; drawn tinted, its colour is the mark's.</summary>
     private int CornerTexture()
     {
         int size = (int)scaled(Corner);
         using var surface = new ImageSurface(Format.Argb32, size, size);
         using var ctx = GenContext(surface);
         ctx.SetSourceRGBA(1, 1, 1, 1);
-        ctx.MoveTo(0, 0);
-        ctx.LineTo(size, 0);
+        ctx.MoveTo(size, 0);
         ctx.LineTo(size, size);
+        ctx.LineTo(0, size);
         ctx.ClosePath();
         ctx.Fill();
         int id = 0;
@@ -419,10 +419,10 @@ public sealed class AlbumPageElement : GuiElement
             }
         }
 
-        if (look.Rarity(cell.Placed.Member) is { } rarity)
+        if (look.Mark(cell.Placed.Member) is { } mark)
         {
-            double size = scaled(Corner), right = x + (cell.FlatTexture != 0 ? scaled(metrics.Cell) : scaled(SlotSize));
-            api.Render.Render2DTexture(cornerTexture, (float)(right - size), (float)y, (float)size, (float)size, MarkZ, ColorOf(rarity.Argb));
+            double size = scaled(Corner), side = cell.FlatTexture != 0 ? scaled(metrics.Cell) : scaled(SlotSize);
+            api.Render.Render2DTexture(cornerTexture, (float)(x + side - size), (float)(y + side - size), (float)size, (float)size, MarkZ, ColorOf(mark.Argb));
         }
     }
 

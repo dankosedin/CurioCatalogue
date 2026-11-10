@@ -66,7 +66,7 @@ sees a change.
       and the window's right edge, with the margins; the tapestries' frames per picture looked at alike.
       Branch: `feat/album-layout`. After: V4 merged. Model: opus. Author: plays, writes the notes.
       Done when: the notes fixed or rejected with reasons (Decisions); pull request.
-- [ ] **L9. The album window's rows of controls, a class of their own.** `AlbumDialog` is about 600 lines with several jobs
+- [x] **L9. The album window's rows of controls, a class of their own.** `AlbumDialog` is about 600 lines with several jobs
       (principle 8 in `docs/architecture.md`): move the row of controls (`Controls`, `Arrange`, the pager, the dropdowns' widths)
       into a class of its own (`AlbumControls`, as `AlbumHeader` holds the album's own row), so that L2b's dropdown with icons
       lands there. A refactoring: no change the player sees. Proposed 10.11.2026 after L6, the author agreed.
@@ -137,3 +137,7 @@ sees a change.
   rows"; `AlbumPagesTests` (even lines, mutation-checked; the used width), all test projects green; case A27 in
   `functional.md`, `CHANGELOG.md`. A27 passed (uk: crystals, seashells; then en, butterflies, tapestries, the dropdown fix).
   Next: the pull request; then L9 before L2b.
+- 10.11.2026: L9 done on `refactor/album-controls` (final code; the in-game check is the author's): `Gui/AlbumControls` holds the
+  row of controls (`Build`: the parts, the width, the left and right placing; the dropdowns' widths) and the page buttons; the dialog
+  says what the row holds now (`Content()`) and keeps the actions. `AlbumDialog` 600 → about 530 lines. All test projects green
+  (no test of its own: a client-only GUI refactoring, no mocks of the dialog). Check: A27 and A22, nothing changed to the eye.

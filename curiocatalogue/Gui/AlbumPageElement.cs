@@ -100,6 +100,9 @@ public sealed class AlbumPageElement : GuiElement
 
     private const int FramePad = 6, TextPad = 2;
     private readonly int pad;
+    /// <summary>Where the page starts from the element's left edge: the padding, and for a page with no frames half the room the
+    /// groups leave, so that it stands centred in the window (L6).</summary>
+    private readonly int left;
     private static readonly TextBackground Padded = new() { HorPadding = TextPad, VerPadding = TextPad };
 
     private IReadOnlySet<string> collected = new HashSet<string>();
@@ -109,7 +112,8 @@ public sealed class AlbumPageElement : GuiElement
     private int slotTexture, cornerTexture;
     private LoadedTexture? check;
 
-    /// <param name="pages">All pages of the level, so that every page is as large as the largest (the window keeps its size).</param>
+    /// <param name="pages">All pages of the level: every page is centred by the widest (the window keeps its size).</param>
+    /// <param name="bounds">Its size is the window's: at least the largest page with <see cref="PadOf"/> round it.</param>
     public AlbumPageElement(ICoreClientAPI capi, ElementBounds bounds, AlbumPages pages, int pageIndex, PageMetrics metrics,
         AlbumPageLook look) : base(capi, bounds)
     {
@@ -117,8 +121,7 @@ public sealed class AlbumPageElement : GuiElement
         this.metrics = metrics;
         this.look = look;
         pad = PadOf(pages);
-        bounds.fixedWidth = pages.Width + 2 * pad;
-        bounds.fixedHeight = pages.Height + 2 * pad;
+        left = pad > 0 ? pad : (int)Math.Round((bounds.fixedWidth - pages.UsedWidth) / 2);
 
         var placedCells = page.Groups.SelectMany(g => g.Cells).ToList();
         var placedHeadings = page.Groups.SelectMany(g => g.Headings).ToList();
@@ -161,9 +164,9 @@ public sealed class AlbumPageElement : GuiElement
     /// </summary>
     public IEnumerable<(double X, double Y, double Width, double Height, string Text)> CutTexts =>
         groups.Where(g => g.Box.HeadingHeight > 0 && g.Hover != null)
-            .Select(g => ((double)g.Box.X + pad, (double)g.Box.Y + pad, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.Hover!))
+            .Select(g => ((double)g.Box.X + left, (double)g.Box.Y + pad, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.Hover!))
             .Concat(headings.Where(h => h.Icon == null && h.Fitted != h.Name)
-                .Select(h => ((double)h.Placed.X + pad, (double)h.Placed.Y + pad, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
+                .Select(h => ((double)h.Placed.X + left, (double)h.Placed.Y + pad, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
 
     /// <summary>Lights the cells whose member matches the search and dims the rest; null lights all. Kept over <see cref="Show"/>.</summary>
     public void Highlight(System.Func<Member, bool>? matching)
@@ -234,14 +237,19 @@ public sealed class AlbumPageElement : GuiElement
         ComposeGroupHeadings();
     }
 
-    /// <summary>A frame round each group, so that one picture is told from the next (A4): a soft dark fill and a thin edge.</summary>
+    /// <summary>A frame round each group, so that one picture is told from the next (A4): a soft dark fill and a thin edge. A
+    /// group alone on its page (a tab of crystals' `all`) has its frame stretched over the whole element, to the window's right
+    /// edge and the controls below (L6, the author): the page is then one block, not a small box in a large window.</summary>
     private void DrawFrames(Context ctx)
     {
-        foreach (var group in groups.Where(g => g.Box.HeadingHeight > 0))
+        var framed = groups.Where(g => g.Box.HeadingHeight > 0).ToList();
+        bool alone = framed.Count == 1 && groups.Length == 1;
+        foreach (var group in framed)
         {
             var box = group.Box;
-            double x = Bounds.drawX + scaled(pad + box.X - FramePad), y = Bounds.drawY + scaled(pad + box.Y - FramePad);
-            double w = scaled(box.Width + 2 * FramePad), h = scaled(box.Height + 2 * FramePad);
+            double x = Bounds.drawX + scaled(left + box.X - FramePad), y = Bounds.drawY + scaled(pad + box.Y - FramePad);
+            double w = alone ? Bounds.drawX + scaled(Bounds.fixedWidth) - x : scaled(box.Width + 2 * FramePad);
+            double h = alone ? Bounds.drawY + scaled(Bounds.fixedHeight) - y : scaled(box.Height + 2 * FramePad);
             GuiElement.RoundRectangle(ctx, x, y, w, h, scaled(4));
             ctx.SetSourceRGBA(0, 0, 0, 0.14);
             ctx.FillPreserve();
@@ -302,7 +310,7 @@ public sealed class AlbumPageElement : GuiElement
     public override void RenderInteractiveElements(float deltaTime)
     {
         // Whole pixels for the page's corner, so that the flat images of the pieces keep their pixels too (see Snap).
-        double x0 = Snap(Bounds.renderX + scaled(pad)), y0 = Snap(Bounds.renderY + scaled(pad));
+        double x0 = Snap(Bounds.renderX + scaled(left)), y0 = Snap(Bounds.renderY + scaled(pad));
         foreach (var group in groups) RenderGroupHeading(group, x0, y0);
         foreach (var heading in headings) RenderTableHeading(heading, x0, y0, deltaTime);
         foreach (var cell in cells) RenderCell(cell, x0, y0, deltaTime);
@@ -408,7 +416,7 @@ public sealed class AlbumPageElement : GuiElement
         AlbumSlot? now = null;
         if (Bounds.PointInside(args.X, args.Y))
         {
-            int x = (int)((args.X - Bounds.renderX) / scaled(1)) - pad, y = (int)((args.Y - Bounds.renderY) / scaled(1)) - pad;
+            int x = (int)((args.X - Bounds.renderX) / scaled(1)) - left, y = (int)((args.Y - Bounds.renderY) / scaled(1)) - pad;
             if (page.CellAt(x, y, metrics.Cell) is { } placed) now = cells.First(c => c.Placed == placed).Slot;
             else if (page.HeadingAt(x, y) is { } heading) now = headings.First(h => h.Placed == heading).Icon;
         }

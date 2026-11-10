@@ -187,6 +187,41 @@ public class AlbumPagesTests
         Assert.Equal((20, 20), (group.Width, group.Height));
     }
 
+    /// <summary>Members in order only, <paramref name="count"/> of them (crystals' `richest` has 16, butterflies 169).</summary>
+    private static DefinedCollection Numbers(int count)
+    {
+        string[] values = Enumerable.Range(1, count).Select(i => "n" + i).ToArray();
+        return Built(
+            new CollectionDefinition("numbers", [new DimensionDef("n", values)],
+                [new LevelDef("all", ["n"], new Dictionary<string, Drop>(), [new LayoutDef("order", [], new Arrangement.InOrder())])],
+                [], []),
+            values.Select(v => new SourcePoint(v, V(("n", v)), new ItemKey(CollectibleKind.Item, "game:" + v, ""), v)));
+    }
+
+    [Theory]
+    [InlineData(16, 120, new[] { 8, 8 })] // `richest` (L6): 12 + 4 would leave the second line a third full
+    [InlineData(25, 120, new[] { 9, 9, 7 })] // a grid: only the last line is shorter
+    [InlineData(24, 120, new[] { 12, 12 })]
+    [InlineData(5, 120, new[] { 5 })]
+    public void Members_in_order_spread_evenly_over_the_lines_the_width_needs(int count, int width, int[] perLine)
+    {
+        var pages = Pages(Numbers(count), "all", "order", Metrics(width, 1000));
+        var group = pages.Pages.Single().Groups.Single();
+
+        Assert.Equal(perLine, group.Cells.GroupBy(c => c.Y).Select(l => l.Count()).ToArray());
+        Assert.Equal(perLine[0] * 10, group.Width);
+        Assert.Equal((width, perLine[0] * 10), (pages.Width, pages.UsedWidth));
+    }
+
+    [Fact]
+    public void The_used_width_is_the_widest_page_s_and_never_more_than_the_groups_take()
+    {
+        // Ambush 30 + 2 + salvation 20 + 2 + notice 10 = 64 on a page of 100.
+        var pages = Pages(Tapestries, "pieces", "pictures", Metrics(100, 100));
+
+        Assert.Equal((100, 64), (pages.Width, pages.UsedWidth));
+    }
+
     // --- Tabs ---
 
     [Fact]

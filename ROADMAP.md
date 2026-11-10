@@ -63,9 +63,12 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
    - **Album window: width set by the control row, not the cells** (seen 09.11.2026, after V4): the window is as wide as the bottom
      rows of controls need, which shows with butterflies (a narrow grid under wide controls, a plain look). Add another column of
-     butterflies and spread the controls a little, so the window reads as one clean block; check the other collections too.
+     butterflies and spread the controls a little, so the window reads as one clean block; check the other collections too. L6 of the plan.
    - **Want list window: a line cycles through its items** (asked 09.11.2026, after V3): a line that any of several items fills
      (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do. L7 of the plan.
+   - **Want list window: a grid with no empty slots** (seen 10.11.2026, L6): its grid is the game's, always 10 columns with the
+     last row filled up by empty slots, while the album's cells now spread evenly over their lines with none empty. Whether the
+     want list follows the album (lines spread evenly, no empty slots) or keeps the look of the game's chests.
    - **The in-game guide and the album's handbook text name only tapestries** (seen 09.11.2026, V5): `guide-text` and
      `handbook-use-album-text` in `lang/*.json` still say "the first collection is tapestries" and describe the album by
      "pictures"; say there are four collections (en and uk). L8 of the plan.

@@ -100,7 +100,25 @@ sees a change.
   - Icons for words (ores as nuggets, the grade as a round mark of four sizes, the level and layout choices): a step of its own,
     L2b; the dropdown with icons is a new element, worth the effort for what else it opens (the author).
   - The album recipe kept as it is (the author). The only reason to change it would be choosing the level at crafting: overengineering.
-- **The want list's cycling and the album texts get steps** (the author, 10.11.2026): L7, L8; both were `ROADMAP.md` lines of item 6
+- **The album window's width and rows (L6, the author agreed 10.11.2026 to the agent's proposal):**
+  - The page's width is the nearest whole number of cells to the base width (652 → 13 cells, 663: 12 left a strip of 40), and
+    when the rows of controls or the album's own row are wider, the level is laid out again with their width, in whole cells
+    (`AlbumDialog.Arrange`, only ever wider). The page element is as wide as the window.
+  - Members in order spread evenly over the lines the width needs (`AlbumPages`): 16 at 13 a line is 8 + 8. A grid stays a
+    grid: 25 is 9 + 9 + 7, only the last line shorter.
+  - A page with no frames (members in order, a table with no grouping) narrower than the window stands centred, by the widest
+    page of the level (`AlbumPages.UsedWidth`), so it does not move from page to page. Pages with frames stay at the left:
+    centred, the frames would jump from tab to tab.
+  - A group alone on its page has its frame over the whole page element: to the window's right edge and down to the controls,
+    with the same margins. Its table stays at the top left. The tapestries (several pictures a page) unchanged; the author looks.
+  - The column headings in words cut to a cell ("Бісму…", V2; the seashells' colours "Звича…" alike): not fixed here; L2b
+    gives ores (and may give colours) icons, which ends it.
+  - In game (the author, 10.11.2026, uk): `rocks` fills the window; `richest` 8 + 8 centred; a tab of `all` with its frame to the
+    edges; seashells centred; the author likes the crystals better now, the gaps of the tables no longer bother. Seen and fixed:
+    a long level name ran under the dropdown's arrow (measured in the window's font, drawn in vanilla's larger `WhiteSmallText`).
+  - A crash on opening the level dropdown (seashells, `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture`, fatal with
+    `glDebugMode`; the same kind as A4's in the item tooltip, 09.11.2026) with quick clicks; not reproduced with slow ones.
+    Cause not found; not put down to L6 (the window there was small, the layout unchanged in height). (the author, 10.11.2026): L7, L8; both were `ROADMAP.md` lines of item 6
   with no step.
 
 ## Where we stopped
@@ -108,3 +126,7 @@ sees a change.
 - 10.11.2026: L2's notes all decided (Decisions, "The crystals' look"): the sort tried and dropped, no code change in L2; the
   rest went to L6 and L2b. Branch `feat/crystals-look` from `main` before L1 is merged: the plan's Decisions and this section
   will meet L1's in the merge. L2 done; its pull request carries only the plan and `ROADMAP.md`.
+- 10.11.2026: L6 code done on `feat/album-layout` (final as code, the look unchecked): Decisions, "The album window's width and
+  rows"; `AlbumPagesTests` (even lines, mutation-checked; the used width), all test projects green; case A27 in
+  `functional.md`, `CHANGELOG.md`. Played in uk (Decisions, "In game"), the dropdown width fixed after it. Next: the author
+  plays the rest of A27 (en; butterflies, tapestries; the dropdown fix) and writes notes; the agent fixes them; then the pull request.

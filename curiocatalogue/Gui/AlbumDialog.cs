@@ -129,7 +129,7 @@ public sealed class AlbumDialog : HeldItemDialog
             .SelectMany(d => collection.Values[d.Code].Select(v => d.ValueNameKey(v) is { } k ? Lang.Get(k) : v))
             .Select(Width).DefaultIfEmpty(0).Max();
         return new PageMetrics(
-            Width: GroupsAcross * GroupCells * cell + (GroupsAcross - 1) * GroupGap,
+            Width: WholeCells(GroupsAcross * GroupCells * cell + (GroupsAcross - 1) * GroupGap, cell),
             Height: Math.Max(3 * cell, (int)(screen - AroundThePage)),
             Cell: cell,
             Heading: 24,
@@ -138,8 +138,42 @@ public sealed class AlbumDialog : HeldItemDialog
             MinGroupWidth: GroupCells * cell);
     }
 
+    /// <summary>The nearest whole number of cells to a width: members in order fill the page with no strip left on the right
+    /// (L6: 652 left 40 empty after 12 cells; 13 cells make the window 11 wider, the controls spread).</summary>
+    private static int WholeCells(double width, int cell) => Math.Max(1, (int)Math.Round(width / cell)) * cell;
+
+    /// <summary>
+    /// The page widened to the rows under it when they are wider (L6: the window followed the controls, the page stood narrower
+    /// in it): laid out again with the room the controls take, in whole cells. Only ever wider, so it ends; the tabs aside or as a
+    /// dropdown are decided again for each try, as the controls depend on them. Returns the row of controls for the page shown.
+    /// </summary>
+    private Row Arrange(out bool tabsAside, out double tabsHeight)
+    {
+        while (true)
+        {
+            var pages = shown.Pages;
+            tabsHeight = pages is { Tabs.Count: > 0 } ? TabsTop + pages.Tabs.Count * TabHeight : 0;
+            tabsAside = tabsHeight > 0 && tabsHeight <= WindowHeight(pages!, shown.Metrics!.Height);
+            tabChoiceComplete = tabsHeight > 0 && !tabsAside ? TabsComplete() : null;
+            var controls = Controls();
+            if (pages is not { Pages.Count: > 0 } || shown.Metrics is not { } metrics) return controls;
+            int room = WholeCells(Math.Max(controls.Width, AlbumHeader.MinWidth) - 2 * AlbumPageElement.PadOf(pages), metrics.Cell);
+            if (room <= metrics.Width) return controls;
+            string? first = pages.Pages[page].Members.FirstOrDefault()?.Id;
+            var wider = metrics with { Width = room };
+            shown = shown with { Metrics = wider, Pages = AlbumPages.Build(shown.Collection!, shown.Level!, shown.Layout!, wider) };
+            page = (first != null ? shown.Pages!.PageOf(first) : null) ?? 0;
+        }
+    }
+
     /// <summary>A text's width in the window's font, unscaled.</summary>
     private double Width(string text) => font.GetTextExtents(text).Width / GuiElement.scaled(1);
+
+    /// <summary>A name's width in a dropdown: vanilla's AddDropDown draws it in WhiteSmallText (vsapi GuiElementDropDown.cs:516),
+    /// larger than the window's font; measured with that, a long level name ran under the arrow (L6, seen in game 10.11.2026).</summary>
+    private static double DropDownWidth(string text) => DropDownFont.GetTextExtents(text).Width / GuiElement.scaled(1);
+
+    private static readonly CairoFont DropDownFont = CairoFont.WhiteSmallText();
 
     /// <summary>What is collected now, on the composed page and the tabs.</summary>
     private void ShowCollected()
@@ -184,6 +218,7 @@ public sealed class AlbumDialog : HeldItemDialog
     private void Compose()
     {
         pageElement?.OnGuiClosed(); // the old page's tooltip goes with it
+        var controls = Arrange(out bool tabsAside, out double tabsHeight);
         var pages = shown.Pages;
         double y = GuiStyle.TitleBarHeight + 5;
 
@@ -196,17 +231,12 @@ public sealed class AlbumDialog : HeldItemDialog
             .AddShadedDialogBG(content)
             .AddDialogTitleBar(Title(), () => TryClose());
         tabs = null;
-        tabChoiceComplete = null;
         // Tabs at the side while they fit the tallest window the screen allows, the page stretched down to them; taller, they
-        // become a dropdown in the row of controls (A4, the author).
-        double tabsHeight = pages is { Tabs.Count: > 0 } ? TabsTop + pages.Tabs.Count * TabHeight : 0;
-        bool tabsAside = tabsHeight > 0 && tabsHeight <= WindowHeight(pages!, shown.Metrics!.Height);
+        // become a dropdown in the row of controls (A4, the author; decided in Arrange).
         if (tabsAside) AddTabs(composer, pages!);
-        else if (tabsHeight > 0) tabChoiceComplete = TabsComplete();
         double stretch = tabsAside ? Math.Max(0, tabsHeight - WindowHeight(pages!, pages!.Height)) : 0;
         composer.BeginChildElements(content);
 
-        var controls = Controls();
         double width = Math.Max(Math.Max(pages == null ? 0 : pages.Width + 2 * AlbumPageElement.PadOf(pages), controls.Width), AlbumHeader.MinWidth);
         // The page buttons stand in the row of controls, in the middle of the room between its left and right parts (A4, the
         // author: between the search and the want list), when that room holds them; else in a row of their own, centred.
@@ -225,7 +255,8 @@ public sealed class AlbumDialog : HeldItemDialog
         pageElement = null;
         if (pages != null && pages.Pages.Count > 0)
         {
-            var pageBounds = ElementBounds.Fixed(0, y, pages.Width + 2 * AlbumPageElement.PadOf(pages), pages.Height + 2 * AlbumPageElement.PadOf(pages) + stretch);
+            // As wide as the window: a page with no frames stands centred in it, a group alone on its page has its frame to its edges (L6).
+            var pageBounds = ElementBounds.Fixed(0, y, width, pages.Height + 2 * AlbumPageElement.PadOf(pages) + stretch);
             content.WithChildren(pageBounds);
             composer.AddAlbumPage(pageBounds, pages, page, shown.Metrics!, Look(), "page", out var element);
             pageElement = element;
@@ -316,7 +347,7 @@ public sealed class AlbumDialog : HeldItemDialog
         // The level leftmost, the tabs' dropdown right after it (A4, the author).
         if (LevelChoices() is { } levels)
         {
-            double w = levels.Names.Select(Width).Max() + 40;
+            double w = levels.Names.Select(DropDownWidth).Max() + 40;
             Part(w, false, (c, b) => c.AddDropDown(levels.Codes, levels.Names, levels.Selected, OnLevel, b, "level"));
         }
         if (tabChoiceComplete != null && shown.Pages is { } pages)
@@ -324,7 +355,7 @@ public sealed class AlbumDialog : HeldItemDialog
             // The tabs as a dropdown: the tab's name, ✓ when all its groups are complete.
             string[] ids = pages.Tabs.Select((_, i) => i.ToString()).ToArray();
             string[] names = pages.Tabs.Select((t, i) => TabName(pages, t) + (tabChoiceComplete[i] ? " " + CompleteMark : "")).ToArray();
-            Part(names.Select(Width).Max() + 40, false,
+            Part(names.Select(DropDownWidth).Max() + 40, false,
                 (c, b) => c.AddDropDown(ids, names, pages.TabAt(page) ?? 0, OnTabChosen, b, "tab"));
         }
         if (shown is { Refused: null, Level.Layouts.Count: > 1 } && shown.Layout is { } layout)
@@ -332,7 +363,7 @@ public sealed class AlbumDialog : HeldItemDialog
             var all = shown.Level.Layouts;
             string[] ids = all.Select(l => l.Id).ToArray();
             string[] names = all.Select(l => l.NameKey is { } k ? Lang.Get(k) : l.Id).ToArray();
-            Part(names.Select(Width).Max() + 40, false,
+            Part(names.Select(DropDownWidth).Max() + 40, false,
                 (c, b) => c.AddDropDown(ids, names, Array.IndexOf(ids, layout.Id), OnLayout, b, "layout"));
         }
         if (shown.Pages is { Pages.Count: > 0 }) Part(140, false, (c, b) => c.AddTextInput(b, OnSearch, font, "search"));

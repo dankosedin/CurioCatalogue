@@ -225,6 +225,11 @@ In this order:
   its list (decompiled `GuiManager.OnEscapePressed`, `i--`), assuming the dialog left it. A dialog that uses Escape for itself
   (cancelling an edit) and stays open must return false. Escape reaches `OnKeyDown` only of a dialog that captures all inputs.
   `AlbumDialog.OnEscapePressed`.
+- **Mouse events go to a composer's elements in the order they were added,** not by draw order (vsapi `GuiComposer.cs:458#OnMouseDown`:
+  the first that sets `Handled` takes the click; a move stops at the first that takes it, `:503`). An element that lies over others
+  when open (a dropdown's list) must be added before them, and should not take the moves, so the ones under it can drop their
+  tooltips. Vanilla's `AddDropDown` cannot show an item in a line: it composes its VTML names into a static texture
+  (`GuiElementListMenu.cs:237`), where an `<itemstack>` is not drawn. `Gui/IconDropDown`.
 - **Our own icon for `AddIconButton`:** `capi.Gui.Icons.CustomIcons[name] = capi.Gui.Icons.SvgIconSource(location)` (vsapi
   `IconUtil.cs:21`); the button draws it in its own colour. `Gui/AlbumHeader`.
 - **An SVG in its own colours: draw it into a Cairo surface, not with `LoadSvg`.** With no colour given, the game's rasterizer

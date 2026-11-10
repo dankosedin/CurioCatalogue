@@ -37,6 +37,7 @@
   "levels": [
     {
       "id": "richest",
+      "icon": "game:crystalizedore-bountiful-nativecopper-basalt",
       "nameKey": "curiocatalogue:crystals-level-richest",
       "progressKey": "curiocatalogue:crystals-progress",
       "keep": ["ore"],
@@ -44,6 +45,7 @@
     },
     {
       "id": "rocks",
+      "icon": "game:stone-granite",
       "nameKey": "curiocatalogue:crystals-level-rocks",
       "progressKey": "curiocatalogue:crystals-progress",
       "keep": ["ore", "rock"],
@@ -54,12 +56,13 @@
     },
     {
       "id": "all",
+      "icon": "game:crystalizedore-medium-nativecopper-andesite",
       "nameKey": "curiocatalogue:crystals-level-all",
       "progressKey": "curiocatalogue:crystals-progress-byore",
       "keep": ["ore", "grade", "rock"],
       "layouts": [
-        { "id": "byore", "nameKey": "curiocatalogue:crystals-layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } },
-        { "id": "byrock", "nameKey": "curiocatalogue:crystals-layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore", "reverseRows": true } }
+        { "id": "byore", "icon": "game:nugget-nativecopper", "nameKey": "curiocatalogue:crystals-layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } },
+        { "id": "byrock", "icon": "game:stone-granite", "nameKey": "curiocatalogue:crystals-layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore", "reverseRows": true } }
       ]
     }
   ],

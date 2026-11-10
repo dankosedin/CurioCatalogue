@@ -19,6 +19,7 @@
   "levels": [
     {
       "id": "types",
+      "icon": "game:seashell-scallop-plain",
       "nameKey": "curiocatalogue:seashells-level-types",
       "progressKey": "curiocatalogue:seashells-progress",
       "memberKey": "curiocatalogue:seashells-member-type",
@@ -27,6 +28,7 @@
     },
     {
       "id": "colors",
+      "icon": "game:seashell-scallop-turquoise",
       "nameKey": "curiocatalogue:seashells-level-colors",
       "progressKey": "curiocatalogue:seashells-progress",
       "keep": ["type", "color"],

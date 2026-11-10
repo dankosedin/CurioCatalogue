@@ -153,7 +153,9 @@ public sealed class AlbumDialog : HeldItemDialog
             tabsHeight = pages is { Tabs.Count: > 0 } ? TabsTop + pages.Tabs.Count * TabHeight : 0;
             tabsAside = tabsHeight > 0 && tabsHeight <= WindowHeight(pages!, shown.Metrics!.Height);
             tabChoiceComplete = tabsHeight > 0 && !tabsAside ? TabsComplete() : null;
-            var controls = controlRows.Build(Content());
+            // The room the page leaves: a wider row shows the dropdowns' icons alone, if it can (L2c).
+            double pageRoom = Math.Max(pages is { Pages.Count: > 0 } ? pages.Width + 2 * AlbumPageElement.PadOf(pages) : 0, AlbumHeader.MinWidth);
+            var controls = controlRows.Build(Content(), pageRoom);
             if (pages is not { Pages.Count: > 0 } || shown.Metrics is not { } metrics) return controls;
             int room = WholeCells(Math.Max(controls.Width, AlbumHeader.MinWidth) - 2 * AlbumPageElement.PadOf(pages), metrics.Cell);
             if (room <= metrics.Width) return controls;
@@ -245,12 +247,19 @@ public sealed class AlbumDialog : HeldItemDialog
         }
 
         pageElement = null;
-        if (pages != null && pages.Pages.Count > 0)
+        bool hasPage = pages != null && pages.Pages.Count > 0;
+        bool pagerAlone = hasPage && pages!.PagerAt(page).Count > 1 && !pagerInRow;
+        double controlsY = hasPage ? y + pages!.Height + 2 * AlbumPageElement.PadOf(pages) + stretch + 6 + (pagerAlone ? Line + 8 : 0) : y;
+        // The row of controls before the page and the page buttons: an open dropdown's list lies over them, and a click goes to
+        // the first element that takes it (vsapi GuiComposer.cs:458#OnMouseDown, in the order added).
+        controls.Add(composer, content, controlsY, width);
+        if (hasPage)
         {
             // As wide as the window: a page with no frames stands centred in it, a group alone on its page has its frame to its edges (L6).
-            var pageBounds = ElementBounds.Fixed(0, y, width, pages.Height + 2 * AlbumPageElement.PadOf(pages) + stretch);
+            var pageBounds = ElementBounds.Fixed(0, y, width, pages!.Height + 2 * AlbumPageElement.PadOf(pages) + stretch);
             content.WithChildren(pageBounds);
             composer.AddAlbumPage(pageBounds, pages, page, shown.Metrics!, Look(), "page", out var element);
+            element.Covered = controlRows.Covers;
             pageElement = element;
             // The full text of a name cut with "…" (A3b).
             foreach (var cut in element.CutTexts)
@@ -260,14 +269,13 @@ public sealed class AlbumDialog : HeldItemDialog
                 composer.AddAutoSizeHoverText(cut.Text, font, 300, hover);
             }
             y += pages.Height + 2 * AlbumPageElement.PadOf(pages) + stretch + 6;
-            if (pages.PagerAt(page).Count > 1 && !pagerInRow)
+            if (pagerAlone)
             {
                 AddPager(composer, content, pages, pagerCentre, y);
                 y += Line + 8;
             }
         }
 
-        controls.Add(composer, content, y, width);
         if (pagerInRow) AddPager(composer, content, pages!, pagerCentre, y);
         y += Line + 8;
 
@@ -297,13 +305,18 @@ public sealed class AlbumDialog : HeldItemDialog
     private static string TabName(AlbumPages pages, AlbumTab tab) =>
         MemberNames.ValueName(pages.TabDimension!, tab.Value) ?? tab.Value;
 
+    /// <summary>The tabs' icons' codes: their values' (L2c).</summary>
+    private static string?[] TabIcons(AlbumPages pages) => pages.Tabs.Select(t => pages.TabDimension!.ValueIcon(t.Value)).ToArray();
+
     private void AddTabs(GuiComposer composer, AlbumPages pages)
     {
         int? lit = pages.TabAt(page);
         var guiTabs = pages.Tabs.Select((t, i) => new GuiTab { Name = TabName(pages, t), DataInt = i }).ToArray();
         // Outside the dialog on its left, as the handbook's (vssurvivalmod GuiDialogHandbook.cs:119#tabBounds).
-        var bounds = ElementBounds.Fixed(-200, GuiStyle.TitleBarHeight + TabsTop, 200, pages.Tabs.Count * TabHeight);
-        tabs = new AlbumTabs(capi, guiTabs, bounds, OnTab);
+        // 260: room for the longest ore name with its icon (L2c); the tabs stand right-aligned in it.
+        var bounds = ElementBounds.Fixed(-260, GuiStyle.TitleBarHeight + TabsTop, 260, pages.Tabs.Count * TabHeight);
+        var icons = TabIcons(pages).Select(code => DefinitionIcons.Find(capi.World, code)).ToArray();
+        tabs = new AlbumTabs(capi, guiTabs, icons, bounds, OnTab);
         // Set after the constructor, which lights the first tab (vsapi GuiElementVerticalTabs.cs:52).
         for (int i = 0; i < guiTabs.Length; i++) guiTabs[i].Active = i == lit;
         composer.AddInteractiveElement(tabs, "tabs");
@@ -312,21 +325,22 @@ public sealed class AlbumDialog : HeldItemDialog
     /// <summary>What the row of controls holds now (the dropdowns' choices; the rows themselves are <see cref="AlbumControls"/>).</summary>
     private AlbumControls.Content Content()
     {
-        AlbumControls.Choice? level = LevelChoices() is { } levels ? new(levels.Codes, levels.Names, levels.Selected) : null;
+        AlbumControls.Choice? level = LevelChoices();
         AlbumControls.Choice? tab = null, layoutChoice = null;
         if (tabChoiceComplete != null && shown.Pages is { } pages)
         {
-            // The tabs as a dropdown: the tab's name, ✓ when all its groups are complete.
+            // The tabs as a dropdown: the tab's icon and name, ✓ when all its groups are complete.
             string[] ids = pages.Tabs.Select((_, i) => i.ToString()).ToArray();
             string[] names = pages.Tabs.Select((t, i) => TabName(pages, t) + (tabChoiceComplete[i] ? " " + CompleteMark : "")).ToArray();
-            tab = new(ids, names, pages.TabAt(page) ?? 0);
+            tab = new(ids, names, TabIcons(pages), pages.TabAt(page) ?? 0);
         }
         if (shown is { Refused: null, Level.Layouts.Count: > 1 } && shown.Layout is { } layout)
         {
             var all = shown.Level.Layouts;
             string[] ids = all.Select(l => l.Id).ToArray();
             string[] names = all.Select(l => l.NameKey is { } k ? Lang.Get(k) : l.Id).ToArray();
-            layoutChoice = new(ids, names, Array.IndexOf(ids, layout.Id));
+            // The icon alone, as the level's: the name on hover and in the open list (the author, 10.11.2026).
+            layoutChoice = new(ids, names, all.Select(l => l.Icon).ToArray(), Array.IndexOf(ids, layout.Id), IconOnly: true);
         }
         return new AlbumControls.Content(level, tab, layoutChoice, Search: shown.Pages is { Pages.Count: > 0 },
             WantList: shown.Refused == null, CanStartOver: !album.IsEmpty);
@@ -376,9 +390,9 @@ public sealed class AlbumDialog : HeldItemDialog
 
     // --- The level, as the ledger window chose it before 0.2 ---
 
-    /// <summary>The levels to choose from (codes, names, the chosen one), or null when there is no choice: an album that has
-    /// collected something, or a collection of one level. With none chosen, the first entry asks for one.</summary>
-    private (string[] Codes, string[] Names, int Selected)? LevelChoices()
+    /// <summary>The levels to choose from (codes, names, icons, the chosen one), or null when there is no choice: an album that has
+    /// collected something, or a collection of one level. With none chosen, the first entry asks for one (it has no icon).</summary>
+    private AlbumControls.Choice? LevelChoices()
     {
         if (!album.IsEmpty || shown.Refused is not (null or AlbumRefusal.NoLevel)
             || shown.Collection is not { Levels.Count: > 1 } collection) return null;
@@ -386,7 +400,10 @@ public sealed class AlbumDialog : HeldItemDialog
         string[] codes = [.. (album.LevelIn(collection) == null ? [""] : Array.Empty<string>()), .. levels.Select(l => l.Id)];
         string[] names = codes.Select(c => c.Length == 0 ? T("ledgerwindow-level-none")
             : collection.Level(c)!.Definition.NameKey is { } key ? Lang.Get(key) : c).ToArray();
-        return (codes, names, Math.Max(0, Array.IndexOf(codes, album.LevelIn(collection)?.Id ?? "")));
+        string?[] icons = codes.Select(c => c.Length == 0 ? null : collection.Level(c)!.Definition.Icon).ToArray();
+        // A level chosen: the icon alone, the name is on hover (the author, after A30's first look, 10.11.2026).
+        bool chosen = album.LevelIn(collection) != null;
+        return new(codes, names, icons, Math.Max(0, Array.IndexOf(codes, album.LevelIn(collection)?.Id ?? "")), IconOnly: chosen);
     }
 
     private void OnLevel(string code, bool selected)
@@ -492,11 +509,11 @@ public sealed class AlbumDialog : HeldItemDialog
     }
 
     /// <summary>
-    /// Escape while the name is edited goes back to the label and keeps the window open. False then: the game takes true for
-    /// "closed" and steps back in its list of open dialogs (decompiled GuiManager.OnEscapePressed, <c>i--</c>), which would
-    /// call this again and again.
+    /// Escape while the name is edited goes back to the label, and with a dropdown open closes its list (L2c); either keeps the
+    /// window open. False then: the game takes true for "closed" and steps back in its list of open dialogs (decompiled
+    /// GuiManager.OnEscapePressed, <c>i--</c>), which would call this again and again.
     /// </summary>
-    public override bool OnEscapePressed() => !header.Cancel() && base.OnEscapePressed();
+    public override bool OnEscapePressed() => !header.Cancel() && !controlRows.CloseList() && base.OnEscapePressed();
 
     // --- Actions: requests to the server about the album as shown ---
 

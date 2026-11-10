@@ -84,7 +84,9 @@ public abstract record Arrangement
 /// One way to look at a level: which dimensions group the members (none: one group; several: nested, the first the outermost)
 /// and how a group is laid out. Changes nothing in the data.
 /// </summary>
-public sealed record LayoutDef(string Id, IReadOnlyList<string> GroupBy, Arrangement Arrange, string? NameKey = null);
+/// <param name="Icon">The layout's icon beside its name in the album's choice, in the forms of <see cref="DimensionDef.Icon"/>
+/// with no <c>{value}</c> (crystals by ore: <c>game:nugget-nativecopper</c>); null when none.</param>
+public sealed record LayoutDef(string Id, IReadOnlyList<string> GroupBy, Arrangement Arrange, string? NameKey = null, string? Icon = null);
 
 /// <summary>
 /// A level: a projection of the collection's points. It keeps some dimensions (a member per combination of their values) and
@@ -96,6 +98,8 @@ public sealed record LayoutDef(string Id, IReadOnlyList<string> GroupBy, Arrange
 /// <param name="MemberKey">A lang key that words a member's whole name at this level, for each language's grammar: <c>{0}</c>,
 /// <c>{1}</c>… its <see cref="DefinedCollection.NameParts"/> by name, what it leaves free written in the text ("{0}, any colour",
 /// "{0} будь-якого кольору"). Null: the parts joined by commas, then what it leaves free.</param>
+/// <param name="Icon">The level's icon beside its name in the album's choice, in the forms of <see cref="DimensionDef.Icon"/>
+/// with no <c>{value}</c> (seashells by type: <c>game:seashell-scallop-plain</c>); null when none.</param>
 /// </summary>
 public sealed record LevelDef(
     string Id,
@@ -104,7 +108,8 @@ public sealed record LevelDef(
     IReadOnlyList<LayoutDef> Layouts,
     string? NameKey = null,
     string? ProgressKey = null,
-    string? MemberKey = null);
+    string? MemberKey = null,
+    string? Icon = null);
 
 /// <summary>
 /// Sets attributes on the members whose values match: each dimension in <paramref name="Where"/> must be one the member has a

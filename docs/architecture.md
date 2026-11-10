@@ -97,7 +97,8 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   a read-only slot grid), `Gui/LedgerDialog` (ledger, bill of materials), `Gui/InvoiceDialog`, `Gui/ReadOnlySlot`: client-only windows.
   `Gui/BookWindow` opens the window of a book in a hand, one at a time.
 - `Gui/AlbumDialog`: the album's own window (plan `2026-11-04-album-view.md`, A3c): tabs (`Gui/AlbumTabs`, vanilla's vertical
-  tabs with a check mark), a page, the row of controls (`Gui/AlbumControls`, L9: level, tabs, layout, search, page buttons, want list, start over) and the
+  tabs with a check mark and an icon), a page, the row of controls (`Gui/AlbumControls`, L9: level, tabs, layout as `Gui/IconDropDown`, L2c, our dropdown
+  with icons; search, page buttons, want list, start over) and the
   album's own row (`Gui/AlbumHeader`, A3d: the name and its pencil, the progress bar, the sheets). A refresh flips cells and
   sets the bar and the sheets; turning a page, a layout or a level composes. An album whose collection the game lacks shows
   `Album.CollectedOnly`.

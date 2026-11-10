@@ -51,13 +51,22 @@ sees a change.
       tooltips. Split 10.11.2026 (the author): the dropdown with icons is L2c.
       Branch: `feat/crystals-icons`. After: L9 merged. Model: opus. Author: the icons, then plays and checks.
       Done when: the decisions in Decisions; tests pass, mutation-checked; the author's in-game check; pull request.
-- [ ] **L2c. A dropdown with icons.** The level, layout and tab choices with icons: a dropdown of our own (closed: the icon and the
+- [x] **L2c. A dropdown with icons.** The level, layout and tab choices with icons: a dropdown of our own (closed: the icon and the
       name, or the icon alone when short of room; open: lines of icon and name, scrolled when long: 17 tabs of crystals, the
       butterflies' species after L4a), and the side tabs with an icon beside the name. The icons of levels and layouts (an `icon`
       on `levels` and `layouts` in the definition, the same forms as a value's) decided at the start, before code; a look at
       every collection as in "Icons for words". The element lands in `AlbumControls` (L9).
       Branch: `feat/icon-dropdown`. After: L2b merged. Model: opus. Author: the icons of levels and layouts, the in-game check.
       Done when: tests pass, mutation-checked; A27 and a case of its own in `functional.md` passed; pull request.
+      Split in two sessions (the author, 10.11.2026), one branch and one pull request:
+  - [x] **L2ca. The icons as data.** `LevelDef.Icon`, `LayoutDef.Icon`, read from `icon`; `Adapters/DefinitionIcons` finds an icon
+        for the window (the page's headings moved to it) and for the server test that every icon is in the game; `crystals.json`,
+        `seashells.json`; `docs/decisions.md`. Nothing the player sees. Done when: core, adapter and server tests pass, mutation-checked.
+  - [x] **L2cb. The dropdown and the tabs.** Our own dropdown element in `AlbumControls` for the level, the tabs and the layout
+        (an item drawn as a stack, so not vanilla's `AddDropDown`: it composes its VTML names into a static texture, vsapi
+        GuiElementListMenu.cs:237, where an `<itemstack>` is not drawn); the side tabs with an icon; `functional.md` (A27 and a
+        case of its own), `CHANGELOG.md`, `docs/domain.md` ("Album window"); the in-game check; the pull request.
+        Done when: L2c's "Done when". Model: opus. After: L2ca.
 - [ ] **L3. Seashells: the look and rarity.** Whether 0.2 shows the rarity corner of A2 (a coloured triangle by the attribute the
       definition of V3 gives seafoam and turquoise; `ROADMAP.md`, Maybe, "Rarity in the album", for the full feature); if so, the page
       element draws it and the cell's tooltip names it; its colour and name from the definition, not code (other mods' authors
@@ -203,6 +212,27 @@ sees a change.
     one level and one layout). An icon "a sample of the group's first member" would serve them: not now.
   - The dropdown with icons and the icons of levels and layouts: a step of their own, L2c (the author: one session is not enough).
 - **Two more steps** (the author, 10.11.2026): L7, L8; both were `ROADMAP.md` lines of item 6 with no step.
+- **The icons of levels and layouts (L2c, the author, 10.11.2026):** a sample from the game, not a scheme of the page drawn by us
+  (rejected: SVG schemes, a row / a table / a stack of tables; a mix, schemes for crystals and samples for seashells). Crystals:
+  `richest` a bountiful native copper crystal (`crystalizedore-bountiful-nativecopper-basalt`: basalt, the only rock the game
+  has it in), `rocks` granite (`stone-granite`), `all` a medium one (`crystalizedore-medium-nativecopper-andesite`); the layouts
+  as their tabs, `byore` `nugget-nativecopper`, `byrock` `stone-granite`. Seashells: `types` `seashell-scallop-plain`, `colors`
+  `seashell-scallop-turquoise`. Tapestries and butterflies have one level and one layout: no choice, no icon.
+- **Small points of L2cb, 10.11.2026** (agent; the author may overturn at the in-game check):
+  - The open list stands under the box when it fits whole (as vanilla's), else on the side with more room, over the page,
+    scrolled (`Gui/DropDownList`, tested); at most 12 lines. Scrolled by the wheel and the keys; the thin bar at its right only
+    shows where the lines are, it is not dragged.
+  - The closed box shows the icon alone only when the row with the names is wider than the page, and only for a dropdown whose
+    every choice has an icon ("Choose a level" has none, so the level dropdown keeps its names); its name then on hover.
+  - The author, after A30's first look (10.11.2026, screenshots, en): an empty album whose level is chosen shows the level
+    dropdown closed as its icon alone, whatever the room (the name on hover and in the open list); before a level is chosen,
+    "Choose a level" in words. The layout dropdown closed is its icon alone too, always. Icon and name together in the open
+    lists look plain but stay: they say more.
+  - Escape with a list open closes the list and keeps the window; the next Escape closes the window.
+  - The row of controls is added to the window before the page and the page buttons (a click goes to the first element that
+    takes it, `docs/modding.md`, GUI); the page shows no cell tooltip under an open list.
+  - The side tabs keep vanilla's element: the icon's room is half leading spaces, half more padding (vanilla sizes a tab by its
+    name's ink, which leading spaces are not), the icon drawn in it; the tabs' bounds 260 wide, not 200, for the longest ore name.
 
 ## Where we stopped
 
@@ -235,3 +265,16 @@ sees a change.
 - 10.11.2026: `feat/member-names` rebased on `main` after L6, L9 and L2b (`inLists` gone next to L2b's `icons`; the window's
   widths by `HasIcons` and `ValueName`); all test projects green. A29 passed in game (en, uk; the author). L1 and L1b done (final).
   Next: the pull request, then L2c.
+- 10.11.2026: L2c split in two (the author); L2ca done (final) on `feat/icon-dropdown`, not pushed: the icons as data (Decisions,
+  "The icons of levels and layouts"). Next: L2cb, the element. Vanilla's dropdown cannot draw an item in a line (L2cb), so the
+  element is ours: closed, the icon and the name (the icon alone when short of room); open, lines of icon and name over the page,
+  scrolled; focus, Escape and the wheel as vanilla's (GuiElementDropDown.cs, GuiElementListMenu.cs).
+- 10.11.2026: L2cb code done on `feat/icon-dropdown` (final unless the game says otherwise), not committed: `Gui/IconDropDown`
+  (ours, icons in the closed box and the open list), `Gui/DropDownList` (where the list stands, scrolling; `DropDownListTests`,
+  mutation-checked), `Gui/SvgIcons` (the page's SVG texture shared), `AlbumControls` (choices with icons, the compact row),
+  `AlbumTabs` (an icon before the name), `AlbumDialog` (icons of levels, layouts, tabs; Escape; the row added before the page);
+  Decisions, "Small points of L2cb"; case A30 (new) and A27 in `functional.md`, `CHANGELOG.md`, `docs/domain.md`,
+  `docs/modding.md` (GUI). Next: A30 and A27 in game (the author, `en` and `uk`), then the pull request; L2cb and L2c ticked then.
+- 10.11.2026: by A30's first look (the author): the level dropdown of an empty album whose level is chosen, and the layout
+  dropdown always, show the icon alone (Decisions, "Small points of L2cb"). A30 passed in game (the author). L2cb and L2c done
+  (final). Next: the pull request.

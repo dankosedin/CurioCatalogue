@@ -236,9 +236,12 @@ mod brings its own; the item put in must be a member of that collection.
   presentation only, kept on the client. A collection with several **levels** (crystals 16 / 118 / 353, seashells 7 / 42) has its
   level chosen in the window while the album is empty, fixed by the first piece, freed by "Start over"; with no level chosen the
   album refuses to take new and makes no want list. Tabs for a grouping with names when there is more than one page, each tab
-  with pages of its own (a dropdown in the row of controls when the tabs are taller than the screen allows); the page buttons turn the
+  with pages of its own, its value's icon before its name (a dropdown in the row of controls when the tabs are taller than the
+  screen allows); the page buttons turn the
   pages of the tab; ✓ on a complete group. A member filled by any of several codes cycles its possible stacks while missing and shows the stack
-  put in once collected. Rarity, when a collection has it, is a coloured corner. The name with a pencil, the progress bar and
+  put in once collected. The level, layout and tab dropdowns show each choice's icon and name (a level's and a layout's icon is a sample
+  from the game, `icon` in the definition), the icon alone in the closed box of the layout, of the level once one is chosen, and of the tabs when the row is wider than the page; open, the list
+  stands under the box or over the page, scrolled when long. Rarity, when a collection has it, is a coloured corner. The name with a pencil, the progress bar and
   the sheets as parchment with a count in one row; search stays, sorting goes. A collection disabled by the config: the album
   shows what it has, takes nothing, keeps its data.
 - **Invoice window:** type, origin (day and coordinates), lines and items, the grid with counts, "Cancel".

@@ -272,21 +272,8 @@ public sealed class AlbumPageElement : GuiElement
         }
     }
 
-    /// <summary>
-    /// An SVG heading, as large as an item in a slot, in the file's own colours, so that a mod's definition sets the look by its
-    /// files alone (L2b). Drawn into a Cairo surface, as vanilla's icons are (vsapi IconUtil.cs:31): with no colour given the game
-    /// swaps red and blue for Cairo's byte order, and <c>LoadSvg</c> uploads those bytes as RGBA, so it draws yellow as blue
-    /// (decompiled SvgLoader.rasterizeSvg and LoadSvg; seen in game 10.11.2026).
-    /// </summary>
-    private LoadedTexture SvgTexture(AssetLocation location)
-    {
-        int size = (int)scaled(ItemSize);
-        using var surface = new ImageSurface(Format.Argb32, size, size);
-        api.Gui.DrawSvg(api.Assets.Get(location), surface, 0, 0, size, size);
-        var texture = new LoadedTexture(api);
-        generateTexture(surface, ref texture);
-        return texture;
-    }
+    /// <summary>An SVG heading, as large as an item in a slot, in the file's own colours (<see cref="SvgIcons"/>).</summary>
+    private LoadedTexture SvgTexture(AssetLocation location) => SvgIcons.Texture(api, location, (int)scaled(ItemSize));
 
     /// <summary>A white triangle in the top right corner; drawn tinted, its colour is the tier's.</summary>
     private int CornerTexture()
@@ -444,10 +431,14 @@ public sealed class AlbumPageElement : GuiElement
 
     // --- The mouse: the game's tooltip for the cell or icon heading under it ---
 
+    /// <summary>Whether a point of the screen is covered by something over the page (an open dropdown's list, L2c): no tooltip
+    /// there, and the one shown goes.</summary>
+    public System.Func<int, int, bool>? Covered { get; set; }
+
     public override void OnMouseMove(ICoreClientAPI api, MouseEvent args)
     {
         AlbumSlot? now = null;
-        if (Bounds.PointInside(args.X, args.Y))
+        if (Bounds.PointInside(args.X, args.Y) && Covered?.Invoke(args.X, args.Y) != true)
         {
             int x = (int)((args.X - Bounds.renderX) / scaled(1)) - left, y = (int)((args.Y - Bounds.renderY) / scaled(1)) - pad;
             if (page.CellAt(x, y, metrics.Cell) is { } placed) now = cells.First(c => c.Placed == placed).Slot;

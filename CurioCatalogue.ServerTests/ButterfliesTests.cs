@@ -101,6 +101,19 @@ public class ButterfliesTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
+    public void A_butterfly_has_no_name_by_values_and_is_named_by_its_item()
+    {
+        var (name, line) = game.OnMain(() =>
+        {
+            var level = Butterflies.Levels.Single();
+            var member = level.Find("redadmiral")!;
+            return (MemberNames.Name(Butterflies, level, member), MemberNames.NameOr(Butterflies, level, member, "Red admiral"));
+        });
+        Assert.Null(name); // the album cell's tooltip then has no name line: the stack's title is the name (L1)
+        Assert.Equal("Red admiral", line);
+    }
+
+    [Fact]
     public void The_collection_and_its_progress_have_names_in_the_lang()
     {
         var missing = game.OnMain(() => new[] { Butterflies.Definition.NameKey, Butterflies.Definition.Levels.Single().ProgressKey }

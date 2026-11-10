@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
+using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -14,11 +15,15 @@ namespace CurioCatalogue.Gui;
 /// <param name="GroupName">A group's heading.</param>
 /// <param name="GroupHint">The text on hover over a group's name when the name alone does not tell it from another
 /// ("Schematic (schematic-a)"); null when it does.</param>
-/// <param name="Freedom">What a member of several items leaves free ("any rock"); null for a member of one item.</param>
+/// <param name="Name">A member's name by its values, what it leaves free included ("Native copper, any rock"), the first line
+/// of its cell's tooltip under the stack's own name; null when no value names it (butterflies: the stack's name is its name).</param>
+/// <param name="Freedom">What a member of several items leaves free ("any rock"); null for a member of one item. Said on its own
+/// line only for a member with no <paramref name="Name"/>.</param>
 /// <param name="Rarity">The colour of a member's corner (ARGB) and its tooltip line; null for none.</param>
 public sealed record AlbumPageLook(
     System.Func<MemberGroup, string> GroupName,
     System.Func<MemberGroup, string?> GroupHint,
+    System.Func<Member, string?> Name,
     System.Func<Member, string?> Freedom,
     System.Func<Member, (int Argb, string Line)?> Rarity);
 
@@ -137,7 +142,7 @@ public sealed class AlbumPageElement : GuiElement
         headings = placedHeadings.Select(h =>
         {
             var s = (AlbumSlot)inventory[slot++];
-            string name = h.Dimension.ValueNameKey(h.Value) is { } key ? Lang.Get(key) : h.Value;
+            string name = MemberNames.ValueName(h.Dimension, h.Value) ?? h.Value;
             string shortName = h.Dimension.ValueShortNameKey(h.Value) is { } shortKey ? Lang.Get(shortKey) : name;
             switch (IconOf(h))
             {
@@ -218,13 +223,14 @@ public sealed class AlbumPageElement : GuiElement
 
     private string Lines(Member member, bool isCollected)
     {
-        var lines = new List<string>
-        {
-            isCollected
-                ? $"<font color=\"#84ff84\">{Lang.Get("curiocatalogue:albumwindow-collected")}</font>"
-                : $"<font color=\"#ff8484\">{Lang.Get("curiocatalogue:albumwindow-missing")}</font>",
-        };
-        if (!isCollected && look.Freedom(member) is { } free) lines.Add(free);
+        var lines = new List<string>();
+        // The member's name above "Missing": the stack shown may be one of several, or a piece that looks like another (L1).
+        string? name = look.Name(member);
+        if (name != null) lines.Add(name);
+        lines.Add(isCollected
+            ? $"<font color=\"#84ff84\">{Lang.Get("curiocatalogue:albumwindow-collected")}</font>"
+            : $"<font color=\"#ff8484\">{Lang.Get("curiocatalogue:albumwindow-missing")}</font>");
+        if (name == null && !isCollected && look.Freedom(member) is { } free) lines.Add(free);
         if (look.Rarity(member) is { } rarity) lines.Add(rarity.Line);
         return string.Join("\n", lines);
     }

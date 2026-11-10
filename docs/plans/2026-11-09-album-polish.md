@@ -148,6 +148,10 @@ sees a change.
 - **The section's words (L1a, 10.11.2026; drafts, reviewed with the lang at release):** halves and thirds by side ("left third",
   "top half"), a 2x2 piece as "top left quarter", a 4x1 piece as "first quarter from the left" (the game's own words for `4x1`
   are wrong, above). Until L1b, the want list's line says the parts its level does not keep, as `inLists` did (`ItemInvoice.Listed`).
+- **Small points of L1b, 10.11.2026** (agent; the author may overturn at the review): one helper `Adapters/MemberNames` (a value's
+  name, a member's name, what it leaves free); a level's `memberKey` is used only when every part has a translation, else the plain
+  form (its `{0}`, `{1}` would not fit); a collection switched off shows no name line in the cell, as it showed no freedom; the album
+  cell's freedom line stays only for a member with no name (butterflies, a piece of a mod), the name already says it.
 - **The crystals' look, the author's notes (L2, the author, 10.11.2026):**
   - `rocks`: the table keeps the definition's order. Tried in game: a table's `"sort": "fullest"` (the fullest column left, the
     fullest row on top), on `rocks` only. Rejected (the author): it does not look better, and to match it the tables of `all`
@@ -225,3 +229,7 @@ sees a change.
   (`reverseRows`). A28 passed; L2b done (final). Next: the pull request, then L2c.
 - 10.11.2026: L1a done (final) on `feat/member-names`, not pushed. Next: L1b (see the step). Note for L1b: in the window,
   `AlbumDialog.Metrics` measures every dimension's value names with `Lang.Get`, now also the pieces and sections: through the helper.
+- 10.11.2026: L1b code done (final) on `feat/member-names`: `MemberNames`, the want list's line and slot, the cell's tooltip, the
+  window's value names; server tests (`TooltipTests`, `CrystalsTests`, `SeashellsTests`, `ButterfliesTests`), mutation-checked;
+  `functional.md` A29 (new; A27 when written, renumbered after L6 and L2b), A24, W5; the upgrade table; `CHANGELOG.md`. Next: the author's in-game check A29 (en, uk), then the
+  pull request; L1 and L1b are ticked after both.

@@ -96,25 +96,52 @@ public class SeashellsTests(GameServerFixture server) : BookTestBase(server)
             hand.Itemstack = new ItemStack(World.GetItem(InvoiceMaker.InvoiceCode(InvoiceKind.WantList)));
             Mod.Store.WriteInvoice(hand.Itemstack, list);
 
+            var text = new System.Text.StringBuilder();
+            hand.Itemstack.Collectible.GetHeldItemInfo(hand, text, World, false);
+
             var (pos, chest) = TestBlocks.Place(game, "chest-east");
             ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("seashell-clam-cinnamon");
             Click(player, hand, pos);
 
             var left = Mod.Store.ReadInvoice(hand.Itemstack!, InvoiceKind.WantList);
-            return (list.Entries.Length, left.Entries.Select(e => e.Member).ToList(), Inventory(player));
+            return (list.Entries.Length, left.Entries.Select(e => e.Member).ToList(), Inventory(player), text.ToString());
         });
 
         Assert.Equal(7, seen.Item1);
         Assert.Equal(6, seen.Item2.Count);
         Assert.DoesNotContain("clam", seen.Item2);
         Assert.Equal("seashell-clam-cinnamon x1", seen.Item3);
+        // The first line, the scallop, worded by the level's member key: "Scallop, any colour" (L1).
+        Assert.Contains(LangText("en", "invoice-info-line", 1, LangText("en", "seashells-member-type", LangText("en", "seashells-type-scallop"))),
+            seen.Item4.Split(["\r\n", "\n"], StringSplitOptions.None));
+    }
+
+    [Fact]
+    public void A_levels_member_key_words_the_whole_name()
+    {
+        // Our en key says what the plain form says ("Scallop, any colour"); a key of other words shows it is the key that speaks.
+        var name = game.OnMain(() =>
+        {
+            var levels = Shells.Definition.Levels.Select(l => l.Id == "types" ? l with { MemberKey = "curiocatalogue:album-name" } : l).ToList();
+            var points = Shells.Level("colors")!.Members.Select(m => new SourcePoint(m.Id, m.Values, m.Fillers[0], m.Stacks[0]));
+            var built = Assert.IsType<CollectionBuild.Built>(DefinedCollection.Build(Shells.Definition with { Levels = levels }, points)).Collection;
+            return MemberNames.Name(built, built.Level("types")!, built.Level("types")!.Find("scallop")!);
+        });
+        Assert.Equal(LangText("en", "album-name", LangText("en", "seashells-type-scallop")), name);
+    }
+
+    [Fact]
+    public void A_shell_of_a_colour_is_named_by_its_type_and_colour_in_lower_case()
+    {
+        var name = game.OnMain(() => MemberNames.Name(Shells, Shells.Level("colors")!, Shells.Level("colors")!.Find("scallop-seafoam")!));
+        Assert.Equal($"{LangText("en", "seashells-type-scallop")}, {LangText("en", "seashells-color-seafoam").ToLowerInvariant()}", name);
     }
 
     [Fact]
     public void Every_type_and_colour_has_a_name_and_an_any_word_in_the_lang()
     {
         var missing = game.OnMain(() => Shells.Definition.Dimensions
-            .SelectMany(d => d.Values.Select(d.ValueNameKey).Append(d.AnyKey).Append("curiocatalogue:seashells-level-types"))
+            .SelectMany(d => d.Values.Select(d.ValueNameKey).Append(d.AnyKey).Append("curiocatalogue:seashells-level-types").Append("curiocatalogue:seashells-member-type"))
             .Where(key => key != null && Lang.Get(key) == key).ToList());
         Assert.Empty(missing);
     }

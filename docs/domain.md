@@ -151,7 +151,7 @@ A sheet is vanilla parchment; there is no separate blank item.
 |---|---|---|---|
 | `tapestries` | a tapestry piece | one | `ledger-album` |
 | `crystals` | an ore crystal (`crystalizedore-{grade}-{ore}-{rock}`; 398 registered, 54 combinations excluded as never generated) | `richest` 16 (the richest grade of each ore), `rocks` 118 (ore × rock at its richest grade), `all` 353 | `ledger-album-crystals` |
-| `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data | `ledger-album-seashells` |
+| `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data, marked by a golden corner (`marks`) | `ledger-album-seashells` |
 | `butterflies` | a dead butterfly (`butterfly-dead-{type}`; `reedbutterfly` has no item) | `all` 169, one entry each, the game's own names | `ledger-album-butterflies` |
 
 A member kept at a level by `any` takes any of its items (a want list says "any colour", "any rock").
@@ -241,7 +241,7 @@ mod brings its own; the item put in must be a member of that collection.
   pages of the tab; ✓ on a complete group. A member filled by any of several codes cycles its possible stacks while missing and shows the stack
   put in once collected. The level, layout and tab dropdowns show each choice's icon and name (a level's and a layout's icon is a sample
   from the game, `icon` in the definition), the icon alone in the closed box of the layout, of the level once one is chosen, and of the tabs when the row is wider than the page; open, the list
-  stands under the box or over the page, scrolled when long. Rarity, when a collection has it, is a coloured corner. The name with a pencil, the progress bar and
+  stands under the box or over the page, scrolled when long. A member's mark (a rare seashell colour) is a coloured corner and a line of its tooltip in that colour, both from the definition (`marks`). The name with a pencil, the progress bar and
   the sheets as parchment with a count in one row; search stays, sorting goes. A collection disabled by the config: the album
   shows what it has, takes nothing, keeps its data.
 - **Invoice window:** type, origin (day and coordinates), lines and items, the grid with counts, "Cancel".

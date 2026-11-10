@@ -75,7 +75,7 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    - **A collection's look by its asset alone, for other mods' authors** (the author, 10.11.2026, L2b: we can change code where
      needed, they cannot). Found: the game's names of tapestry pictures are looked up only for the collection with the id
      `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw picture codes: tie it to the
-     source kind, not the id; the colour of the rarity corner to come from the definition, not code (L3).
+     source kind, not the id.
    - **A part for modders in the READMEs** (the author, 10.11.2026): the definition's JSON (now only in `docs/decisions.md`,
      Collections), that the definition and its patches must reach the client (not `"side": "server"`), icons (`icon`, `icons`,
      an SVG drawn in its own colours), the album recipe.

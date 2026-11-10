@@ -28,7 +28,7 @@ public sealed class AlbumDialog : HeldItemDialog
     // The page holds GroupsAcross of the narrowest groups side by side, GroupCells each, and so has no empty strip on the right
     // (A4: at 12 cells three groups of 3 left a fourth of the page empty); a group's name has 4 cells of room.
     private const int GroupCells = 4, GroupsAcross = 3, GroupGap = 20;
-    private const double Line = 30;
+    private const double Line = AlbumControls.Line;
 
     // What the window needs besides the page: screen and title bar padding, the dialog's padding, the line over the page, the rows
     // of controls under it, the album's own row (A3d) and the room round the groups (A1, "How much fits": at 768 about 11 rows
@@ -52,6 +52,7 @@ public sealed class AlbumDialog : HeldItemDialog
     /// <summary>The tabs' ✓ as the dropdown that stands for them was composed with; null when no dropdown shows them.</summary>
     private bool[]? tabChoiceComplete;
     private readonly AlbumHeader header;
+    private readonly AlbumControls controlRows;
 
     /// <summary>What the window shows: the collection laid out, or (with no level) nothing, and the line above the page.</summary>
     private sealed record View(AlbumRefusal? Refused, DefinedCollection? Collection, CollectionLevel? Level,
@@ -61,13 +62,9 @@ public sealed class AlbumDialog : HeldItemDialog
     {
         this.mod = mod;
         header = new AlbumHeader(capi, OnRename, () => { if (IsOpened()) Compose(); });
-        // The game's undo arrow is only a part of a circle, its redo the other way round: ours is a whole ↺ (A4).
-        if (!capi.Gui.Icons.CustomIcons.ContainsKey(RestartIcon))
-            capi.Gui.Icons.CustomIcons[RestartIcon] = capi.Gui.Icons.SvgIconSource(new AssetLocation("curiocatalogue", "textures/icons/restart.svg"));
+        controlRows = new AlbumControls(capi, OnLevel, OnTabChosen, OnLayout, OnSearch, OnWantList, OnStartOver);
         Refresh();
     }
-
-    private const string RestartIcon = "curiocatalogue-restart";
 
     private ItemLedger Item => (ItemLedger)Slot.Itemstack!.Collectible;
 
@@ -147,7 +144,7 @@ public sealed class AlbumDialog : HeldItemDialog
     /// in it): laid out again with the room the controls take, in whole cells. Only ever wider, so it ends; the tabs aside or as a
     /// dropdown are decided again for each try, as the controls depend on them. Returns the row of controls for the page shown.
     /// </summary>
-    private Row Arrange(out bool tabsAside, out double tabsHeight)
+    private AlbumControls.Row Arrange(out bool tabsAside, out double tabsHeight)
     {
         while (true)
         {
@@ -155,7 +152,7 @@ public sealed class AlbumDialog : HeldItemDialog
             tabsHeight = pages is { Tabs.Count: > 0 } ? TabsTop + pages.Tabs.Count * TabHeight : 0;
             tabsAside = tabsHeight > 0 && tabsHeight <= WindowHeight(pages!, shown.Metrics!.Height);
             tabChoiceComplete = tabsHeight > 0 && !tabsAside ? TabsComplete() : null;
-            var controls = Controls();
+            var controls = controlRows.Build(Content());
             if (pages is not { Pages.Count: > 0 } || shown.Metrics is not { } metrics) return controls;
             int room = WholeCells(Math.Max(controls.Width, AlbumHeader.MinWidth) - 2 * AlbumPageElement.PadOf(pages), metrics.Cell);
             if (room <= metrics.Width) return controls;
@@ -168,12 +165,6 @@ public sealed class AlbumDialog : HeldItemDialog
 
     /// <summary>A text's width in the window's font, unscaled.</summary>
     private double Width(string text) => font.GetTextExtents(text).Width / GuiElement.scaled(1);
-
-    /// <summary>A name's width in a dropdown: vanilla's AddDropDown draws it in WhiteSmallText (vsapi GuiElementDropDown.cs:516),
-    /// larger than the window's font; measured with that, a long level name ran under the arrow (L6, seen in game 10.11.2026).</summary>
-    private static double DropDownWidth(string text) => DropDownFont.GetTextExtents(text).Width / GuiElement.scaled(1);
-
-    private static readonly CairoFont DropDownFont = CairoFont.WhiteSmallText();
 
     /// <summary>What is collected now, on the composed page and the tabs.</summary>
     private void ShowCollected()
@@ -240,7 +231,7 @@ public sealed class AlbumDialog : HeldItemDialog
         double width = Math.Max(Math.Max(pages == null ? 0 : pages.Width + 2 * AlbumPageElement.PadOf(pages), controls.Width), AlbumHeader.MinWidth);
         // The page buttons stand in the row of controls, in the middle of the room between its left and right parts (A4, the
         // author: between the search and the want list), when that room holds them; else in a row of their own, centred.
-        bool pagerInRow = pages != null && pages.PagerAt(page).Count > 1 && controls.Left + PagerWidth + controls.Right <= width;
+        bool pagerInRow = pages != null && pages.PagerAt(page).Count > 1 && controls.Left + AlbumControls.PagerWidth + controls.Right <= width;
         double pagerCentre = pagerInRow ? (controls.Left + width - controls.Right) / 2 : width / 2;
         var facts = Facts();
 
@@ -317,94 +308,33 @@ public sealed class AlbumDialog : HeldItemDialog
         composer.AddInteractiveElement(tabs, "tabs");
     }
 
-    /// <summary>◀ N / M ▶ over the pages of the tab, PagerWidth wide, centred on <paramref name="centre"/>.</summary>
-    private void AddPager(GuiComposer composer, ElementBounds content, AlbumPages pages, double centre, double y)
+    /// <summary>What the row of controls holds now (the dropdowns' choices; the rows themselves are <see cref="AlbumControls"/>).</summary>
+    private AlbumControls.Content Content()
     {
-        const double button = 30, number = PagerWidth - 2 * button;
-        var (first, count) = pages.PagerAt(page);
-        double x = centre - number / 2;
-        var prev = ElementBounds.Fixed(x - button, y, button, Line);
-        var text = ElementBounds.Fixed(x, y + 6, number, Line);
-        var next = ElementBounds.Fixed(x + number, y, button, Line);
-        content.WithChildren(prev, text, next);
-        composer
-            .AddIconTextButton("left", () => { Turn(page - 1); return true; }, prev, "prev")
-            .AddStaticText(T("albumwindow-page", page - first + 1, count), font.Clone().WithOrientation(EnumTextOrientation.Center), text)
-            .AddIconTextButton("right", () => { Turn(page + 1); return true; }, next, "next");
-    }
-
-    /// <summary>The row under the page: what to add, and its width, before the page's width is known. Left and Right are the
-    /// room its left and right parts take, each with a gap towards the middle.</summary>
-    private sealed record Row(double Width, double Left, double Right, Action<GuiComposer, ElementBounds, double, double> Add);
-
-    private const double PagerWidth = 140;
-
-    private Row Controls()
-    {
-        var parts = new List<(double Width, bool Right, Action<GuiComposer, ElementBounds> Add)>();
-        void Part(double w, bool right, Action<GuiComposer, ElementBounds> add) => parts.Add((w, right, add));
-
-        // The level leftmost, the tabs' dropdown right after it (A4, the author).
-        if (LevelChoices() is { } levels)
-        {
-            double w = levels.Names.Select(DropDownWidth).Max() + 40;
-            Part(w, false, (c, b) => c.AddDropDown(levels.Codes, levels.Names, levels.Selected, OnLevel, b, "level"));
-        }
+        AlbumControls.Choice? level = LevelChoices() is { } levels ? new(levels.Codes, levels.Names, levels.Selected) : null;
+        AlbumControls.Choice? tab = null, layoutChoice = null;
         if (tabChoiceComplete != null && shown.Pages is { } pages)
         {
             // The tabs as a dropdown: the tab's name, ✓ when all its groups are complete.
             string[] ids = pages.Tabs.Select((_, i) => i.ToString()).ToArray();
             string[] names = pages.Tabs.Select((t, i) => TabName(pages, t) + (tabChoiceComplete[i] ? " " + CompleteMark : "")).ToArray();
-            Part(names.Select(DropDownWidth).Max() + 40, false,
-                (c, b) => c.AddDropDown(ids, names, pages.TabAt(page) ?? 0, OnTabChosen, b, "tab"));
+            tab = new(ids, names, pages.TabAt(page) ?? 0);
         }
         if (shown is { Refused: null, Level.Layouts.Count: > 1 } && shown.Layout is { } layout)
         {
             var all = shown.Level.Layouts;
             string[] ids = all.Select(l => l.Id).ToArray();
             string[] names = all.Select(l => l.NameKey is { } k ? Lang.Get(k) : l.Id).ToArray();
-            Part(names.Select(DropDownWidth).Max() + 40, false,
-                (c, b) => c.AddDropDown(ids, names, Array.IndexOf(ids, layout.Id), OnLayout, b, "layout"));
+            layoutChoice = new(ids, names, Array.IndexOf(ids, layout.Id));
         }
-        if (shown.Pages is { Pages.Count: > 0 }) Part(140, false, (c, b) => c.AddTextInput(b, OnSearch, font, "search"));
-        if (shown.Refused == null)
-        {
-            // The want list: the main action, a text button (A2); none without a level, nor for a switched-off collection.
-            string wantList = T("ledgerwindow-wantlist");
-            Part(CairoFont.ButtonText().GetTextExtents(wantList).Width / GuiElement.scaled(1) + 24, true,
-                (c, b) => c.AddSmallButton(wantList, OnWantList, b, EnumButtonStyle.Normal, "wantlist"));
-            // The place of ↺ stays when there is nothing to start over, so that the want list does not jump (A4).
-            bool collected = !album.IsEmpty;
-            Part(Line, true, (c, b) =>
-            {
-                if (collected)
-                    c.AddIconTextButton(RestartIcon, () => { OnStartOver(); return true; }, b, "restart")
-                        .AddAutoSizeHoverText(T("ledgerwindow-restart"), font, 200, b.FlatCopy());
-            });
-        }
+        return new AlbumControls.Content(level, tab, layoutChoice, Search: shown.Pages is { Pages.Count: > 0 },
+            WantList: shown.Refused == null, CanStartOver: !album.IsEmpty);
+    }
 
-        const double gap = 8;
-        double total = parts.Sum(p => p.Width) + gap * Math.Max(0, parts.Count - 1);
-        double leftWidth = parts.Where(p => !p.Right).Sum(p => p.Width + gap), rightWidth = parts.Where(p => p.Right).Sum(p => p.Width + gap);
-        return new Row(total, leftWidth, rightWidth, (composer, content, y, width) =>
-        {
-            double left = 0, right = width;
-            foreach (var p in parts.Where(p => !p.Right))
-            {
-                var b = ElementBounds.Fixed(left, y, p.Width, Line);
-                content.WithChildren(b);
-                p.Add(composer, b);
-                left += p.Width + gap;
-            }
-            foreach (var p in parts.Where(p => p.Right).Reverse())
-            {
-                right -= p.Width;
-                var b = ElementBounds.Fixed(right, y, p.Width, Line);
-                content.WithChildren(b);
-                p.Add(composer, b);
-                right -= gap;
-            }
-        });
+    private void AddPager(GuiComposer composer, ElementBounds content, AlbumPages pages, double centre, double y)
+    {
+        var (first, count) = pages.PagerAt(page);
+        controlRows.AddPager(composer, content, page - first, count, step => Turn(page + step), centre, y);
     }
 
     private AlbumPageLook Look()

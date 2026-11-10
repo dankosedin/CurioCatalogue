@@ -76,7 +76,8 @@ members, the resolver, the packet and the recipe of a disabled collection are in
   "game:tapestry-north"}`), `dimensions` (`code`, `values`, `nameKey`, `icon`: a value's icon with `{value}`, an item or block
   code or an SVG by its path ending in `.svg`, drawn in the file's own colours, a table's heading drawn as it and its name on hover; `icons`: value → icon
   for the values the template does not fit, or alone a whole table (L2b of the album polish plan), `anyKey`: a phrase in lower case for what a member of several items leaves
-free, "any colour"; `shortNameKey`: a shorter name of a value for a table heading with little room, the full name stays the heading's tooltip),
+free, "any colour"; `shortNameKey`: a shorter name of a value for a table heading with little room, the full name stays the heading's tooltip;
+`from` and `map`: a derived dimension, a value per value of an earlier dimension by a table, value → its source values, below),
 `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
   complete, `{3}` groups, in each language's grammar; `memberKey`: a member's whole name at the level in each language's grammar,
@@ -112,7 +113,12 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
   Rejected: the server reading the order from the item's asset and sending it (more code, tied to the shape of others' assets);
   the order of item ids (differs between worlds). A name per value as a lang key (the game's where
   it has one: `game:ore-{value}`, `game:rock-{value}`) and optionally an icon stack. A hierarchical dimension (a tapestry's size
-  belongs to its picture) is one the source derives from another. **Layouts** belong to a level: which dimension groups (or none)
+  belongs to its picture) is one the source derives from another. **A derived dimension** (L4a of the album polish plan,
+  11.11.2026: a butterfly's species, family and step of rarity, which its code does not carry) is one the definition derives
+  by a table (`from`, `map`), for grouping in layouts: a source value in two entries of one `map` is refused; a source value the
+  `map` lacks is its own value, after the listed ones, with a warning; a level that keeps its source needs no `drop` for it; it is
+  never a part of a member's name (its value follows from a kept one). Rejected: `rules` setting an attribute per point (the
+  window groups by dimensions only); a source kind in C# per collection. **Layouts** belong to a level: which dimension groups (or none)
   and how a group is arranged: a table of two dimensions, the shape from the members' x and y, or in order; one is the default.
   Groups and order are computed, never stored; taking new follows the default layout's order (whole groups first, as pictures today).
 - **Attributes by rules in the definition** (`where` some dimension values, `set` attributes): the rarity of seashell colours, and

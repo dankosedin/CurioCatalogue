@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using CurioCatalogue.Core;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 
 namespace CurioCatalogue.ServerTests;
 
@@ -91,6 +92,32 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
 
         Assert.Contains(En("invoice-info-blank"), info);
         Assert.DoesNotContain(info, l => l.StartsWith("Made on day"));
+    }
+
+    [Fact]
+    public void A_want_list_of_tapestries_names_each_piece_by_its_picture_and_its_place()
+    {
+        var (info, first, ambush, ambushName, salvation, salvationName, whole, wholeName) = game.OnMain(() =>
+        {
+            var tapestries = Mod.Collections.Defined(Adapters.CollectionRegistry.TapestriesId)!;
+            string? Named(Member m) => Adapters.MemberNames.Name(tapestries, Pieces, m);
+            // The game's name of the picture, matched by its wildcard key ("tapestry-ambush*"), as the game names the item.
+            string Picture(string piece) => Lang.GetMatching("game:tapestry-" + piece);
+            var single = Pieces.Members.First(m => m.Values["section"] == TapestryPiece.Whole);
+
+            var album = ReadAlbum(Album(8));
+            var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(Pieces, 0, new BlockPosition(0, 0, 0))).Invoice;
+            var sheet = new ItemStack(World.GetItem(Adapters.InvoiceMaker.InvoiceCode(InvoiceKind.WantList)));
+            Mod.Store.WriteInvoice(sheet, list);
+            return (Info(sheet), Named(Pieces.Find(list.Entries[0].Member!)!),
+                Named(Pieces.Find("ambush1")!), Picture("ambush1"), Named(Pieces.Find("salvation21")!), Picture("salvation21"),
+                Named(single), Picture(single.Id));
+        });
+
+        Assert.Equal($"{ambushName}, {En("tapestries-section-3x1-1")}", ambush); // "Ambush, left third"
+        Assert.Equal($"{salvationName}, {En("tapestries-section-2x2-21")}", salvation);
+        Assert.Equal(wholeName, whole); // a picture of one piece: its name alone
+        Assert.Contains(En("invoice-info-line", 1, first!), info);
     }
 
     [Fact]

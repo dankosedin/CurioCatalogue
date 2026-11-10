@@ -31,8 +31,7 @@
         "limestone", "chert", "conglomerate", "whitemarble", "redmarble", "greenmarble", "kimberlite"],
       "nameKey": "game:rock-{value}",
       "icon": "game:stone-{value}",
-      "anyKey": "curiocatalogue:crystals-any-rock",
-      "inLists": true
+      "anyKey": "curiocatalogue:crystals-any-rock"
     }
   ],
   "levels": [
@@ -57,7 +56,7 @@
       "id": "all",
       "nameKey": "curiocatalogue:crystals-level-all",
       "progressKey": "curiocatalogue:crystals-progress-byore",
-      "keep": ["ore", "rock", "grade"],
+      "keep": ["ore", "grade", "rock"],
       "layouts": [
         { "id": "byore", "nameKey": "curiocatalogue:crystals-layout-byore", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } },
         { "id": "byrock", "nameKey": "curiocatalogue:crystals-layout-byrock", "groupBy": ["rock"], "arrange": { "kind": "table", "rows": "grade", "columns": "ore", "reverseRows": true } }

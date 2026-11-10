@@ -5,6 +5,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Util;
+using CurioCatalogue.Adapters;
 using CurioCatalogue.Core;
 
 namespace CurioCatalogue.Gui;
@@ -123,7 +124,7 @@ public sealed class AlbumDialog : HeldItemDialog
         int cell = (int)Cell;
         // The widest name of a value headed by words (a crystal's grade), for a table's row headings.
         double words = collection.Definition.Dimensions.Where(d => !d.HasIcons)
-            .SelectMany(d => collection.Values[d.Code].Select(v => d.ValueNameKey(v) is { } k ? Lang.Get(k) : v))
+            .SelectMany(d => collection.Values[d.Code].Select(v => ValueName(collection, d, v)))
             .Select(Width).DefaultIfEmpty(0).Max();
         return new PageMetrics(
             Width: WholeCells(GroupsAcross * GroupCells * cell + (GroupsAcross - 1) * GroupGap, cell),
@@ -294,7 +295,7 @@ public sealed class AlbumDialog : HeldItemDialog
 
     /// <summary>A tab's name: its value's.</summary>
     private static string TabName(AlbumPages pages, AlbumTab tab) =>
-        pages.TabDimension!.ValueNameKey(tab.Value) is { } key ? Lang.Get(key) : tab.Value;
+        MemberNames.ValueName(pages.TabDimension!, tab.Value) ?? tab.Value;
 
     private void AddTabs(GuiComposer composer, AlbumPages pages)
     {
@@ -352,22 +353,18 @@ public sealed class AlbumDialog : HeldItemDialog
                 return string.Join(" · ", parts.Select(p => ValueName(collection, p.Dimension, p.Value)
                     + (SharesName(collection, p.Dimension, p.Value) ? $" ({p.Value})" : "")));
             },
-            Freedom: m => shown.Refused == null ? ItemInvoice.Freedom(collection, level, m) : null,
+            Name: m => shown.Refused == null ? MemberNames.Name(collection, level, m) : null,
+            Freedom: m => shown.Refused == null ? MemberNames.Freedom(collection, level, m) : null,
             Rarity: _ => null); // no source of rarity yet (item 6)
     }
 
-    /// <summary>A value's name for a group's heading: its lang key, or for a tapestry picture the game's own name (the keys are
-    /// wildcards, "tapestry-salvation*", as BlockTapestry.cs:359 looks them up); the value itself when nothing names it.</summary>
-    private static string ValueName(DefinedCollection collection, DimensionDef dimension, string value)
-    {
-        if (dimension.ValueNameKey(value) is { } key) return Lang.Get(key);
-        if (collection.Id == "tapestries" && dimension.Code == "picture")
-        {
-            string name = Lang.GetMatching("tapestry-" + value);
-            return name == "tapestry-" + value ? value : name;
-        }
-        return value;
-    }
+    /// <summary>A value's name for a group's heading, a tab, a table's heading in words: by <see cref="MemberNames.ValueName"/>, or
+    /// for a tapestry picture the game's own name (no <c>nameKey</c> on the picture, else it would make tabs: the plan's L1,
+    /// point 1); the value itself when nothing names it.</summary>
+    internal static string ValueName(DefinedCollection collection, DimensionDef dimension, string value) =>
+        MemberNames.ValueName(dimension, value)
+        ?? (collection.Id == CollectionRegistry.TapestriesId && dimension.Code == "picture" ? MemberNames.Translated("game:tapestry-" + value) : null)
+        ?? value;
 
     /// <summary>Whether another value of the dimension has the same name: the game names "schematic-a" to "schematic-d" alike.
     /// The heading keeps the short name; the hint on hover adds the value (A4, the author: the code only on hover).</summary>

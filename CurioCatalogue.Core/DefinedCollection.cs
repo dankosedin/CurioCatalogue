@@ -144,15 +144,23 @@ public sealed class DefinedCollection
                 .ToList();
 
     /// <summary>
-    /// What a listed member says after the item's name: its value in each dimension marked <see cref="DimensionDef.InLists"/>, in
-    /// the definition's order. A value all its items share counts, kept by the level or not (the richest native copper, found in
-    /// basalt only: "basalt"); a dimension the member leaves free is said by <see cref="Free"/> instead.
+    /// What a member's name is made of, by its values (docs/plans/2026-11-09-album-polish.md, L1): its value in each dimension the
+    /// level keeps, in the level's <see cref="LevelDef.Keep"/> order ("Native copper, bountiful, andesite"), then each other
+    /// dimension the level does not drop as <see cref="Drop.Max"/> in which all its items share a value, in the definition's order
+    /// (the richest native copper, found in basalt only: "…, basalt"; a tapestry piece's place in its picture). Only dimensions
+    /// with a <see cref="DimensionDef.NameKey"/>; the adapters also leave out a value with no translation. What the member leaves
+    /// free is said by <see cref="Free"/>. Empty: the member is named by its first item (butterflies).
     /// </summary>
-    public IReadOnlyList<(DimensionDef Dimension, string Value)> Listed(Member member) =>
-        Definition.Dimensions
-            .Where(d => d.InLists && member.Values.ContainsKey(d.Code))
+    public IReadOnlyList<(DimensionDef Dimension, string Value)> NameParts(CollectionLevel level, Member member)
+    {
+        var keep = level.Definition.Keep;
+        var kept = keep.Select(code => Definition.Dimensions.First(d => d.Code == code));
+        var shared = Definition.Dimensions.Where(d => !keep.Contains(d.Code) && level.Definition.Drop.GetValueOrDefault(d.Code) != Drop.Max);
+        return kept.Concat(shared)
+            .Where(d => d.NameKey != null && member.Values.ContainsKey(d.Code))
             .Select(d => (d, member.Values[d.Code]))
             .ToList();
+    }
 
     public const string IdSeparator = "-";
 

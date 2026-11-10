@@ -181,51 +181,32 @@ public class ItemInvoice : ItemRollable
 
         var wantedIn = Mod.Store.WantedIn(invoice);
         foreach (var line in invoice.Entries.Take(TooltipLines))
-        {
-            string name = NameOf((ItemStack)line.Sample);
-            if (AfterName(wantedIn, line) is { } more) name = Lang.Get("curiocatalogue:invoice-info-member-free", name, more);
-            dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, name));
-        }
+            dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, LineName(wantedIn, line)));
         if (invoice.Entries.Length > TooltipLines)
             dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-more", invoice.Entries.Length - TooltipLines));
     }
 
     /// <summary>
-    /// What a want list's line says after the item's name: the member's values its item's name does not say ("Basalt", by
-    /// <see cref="Listed"/>), then what it leaves free ("any rock", by <see cref="Freedom(DefinedCollection, CollectionLevel, Member)"/>);
-    /// null when neither (or for a line of format 1, or of a collection the game does not have: the line then wants exactly the
-    /// item it shows).
+    /// What a want list's line names: its member by its values ("Native copper, any rock", <see cref="MemberNames.NameOr"/>), or
+    /// with no value named the item it shows and what it leaves free. The item alone for a line of format 1 or of a collection the
+    /// game does not have: the line then wants exactly that item.
     /// </summary>
-    internal static string? AfterName((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
+    internal static string LineName((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
     {
-        if (line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member) return null;
-        string[] parts = [.. new[] { Listed(collection, member), Freedom(collection, level, member) }.OfType<string>()];
-        return parts.Length == 0 ? null : string.Join(", ", parts);
+        string itemName = NameOf((ItemStack)line.Sample);
+        return Wanted(wantedIn, line) is var (collection, level, member) ? MemberNames.NameOr(collection, level, member, itemName) : itemName;
     }
 
-    /// <summary>What a want list's line leaves free ("any rock"), for its slot's tooltip in the window: the item shown is one of
-    /// those that fill the line, and its own text names its rock. Null when the line leaves nothing free.</summary>
-    internal static string? FreeOf((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
+    /// <summary>What a want list's slot says under the item's own text in the window: its member's name, or with no value named
+    /// only what it leaves free ("any of 3 kinds"); null when neither (and as <see cref="LineName"/>).</summary>
+    internal static string? SlotLine((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
+        Wanted(wantedIn, line) is var (collection, level, member)
+            ? MemberNames.Name(collection, level, member) ?? MemberNames.Freedom(collection, level, member)
+            : null;
+
+    private static (DefinedCollection, CollectionLevel, Member)? Wanted((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
         line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member
-            ? null : Freedom(collection, level, member);
-
-    /// <summary>A member's values in the dimensions marked <c>inLists</c>, by their names ("Basalt"); null when none. The want
-    /// list's line (its sheet's text; the window's slots show the item's own text, which names its rock).</summary>
-    internal static string? Listed(DefinedCollection collection, Member member)
-    {
-        var listed = collection.Listed(member);
-        if (listed.Count == 0) return null;
-        return string.Join(", ", listed.Select(l => l.Dimension.ValueNameKey(l.Value) is { } key ? Lang.Get(key) : l.Value));
-    }
-
-    /// <summary>What a member leaves free, as in a want list's line; null for a member of one item (the album window's tooltip).</summary>
-    internal static string? Freedom(DefinedCollection collection, CollectionLevel level, Member member)
-    {
-        var free = collection.Free(level, member);
-        if (free.Count == 0) return null;
-        if (free.Any(d => d.AnyKey == null)) return Lang.Get("curiocatalogue:invoice-info-any-of", member.Fillers.Count);
-        return string.Join(", ", free.Select(d => Lang.Get(d.AnyKey!)));
-    }
+            ? null : (collection, level, member);
 
     // An item of a removed mod has no block or item to ask for a name.
     internal static string NameOf(ItemStack stack) =>

@@ -154,8 +154,14 @@ A sheet is vanilla parchment; there is no separate blank item.
 | `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data | `ledger-album-seashells` |
 | `butterflies` | a dead butterfly (`butterfly-dead-{type}`; `reedbutterfly` has no item) | `all` 169, one entry each, the game's own names | `ledger-album-butterflies` |
 
-A member kept at a level by `any` takes any of its items (a want list says "any colour", "any rock"); a dimension flagged
-`inLists` (the crystals' rock) is said in a want list's lines when all items of the member share it. Butterflies on shelves,
+A member kept at a level by `any` takes any of its items (a want list says "any colour", "any rock").
+
+**A member's name** is made of its values (`docs/plans/2026-11-09-album-polish.md`, L1): its value in each dimension the level
+keeps, in `keep` order, then each other dimension not dropped as `max` in which all its items share a value (the richest native
+copper, found in basalt only, "Native copper, basalt"; a tapestry piece's place, "Nightfall, left third"), each by its `nameKey`
+when that has a translation; then what it leaves free ("any rock"). A level's `memberKey` words the whole name for a language's
+grammar ("Гребінець будь-якого кольору"). Nothing named (butterflies): the first item's name. Tapestries carry the place as a
+third dimension `section` (`3x1-2`, `2x2-21`; `1x1` for a picture of one piece, never said). Butterflies on shelves,
 display cases and display mods are not read yet (`ROADMAP.md`, Exhibits).
 
 **Tapestry collection:** generated from the tapestry block's `sizes` attribute (31 pictures = 88 pieces; mods that extend

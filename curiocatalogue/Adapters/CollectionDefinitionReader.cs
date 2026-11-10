@@ -17,8 +17,9 @@ public abstract record CollectionSource
     /// each <c>{name}</c> is a dimension and takes the text between dashes.</summary>
     public sealed record Variants(VariantPattern Pattern) : CollectionSource;
 
-    /// <summary>The pieces of the block's <c>sizes</c> attribute (<c>game:tapestry-north</c>): dimensions <c>picture</c> and
-    /// <c>piece</c>, the piece's place as attributes <c>x</c> and <c>y</c>.</summary>
+    /// <summary>The pieces of the block's <c>sizes</c> attribute (<c>game:tapestry-north</c>): dimensions <c>picture</c>,
+    /// <c>piece</c> and <c>section</c> (its place for words, <see cref="Core.TapestryPiece.Section"/>), the piece's place as
+    /// attributes <c>x</c> and <c>y</c>.</summary>
     public sealed record Tapestry(string Block) : CollectionSource;
 }
 
@@ -133,7 +134,7 @@ public static class CollectionDefinitionReader
         return code == null
             ? null
             : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
-                Text(o, "anyKey", errors, required: false), Flag(o, "inLists", errors), Text(o, "shortNameKey", errors, required: false),
+                Text(o, "anyKey", errors, required: false), Text(o, "shortNameKey", errors, required: false),
                 TextMap(o, "icons", $"dimension '{code}'", errors));
     }
 
@@ -178,7 +179,10 @@ public static class CollectionDefinitionReader
         }
         else if (o["drop"] != null) errors.Add($"Level '{id}': 'drop' is not an object");
         var layouts = Items(o, "layouts", errors, required: false).Select(l => ReadLayout(l, id, errors)).ToList();
-        return id == null ? null : new LevelDef(id, keep, drop, layouts!, Text(o, "nameKey", errors, required: false), Text(o, "progressKey", errors, required: false));
+        return id == null
+            ? null
+            : new LevelDef(id, keep, drop, layouts!, Text(o, "nameKey", errors, required: false), Text(o, "progressKey", errors, required: false),
+                Text(o, "memberKey", errors, required: false));
     }
 
     private static LayoutDef? ReadLayout(JToken token, string? level, List<string> errors)

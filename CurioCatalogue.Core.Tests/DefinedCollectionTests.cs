@@ -130,23 +130,40 @@ public class DefinedCollectionTests
         Assert.All(bountifulGold, k => Assert.Same(gold, richest.MemberOf(k)));
     }
 
+    private static IEnumerable<(string, string)> NameParts(DefinedCollection c, string level, string member) =>
+        c.NameParts(c.Level(level)!, c.Level(level)!.Find(member)!).Select(l => (l.Dimension.Code, l.Value));
+
     [Fact]
-    public void A_member_lists_its_value_of_a_dimension_in_lists_when_all_its_items_share_it()
+    public void A_member_is_named_by_its_kept_values_in_the_order_of_keep_then_by_the_values_its_items_share()
     {
         var plain = Crystals();
-        var definition = plain with { Dimensions = [.. plain.Dimensions.Select(d => d.Code == "rock" ? d with { InLists = true } : d)] };
+        var definition = plain with
+        {
+            Dimensions = [.. plain.Dimensions.Select(d => d.Code == "grade" ? d with { NameKey = "k:grade-{value}" } : d)],
+            Levels = [.. plain.Levels.Select(l => l.Id == "all" ? l with { Keep = ["ore", "grade", "rock"] } : l)],
+        };
         var crystals = Built(DefinedCollection.Build(definition, CrystalPoints));
-        var richest = crystals.Level("richest")!;
-        var oreRock = crystals.Level("ore-rock")!;
-        IEnumerable<(string, string)> Listed(DefinedCollection c, Member m) => c.Listed(m).Select(l => (l.Dimension.Code, l.Value));
 
-        // The level drops the rock, but bountiful native copper occurs in basalt only: one item, its rock said.
-        Assert.Equal([("rock", "basalt")], Listed(crystals, richest.Find("nativecopper")!));
-        // Quartz gold of any of 13 rocks: the rock is free ("any rock"), not listed.
-        Assert.Empty(Listed(crystals, richest.Find("quartz_nativegold")!));
-        Assert.Equal([("rock", "claystone")], Listed(crystals, oreRock.Find("galena-claystone")!));
-        // No dimension marked, nothing listed.
-        Assert.Empty(Listed(Built(DefinedCollection.Build(plain, CrystalPoints)), oreRock.Find("galena-claystone")!));
+        // Every combination: the level's own order of the parts, while the member's id keeps the definition's.
+        Assert.Equal([("ore", "nativecopper"), ("grade", "poor"), ("rock", "andesite")], NameParts(crystals, "all", "poor-nativecopper-andesite"));
+        // The richest level drops the rock as any, but bountiful native copper occurs in basalt only: one item, its rock said.
+        // Its grade, dropped as max, is never said, though one value.
+        Assert.Equal([("ore", "nativecopper"), ("rock", "basalt")], NameParts(crystals, "richest", "nativecopper"));
+        // Quartz gold of any of 13 rocks: the rock is free ("any rock", Free), not a part.
+        Assert.Equal([("ore", "quartz_nativegold")], NameParts(crystals, "richest", "quartz_nativegold"));
+        Assert.Equal([("ore", "galena"), ("rock", "claystone")], NameParts(crystals, "ore-rock", "galena-claystone"));
+    }
+
+    [Fact]
+    public void A_dimension_without_names_is_no_part_of_a_members_name()
+    {
+        var plain = Crystals();
+        var unnamed = Built(DefinedCollection.Build(plain with { Dimensions = [.. plain.Dimensions.Select(d => d with { NameKey = null })] }, CrystalPoints));
+
+        // The grade of the plain definition has no names either: kept, still not said.
+        Assert.Equal([("ore", "nativecopper"), ("rock", "andesite")], NameParts(Built(DefinedCollection.Build(plain, CrystalPoints)), "all", "poor-nativecopper-andesite"));
+        // Nothing named: the adapters name the member by its first item.
+        Assert.Empty(NameParts(unnamed, "all", "poor-nativecopper-andesite"));
     }
 
     [Fact]
@@ -310,6 +327,15 @@ public class DefinedCollectionTests
 
         Assert.Equal(new LevelProgress(3, 8, 1, 3), pieces.Progress(["ambush1", "ambush2", "ambush3"]));
         Assert.Equal("tapestry-ambush", Tapestries().Dimensions[1].ValueNameKey(pieces.Members[0].Values["picture"]));
+    }
+
+    [Fact]
+    public void A_piece_is_named_by_the_values_it_shares_in_dimensions_dropped_as_any()
+    {
+        var tapestries = Built(DefinedCollection.Build(Tapestries(), PiecePoints));
+
+        // The level keeps the piece (no names here) and drops the picture as any; a piece is of one picture, so it is said.
+        Assert.Equal([("picture", "salvation")], NameParts(tapestries, "pieces", "salvation21"));
     }
 
     [Fact]

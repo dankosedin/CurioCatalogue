@@ -130,17 +130,38 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
         var (info, firstName, lines, left, inventory) = seen;
 
         // The first line is native copper (the dimension's order), bountiful in basalt only: one crystal, nothing left free,
-        // its rock said after its name (V2b: crystals of two rocks share a name).
+        // named by its ore and the rock its one crystal has, in lower case (L1); not by the item, which says the grade.
         var infoLines = info.Split(["\r\n", "\n"], StringSplitOptions.None);
         string basalt = game.OnMain(() => Lang.Get("game:rock-basalt"));
-        Assert.Contains(LangText("en", "invoice-info-line", 1, LangText("en", "invoice-info-member-free", firstName, basalt)), infoLines);
+        Assert.Contains(LangText("en", "invoice-info-line", 1, $"{LangText("en", "crystals-ore-nativecopper")}, {basalt.ToLowerInvariant()}"), infoLines);
+        Assert.DoesNotContain(infoLines, l => l.Contains(firstName));
         // Quartz gold, the third: any of 13 rocks.
-        string gold = game.OnMain(() => Vanilla("crystalizedore-bountiful-quartz_nativegold-andesite").GetName());
-        Assert.Contains(LangText("en", "invoice-info-line", 1, LangText("en", "invoice-info-member-free", gold, LangText("en", "crystals-any-rock"))), infoLines);
+        Assert.Contains(LangText("en", "invoice-info-line", 1,
+            LangText("en", "invoice-info-member-free", LangText("en", "crystals-ore-quartz_nativegold"), LangText("en", "crystals-any-rock"))), infoLines);
         Assert.Equal(16, lines);
         Assert.Equal(15, left.Count);
         Assert.DoesNotContain("quartz_nativegold", left);
         Assert.Equal("crystalizedore-bountiful-quartz_nativegold-granite x1", inventory);
+    }
+
+    [Fact]
+    public void A_crystal_is_named_by_the_values_its_level_keeps_in_order_parts_after_the_first_in_lower_case()
+    {
+        var names = game.OnMain(() =>
+        {
+            string? Named(string level, string id) => MemberNames.Name(Crystals, Crystals.Level(level)!, Crystals.Level(level)!.Find(id)!);
+            // Member ids follow the definition's order of dimensions (grade, ore, rock), not the level's keep.
+            // Bountiful native copper is found in basalt only.
+            return (Named("all", "bountiful-nativecopper-basalt"), Named("rocks", "nativecopper-basalt"),
+                Named("richest", "quartz_nativegold"));
+        });
+
+        string copper = LangText("en", "crystals-ore-nativecopper");
+        string basalt = game.OnMain(() => Lang.Get("game:rock-basalt")).ToLowerInvariant();
+        Assert.Equal($"{copper}, {LangText("en", "crystals-grade-bountiful").ToLowerInvariant()}, {basalt}", names.Item1);
+        Assert.Equal($"{copper}, {basalt}", names.Item2);
+        // The richest: the grade is dropped as max, so not said; the rock left free is.
+        Assert.Equal(LangText("en", "invoice-info-member-free", LangText("en", "crystals-ore-quartz_nativegold"), LangText("en", "crystals-any-rock")), names.Item3);
     }
 
     [Fact]

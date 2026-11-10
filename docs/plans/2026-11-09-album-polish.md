@@ -21,7 +21,7 @@ sees a change.
 
 ## Steps
 
-- [ ] **L1. Members named by their values.** One rule for naming a member wherever members are listed (a want list's line, the
+- [x] **L1. Members named by their values.** One rule for naming a member wherever members are listed (a want list's line, the
       title of a cell's tooltip, a chat message that names a piece), from its values in the dimensions it keeps and the freedom
       of those it drops: "Nightfall, 2 of 3" for a tapestry piece (`ROADMAP.md`, 0.2, item 6: pieces of one picture share a name),
       "Native copper, bountiful, andesite" for a crystal, "Scallop, any colour" for a seashell at the type level. Replaces the
@@ -29,6 +29,15 @@ sees a change.
       definition (each language's grammar, as `progressKey` and `anyKey`).
       Branch: `feat/member-names`. After: V3 merged. Model: opus. Author: the phrasing for each collection, the in-game check (en, uk).
       Done when: tests pass, mutation-checked; the cases in `functional.md` passed; upgrade table: the lang keys; pull request.
+      Split in two sessions (the author, 10.11.2026), one branch and one pull request:
+  - [x] **L1a. The core and the data.** `DefinedCollection.NameParts` in place of `Listed`, `LevelDef.MemberKey`, `inLists` gone;
+        the tapestries' `section` from `TapestryPieces`; the four definitions, the section and member lang keys (en, uk); the
+        reader and its tests; `docs/decisions.md` and `docs/domain.md`. Done when: core and adapter tests pass, mutation-checked.
+  - [x] **L1b. Shown, and released.** One adapter helper for a value's name (`Lang.GetMatchingIfExists`) and a member's name
+        (parts, lower case after the first, `memberKey`, freedom; no part: the first item's name); the want list sheet's line,
+        the album cell's tooltip, the want list window's slot; the window's `ValueName` through the helper; the server tests
+        (`CrystalsTests`, `SeashellsTests`, `CollectionsFromAssetsTests`); `functional.md`, the upgrade table, `CHANGELOG.md`; the
+        in-game check (en, uk); the pull request. Done when: L1's "Done when". Model: opus. After: L1a.
 - [x] **L2. Ore crystals: the look.** The author plays the crystal album (all three levels, both layouts) and writes what is
       wrong: the order of ores and rocks (the definition's value lists), the names of levels and layouts, table headings, the
       default layout, the tabs. The agent fixes by the notes. The album recipe kept or changed.
@@ -104,6 +113,45 @@ sees a change.
 - **No code review of its own** (the author, 09.11.2026): R1 of the release plan reads it, as item 4 and the album window.
 - **A branch and a pull request per step** (the author, 09.11.2026).
 - **Step letter L** (look); A, B, C, F, G, K, P, R, S, T and V are taken.
+- **Members named by their values (L1, the author, 10.11.2026).** Where shown: a want list sheet's line (in place of the first
+  item's name), the first line of an album cell's tooltip (above "Missing"; the stack's own name stays the title), the want list
+  window's slot (in place of the freedom line). Not the album's search (a roadmap line if wanted). The phrasing (en / uk):
+  - tapestries: the picture's name from the game, then the place by our own words, not the game's "Section: …" (its words for
+    `4x1` say "top quarter", but the game lays `4x1` out in a row, vssurvivalmod BlockTapestry.cs `neighbours4x1`): "Nightfall,
+    left third" / "Сутінки, ліва третина"; a `1x1` picture its name alone. Rejected: "Nightfall, 2 of 3" (less clear for `2x2`).
+    Pictures the game names alike (`schematic-a`, `-b`, `-d`; `-c`, `-c-bloody`: "Schematic") stay alike (the author): the album
+    tells them apart by place;
+  - crystals: `richest` "Native copper, any rock" / "Самородна мідь, будь-яка порода" (the grade by `max` is not said; a rock all its
+    items share is: "…, basalt"); `rocks` "Native copper, andesite"; `all` "Native copper, bountiful, andesite" / "Самородна мідь,
+    щедра, андезит";
+  - seashells: `types` "Scallop, any colour" / "Гребінець будь-якого кольору"; `colors` "Scallop, seafoam" / "Гребінець, морська піна";
+  - butterflies: the game's name of the item (the type has no names in the definition).
+- **The rule and how the definition carries it (L1, the author, 10.11.2026).** The parts: the member's value in each dimension the
+  level keeps, in `keep` order, then each other dimension not dropped as `max` in which all its items share a value, in the
+  definition's order; only dimensions with a `nameKey` and values that have a translation (looked up with wildcards,
+  `Lang.GetMatchingIfExists`, so `game:tapestry-{value}` names a piece by its picture, as BlockTapestry.cs:359). Parts after the
+  first start in lower case. Then the freedom (`anyKey`, as today). A level's optional `memberKey` words the whole name for a
+  language's grammar: `{0}`, `{1}`… the parts, the freedom written in the text (seashells `types`). No part: the first item's name and
+  the freedom (butterflies; a piece a mod added). `inLists` goes (the rock is now in the name). Planned shape, for the session
+  that builds it: `DefinedCollection.NameParts(level, member)` in the core replaces `Listed`; `LevelDef.MemberKey`; a third
+  tapestry dimension `section` (`3x1-2`, `2x2-21`, `1x1`; dropped `any`; from `TapestryPieces`, a config-added piece `1x1`) named
+  by our keys `curiocatalogue:tapestries-section-{value}` (18, none for `1x1`); `nameKey` on the tapestries' `piece` (not on
+  `picture`: a named first `groupBy` makes tabs, AlbumPages.cs:134); `crystals.json` `all` keeps `["ore", "grade", "rock"]` (the
+  member id follows the definition's dimension order, not `keep`, DefinedCollection.cs:211, so stored ids do not change); one
+  adapter helper for a value's name used by the window too (`AlbumDialog` widths, tabs, `ValueName`, which today special-cases
+  the tapestry picture).
+- **Three points of L1 settled before the code (the author, 10.11.2026).** (1) The picture's group heading keeps its own case
+  (the picture has no `nameKey`, else tabs), looked up through the same helper as `game:tapestry-{value}`. (2) A member with no
+  part (butterflies) has no name line in the album cell's tooltip: the stack's title already is that name; only the freedom, as
+  before. The want list's line names it by the item as before. (3) Chat messages are not changed in L1 (not in "Where shown");
+  a roadmap line if wanted.
+- **The section's words (L1a, 10.11.2026; drafts, reviewed with the lang at release):** halves and thirds by side ("left third",
+  "top half"), a 2x2 piece as "top left quarter", a 4x1 piece as "first quarter from the left" (the game's own words for `4x1`
+  are wrong, above). Until L1b, the want list's line says the parts its level does not keep, as `inLists` did (`ItemInvoice.Listed`).
+- **Small points of L1b, 10.11.2026** (agent; the author may overturn at the review): one helper `Adapters/MemberNames` (a value's
+  name, a member's name, what it leaves free); a level's `memberKey` is used only when every part has a translation, else the plain
+  form (its `{0}`, `{1}` would not fit); a collection switched off shows no name line in the cell, as it showed no freedom; the album
+  cell's freedom line stays only for a member with no name (butterflies, a piece of a mod), the name already says it.
 - **The crystals' look, the author's notes (L2, the author, 10.11.2026):**
   - `rocks`: the table keeps the definition's order. Tried in game: a table's `"sort": "fullest"` (the fullest column left, the
     fullest row on top), on `rocks` only. Rejected (the author): it does not look better, and to match it the tables of `all`
@@ -158,6 +206,10 @@ sees a change.
 
 ## Where we stopped
 
+- 10.11.2026: L1 decided (final, Decisions: "Members named by their values", "The rule and how the definition carries it"), branch
+  `feat/member-names` from `main`, no code yet. Next: L1's code by the planned shape (core and tests, the adapters and the window,
+  lang en / uk, the server tests' want list lines in `CrystalsTests`), then `functional.md`, the upgrade table, `CHANGELOG.md`,
+  the in-game check (en, uk) for the author, the pull request.
 - 10.11.2026: L2's notes all decided (Decisions, "The crystals' look"): the sort tried and dropped, no code change in L2; the
   rest went to L6 and L2b. Branch `feat/crystals-look` from `main` before L1 is merged: the plan's Decisions and this section
   will meet L1's in the merge. L2 done; its pull request carries only the plan and `ROADMAP.md`.
@@ -175,3 +227,11 @@ sees a change.
   `CHANGELOG.md`, `docs/decisions.md`, `docs/domain.md`. Then, by A28 in game (the author): the marks yellow, dim to full, in the
   SVG's own colours (drawn through Cairo: `LoadSvg` swaps red and blue, `docs/modding.md`); the richest grade on top
   (`reverseRows`). A28 passed; L2b done (final). Next: the pull request, then L2c.
+- 10.11.2026: L1a done (final) on `feat/member-names`, not pushed. Next: L1b (see the step). Note for L1b: in the window,
+  `AlbumDialog.Metrics` measures every dimension's value names with `Lang.Get`, now also the pieces and sections: through the helper.
+- 10.11.2026: L1b code done (final) on `feat/member-names`: `MemberNames`, the want list's line and slot, the cell's tooltip, the
+  window's value names; server tests (`TooltipTests`, `CrystalsTests`, `SeashellsTests`, `ButterfliesTests`), mutation-checked;
+  `functional.md` A29 (new; A27 when written, renumbered after L6 and L2b), A24, W5; the upgrade table; `CHANGELOG.md`.
+- 10.11.2026: `feat/member-names` rebased on `main` after L6, L9 and L2b (`inLists` gone next to L2b's `icons`; the window's
+  widths by `HasIcons` and `ValueName`); all test projects green. A29 passed in game (en, uk; the author). L1 and L1b done (final).
+  Next: the pull request, then L2c.

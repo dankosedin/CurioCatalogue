@@ -83,7 +83,8 @@ album window while the album is empty; the first piece taken fixes it, and "Star
 | Butterflies | a dead butterfly | one: all 169 |
 
 - A want list says what is missing, not one item: where several items will do (a seashell of any colour, a crystal in any rock)
-  it says "any colour" or "any rock" and takes whichever there is room for. Crystals of one rock name that rock.
+  it says "any colour" or "any rock" and takes whichever there is room for. Each line names what is missing by what it is
+  ("Ambush, left third", "Native copper, basalt"), and so does the album's tooltip over a cell.
 - Butterflies on shelves, in display cases and in display mods are not read yet: take them into a chest first. The same holds for
   tapestries on a wall.
 

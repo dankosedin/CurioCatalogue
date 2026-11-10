@@ -11,6 +11,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 - **Ore crystals are the second collection.** An album made from an empty ledger or bill of materials and a crystal (the crystal stays) collects the ore crystals of the game at three levels: the richest of each ore, each ore in each rock, or every crystal; the window shows them by ore or by rock. Want lists name the rock where one rock holds a crystal and say "any rock" where several do. English and Ukrainian.
 - **Seashells are the third collection.** An album made from an empty ledger or bill of materials and a seashell (the shell stays) collects the 42 seashells of the game at two levels: every type in any colour (7), or every type in every colour (42, one table of types by colours). A want list says "any colour" where any will do. English and Ukrainian.
 - **Butterflies are the fourth collection.** An album made from an empty ledger or bill of materials and a dead butterfly (the butterfly stays) collects the 169 dead butterflies of the game, one level, every butterfly its own entry, in the game's own names. A want list names each butterfly missing. English and Ukrainian.
+- **The album window is one block.** The page is as wide as the rows under it, in whole cells (no empty strip on the right); cells in order spread evenly over their lines (16 crystals as 8 + 8, not 12 + 4); a page narrower than the window stands centred, and a tab of one group has its frame out to the window's edges.
 
 ## 0.1.1 (2026-10-31)
 

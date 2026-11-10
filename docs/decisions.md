@@ -80,7 +80,8 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
 `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups
   complete, `{3}` groups, in each language's grammar; `memberKey`: a member's whole name at the level in each language's grammar,
-  `{0}`, `{1}`… the parts of its name, what it leaves free written in the text (seashells by type, "{0}, any colour"); `layouts`: `id`, `groupBy`, `arrange`: `{"kind": "table", "rows", "columns"}` (with `"reverseRows": true` the rows highest first, the
+  `{0}`, `{1}`… the parts of its name, what it leaves free written in the text (seashells by type, "{0}, any colour"); `icon`: the level's icon beside its name in the album's choice, in the forms of a value's
+  icon with no `{value}` (L2c of the album polish plan); `layouts`: `id`, `groupBy`, `icon` (as a level's), `arrange`: `{"kind": "table", "rows", "columns"}` (with `"reverseRows": true` the rows highest first, the
   dimension's order and `max` unchanged; it orders taking new too) / `{"kind": "shape"}` / `{"kind": "order"}`),
   `rules` (`where`, `set`), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",
   `albumRecipe`: the grid recipe that makes its album, by name with the domain (`curiocatalogue:ledger-album`). A definition that

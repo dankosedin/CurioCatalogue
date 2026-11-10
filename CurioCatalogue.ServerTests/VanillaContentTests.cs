@@ -1,3 +1,4 @@
+using CurioCatalogue.Adapters;
 using Vintagestory.API.Common;
 
 namespace CurioCatalogue.ServerTests;
@@ -25,24 +26,30 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     }
 
     [Fact]
-    public void Every_icon_a_collection_gives_its_values_is_in_the_game()
+    public void Every_icon_a_collection_gives_its_values_levels_and_layouts_is_in_the_game()
     {
-        // A table's heading draws the value's icon: an item or block, or an SVG of ours (AlbumPageElement.IconOf, L2b); one the
-        // game lacks falls back to words, silently, so a misspelt code or file is caught here. Our SVGs are in our mod, which this
-        // server loads (textures are universal: vsapi AssetCategory.cs:23).
+        // The window draws a value's icon in a table's heading (L2b), a level's and a layout's beside its name in the choice
+        // (L2c): an item or block, or an SVG of ours, found by DefinitionIcons.Find; one the game lacks falls back to words,
+        // silently, so a misspelt code or file is caught here. Our SVGs are in our mod, which this server loads (textures are
+        // universal: vsapi AssetCategory.cs:23).
         var seen = game.OnMain(() => Mod.Collections.All.Values
-            .SelectMany(c => c.Definition.Dimensions.SelectMany(d => c.Values[d.Code].Select(v => (Name: $"{c.Id} {d.Code} {v}", Icon: d.ValueIcon(v)))))
+            .SelectMany(c => c.Definition.Dimensions
+                .SelectMany(d => c.Values[d.Code].Select(v => (Name: $"{c.Id} {d.Code} {v}", Icon: d.ValueIcon(v))))
+                .Concat(c.Definition.Levels.Select(l => (Name: $"{c.Id} level {l.Id}", l.Icon)))
+                .Concat(c.Definition.Levels.SelectMany(l => l.Layouts.Select(y => (Name: $"{c.Id} layout {l.Id} {y.Id}", y.Icon)))))
             .Where(i => i.Icon != null)
-            .Select(i => (i.Name, i.Icon, Found: CurioCatalogue.Core.DimensionDef.IsSvg(i.Icon!)
-                ? World.AssetManager.Exists(new AssetLocation(i.Icon))
-                : World.GetItem(new AssetLocation(i.Icon)) != null || World.GetBlock(new AssetLocation(i.Icon)) != null))
+            .Select(i => (i.Name, i.Icon, Found: DefinitionIcons.Find(World, i.Icon) != null))
             .ToList());
 
         Assert.DoesNotContain(seen, i => !i.Found);
-        // The crystals' ores, grades and rocks (16 + 4 + 17), the ores in a host by the definition's table.
-        Assert.Equal(37, seen.Count(i => i.Name.StartsWith("crystals ")));
+        // The crystals' ores, grades and rocks (16 + 4 + 17), the ores in a host by the definition's table; three levels, two
+        // layouts. The seashells' two levels.
+        Assert.Equal(37 + 3 + 2, seen.Count(i => i.Name.StartsWith("crystals ")));
+        Assert.Equal(2, seen.Count(i => i.Name.StartsWith("seashells ")));
         Assert.Contains(("crystals ore galena_nativesilver", "game:nugget-nativesilver", true), seen);
         Assert.Contains(("crystals grade rich", "curiocatalogue:textures/icons/grade-rich.svg", true), seen);
+        Assert.Contains(("crystals layout all byrock", "game:stone-granite", true), seen);
+        Assert.Contains(("seashells level colors", "game:seashell-scallop-turquoise", true), seen);
     }
 
     [Fact]

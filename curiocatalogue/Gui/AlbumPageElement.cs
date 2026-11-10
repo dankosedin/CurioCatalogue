@@ -191,16 +191,8 @@ public sealed class AlbumPageElement : GuiElement
         foreach (var cell in cells) cell.Lit = matching?.Invoke(cell.Placed.Member) ?? true;
     }
 
-    /// <summary>A heading's icon: a stack of the item or block, an SVG's location (<see cref="DimensionDef.IsSvg"/>), or null when
-    /// there is none or the game lacks it (a removed mod's item, a missing file): the heading is then in words.</summary>
-    private object? IconOf(PlacedHeading heading)
-    {
-        if (heading.Dimension.ValueIcon(heading.Value) is not { } code) return null;
-        var location = new AssetLocation(code);
-        if (DimensionDef.IsSvg(code)) return api.Assets.Exists(location) ? location : null;
-        if (api.World.GetItem(location) is { } item) return new ItemStack(item);
-        return api.World.GetBlock(location) is { } block ? new ItemStack(block) : null;
-    }
+    /// <summary>A heading's icon (<see cref="DefinitionIcons.Find"/>); null: the heading is in words.</summary>
+    private object? IconOf(PlacedHeading heading) => DefinitionIcons.Find(api.World, heading.Dimension.ValueIcon(heading.Value));
 
     /// <summary>What the album has collected: flips the cells, their stacks and the headings' progress; no composing.</summary>
     public void Show(Album album)

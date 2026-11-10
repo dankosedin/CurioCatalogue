@@ -182,7 +182,7 @@ public static class CollectionDefinitionReader
         return id == null
             ? null
             : new LevelDef(id, keep, drop, layouts!, Text(o, "nameKey", errors, required: false), Text(o, "progressKey", errors, required: false),
-                Text(o, "memberKey", errors, required: false));
+                Text(o, "memberKey", errors, required: false), Text(o, "icon", errors, required: false));
     }
 
     private static LayoutDef? ReadLayout(JToken token, string? level, List<string> errors)
@@ -208,7 +208,8 @@ public static class CollectionDefinitionReader
         }
         else if (o["arrange"] == null) arrange = new Arrangement.InOrder();
         else errors.Add($"Layout '{id}': 'arrange' is not an object");
-        return id == null || arrange == null ? null : new LayoutDef(id, groupBy, arrange, Text(o, "nameKey", errors, required: false));
+        return id == null || arrange == null ? null : new LayoutDef(id, groupBy, arrange, Text(o, "nameKey", errors, required: false),
+            Text(o, "icon", errors, required: false));
     }
 
     private static AttributeRule ReadRule(JToken token, List<string> errors)

@@ -188,8 +188,8 @@ public class CollectionRegistryTests
             { "code": "grade", "values": ["poor", "medium", "rich"] }
           ],
           "levels": [
-            { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" }, "memberKey": "k:member-ore" },
-            { "id": "all", "keep": ["ore", "rock", "grade"], "layouts": [ { "id": "t", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } } ] }
+            { "id": "ores", "keep": ["ore"], "drop": { "rock": "any", "grade": "max" }, "memberKey": "k:member-ore", "icon": "k:crystal" },
+            { "id": "all", "keep": ["ore", "rock", "grade"], "layouts": [ { "id": "t", "icon": "k:nugget-galena", "groupBy": ["ore"], "arrange": { "kind": "table", "rows": "grade", "columns": "rock", "reverseRows": true } } ] }
           ],
           "exclude": ["*-granite"]
         }
@@ -224,6 +224,9 @@ public class CollectionRegistryTests
         Assert.Equal("k:short-quartz", ore.ValueShortNameKey("quartz"));
         // The icons: the value's own from "icons", else the template's (L2b).
         Assert.Equal(("k:crystal", "k:nugget-galena"), (ore.ValueIcon("quartz"), ore.ValueIcon("galena")));
+        // A level's and a layout's own icon (L2c); none where the definition gives none.
+        Assert.Equal(["k:crystal", null], ores.Levels.Select(l => l.Definition.Icon));
+        Assert.Equal("k:nugget-galena", ores.Level("all")!.Definition.Layouts.Single().Icon);
         // A table with its rows reversed (L2b); the default is the dimension's order.
         Assert.Equal(new Arrangement.Table("grade", "rock", ReverseRows: true), ores.Level("all")!.Definition.Layouts.Single().Arrange);
     }
@@ -269,6 +272,9 @@ public class CollectionRegistryTests
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a", "icons": { "1": 5 } } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
     // L1: a level's member key that is not a text.
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "memberKey": true } ] }""")]
+    // L2c: a level's or a layout's icon that is not a text.
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "icon": ["game:x"] } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"], "layouts": [ { "id": "t", "groupBy": [], "icon": 5 } ] } ] }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);

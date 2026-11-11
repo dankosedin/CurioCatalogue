@@ -109,11 +109,11 @@ public class RecipeTests(GameServerFixture game)
     [Fact]
     public void Album_is_made_from_a_ledger_or_a_bill_of_materials_and_a_tapestry()
     {
-        AssertSame("ledger-album",
+        AssertSame("ledger-album-tapestries",
             from kind in new[] { "ledger", "materials" }
             from cover in Covers
             select $"curiocatalogue:book-album-{cover} x1 <- L=curiocatalogue:book-{kind}-{cover} x1, T=game:tapestry-* x1 tool(0)",
-            Actual("ledger-album", 2, 1, true, 4));
+            Actual("ledger-album-tapestries", 2, 1, true, 4));
     }
 
     [Fact]
@@ -186,14 +186,14 @@ public class RecipeTests(GameServerFixture game)
             var before = copy.ToList();
             int removed = CurioCatalogue.Adapters.AlbumRecipes.Remove(copy, albums, new HashSet<string> { "tapestries" });
             var gone = before.Except(copy).ToList();
-            var result = (removed, gone.Select(r => r.Name?.ToString()).Distinct().ToList(), copy.Count(r => r.Name?.Path == "ledger-album"), total);
+            var result = (removed, gone.Select(r => r.Name?.ToString()).Distinct().ToList(), copy.Count(r => r.Name?.Path == "ledger-album-tapestries"), total);
             foreach (var r in gone) r.Enabled = true;
             return result;
         });
 
-        Assert.Equal(OfName("ledger-album", r => r).Count, removed);
+        Assert.Equal(OfName("ledger-album-tapestries", r => r).Count, removed);
         Assert.True(removed > 0, "no album recipe was found");
-        Assert.Equal(["curiocatalogue:ledger-album"], albumNames);
+        Assert.Equal(["curiocatalogue:ledger-album-tapestries"], albumNames);
         Assert.Equal(0, left);
         Assert.True(game.OnMain(() => game.Api.World.GridRecipes.Count) == total, "the server's own list is untouched");
     }
@@ -203,6 +203,6 @@ public class RecipeTests(GameServerFixture game)
     {
         // A new recipe name in the JSON without a test here would pass unseen.
         var names = game.OnMain(() => game.Api.World.GridRecipes.Where(r => r.Output?.Code?.Domain == "curiocatalogue").Select(r => r.Name?.Path).Distinct().Order().ToList());
-        Assert.Equal(["ledger-age", "ledger-album", "ledger-album-butterflies", "ledger-album-crystals", "ledger-album-seashells", "ledger-fallback", "ledger-recharge", "ledger-recolor", "ledger-restore", "ledger-switchmode"], names);
+        Assert.Equal(["ledger-age", "ledger-album-butterflies", "ledger-album-crystals", "ledger-album-seashells", "ledger-album-tapestries", "ledger-fallback", "ledger-recharge", "ledger-recolor", "ledger-restore", "ledger-switchmode"], names);
     }
 }

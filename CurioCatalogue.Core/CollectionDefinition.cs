@@ -140,7 +140,7 @@ public sealed record MarkDef(string Attribute, string Value, int Argb, string? N
 /// <param name="Exclude">Patterns (<c>*</c> for any text) on the source's own name of a point (a code without domain, a
 /// tapestry piece's name); points that match are not in the collection.</param>
 /// <param name="AlbumRecipe">The grid recipe that makes an album of this collection, by its name with the domain
-/// (<c>curiocatalogue:ledger-album</c>); null when the collection has none. The core only carries it: the adapters find the
+/// (<c>curiocatalogue:ledger-album-tapestries</c>); null when the collection has none. The core only carries it: the adapters find the
 /// recipe and take it away when the collection is switched off.</param>
 /// <param name="Marks">The marks of members by their attributes, in the definition's order: a member shows the first that fits.</param>
 public sealed record CollectionDefinition(

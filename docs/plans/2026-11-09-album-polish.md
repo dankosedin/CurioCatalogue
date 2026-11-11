@@ -108,7 +108,7 @@ sees a change.
       Branch: `refactor/album-controls`. After: L6 merged. Model: sonnet. Author: none.
       Done when: all test projects pass; the album window looks and works as before (A27 and A22 in `functional.md`, the agent
       writes the check, the author runs it); pull request.
-- [ ] **L5. The album recipes final.** One pass over the four album recipes as L2–L4b left them: the same pattern, each named by its
+- [x] **L5. The album recipes final.** One pass over the four album recipes as L2–L4b left them: the same pattern, each named by its
       definition, all in the handbook. F3 of `2026-11-04-fixes-0.2.md` waits for this.
       Branch: `feat/album-recipes` (none if nothing changes). After: L1–L4b. Model: sonnet. Author: yes or no.
       Done when: the author's yes; the recipe rows of `docs/domain.md` agree.
@@ -119,7 +119,8 @@ sees a change.
       Done when: tests pass, mutation-checked; a case in `functional.md` passed; pull request.
 - [ ] **L8. The guide and the album's handbook text name four collections** (`ROADMAP.md`, 0.2, item 6, seen 09.11.2026): `guide-text`
       and `handbook-use-album-text` (en, uk) say there are four collections, not "the first is tapestries", and describe the album
-      without "pictures". Branch: `docs/album-texts`. After: V4 merged. Model: sonnet. Author: the text (reviewed with the lang at release).
+      without "pictures"; `handbook-use-ledger-text` and `handbook-use-materials-text` (en, uk) make an album from any collection's
+      member, not "with any tapestry piece" (found in L5, the author, 11.11.2026). Branch: `docs/album-texts`. After: V4 merged. Model: sonnet. Author: the text (reviewed with the lang at release).
       Done when: both languages; `AssetsTests` pass; the upgrade table's lang keys; pull request.
 
 ## Decisions
@@ -307,6 +308,10 @@ sees a change.
   legendary step and the layout by rarity, a monarch for the common. Uk drafts of the families by the Ukrainian names of the
   families (Косатцеві, Товстоголовки, Біланові, Ріодиніди, Синявцеві, Сонцевики, Нічні метелики), of the steps Легендарні,
   Дуже рідкісні, Рідкісні, Нечасті, Незвичайні, Звичайні; reviewed with the lang at release.
+- **The album recipes, 11.11.2026** (L5, the author): the four share one pattern (shapeless 2 × 1, an empty ledger or bill of
+  materials and a member as a tool that stays, group 4, the cover and sheets carried over). The tapestries' recipe, `ledger-album`
+  since 0.1, is renamed `ledger-album-tapestries`, named by its collection like the other three; no recipe name is stored, so
+  albums made before are untouched. The ingredients' letters (`T`, `C`) are left as they are: the handbook does not show them.
 
 ## Where we stopped
 
@@ -371,3 +376,7 @@ sees a change.
   plays A32 (`en`, then `uk`) and writes the notes, as L2; the album recipe kept or changed; then the pull request.
 - 11.11.2026: A32 passed in game (the author): the look liked, no notes; the album recipe kept as it is. L4bb and L4b done
   (final, the uk drafts reviewed with the lang at release). Next: the pull request of `feat/butterflies-look`.
+- 11.11.2026: L5 done (final) on `feat/album-recipes`: the tapestries' album recipe renamed `ledger-album-tapestries` (Decisions,
+  "The album recipes"); the definition, tests, `GoldenCapture`, `docs/domain.md`, `docs/decisions.md`, the upgrade table,
+  `CHANGELOG.md`; L8 also covers the ledger's and the bill's handbook texts. Checked in game at the release by U9 of the upgrade
+  plan (the album still crafts) and the handbook's album page. Next: the pull request.

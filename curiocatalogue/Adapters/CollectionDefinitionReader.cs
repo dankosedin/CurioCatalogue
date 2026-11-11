@@ -103,7 +103,7 @@ public static class CollectionDefinitionReader
         var nameKey = Text(root, "nameKey", errors, required: false);
         var albumRecipe = Text(root, "albumRecipe", errors, required: false);
         if (albumRecipe != null && !albumRecipe.Contains(':'))
-            errors.Add($"'albumRecipe' must name the recipe's domain ('curiocatalogue:ledger-album', not '{albumRecipe}')");
+            errors.Add($"'albumRecipe' must name the recipe's domain ('curiocatalogue:ledger-album-tapestries', not '{albumRecipe}')");
 
         if (errors.Count > 0 || source == null) return new DefinitionRead.Bad(id, errors);
         var definition = new CollectionDefinition(id, dimensions!, levels!, rules!, exclude, nameKey, albumRecipe, marks);

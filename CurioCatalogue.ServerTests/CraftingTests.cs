@@ -146,7 +146,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
         });
 
         int members = game.OnMain(() => Pieces.Members.Count);
-        Assert.Equal("ledger-album", recipe);
+        Assert.Equal("ledger-album-tapestries", recipe);
         Assert.Equal(("book-album-normal-brickred x1", 12, "tapestries", members), album); // sheets kept, every member missing
         Assert.Equal("tapestry-north:ambush1 x1", left);
     }
@@ -181,7 +181,7 @@ public class CraftingTests(GameServerFixture server) : BookTestBase(server)
             return (recipe, output == null ? null : Describe(output));
         });
 
-        Assert.Equal(("ledger-album", (string?)null), shown);
+        Assert.Equal(("ledger-album-tapestries", (string?)null), shown);
     }
 
     [Fact]

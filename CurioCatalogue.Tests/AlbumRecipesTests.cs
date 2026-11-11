@@ -12,16 +12,16 @@ public class AlbumRecipesTests
     /// <summary>The album recipes as the definitions name them (CollectionRegistry.AlbumRecipeMap).</summary>
     private static readonly Dictionary<AssetLocation, string> Albums = new()
     {
-        [new AssetLocation("curiocatalogue", "ledger-album")] = "tapestries",
+        [new AssetLocation("curiocatalogue", "ledger-album-tapestries")] = "tapestries",
         [new AssetLocation("othermod", "album-ores")] = "ores",
     };
 
     [Fact]
     public void A_disabled_collections_album_recipes_leave_the_list_and_are_switched_off_and_nothing_else_does()
     {
-        var album = Recipe("curiocatalogue", "ledger-album");
+        var album = Recipe("curiocatalogue", "ledger-album-tapestries");
         var other = Recipe("curiocatalogue", "ledger-fallback");
-        var alien = Recipe("othermod", "ledger-album"); // same name, another domain
+        var alien = Recipe("othermod", "ledger-album-tapestries"); // same name, another domain
         var ores = Recipe("othermod", "album-ores"); // another collection's, which is on
         List<GridRecipe> list = [album, other, alien, ores];
 
@@ -46,7 +46,7 @@ public class AlbumRecipesTests
     [Fact]
     public void Nothing_is_removed_for_collections_that_are_on_or_unknown()
     {
-        var album = Recipe("curiocatalogue", "ledger-album");
+        var album = Recipe("curiocatalogue", "ledger-album-tapestries");
         List<GridRecipe> list = [album];
 
         Assert.Equal(0, AlbumRecipes.Remove(list, Albums, new HashSet<string>()));

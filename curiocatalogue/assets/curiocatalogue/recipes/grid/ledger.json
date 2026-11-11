@@ -97,7 +97,7 @@
 		width: 2,
 		height: 1,
 		shapeless: true,
-		name: "ledger-album",
+		name: "ledger-album-tapestries",
 		recipeGroup: 4,
 		copyAttributesFrom: "L",
 		output: { type: "item", code: "curiocatalogue:book-album-{cover}" }

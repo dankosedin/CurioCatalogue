@@ -138,7 +138,7 @@ sees a change.
       Branch: `fix/gui-textures`. After: none. Model: opus. Author: reproduces in game by the agent's steps.
       Done when: the cause found and fixed, or ruled ours-free with the evidence; the author's steps pass with no `OpenGL` error in
       the log; a case in `functional.md`; pull request.
-- [ ] **L11. Tapestries: the look.** The step of the tapestries as L2–L4b were of the others (none had been planned; L6 left them
+- [x] **L11. Tapestries: the look.** The step of the tapestries as L2–L4b were of the others (none had been planned; L6 left them
       "unchanged; the author looks"). The author's idea (11.11.2026): a picture's dark frame stretches so that the page has no light
       patches: frames on one line of pictures as tall as the tallest, the line's frames widened to the page's width (as L6 stretches
       a group alone on its page), perhaps the last line down to the controls; and the picture centred in its frame, tried and kept
@@ -362,6 +362,18 @@ sees a change.
   materials and a member as a tool that stays, group 4, the cover and sheets carried over). The tapestries' recipe, `ledger-album`
   since 0.1, is renamed `ledger-album-tapestries`, named by its collection like the other three; no recipe name is stored, so
   albums made before are untouched. The ingredients' letters (`T`, `C`) are left as they are: the handbook does not show them.
+- **The frames stretched, 11.11.2026** (L11, the author's idea; checked in game by the author):
+  - The rule lives in the core: a group's frame (`GroupBox.Frame`) apart from where its heading line and cells stand. On a shelf
+    the frames are as tall as the tallest; the room left on the shelf's right is shared equally (the remainder to the last), so
+    the last frame ends at the page's width and the frames after the first move right by the shares before them; the last
+    shelf's frames reach down to the tallest page of the level (`AlbumPages.Height`). L6's group alone on its page is now a case
+    of this rule. The page element draws a frame that reaches the page's right edge or bottom on to its own edge (a strip short
+    of a cell, side tabs taller than the page). A page with no headings has no frames to stretch.
+  - The group's name stands at the frame's top left, and has the frame's width for its room (cut with "…" less often).
+  - Centred in the frame: a picture (`Arrangement.Shape`, the tapestries), by the arrangement and not the collection's id (L12);
+    members in order and tables (butterflies' species, crystals) stay at the frame's top left under the name: the author looked
+    at both, the butterflies "look fine now". A picture is centred by its cells, not its box: a picture narrower than its name
+    has a box as wide as the name (`MinGroupWidth`), and centring the box left it at the left (seen in game, Translocator).
 
 ## Where we stopped
 
@@ -449,3 +461,4 @@ sees a change.
   twice each, 14 of them a third and fourth time later (the last page waits in the game's cache). L10 done (final). Next: the
   pull request.
 - 11.11.2026: L8 done (final text for the author's review, reviewed with the lang at release) on `docs/album-texts`: `guide-text`, `handbook-use-album-text`, `handbook-use-ledger-text`, `handbook-use-materials-text` in en and uk (four collections named; an album from a piece of any collection; no "pictures"); the upgrade table; `AssetsTests` green. No `CHANGELOG.md` line: the guide's album text is new in 0.2. Next: the pull request.
+- 11.11.2026: L11 done (final) on `feat/album-frames`: Decisions, "The frames stretched"; `AlbumPagesTests` mutation-checked, all test projects green; A34 in `functional.md` passed in game (the author, en and uk), `CHANGELOG.md`. Next: the pull request.

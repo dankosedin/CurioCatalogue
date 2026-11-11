@@ -72,12 +72,13 @@ public class AlbumPagesTests
     [Fact]
     public void Groups_stand_side_by_side_while_they_fit_the_width_then_on_the_next_line()
     {
-        // ambush 30 + gap 2 + salvation 20 = 52 > 50: salvation goes under ambush (15 high), notice beside it.
+        // ambush 30 + gap 2 + salvation 20 = 52 > 50: salvation goes under ambush (15 high), notice beside it, at 22 and then
+        // moved right by salvation's share of the 18 left on the line (9, frames stretched: L11).
         var page = Pages(Tapestries, "pieces", "pictures", Metrics(50, 100)).Pages.Single();
 
         Assert.Equal(
-            [("ambush", 0, 0), ("salvation", 0, 17), ("notice", 22, 17)],
-            page.Groups.Select(g => (g.Group.Values[0], g.X, g.Y)).ToArray());
+            [("ambush", 0, 0), ("salvation", 0, 17), ("notice", 31, 17)],
+            page.Groups.Select(g => (g.Group.Values[0], g.Frame.X, g.Frame.Y)).ToArray());
     }
 
     [Fact]
@@ -265,6 +266,74 @@ public class AlbumPagesTests
         Assert.Equal((100, 64), (pages.Width, pages.UsedWidth));
     }
 
+    // --- Frames stretched over the page (L11): no light patches between them ---
+
+    private static (string, Box)[] Frames(AlbumPage page) => page.Groups.Select(g => (g.Group.Values[0], g.Frame)).ToArray();
+
+    [Fact]
+    public void Frames_on_a_line_are_as_tall_as_the_tallest_and_share_the_room_left_on_its_right()
+    {
+        // Width 56: ambush 30 (15 high) + 2 + salvation 20 (25 high) = 52, the 4 left shared 2 + 2; notice on the last line,
+        // alone, to the page's width and down to its bottom (27 + 15 = 42, the page's height).
+        var pages = Pages(Tapestries, "pieces", "pictures", Metrics(56, 100));
+
+        Assert.Equal(
+            [("ambush", new Box(0, 0, 32, 25)), ("salvation", new Box(34, 0, 22, 25)), ("notice", new Box(0, 27, 56, 15))],
+            Frames(pages.Pages.Single()));
+    }
+
+    [Fact]
+    public void Frames_of_a_page_s_last_line_reach_down_to_the_tallest_page_s_bottom()
+    {
+        // Height 35: ambush alone (15 high) on the first page, salvation (25) and notice on the second: the pages are 25 high.
+        var pages = Pages(Tapestries, "pieces", "pictures", Metrics(50, 35));
+
+        Assert.Equal(25, pages.Height);
+        Assert.Equal([("ambush", new Box(0, 0, 50, 25))], Frames(pages.Pages[0]));
+        Assert.Equal([("salvation", new Box(0, 0, 29, 25)), ("notice", new Box(31, 0, 19, 25))], Frames(pages.Pages[1]));
+    }
+
+    [Fact]
+    public void A_picture_stands_in_the_middle_of_its_frame()
+    {
+        var ambush = Pages(Tapestries, "pieces", "pictures", Metrics(56, 100)).Pages.Single().Groups.Single(g => g.Group.Values[0] == "ambush");
+
+        // Its frame 32 × 25, the picture 30 × 15 (with its heading line): 1 to the right and 5 down, its cells with it.
+        Assert.Equal(new Box(0, 0, 32, 25), ambush.Frame);
+        Assert.Equal((1, 5), (ambush.X, ambush.Y));
+        Assert.Equal((1, 10), At(ambush, "ambush1"));
+    }
+
+    [Fact]
+    public void A_picture_narrower_than_its_name_stands_in_the_middle_of_its_frame_too()
+    {
+        // Groups at least 25 wide for their names: ambush 30, salvation 25, notice 25 at 59; the 16 left shared 5, 5, 6, so
+        // notice (one piece of 10) has a frame from 69 to 100, its piece at 69 + (31 - 10) / 2 = 79, not in the middle of its 25.
+        var notice = Pages(Tapestries, "pieces", "pictures", Metrics(100, 100, minGroupWidth: 25)).Pages.Single().Groups
+            .Single(g => g.Group.Values[0] == "notice");
+
+        Assert.Equal(new Box(69, 0, 31, 25), notice.Frame);
+        Assert.Equal((79, 10), At(notice, "notice"));
+    }
+
+    [Fact]
+    public void A_table_stands_at_its_frame_s_top_left()
+    {
+        // Crystals by ore: tables of different sizes side by side, so their frames are wider or taller than they are.
+        var groups = Pages(Crystals, "all", "by-ore", Metrics(200, 500)).Pages.SelectMany(p => p.Groups).ToList();
+
+        Assert.Contains(groups, g => g.Frame.Width > g.Width || g.Frame.Height > g.Height);
+        Assert.All(groups, g => Assert.Equal((g.Frame.X, g.Frame.Y), (g.X, g.Y)));
+    }
+
+    [Fact]
+    public void Groups_with_no_heading_have_no_frame_to_stretch()
+    {
+        var group = Pages(Numbers(5), "all", "order", Metrics(120, 1000)).Pages.Single().Groups.Single();
+
+        Assert.Equal(new Box(0, 0, 50, 10), group.Frame);
+    }
+
     // --- Tabs ---
 
     [Fact]
@@ -369,8 +438,8 @@ public class AlbumPagesTests
     [Fact]
     public void A_point_finds_the_cell_it_is_in_and_cells_stand_edge_to_edge()
     {
-        // Ambush at (0, 0): its heading 5 high, then three cells 10 wide in a row.
-        var page = Pages(Tapestries, "pieces", "pictures", Metrics(50, 100)).Pages.Single();
+        // Ambush at (0, 0), its frame no larger on a page of its width: its heading 5 high, then three cells 10 wide in a row.
+        var page = Pages(Tapestries, "pieces", "pictures", Metrics(30, 100)).Pages.Single();
 
         Assert.Equal("ambush1", page.CellAt(0, 5, 10)?.Member.Id);
         Assert.Equal("ambush1", page.CellAt(9, 14, 10)?.Member.Id);

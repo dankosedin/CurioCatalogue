@@ -60,6 +60,10 @@ public sealed class CollectionRegistry
     public string? AlbumOf(AssetLocation? recipe) =>
         recipe != null && (albumRecipes ??= AlbumRecipeMap(Chosen, problems)).TryGetValue(recipe, out var id) ? id : null;
 
+    /// <summary>The source the definition of this id names (what finds its points), for what a collection's look follows from its
+    /// source and not from its id (<see cref="MemberNames.ValueName(CollectionSource, DimensionDef, string)"/>); null for an id no definition has.</summary>
+    public CollectionSource? SourceOf(string id) => Chosen.FirstOrDefault(c => c.Parsed.Definition.Id == id)?.Parsed.Source;
+
     /// <summary>Whether the stack fills a member of the collection at any of its levels (the sample of an album recipe).</summary>
     public bool HasMember(DefinedCollection collection, ItemStack stack)
     {

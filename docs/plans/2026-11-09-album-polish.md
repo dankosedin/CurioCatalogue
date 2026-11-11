@@ -147,7 +147,7 @@ sees a change.
       Branch: `feat/album-frames`. After: none. Model: opus. Author: plays, writes the notes, decides on centring.
       Done when: the notes fixed or rejected with reasons (Decisions); `AlbumPagesTests` for the stretched frames, mutation-checked;
       a case in `functional.md` passed; pull request.
-- [ ] **L12. A tapestry collection named by its source, not its id** (`ROADMAP.md`, 0.2, item 6, the author, 10.11.2026: a
+- [x] **L12. A tapestry collection named by its source, not its id** (`ROADMAP.md`, 0.2, item 6, the author, 10.11.2026: a
       collection's look by its asset alone, for other mods' authors). The game's names of tapestry pictures are looked up only for
       the collection with the id `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw
       picture codes. Tie it to the source kind (`CollectionSource.Tapestry`), wherever the picture's name is looked up
@@ -374,6 +374,7 @@ sees a change.
     members in order and tables (butterflies' species, crystals) stay at the frame's top left under the name: the author looked
     at both, the butterflies "look fine now". A picture is centred by its cells, not its box: a picture narrower than its name
     has a box as wide as the name (`MinGroupWidth`), and centring the box left it at the left (seen in game, Translocator).
+- **The look of a tapestry collection by its source** (L12, 11.11.2026): `MemberNames.ValueName(source, dimension, value)` names a `picture` of a `CollectionSource.Tapestry` source by the game (`game:tapestry-{value}`); `CollectionRegistry.SourceOf(id)` gives the source to the window. No code compares a collection's id with `tapestries` for its look (the id stays in the config's defaults and the old-config move only). Rejected: a flag in the definition JSON (the source kind already says it, and a mod author would have to know to set it).
 
 ## Where we stopped
 
@@ -462,3 +463,4 @@ sees a change.
   pull request.
 - 11.11.2026: L8 done (final text for the author's review, reviewed with the lang at release) on `docs/album-texts`: `guide-text`, `handbook-use-album-text`, `handbook-use-ledger-text`, `handbook-use-materials-text` in en and uk (four collections named; an album from a piece of any collection; no "pictures"); the upgrade table; `AssetsTests` green. No `CHANGELOG.md` line: the guide's album text is new in 0.2. Next: the pull request.
 - 11.11.2026: L11 done (final) on `feat/album-frames`: Decisions, "The frames stretched"; `AlbumPagesTests` mutation-checked, all test projects green; A34 in `functional.md` passed in game (the author, en and uk), `CHANGELOG.md`. Next: the pull request.
+- 11.11.2026: L12 done (final) on `fix/tapestry-names`: the game's names of tapestry pictures follow the source kind, not the id (Decisions, "The look of a tapestry collection by its source"); `TooltipTests` has a server test with a second collection of the `tapestry` source, mutation-checked; all test projects green. No case in `functional.md` (nothing changes for the vanilla collections). Next: the pull request.

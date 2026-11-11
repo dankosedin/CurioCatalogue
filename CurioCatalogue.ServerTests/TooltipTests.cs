@@ -121,6 +121,34 @@ public class TooltipTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
+    public void A_second_collection_of_tapestries_names_its_pictures_by_the_game_as_the_first_does()
+    {
+        // L12: the look follows the source kind, not the id "tapestries". A collection of another mod and another id, same source.
+        const string json = """
+            { "source": { "kind": "tapestry", "block": "game:tapestry-north" },
+              "dimensions": [ { "code": "picture", "values": [] }, { "code": "piece", "values": [], "nameKey": "game:tapestry-{value}" } ],
+              "levels": [ { "id": "pieces", "keep": ["piece"], "drop": { "picture": "any" },
+                            "layouts": [ { "id": "pictures", "groupBy": ["picture"], "arrange": { "kind": "shape" } } ] } ] }
+            """;
+        var (other, ours, expected, ingots) = game.OnMain(() =>
+        {
+            var registry = new Adapters.CollectionRegistry(World, Mod.Keys, new Dictionary<string, CollectionSettings>(),
+                () => [new Adapters.DefinitionAsset(new AssetLocation("othermod", Adapters.CollectionRegistry.DefinitionsPath + "wallart.json"), json)]);
+            var picture = registry.SourceOf("wallart");
+            var dimension = new DimensionDef("picture", []);
+            return (Adapters.MemberNames.ValueName(picture, dimension, "ambush"),
+                Adapters.MemberNames.ValueName(Mod.Collections.SourceOf(Adapters.CollectionRegistry.TapestriesId), dimension, "ambush"),
+                Lang.GetMatching("game:tapestry-ambush"),
+                Adapters.MemberNames.ValueName(null, dimension, "ambush")); // no source: the raw value
+        });
+
+        Assert.NotEqual("ambush", expected);
+        Assert.Equal(expected, other);
+        Assert.Equal(expected, ours);
+        Assert.Equal("ambush", ingots);
+    }
+
+    [Fact]
     public void A_list_shows_where_it_was_made_its_first_five_lines_and_how_many_more()
     {
         var (info, expected) = game.OnMain(() =>

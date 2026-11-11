@@ -40,14 +40,16 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
         of a definition, or the client does not know the collection.
       Branch: `docs/mod-description`. After: the plan's own commit. Model: opus. Author: decides.
       Done when: Decisions has the split; G2–G5 are updated where it changed them.
-- [ ] **G2. Sequences on ModDB: a probe.** ModDB drops `<style>` (P5, layout test), so a carousel on `:checked`, `:target` or
+- [x] **G2. Sequences on ModDB: a probe.** Done 11.11.2026 (Decisions, "Sequences on ModDB"); what was not checked went to G3.
+      ModDB drops `<style>` (P5, layout test), so a carousel on `:checked`, `:target` or
       `:hover` is impossible, and scripts are not expected to survive (check once). The candidate: a row of frames with
       `overflow-x: auto` and `scroll-snap-type` inline, `scroll-snap-align` on each frame, `<figure>` and `<figcaption>`
       under it; the fallbacks if ModDB drops them: a table of frames with a caption row, or frames one under another. A
       hand-written test page with a sequence of three of today's shots; the author pastes it into a draft mod, made for the probe (its name and
       link stay out of tracked files; desktop
       Chrome and Firefox, the phone). Also how GitHub shows the source of a sequence in G1's format.
-      Branch: `docs/mod-description`. After: G1. Model: sonnet. Author: approves the test page, pastes it, looks on the phone.
+      Branch: `docs/mod-description`. After: G1. Model: opus (sonnet did not fit: the probe needs the browser and a judgement
+      of the look). Author: approves the test page, pastes it, looks on the phone.
       Done when: Decisions says which markup survives, how it scrolls on the desktop and the phone, and the chosen shape of
       a sequence.
 - [ ] **G3. The generator reads the description.** Players' texts moved from the READMEs into the description by G1 (moved,
@@ -57,6 +59,9 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       "run the real generator after a change" moved to the description); `PageGen.Tests` for the new source and the sequences; `CLAUDE.md`'s table
       (README no longer "the source of the ModDB page", a row for the description); `CONTRIBUTING.md` for translators.
       Check: the generated page before and after the move differs only where intended (a diff of `moddb.html`).
+      Left by G2: the generated sequence pasted into the draft mod (the author, after a "yes" to the exact text): that ModDB
+      keeps `id` on `<figure>` and `href="#…"` links, and the arrows and the swipe in Firefox and on the phone; how GitHub shows
+      the source of a `::: sequence` block.
       Branch: `feature/mod-description`. After: G2. Model: sonnet. Author: looks at the diff of the page.
       Done when: CI generates the page from the description; the tests pass and are mutation-checked on the sequence;
       the docs say where the description lives and how a sequence is written.
@@ -119,5 +124,18 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   - **The modders' part** is in `README.md`, English only, as "Adding a collection" (L14); the description says in
     Compatibility, in one line, that other mods can add collections and points to the README on GitHub; `docs/decisions.md`
     keeps the why and points to README.
+- **Sequences on ModDB** (the author, 11.11.2026, G2; probed on a draft mod in desktop Chrome):
+  - **What survives:** `<figure>`, `<figcaption>`, `<table>`, `<details>`, `id` on a `<div>`, and inline `style` with flex,
+    `overflow-x: auto` and `scroll-snap-*`. **Dropped:** `<script>` and `on*` handlers (as `<style>` in P5), so no script carousel.
+  - **The shape: one frame per width, arrows on anchors.** A row (`display: flex; overflow-x: auto; scroll-snap-type: x
+    mandatory; scrollbar-width: thin`) inside a box of `max-width: 900px`; each frame a `<figure id="seq-<name>-<n>">` with
+    `flex: 0 0 100%; scroll-snap-align: start; scroll-margin-top: 60px`; under the image a `<figcaption>` with the caption on the
+    left and "← back  n / N  next →" on the right (the last frame: "first"), plain links to the frames' ids. In Chrome a click
+    turns the row to that frame and the page barely moves (tried on the real page with the markup put in by hand, not saved).
+    On a phone a frame is the screen's width and turns with a swipe.
+  - **Rejected:** frames of 85% and at most 640 px (the first candidate): on the desktop two and a half frames in a row, which
+    the author did not like, though the phone looked fine; a frame over the full width (~1470 px on the desktop, the whole
+    screen, and with no arrows nothing says more frames follow); a table of frames (~110 px each on a phone); frames one under
+    another. If ModDB drops the anchors, the same row without arrows, with "n / N." at the start of each caption.
 
 ## Where we stopped

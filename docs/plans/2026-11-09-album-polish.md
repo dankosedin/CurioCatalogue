@@ -112,7 +112,7 @@ sees a change.
       definition, all in the handbook. F3 of `2026-11-04-fixes-0.2.md` waits for this.
       Branch: `feat/album-recipes` (none if nothing changes). After: L1–L4b. Model: sonnet. Author: yes or no.
       Done when: the author's yes; the recipe rows of `docs/domain.md` agree.
-- [ ] **L7. Want list window: a line cycles through its items** (`ROADMAP.md`, 0.2, item 6, asked 09.11.2026). A slot of a line any
+- [x] **L7. Want list window: a line cycles through its items** (`ROADMAP.md`, 0.2, item 6, asked 09.11.2026). A slot of a line any
       of several items fills (a shell of any colour, a crystal of any rock) shows them in turn, as the album's cells do (`Slideshow`,
       once a second, paused while hovered).
       Branch: `feat/wantlist-cycle`. After: V4 merged. Model: sonnet. Author: the in-game check.
@@ -122,6 +122,22 @@ sees a change.
       without "pictures"; `handbook-use-ledger-text` and `handbook-use-materials-text` (en, uk) make an album from any collection's
       member, not "with any tapestry piece" (found in L5, the author, 11.11.2026). Branch: `docs/album-texts`. After: V4 merged. Model: sonnet. Author: the text (reviewed with the lang at release).
       Done when: both languages; `AssetsTests` pass; the upgrade table's lang keys; pull request.
+- [ ] **L10. Textures of other elements drawn in place of the game's tooltip** (seen 11.11.2026 in W7; the release waits for it, the
+      author). With `glDebugMode` on, the client crashes on `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture`: the item tooltip in the
+      album (09.11.2026, A4 of the album view plan), the level dropdown with quick clicks (10.11.2026, L6), the item tooltip right
+      after the album opened (11.11.2026, 11:47). With it off (the dev client since 11.11.2026), no crash but garbage: the tooltip's
+      title drawn apart from its box, the box showing pieces of another window or the chat's text, and `OpenGL threw an error:
+      InvalidOperation` in `client-main.log`, in a want list window of tapestries opened seconds after the album (11:52). What a
+      player would see. The likely kind: a texture id deleted while another element still owns it, given by GL to a smaller
+      texture, so that element updates or draws the wrong one. The one raw delete of ours: `AlbumPageElement.Dispose` deletes
+      `slotTexture` and `cornerTexture` and does not zero them (a second `Dispose` deletes another's texture); no path to a second
+      call found yet. Not from L7 (the hovered slot holds still; the tapestries' slots never change). Also to rule out: the game's
+      own race in `GuiElementItemstackInfo.AsyncRecompose` (composed on a worker thread). The way: zero the ids; log every delete
+      and dispose of our textures for a while; write the exact steps for the author (open the album, close it, open a want list,
+      hover its slots; the album's dropdowns quickly); find the cause, fix it, test what can be tested.
+      Branch: `fix/gui-textures`. After: none. Model: opus. Author: reproduces in game by the agent's steps.
+      Done when: the cause found and fixed, or ruled ours-free with the evidence; the author's steps pass with no `OpenGL` error in
+      the log; a case in `functional.md`; pull request.
 
 ## Decisions
 
@@ -380,3 +396,9 @@ sees a change.
   "The album recipes"); the definition, tests, `GoldenCapture`, `docs/domain.md`, `docs/decisions.md`, the upgrade table,
   `CHANGELOG.md`; L8 also covers the ledger's and the bill's handbook texts. Checked in game at the release by U9 of the upgrade
   plan (the album still crafts) and the handbook's album page. Next: the pull request.
+- 11.11.2026: L7's code done on `feat/wantlist-cycle` (final unless the game says otherwise): `ItemInvoice.SlotStacks` (a want
+  list line's items, its own first), `InvoiceDialog` cycles them by `Slideshow` (held while `CurrentHoveredSlot` is the slot),
+  `GridDialog.ViewSlot`; `CrystalsTests` mutation-checked, all test projects green; case W7 in `functional.md`, `CHANGELOG.md`.
+  W7 passed in game (the author: seashells, crystals, tapestries). L7 done (final). Next: the pull request. During W7 the GL
+  texture trouble came back (L10, a new step; `glDebugMode` set off in the dev client's `clientsettings.json`, so that it shows
+  instead of crashing).

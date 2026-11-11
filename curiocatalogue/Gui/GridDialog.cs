@@ -46,6 +46,9 @@ public abstract class GridDialog : HeldItemDialog
         return slots / Cols;
     }
 
+    /// <summary>A slot of the view, to change its stack in place (no composing; docs/modding.md, GUI).</summary>
+    protected ItemSlot ViewSlot(int index) => view![index];
+
     /// <summary>Adds the inset, scrollbar and grid at <paramref name="y"/> inside the dialog's content bounds.</summary>
     /// <returns>The bounds of the inset, to place things below it.</returns>
     protected ElementBounds AddGrid(GuiComposer composer, ElementBounds parent, double y, int rows)

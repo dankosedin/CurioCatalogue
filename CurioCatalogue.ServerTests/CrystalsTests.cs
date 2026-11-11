@@ -145,6 +145,28 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
+    public void A_want_list_slot_of_a_crystal_any_rock_fills_shows_every_such_crystal_in_turn_its_own_first()
+    {
+        var shown = game.OnMain(() =>
+        {
+            var album = Assert.IsType<LevelChoice.Chosen>(Core.Album.New(Crystals, 8, "").ChooseLevel(Crystals, "richest")).Album;
+            var list = Assert.IsType<CreateInvoiceResult.Created>(album.MakeWantList(album.LevelIn(Crystals)!, 0, new BlockPosition(0, 0, 0))).Invoice;
+            var wantedIn = Mod.Store.WantedIn(list);
+            List<string> Codes(string member) =>
+                ItemInvoice.SlotStacks(wantedIn, list.Entries.Single(e => e.Member == member)).Select(s => s.Collectible.Code.Path).ToList();
+            return (Codes("quartz_nativegold"), Codes("nativecopper"), ((ItemStack)list.Entries.Single(e => e.Member == "quartz_nativegold").Sample).Collectible.Code.Path);
+        });
+
+        // Quartz gold: bountiful in 13 rocks, each crystal in turn, starting with the line's own (L7).
+        Assert.Equal(13, shown.Item1.Count);
+        Assert.Equal(13, shown.Item1.Distinct().Count());
+        Assert.Equal(shown.Item3, shown.Item1[0]);
+        Assert.All(shown.Item1, code => Assert.StartsWith("crystalizedore-bountiful-quartz_nativegold-", code));
+        // Native copper: bountiful in basalt only, one crystal, nothing to cycle.
+        Assert.Equal(["crystalizedore-bountiful-nativecopper-basalt"], shown.Item2);
+    }
+
+    [Fact]
     public void A_crystal_is_named_by_the_values_its_level_keeps_in_order_parts_after_the_first_in_lower_case()
     {
         var names = game.OnMain(() =>

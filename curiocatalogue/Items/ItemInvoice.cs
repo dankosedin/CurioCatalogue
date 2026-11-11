@@ -204,6 +204,18 @@ public class ItemInvoice : ItemRollable
             ? MemberNames.Name(collection, level, member) ?? MemberNames.Freedom(collection, level, member)
             : null;
 
+    /// <summary>What a want list's slot shows in the window, in turn (L7 of the album polish plan): its member's items, the line's
+    /// own first (the want list is made with the member's first, <see cref="Album.MakeWantList"/>); one stack, the line's own, when
+    /// the member has one item or the line names none. An item of a removed mod is left out: it cannot be drawn. Stack sizes are
+    /// the window's to set.</summary>
+    public static IReadOnlyList<ItemStack> SlotStacks((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
+    {
+        var stacks = Wanted(wantedIn, line) is var (_, _, member)
+            ? member.Stacks.OfType<ItemStack>().Where(s => s.Collectible != null).ToList()
+            : [];
+        return stacks.Count > 1 ? stacks : [(ItemStack)line.Sample];
+    }
+
     private static (DefinedCollection, CollectionLevel, Member)? Wanted((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
         line.Member == null || wantedIn is not var (collection, level) || level.Find(line.Member) is not { } member
             ? null : (collection, level, member);

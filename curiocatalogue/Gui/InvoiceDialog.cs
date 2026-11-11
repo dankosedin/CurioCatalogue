@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -44,13 +45,11 @@ public class InvoiceDialog : GridDialog
         // Lines keep their order, as found in the container.
         // A want list's line says its member's name over the item's own text ("Native copper, any rock"): the stack shown may be
         // one of several.
+        // A line any of several items fills shows them in turn, as the album's cells do (L7 of the album polish plan).
         var wantedIn = mod.Store.WantedIn(invoice);
-        int rows = FillView(invoice.Entries.Select(line =>
-        {
-            var shown = ((ItemStack)line.Sample).Clone();
-            shown.StackSize = line.Count;
-            return shown;
-        }).ToList(), invoice.Entries.Select(line => ItemInvoice.SlotLine(wantedIn, line)).ToList());
+        cycles = invoice.Entries.Select(line => new Cycle(ItemInvoice.SlotStacks(wantedIn, line), line.Count)).ToList();
+        int rows = FillView(cycles.Select(c => c.StackAt(0)).ToList(),
+            invoice.Entries.Select(line => ItemInvoice.SlotLine(wantedIn, line)).ToList());
 
         var font = CairoFont.WhiteSmallText();
         double width = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, Cols, 1).fixedWidth + 12;
@@ -83,6 +82,39 @@ public class InvoiceDialog : GridDialog
 
         SetComposer(composer.EndChildElements());
         UpdateScrollbar();
+    }
+
+    /// <summary>The stacks a slot shows in turn, at the line's count, and where the slideshow stands.</summary>
+    private sealed class Cycle(IReadOnlyList<ItemStack> stacks, int count)
+    {
+        public readonly IReadOnlyList<ItemStack> Stacks = stacks;
+        public Slideshow Show = Slideshow.Start;
+
+        public ItemStack StackAt(int index)
+        {
+            var shown = Stacks[index].Clone();
+            shown.StackSize = count;
+            return shown;
+        }
+    }
+
+    private List<Cycle> cycles = [];
+
+    public override void OnRenderGUI(float deltaTime)
+    {
+        // The slot under the mouse holds still, so its tooltip stays on one item (as vanilla's firepit reads the hovered slot,
+        // vssurvivalmod GuiDialogBlockEntityFirepit.cs:42).
+        var hovered = capi.World.Player.InventoryManager.CurrentHoveredSlot;
+        for (int i = 0; i < cycles.Count; i++)
+        {
+            var cycle = cycles[i];
+            if (cycle.Stacks.Count < 2) continue;
+            var slot = ViewSlot(i);
+            var next = cycle.Show.Tick(deltaTime, cycle.Stacks.Count, hovered == slot);
+            if (next.Index != cycle.Show.Index) slot.Itemstack = cycle.StackAt(next.Index);
+            cycle.Show = next;
+        }
+        base.OnRenderGUI(deltaTime);
     }
 
     private bool OnCancel()

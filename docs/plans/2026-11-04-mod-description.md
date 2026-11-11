@@ -23,7 +23,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
 
 ## Steps
 
-- [ ] **G1. The split on paper.** Decided with the author, in a session of its own (04.11.2026), before anything is moved:
+- [x] **G1. The split on paper.** Decided 11.11.2026 (Decisions, "The split"). Decided with the author, in a session of its own (04.11.2026), before anything is moved:
       - what stays in `README.md`, and whether `README.uk.md` stays at all (if README is for developers and contributions
         come in English, one README and two descriptions may be enough);
       - where the description lives (e.g. `docs/moddb/description.md` and `description.uk.md` beside the template) and its
@@ -51,8 +51,10 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       Done when: Decisions says which markup survives, how it scrolls on the desktop and the phone, and the chosen shape of
       a sequence.
 - [ ] **G3. The generator reads the description.** Players' texts moved from the READMEs into the description by G1 (moved,
-      not rewritten: R2 rewrites them), README cut down to what G1 left; the sequence extension rendered into G2's markup;
-      the contract in `docs/development.md`; `PageGen.Tests` for the new source and the sequences; `CLAUDE.md`'s table
+      not rewritten: R2 rewrites them), README cut down to what G1 left, `README.uk.md` removed (its texts go to
+      `description.uk.md`), links to it updated; the sequence extension rendered into G2's markup; the arguments `readme`,
+      `readmeUk` renamed `description`, `descriptionUk`; the contract in `docs/releasing.md` (the README contract replaced,
+      "run the real generator after a change" moved to the description); `PageGen.Tests` for the new source and the sequences; `CLAUDE.md`'s table
       (README no longer "the source of the ModDB page", a row for the description); `CONTRIBUTING.md` for translators.
       Check: the generated page before and after the move differs only where intended (a diff of `moddb.html`).
       Branch: `feature/mod-description`. After: G2. Model: sonnet. Author: looks at the diff of the page.
@@ -85,5 +87,37 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   their own.
 - **Code review** of G3 once at the end of the release (R1), with the rest of 0.2; the players' round on the page in R5.
 - **Step letter G** (gallery); A, B, C, F, P, R, S and T are taken.
+- **The split** (the author, 11.11.2026, G1):
+  - **`README.md` is the project's README:** the title, the hook, a short early-development warning, the hero image; links to
+    the ModDB page and to both description files; "Adding a collection" for modders (L14 of `2026-11-09-album-polish.md`);
+    building and tests in a few lines with links to `docs/onboarding.md` and `docs/development.md`; contributing, "AI and
+    human work" and the licence in a line or two each. Everything for players moves to the description: "What's inside",
+    getting started, collections, gestures, fair play, configuration, compatibility, removing the mod, similar mods, credits.
+  - **`README.uk.md` is removed:** a Ukrainian player reads `description.uk.md` (GitHub shows it; ModDB in its accordion);
+    README is for developers, and contributions come in English. Two languages, one source each.
+  - **Where and in what format:** `docs/moddb/description.md` and `description.uk.md`, beside `template.html`; Markdown read by
+    Markdig, as now, with one extension, a `::: sequence` block (frames, a caption under each). GitHub shows the `:::` lines as
+    text, but the images and captions stay readable (G2 checks it). Rejected: a plain list of image-and-caption items (the
+    generator cannot tell a sequence from an ordinary list); HTML and YAML (rejected in P5).
+  - **One source per text:** a text for players lives only in the description; README links to it. Only the licence line
+    (`MIT, see LICENSE`) is in both, not a text that can drift. Credits and "AI and human work" go to the description (players
+    read them); the Fendragon invite is refreshed in one place per language.
+  - **The generator** reads the two description files, `modinfo.json`, `lang/*.json` and the template; never README. The README
+    contract moves to the description: the head (the title, the hook as the first paragraph, the warning as one blockquote, one
+    hero image; "README-only lines" are gone), `##` keys by the English title, the same sections in both languages, "What's
+    inside" (six items in the order of the icons, a paragraph, `###` subsections), no HTML, relative paths, language suffixes on
+    screenshots; new: the `::: sequence` block, rendered into G2's markup. P5's shape stays whole: the hero, badges, the row of
+    buttons, accordions, the Ukrainian version in one `<details>`, anchors.
+  - **Who reads what:** the players' rounds read the generated page (`moddb.preview.html`, as R5 says), the description files
+    when a text is discussed. Translators (`CONTRIBUTING.md`) translate `lang/*.json`; a description in another language only
+    after an issue, since the page shows `en` and `uk` and another language there needs the generator changed. `CLAUDE.md`'s
+    table: a row for the description (read before changing what the player sees; update when such a change lands and every
+    release, both languages together; the source of the ModDB page); README's row narrows to building, contributing and the
+    modders' part.
+  - **The new page goes to ModDB with 0.2** (R6): before that it would carry the same texts (R2 rewrites them) and no
+    sequences (G4), for one more paste and approval.
+  - **The modders' part** is in `README.md`, English only, as "Adding a collection" (L14); the description says in
+    Compatibility, in one line, that other mods can add collections and points to the README on GitHub; `docs/decisions.md`
+    keeps the why and points to README.
 
 ## Where we stopped

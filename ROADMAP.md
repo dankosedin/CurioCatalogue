@@ -78,7 +78,7 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      needed, they cannot). Found: the game's names of tapestry pictures are looked up only for the collection with the id
      `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw picture codes: tie it to the
      source kind, not the id. L12 of the plan.
-   - **A part for modders in the READMEs** (the author, 10.11.2026): the definition's JSON (now only in `docs/decisions.md`,
+   - **A part for modders in README** (the author, 10.11.2026; English only, G1 of the description plan): the definition's JSON (now only in `docs/decisions.md`,
      Collections), that the definition and its patches must reach the client (not `"side": "server"`), icons (`icon`, `icons`,
      an SVG drawn in its own colours), the album recipe. L14 of the plan.
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by

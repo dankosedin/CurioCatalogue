@@ -88,21 +88,34 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       the draft mod (after a "yes" to its text).
       Done when: the generator checks the size (a test, mutation-checked); the real page is measured before and after and the
       sizes are written here; the contract in `docs/releasing.md` names the limit and the sequence without arrows.
+- [ ] **G6. Showcase and guide.** The page is a showcase, the guide lives in the repo (Decisions, "A showcase and a guide"). Decided
+      with the author:
+      - which sections of the description stay on the page and which go to the guide;
+      - the guide's files (e.g. `docs/guide.md` and `guide.uk.md`) and how the showcase links into it;
+      - how the generator gets the showcase: two sources, or marked sections of one;
+      - the accordion replaced by ModDB's native spoiler where it fits (and whether the native spoiler shows as expected: a probe
+        pasted by the author);
+      - what the in-game guide (`guide-text`, the handbook pages) shares with the guide in the repo, and who keeps them close.
+      Branch: `docs/mod-description`. After: G3. Model: opus. Author: decides.
+      Done when: Decisions has the split; G4, G5 and the release plan (R2) are updated where it changed them.
 - [ ] **G4. Shooting a sequence.** One frame is one state of the studio today (`docs/screenshots.md`); a sequence needs a
-      chain of states taken again in every language. Research, then the process:
+      chain of states taken again in every language. Both forms are tried (Decisions, "Sequences: both tried"): an animated GIF
+      and a row of frames. Research, then the process:
       - the state before and after, reproducible: copies of the props, the order of the frames, a macro per frame;
       - the hint over the chest is seen only while looking at the block, which brings the selection frame
         (`docs/screenshots.md` forbids it): whether the frame can be hidden (client settings, `.cf`, the engine), or it stays;
       - full frames or crops of a region by `tools/screenshots.ps1` (the inventory and the book are a small part of a
         1920×1080 frame, and a sequence is shown at ~800 px); the files' sizes, three per mechanic;
-      - a test sequence, the album taking tapestries from a chest, in `en` and `uk`, put into the description.
-      Branch: `docs/mod-description` (the process), `feature/mod-description` if the script changes. After: G3. Model: opus
+      - a GIF: how it is recorded and made (a video of the client, then frames to GIF), its size and quality, one per language;
+      - a test sequence, the album taking tapestries from a chest, in `en` and `uk`, put into the description in both forms;
+        the author compares how they look on the page and on the phone, and picks.
+      Branch: `docs/mod-description` (the process), `feature/mod-description` if the script changes. After: G6. Model: opus
       (the research), sonnet (the script). Author: shoots the test sequence.
       Done when: `docs/screenshots.md` and `tools/studio/README.md` say how a sequence is shot; the test sequence is on the
       generated page in both languages.
 - [ ] **G5. The shot list of 0.2.** Which mechanics get a sequence and which a single frame, with the stamp-album view and the
       new collections; the gallery's order and its first image. Written into `docs/screenshots.md`; R3 shoots by it.
-      Branch: `docs/mod-description`. After: A2 of the album view, C7 of the collections design, G4. Model: opus. Author:
+      Branch: `docs/mod-description`. After: A2 of the album view, C7 of the collections design, G6, G4. Model: opus. Author:
       decides.
       Done when: the shot list of 0.2 is in `docs/screenshots.md`, approved.
 
@@ -186,5 +199,16 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   elements, not the spaces); `code` lost its `border-radius`. `li`/`p` margins stay: they are not the default, the look would change.
   Then the collections table got borders and padding (`.body table`, `th`, `td`; the live page showed it bare, 11.11.2026): the page is 60 424 bytes, +2.4 KB, since every cell carries its style. Room left for 0.2: ~3.5 KB, i.e. one sequence of three frames in both languages; more needs G5's decision (the Ukrainian part
   shortened on the page, or moved off it).
+- **A showcase and a guide** (the author, 11.11.2026; replaces "shortened or moved off" above, the details are G6's): the ModDB
+  page is a showcase, what draws a player in (what the mod does, the main mechanics in pictures, compatibility, the config in
+  short); the guide, what explains (every gesture, recipe, collection, the config in full, questions), lives in the repo as
+  Markdown files, versioned and reviewed with the mod (the GitHub wiki was rejected: a repository of its own, edited on the web,
+  outside the PRs). The guide in the repo and the in-game guide tell close stories. Why: ModDB refuses a page over ~64 KiB,
+  and the page is 60 KB before 0.2's sequences; among 9 080 mods (the ModDB cache, 02.11.2026) the median description is
+  1.1 KB, 6.7 KB in the top 300 by downloads, and the few near the limit are encyclopedic mods.
+- **The Ukrainian showcase in ModDB's native spoiler** (the author, 11.11.2026): `div.spoiler` with `spoiler-toggle` and
+  `spoiler-text`, styled by the site's CSS, so it costs no inline styles; 1 006 mods use it, 130 of the top 300.
+- **Sequences: both tried** (the author, 11.11.2026): an animated GIF (one `<img>` on the page, as some popular mods show each
+  mechanic) and G3b's row of frames; the choice after G4's test.
 
 ## Where we stopped

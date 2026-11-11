@@ -5,7 +5,7 @@ namespace CurioCatalogue.ServerTests;
 /// <summary>
 /// C6: which of our items the creative inventory lists. The server resolves <c>creativeinventory</c> of an item type into
 /// <c>CollectibleObject.CreativeInventoryTabs</c> (vsessentialsmod ItemType.cs:84, <c>GetCreativeTabs</c>) when it loads the items; the client's
-/// creative dialog and the handbook (vsapi Collectible.cs:2480#GetHandBookStacks) read that same field. So the tabs are checked on the
+/// creative dialog and the handbook (vsapi Collectible.cs:2474#GetHandBookStacks) read that same field. So the tabs are checked on the
 /// server; the dialog's search box and its drawing stay a game check. The handbook needs the tab for the aged covers
 /// (docs/modding.md, Handbook), so a cover missing here has no page.
 /// </summary>

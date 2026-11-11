@@ -858,7 +858,7 @@ public class InvoicePosterTests
 
     /// <summary>
     /// Player slot 1, an ordinary slot until <see cref="Refuses"/>: then the plan still sees it as free (CanHold) but it takes
-    /// nothing (CanTakeFrom, vsapi ItemSlot.cs:222#TryPutInto). Stands for a bug in the plan: the game moving less than planned.
+    /// nothing (CanTakeFrom, vsapi ItemSlot.cs:220#TryPutInto). Stands for a bug in the plan: the game moving less than planned.
     /// </summary>
     private sealed class RefusingSlot(InventoryBase inventory) : ItemSlotSurvival(inventory)
     {

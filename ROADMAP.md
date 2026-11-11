@@ -68,17 +68,19 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do. L7 of the plan.
    - **Want list window: a grid with no empty slots** (seen 10.11.2026, L6): its grid is the game's, always 10 columns with the
      last row filled up by empty slots, while the album's cells now spread evenly over their lines with none empty. Whether the
-     want list follows the album (lines spread evenly, no empty slots) or keeps the look of the game's chests.
+     want list follows the album (lines spread evenly, no empty slots) or keeps the look of the game's chests. L13 of the plan.
+   - **Tapestries: frames with no light patches** (the author, 11.11.2026): a picture's dark frame stretched over its line and the
+     page, the picture perhaps centred in it. L11 of the plan.
    - **The in-game guide and the album's handbook text name only tapestries** (seen 09.11.2026, V5): `guide-text` and
      `handbook-use-album-text` in `lang/*.json` still say "the first collection is tapestries" and describe the album by
      "pictures"; say there are four collections (en and uk). L8 of the plan.
    - **A collection's look by its asset alone, for other mods' authors** (the author, 10.11.2026, L2b: we can change code where
      needed, they cannot). Found: the game's names of tapestry pictures are looked up only for the collection with the id
      `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw picture codes: tie it to the
-     source kind, not the id.
+     source kind, not the id. L12 of the plan.
    - **A part for modders in the READMEs** (the author, 10.11.2026): the definition's JSON (now only in `docs/decisions.md`,
      Collections), that the definition and its patches must reach the client (not `"side": "server"`), icons (`icon`, `icons`,
-     an SVG drawn in its own colours), the album recipe.
+     an SVG drawn in its own colours), the album recipe. L14 of the plan.
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
      the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
 7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for
@@ -94,6 +96,9 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
 
 Proposed (31.10.2026), not decided: 0.3 for invoices and comfort (item 1, the hotkey for the book's window, the server's config
 sent to clients, messages built by the client), then recipes into a bill of materials with books as a sum type.
+
+0. **The golden stacks of 0.2.0, first** (the author, 11.11.2026): captured from the release zip of 0.2.0, with what B6 left for
+   that capture (0.2, item 1: one file for the golden format, the tooltip of every golden stack, the capture built by CI).
 
 1. **Invoices:**
    - **Names from the book.** A want list from the album "Danko's tapestries" is called "Want list for: Danko's tapestries"; the same

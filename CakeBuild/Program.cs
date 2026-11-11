@@ -123,10 +123,10 @@ public sealed class DefaultTask : FrostingTask
 }
 
 /// <summary>
-/// The ModDB description from README.md, README.uk.md and docs/moddb/template.html (docs/releasing.md, ModDB).
+/// The ModDB page from docs/moddb/description.md, description.uk.md and template.html (docs/releasing.md, ModDB).
 /// Arguments: --ref=&lt;tag or SHA&gt; (default v&lt;version&gt;), --moddbLinks=false (leave Source and Report a bug out of the buttons; default true),
 /// --out=&lt;file&gt; (default Releases/moddb.html), --rawBase / --blobBase (to look at the page before the files are on GitHub,
-/// e.g. file:///C:/Projects/.../), --readme / --readmeUk (other READMEs).
+/// e.g. file:///C:/Projects/.../), --description / --descriptionUk (other descriptions, read as if they lay in docs/moddb/).
 /// </summary>
 [TaskName("ModDbPage")]
 public sealed class ModDbPageTask : FrostingTask<BuildContext>
@@ -141,8 +141,8 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
         var gitRef = context.Argument("ref", $"v{context.Version}");
         var input = new CurioCatalogue.PageGen.PageInput
         {
-            ReadmeEn = File.ReadAllText(context.Argument("readme", "../README.md")),
-            ReadmeUk = File.ReadAllText(context.Argument("readmeUk", "../README.uk.md")),
+            DescriptionEn = File.ReadAllText(context.Argument("description", "../docs/moddb/description.md")),
+            DescriptionUk = File.ReadAllText(context.Argument("descriptionUk", "../docs/moddb/description.uk.md")),
             Template = File.ReadAllText("../docs/moddb/template.html"),
             Version = context.Version,
             GameVersion = (string?)modInfo["dependencies"]?["game"] ?? throw new Exception("modinfo.json has no dependencies.game"),

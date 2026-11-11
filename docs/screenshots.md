@@ -1,6 +1,6 @@
 # Taking screenshots
 
-How we shoot the mod's screenshots (ModDB gallery, READMEs) so that a shot can be taken again, in `en` and `uk`, with the same
+How we shoot the mod's screenshots (ModDB gallery, the description) so that a shot can be taken again, in `en` and `uk`, with the same
 framing. Facts checked in engine 1.22.7 (decompiled) and in game on 01.11.2026 (superflat creative world, `uk` → `en`).
 The studio (a WorldEdit schematic) and the macros live in `tools/studio/`; the plan behind them is
 `docs/plans/2026-11-01-mod-page.md`.

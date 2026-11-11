@@ -30,6 +30,8 @@ Thanks for wanting to help. Bug reports, ideas, code and translations are all we
 - Translate every text: the tests require the same keys as `en.json`.
 - Keep the placeholders `{0}`, `{1}`… and write a literal brace as `{{` or `}}`.
 - Check the result in game: the texts are long in places (the handbook guide) and the windows are small.
+- The mod's description (`docs/moddb/description.md`, the source of the ModDB page) is in English and Ukrainian only, since the
+  page shows those two. Want it in your language too? Open an issue first: another language on the page needs the generator changed.
 
 ## Using AI
 

@@ -62,7 +62,7 @@ jobs:
       - name: Build
         run: dotnet build curiocatalogue.sln
 
-      # The page generator fails on a broken README contract (docs/releasing.md, ModDB). Images point to this commit, so the
+      # The page generator fails on a broken description contract (docs/releasing.md, ModDB). Images point to this commit, so the
       # uploaded page can be looked at before the merge; the page of a release is made again in the job `release`.
       - name: ModDB page
         run: dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=$GITHUB_SHA

@@ -72,7 +72,7 @@ In the same branch, with the step's commit or as the last commit after "комі
 - not finished: one dated line under "Where we stopped": what is done, what is next, what waits for whom;
 - say of every result whether it is final or a draft (frames, texts, files), and where it lies: the next session reads
   only the plan, and a final result called a "test" gets redone (the `en` screenshots, P2 of the mod page plan, 03.11.2026);
-- the updates the `CLAUDE.md` table asks for (e.g. `docs/testing/functional.md` with every fixed bug, `CHANGELOG.md`, both READMEs).
+- the updates the `CLAUDE.md` table asks for (e.g. `docs/testing/functional.md` with every fixed bug, `CHANGELOG.md`, both description files).
 
 Then tell the author, briefly and in Ukrainian: what is done, what is left, the in-game checks for them, the commands for them
 to run, and proposed roadmap lines if any. End with the next step: its id, its `Model:` (so the author can `/model` before

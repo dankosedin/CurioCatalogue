@@ -10,7 +10,7 @@ The order depends on where the change comes from (decided 04.11.2026):
   the docs and does not suit reviewing a bare idea yet.
   - **Code review:** after a feature that changes code, as the last step of its plan, or once at the end of a release over
     what the release changed. Each plan says which.
-  - **Players' round:** once per release, after the docs for players (both READMEs, `CHANGELOG.md`, the lang texts) are
+  - **Players' round:** once per release, after the docs for players (both description files, `CHANGELOG.md`, the lang texts) are
     brought up to the release; it looks at the release as a player gets it.
 
 ## Common to both rounds
@@ -42,8 +42,8 @@ Players with different habits and the mod's makers read what a player can read a
 and keeps the usual course of play. The round does not run the game, so it also tests the docs: a player who cannot tell from
 them how a thing works means weak docs. The author checks the behaviour in game.
 
-**Input** (the same for every role): the change's description and diff (for a whole-mod round: none), `DESIGN.md`, `README.md`,
-`README.uk.md`, `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
+**Input** (the same for every role): the change's description and diff (for a whole-mod round: none), `DESIGN.md`, `docs/moddb/description.md`,
+`description.uk.md`, `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
 help, window texts), `docs/images/` and the screenshots the author gives; and, so that no role re-proposes what is decided or
 makes up a mechanic, `docs/domain.md`, `ROADMAP.md` and the Decisions of the plan the change belongs to. Players do not read the source code;
 the makers may read the diff, but they report behaviour, not code.
@@ -72,15 +72,15 @@ wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opi
    the way a collector expects, and whether a want list is something you would hand to another player.
 2. **Storekeeper.** You keep a tidy storeroom: labelled chests, counted stock, nothing on the floor. You care whether the ledger
    and the bill of materials match how you sort, whether a fill moves exactly what it says and never loses an item, what happens
-   when your inventory is full, and whether you can trust the numbers. You read the Ukrainian texts (`README.uk.md`, `uk.json`).
+   when your inventory is full, and whether you can trust the numbers. You read the Ukrainian texts (`description.uk.md`, `uk.json`).
 3. **Newcomer.** You never open the handbook and learn by clicking. You care whether the first book you craft explains itself
    from its name, tooltip and held help, whether a wrong click does harm, and whether the messages tell you what to do next.
-   Read the README only after you have tried to understand the mod from the in-game texts alone, and report both passes.
+   Read the description only after you have tried to understand the mod from the in-game texts alone, and report both passes.
 4. **Server admin.** You run a public server with claims, reinforcement and many players. You care about access (can a book read
    or empty someone else's chest), what players can abuse (free items, spam, lag from large containers), the config, the
    commands, and what happens to books when you update or remove the mod.
 5. **Player with many mods.** You play with storage, crate, carry and handbook mods. You care whether our books work with other
-   containers, whether gestures clash with other mods, and whether the README says clearly what is compatible. Name a mod you
+   containers, whether gestures clash with other mods, and whether the description says clearly what is compatible. Name a mod you
    suspect; do not read its code.
 6. **Game designer.** You know Vintage Story's pace and tone. You care whether the books fit the game's progression, crafting
    costs and lore, whether a feature makes the game easier in a way that hurts it, and whether the change follows `DESIGN.md`
@@ -117,7 +117,7 @@ DLLs; never start the game.
    **Questions from the future:** the moderator names two or three coming items of `ROADMAP.md` (or of the next plans) and asks
    what in this change those items will touch and where it will hurt.
 4. **QA** (Opus, own worktree; may build and test). A table: each documented case (`docs/testing/functional.md`, `DESIGN.md`,
-   README) → the code that does it → the test that covers it; gaps and wrong tests are findings. Tests come as a diff.
+   the description) → the code that does it → the test that covers it; gaps and wrong tests are findings. Tests come as a diff.
 5. **Hostile reviewer** (Sonnet, read-only). Looks for what is wrong, ugly or overbuilt. Taste is allowed, marked `taste`.
 
 Read-only roles use the `Plan` agent type; the worktree roles bring their tests as diffs, and the main session moves the ones

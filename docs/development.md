@@ -21,6 +21,7 @@ CurioCatalogue.PageGen.Tests/ xUnit tests of the generator (no game needed)
 CakeBuild/, build.ps1      release zip (from the official mod template) and the task ModDbPage
 tools/                     scripts that generate assets (see below)
 docs/                      documentation; docs/plans/ holds the implementation plans
+docs/moddb/                the mod's description for players (en, uk) and the ModDB page's template
 ```
 
 ## Build and test

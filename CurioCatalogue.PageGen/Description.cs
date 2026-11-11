@@ -7,7 +7,7 @@ using Markdig.Syntax.Inlines;
 
 namespace CurioCatalogue.PageGen;
 
-/// <summary>A section of the README (or a ### subsection of one) with its body already rendered to HTML.</summary>
+/// <summary>A section of the description (or a ### subsection of one) with its body already rendered to HTML.</summary>
 public sealed class Section
 {
     public string Key { get; init; } = "";
@@ -16,8 +16,8 @@ public sealed class Section
     public List<Section> Subs { get; init; } = new();
 }
 
-/// <summary>One README as data for the template.</summary>
-public sealed class ReadmeData
+/// <summary>One description (docs/moddb/description*.md) as data for the template.</summary>
+public sealed class DescriptionData
 {
     public string Lang { get; init; } = "";
     public string Title { get; init; } = "";
@@ -28,24 +28,24 @@ public sealed class ReadmeData
     /// <summary>The list items of "What's inside", as inline HTML.</summary>
     public List<string> Items { get; init; } = new();
     public Dictionary<string, Section> Sections { get; init; } = new();
-    /// <summary>The sections' keys in the README's order.</summary>
+    /// <summary>The sections' keys in the description's order.</summary>
     public List<string> Keys { get; init; } = new();
 }
 
-/// <summary>Reads a README by the contract. Problems are collected in the list, not thrown one by one.</summary>
-public static class Readme
+/// <summary>Reads a description by the contract (docs/releasing.md). Problems are collected in the list, not thrown one by one.</summary>
+public static class Description
 {
     static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UsePipeTables().Build();
 
-    public static ReadmeData Parse(string markdown, string lang, Links links, List<string> problems, int insideIndex = -1)
+    public static DescriptionData Parse(string markdown, string lang, Links links, List<string> problems, int insideIndex = -1)
     {
-        string where = $"README ({lang})";
+        string where = $"Description ({lang})";
         var doc = Markdown.Parse(markdown, Pipeline);
 
         foreach (var html in doc.Descendants<HtmlBlock>())
-            problems.Add($"{where}: HTML in README (line {html.Line + 1}); use plain Markdown");
+            problems.Add($"{where}: HTML in the description (line {html.Line + 1}); use plain Markdown");
         foreach (var html in doc.Descendants<HtmlInline>())
-            problems.Add($"{where}: HTML in README (the tag {html.Tag}); use plain Markdown");
+            problems.Add($"{where}: HTML in the description (the tag {html.Tag}); use plain Markdown");
 
         foreach (var link in doc.Descendants<LinkInline>())
             link.Url = links.Absolute(link.Url, link.IsImage);
@@ -79,6 +79,10 @@ public static class Readme
             heroAlt = PlainText(img);
         }
 
+        // The page shows the head's four parts only, so anything else there would be lost silently.
+        foreach (var extra in afterTitle.Skip(1).Where(b => b != quote && b != heroPara))
+            problems.Add($"{where}: the head has a block the page does not show (line {extra.Line + 1}); the head is the title, the hook, the warning and the hero image");
+
         // The sections.
         var sections = new Dictionary<string, Section>();
         var keys = new List<string>();
@@ -97,7 +101,7 @@ public static class Readme
             idx = next;
         }
 
-        return new ReadmeData
+        return new DescriptionData
         {
             Lang = lang, Title = title, HookHtml = hookHtml, WarningHtml = warningHtml, HeroSrc = heroSrc, HeroAlt = heroAlt,
             Items = items, Sections = sections, Keys = keys,
@@ -196,23 +200,46 @@ public static class Readme
     }
 }
 
-/// <summary>Where relative links of the README point: images to raw files, links to blobs, both at a fixed ref.</summary>
+/// <summary>
+/// Where relative links of the description point: images to raw files, links to blobs, both at a fixed ref.
+/// A relative path is read from <see cref="Dir"/>, the description's folder in the repository (e.g. docs/moddb/), as GitHub reads it.
+/// </summary>
 public sealed class Links
 {
     public string RawBase { get; }
     public string BlobBase { get; }
+    public string Dir { get; }
 
-    public Links(string rawBase, string blobBase)
+    public Links(string rawBase, string blobBase, string dir = "")
     {
         RawBase = rawBase.EndsWith('/') ? rawBase : rawBase + "/";
         BlobBase = blobBase.EndsWith('/') ? blobBase : blobBase + "/";
+        Dir = dir == "" || dir.EndsWith('/') ? dir : dir + "/";
     }
 
+    /// <summary>The absolute URL; a path that climbs above the repository's root stays relative, and the page check reports it.</summary>
     public string Absolute(string? url, bool image)
     {
         if (string.IsNullOrEmpty(url)) return url ?? "";
         if (url.StartsWith('#') || url.StartsWith("//") || Regex.IsMatch(url, "^[a-zA-Z][a-zA-Z0-9+.-]*:")) return url;
-        while (url.StartsWith("./")) url = url[2..];
-        return (image ? RawBase : BlobBase) + url.Replace(" ", "%20");
+        var path = Resolve(Dir + url);
+        return path == null ? url : (image ? RawBase : BlobBase) + path.Replace(" ", "%20");
+    }
+
+    /// <summary>"docs/moddb/../images/a.png" → "docs/images/a.png"; null above the root.</summary>
+    static string? Resolve(string path)
+    {
+        var parts = new List<string>();
+        foreach (var part in path.Split('/'))
+        {
+            if (part == "" || part == ".") continue;
+            if (part == "..")
+            {
+                if (parts.Count == 0) return null;
+                parts.RemoveAt(parts.Count - 1);
+            }
+            else parts.Add(part);
+        }
+        return string.Join('/', parts) + (path.EndsWith('/') ? "/" : "");
     }
 }

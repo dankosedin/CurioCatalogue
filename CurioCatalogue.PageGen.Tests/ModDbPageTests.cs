@@ -2,7 +2,7 @@ using CurioCatalogue.PageGen;
 
 namespace CurioCatalogue.PageGen.Tests;
 
-/// <summary>The generator on small READMEs that keep the contract, and on READMEs that break it one way at a time.</summary>
+/// <summary>The generator on small descriptions that keep the contract, and on descriptions that break it one way at a time.</summary>
 public class ModDbPageTests
 {
     const string Raw = "https://raw.githubusercontent.com/dankosedin/CurioCatalogue/v9.9.9/";
@@ -16,14 +16,14 @@ public class ModDbPageTests
         return File.ReadAllText(Path.Combine(dir!.FullName, "docs", "moddb", "template.html"));
     }
 
-    // The section titles of the sample; the Ukrainian README has other words at the same places.
+    // The section titles of the sample; the Ukrainian description has other words at the same places.
     static readonly string[] EnTitles =
     {
         "What's inside", "Getting started", "Collections", "Gestures", "Fair play on servers", "Configuration",
         "Compatibility and known limitations", "Removing the mod", "Languages", "Contributing",        "AI and human work", "Credits", "License",
     };
 
-    /// <summary>A README: head, then the sections with a line of text each; "What's inside" with its list and subsections.</summary>
+    /// <summary>A description in docs/moddb/: head, then the sections with a line of text each; "What's inside" with its list and subsections.</summary>
     static string Doc(string lang, Func<string, string>? edit = null, int items = 6, int subs = 3, string head = "")
     {
         bool en = lang == "en";
@@ -31,7 +31,7 @@ public class ModDbPageTests
         sb.Append($"# Title {lang}\n\nThe hook {lang}.\n\n");
         sb.Append(head);
         sb.Append("> **Early development.** Back up your world.\n\n");
-        sb.Append("![The hero](docs/images/hero.png)\n\n");
+        sb.Append("![The hero](../images/hero.png)\n\n");
         for (int i = 0; i < EnTitles.Length; i++)
         {
             string title = en ? EnTitles[i] : $"Section {i} uk";
@@ -44,8 +44,8 @@ public class ModDbPageTests
             }
             else
             {
-                sb.Append($"Text of {title}, see [the guide](docs/guide.md) and `CONTRIBUTING.md`.\n\n");
-                if (i == 1) sb.Append("![A shot](docs/images/shot.en.png)\n\n");
+                sb.Append($"Text of {title}, see [the guide](../guide.md) and `CONTRIBUTING.md`.\n\n");
+                if (i == 1) sb.Append("![A shot](../images/shot.en.png)\n\n");
             }
         }
         var text = sb.ToString();
@@ -54,8 +54,8 @@ public class ModDbPageTests
 
     static PageInput Input(string? en = null, string? uk = null, string? template = null, bool links = false) => new()
     {
-        ReadmeEn = en ?? Doc("en"),
-        ReadmeUk = uk ?? Doc("uk"),
+        DescriptionEn = en ?? Doc("en"),
+        DescriptionUk = uk ?? Doc("uk"),
         Template = template ?? Template(),
         Version = "0.1.1",
         GameVersion = "1.22.7",
@@ -161,7 +161,7 @@ public class ModDbPageTests
     {
         var input = new PageInput
         {
-            ReadmeEn = Doc("en"), ReadmeUk = Doc("uk"), Template = Template(), Version = "1.0.0", GameVersion = "1.22.7",
+            DescriptionEn = Doc("en"), DescriptionUk = Doc("uk"), Template = Template(), Version = "1.0.0", GameVersion = "1.22.7",
             LangCodes = new[] { "en" }, RawBase = Raw, BlobBase = Blob, RepoUrl = "https://example.org/r",
         };
         var html = ModDbPage.Generate(input);
@@ -226,13 +226,13 @@ public class ModDbPageTests
     }
 
     [Fact]
-    public void Html_in_readme_is_an_error()
+    public void Html_in_the_description_is_an_error()
     {
         var e = Fails(Input(en: Doc("en", t => t.Replace("The hook en.", "The hook <b>en</b>."))));
-        Assert.Contains(e.Problems, p => p.Contains("HTML in README"));
+        Assert.Contains(e.Problems, p => p.Contains("HTML in the description"));
 
         e = Fails(Input(uk: Doc("uk", t => t + "<!-- note -->\n\n")));
-        Assert.Contains(e.Problems, p => p.Contains("HTML in README"));
+        Assert.Contains(e.Problems, p => p.Contains("HTML in the description"));
     }
 
     [Fact]
@@ -244,17 +244,25 @@ public class ModDbPageTests
         e = Fails(Input(en: Doc("en", t => t.Replace("> **Early development.** Back up your world.\n\n", ""))));
         Assert.Contains(e.Problems, p => p.Contains("warning"));
 
-        e = Fails(Input(uk: Doc("uk", t => t.Replace("![The hero](docs/images/hero.png)\n\n", ""))));
+        e = Fails(Input(uk: Doc("uk", t => t.Replace("![The hero](../images/hero.png)\n\n", ""))));
         Assert.Contains(e.Problems, p => p.Contains("(uk)") && p.Contains("image"));
     }
 
     [Fact]
-    public void Readme_only_lines_in_the_head_are_dropped()
+    public void A_block_in_the_head_the_page_does_not_show_is_an_error()
     {
-        var html = ModDbPage.Generate(Input(en: Doc("en", head: "Українською: [README.uk.md](README.uk.md).\n\nDownload: [ModDB](https://mods.vintagestory.at/x).\n\n")));
+        var e = Fails(Input(uk: Doc("uk", head: "Download: [ModDB](https://mods.vintagestory.at/x).\n\n")));
+        Assert.Contains(e.Problems, p => p.Contains("(uk)") && p.Contains("the head has a block the page does not show (line 5)"));
 
-        Assert.DoesNotContain("README.uk.md", html);
-        Assert.DoesNotContain("Download:", html);
+        e = Fails(Input(en: Doc("en", t => t.Replace("![The hero]", "> A second quote.\n\n![The hero]"))));
+        Assert.Contains(e.Problems, p => p.Contains("(en)") && p.Contains("the head has a block"));
+    }
+
+    [Fact]
+    public void A_path_above_the_repository_is_an_error()
+    {
+        var e = Fails(Input(en: Doc("en", t => t.Replace("](../guide.md)", "](../../../guide.md)"))));
+        Assert.Contains(e.Problems, p => p.Contains("relative or unknown link") && p.Contains("../../../guide.md"));
     }
 
     [Fact]
@@ -301,7 +309,7 @@ public class ModDbPageTests
     [InlineData("What’s inside", "whats-inside")]
     [InlineData("Compatibility and known limitations", "compatibility-and-known-limitations")]
     [InlineData("AI and human work", "ai-and-human-work")]
-    public void Slug_of_a_title(string title, string slug) => Assert.Equal(slug, Readme.Slug(title));
+    public void Slug_of_a_title(string title, string slug) => Assert.Equal(slug, Description.Slug(title));
 
     [Theory]
     [InlineData("docs/a b.png", true, Raw + "docs/a%20b.png")]
@@ -311,4 +319,13 @@ public class ModDbPageTests
     [InlineData("mailto:a@b.c", false, "mailto:a@b.c")]
     public void Relative_urls_are_made_absolute(string url, bool image, string expected) =>
         Assert.Equal(expected, new Links(Raw, Blob).Absolute(url, image));
+
+    [Theory]
+    [InlineData("../images/a.png", true, Raw + "docs/images/a.png")]
+    [InlineData("./template.html", false, Blob + "docs/moddb/template.html")]
+    [InlineData("../../CONTRIBUTING.md", false, Blob + "CONTRIBUTING.md")]
+    [InlineData("../../../x.md", false, "../../../x.md")]
+    [InlineData("#gestures", false, "#gestures")]
+    public void Relative_urls_are_read_from_the_descriptions_folder(string url, bool image, string expected) =>
+        Assert.Equal(expected, new Links(Raw, Blob, "docs/moddb").Absolute(url, image));
 }

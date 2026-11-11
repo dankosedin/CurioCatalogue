@@ -52,19 +52,26 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       of the look). Author: approves the test page, pastes it, looks on the phone.
       Done when: Decisions says which markup survives, how it scrolls on the desktop and the phone, and the chosen shape of
       a sequence.
-- [ ] **G3. The generator reads the description.** Players' texts moved from the READMEs into the description by G1 (moved,
-      not rewritten: R2 rewrites them), README cut down to what G1 left, `README.uk.md` removed (its texts go to
-      `description.uk.md`), links to it updated; the sequence extension rendered into G2's markup; the arguments `readme`,
-      `readmeUk` renamed `description`, `descriptionUk`; the contract in `docs/releasing.md` (the README contract replaced,
-      "run the real generator after a change" moved to the description); `PageGen.Tests` for the new source and the sequences; `CLAUDE.md`'s table
-      (README no longer "the source of the ModDB page", a row for the description); `CONTRIBUTING.md` for translators.
-      Check: the generated page before and after the move differs only where intended (a diff of `moddb.html`).
-      Left by G2: the generated sequence pasted into the draft mod (the author, after a "yes" to the exact text): that ModDB
-      keeps `id` on `<figure>` and `href="#…"` links, and the arrows and the swipe in Firefox and on the phone; how GitHub shows
-      the source of a `::: sequence` block.
-      Branch: `feature/mod-description`. After: G2. Model: sonnet. Author: looks at the diff of the page.
-      Done when: CI generates the page from the description; the tests pass and are mutation-checked on the sequence;
-      the docs say where the description lives and how a sequence is written.
+- [ ] **G3. The generator reads the description.** Split in two (the author, 11.11.2026): G3a the move, G3b the sequences.
+  - [x] **G3a. The move.** Done 11.11.2026. Players' texts moved from the READMEs into `docs/moddb/description.md` and
+        `description.uk.md` (moved, not rewritten: R2 rewrites them; image paths made relative to `docs/moddb/`), README cut
+        down to what G1 left (with no "Adding a collection" yet: L14 writes it), `README.uk.md` removed, links to it updated
+        (`docs/review.md`, `docs/screenshots.md`, `functional.md`, the `step` skill); the generator reads the description
+        (`Description.cs`, relative paths read from the description's folder, the head allows nothing but its four parts); the
+        arguments `readme`, `readmeUk` renamed `description`, `descriptionUk`; the contract in `docs/releasing.md`;
+        `PageGen.Tests` (mutation-checked: the head check, a path above the root, the folder of the paths); `CLAUDE.md`'s table;
+        `CONTRIBUTING.md` for translators; `docs/development.md`'s layout.
+        Check: `moddb.html` generated before and after the move (`--ref=HEAD`) is the same, byte for byte.
+  - [ ] **G3b. Sequences.** The `::: sequence` extension (frames, a caption under each) rendered into G2's markup; the
+        contract in `docs/releasing.md` says how a sequence is written; `PageGen.Tests` for the sequences.
+        Left by G2: the generated sequence pasted into the draft mod (the author, after a "yes" to the exact text): that ModDB
+        keeps `id` on `<figure>` and `href="#…"` links, and the arrows and the swipe in Firefox and on the phone; how GitHub
+        shows the source of a `::: sequence` block.
+        Branch: `feature/mod-description`. After: G3a. Model: sonnet. Author: approves the test paste, pastes it, looks on the phone.
+        Done when: the tests pass and are mutation-checked on the sequence; the docs say how a sequence is written.
+      Branch: `feature/mod-description` (stacked on `docs/mod-description`, the author, 11.11.2026). After: G2. Model: sonnet.
+      Author: looks at the diff of the page.
+      Done when: CI generates the page from the description (G3a); G3b done.
 - [ ] **G4. Shooting a sequence.** One frame is one state of the studio today (`docs/screenshots.md`); a sequence needs a
       chain of states taken again in every language. Research, then the process:
       - the state before and after, reproducible: copies of the props, the order of the frames, a macro per frame;
@@ -137,5 +144,12 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
     the author did not like, though the phone looked fine; a frame over the full width (~1470 px on the desktop, the whole
     screen, and with no arrows nothing says more frames follow); a table of frames (~110 px each on a phone); frames one under
     another. If ModDB drops the anchors, the same row without arrows, with "n / N." at the start of each caption.
+
+- **G3 in two steps, on a stacked branch** (the author, 11.11.2026): G3a moves the texts and points the generator at the
+  description, G3b adds the sequences; `feature/mod-description` starts from `docs/mod-description` (G1 and G2 are not on `main`
+  yet), so its PR carries G1–G3 or goes after the docs PR.
+- **The description's paths are relative to `docs/moddb/`** (G3a, 11.11.2026), as GitHub reads them, so the images show on
+  GitHub too; the generator resolves them from the description's folder. The head is strict: a block other than the title,
+  the hook, the warning and the hero image is an error (the README-only lines it used to drop are gone with README).
 
 ## Where we stopped

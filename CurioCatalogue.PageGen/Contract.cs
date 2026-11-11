@@ -1,7 +1,7 @@
 namespace CurioCatalogue.PageGen;
 
 /// <summary>
-/// What the READMEs must keep so the page can be generated from them (docs/development.md, "The README contract").
+/// What the descriptions must keep so the page can be generated from them (docs/releasing.md, "The description contract").
 /// The keys are slugs of the English titles; the template (docs/moddb/template.html) shows each of them.
 /// </summary>
 public static class Contract
@@ -26,7 +26,7 @@ public static class Contract
         new[] { InsideKey }.Concat(AccordionKeys).Concat(OtherKeys);
 }
 
-/// <summary>The README or the template breaks the contract; <see cref="Problems"/> lists every break, not only the first.</summary>
+/// <summary>A description or the template breaks the contract; <see cref="Problems"/> lists every break, not only the first.</summary>
 public sealed class ContractException : Exception
 {
     public IReadOnlyList<string> Problems { get; }

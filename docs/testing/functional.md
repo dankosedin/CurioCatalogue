@@ -144,7 +144,7 @@ which build, who ran it, and each `❌` with its reason.
 | K1 ⚙ | 0.1.0 | Chest, trunk, labeled chest, basket, storage vessel, crate, a backpack and a basket on the ground | Each supported |
 | K2 ⚙ | 0.1.0 | Upgradeable Storage chest | Works |
 | K3 | 0.1.0 | Carry On: carry a chest, put it down | No conflict with our gestures |
-| K4 | 0.1.0 | Better Crates | Not supported, as in the README's list of limitations |
+| K4 | 0.1.0 | Better Crates | Not supported, as in the description's list of limitations |
 
 ## Config
 

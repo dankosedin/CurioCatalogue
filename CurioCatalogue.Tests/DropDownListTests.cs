@@ -3,7 +3,7 @@ using CurioCatalogue.Gui;
 namespace CurioCatalogue.Tests;
 
 /// <summary>Where the album dropdown's open list stands and which lines it shows (L2c of the album polish plan). Plain numbers:
-/// a line is 30 high, as vanilla's (GuiElementListMenu.cs:26), at most 12 shown.</summary>
+/// a line is 30 high, as vanilla's (GuiElementListMenu.cs:26#unscaledLineHeight), at most 12 shown.</summary>
 public class DropDownListTests
 {
     private const double Line = 30;

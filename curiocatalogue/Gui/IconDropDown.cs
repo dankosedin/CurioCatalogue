@@ -14,7 +14,7 @@ namespace CurioCatalogue.Gui;
 /// open, a line of icon and name for each choice, under the box or over the page where there is room (<see cref="DropDownList"/>),
 /// scrolled by the wheel and the keys when long (17 tabs of crystals).
 /// Ours, not vanilla's <c>AddDropDown</c>: that one composes its VTML names into a static texture (vsapi
-/// GuiElementListMenu.cs:237), where an <c>&lt;itemstack&gt;</c> is not drawn. It behaves as vanilla's does (GuiElementDropDown.cs,
+/// GuiElementListMenu.cs:237#richTextElem), where an <c>&lt;itemstack&gt;</c> is not drawn. It behaves as vanilla's does (GuiElementDropDown.cs,
 /// GuiElementListMenu.cs): a click opens and closes it, focus lost closes it, the wheel over the closed box with focus steps the
 /// choice, Up, Down, Home, End and Enter as there; Escape reaches only the dialog, which closes the list first
 /// (<see cref="AlbumDialog.OnEscapePressed"/>). An icon is a stack (drawn every frame) or an SVG's location (a texture).
@@ -24,12 +24,12 @@ public sealed class IconDropDown : GuiElementTextBase
     /// <summary>A choice: its code, its name and its icon (an <see cref="ItemStack"/>, an SVG's <see cref="AssetLocation"/>, or none).</summary>
     public sealed record Option(string Code, string Name, object? Icon);
 
-    /// <summary>A line of the open list, as vanilla's (GuiElementListMenu.cs:26).</summary>
+    /// <summary>A line of the open list, as vanilla's (GuiElementListMenu.cs:26#unscaledLineHeight).</summary>
     public const double Line = 30;
 
     private const double IconSize = 22, Pad = 5, ArrowWidth = 20, ScrollWidth = 4;
     private const int MaxLines = 12;
-    // The open list over everything in the window (vanilla's list at 310, GuiElementListMenu.cs:353); the page's items stand at 90.
+    // The open list over everything in the window (vanilla's list at 310, GuiElementListMenu.cs:346-353#Render2DTexture); the page's items stand at 90.
     private const float ItemZ = 90, ListZ = 310, ListIconZ = 360;
 
     private readonly Option[] options;
@@ -317,7 +317,7 @@ public sealed class IconDropDown : GuiElementTextBase
             args.SetHandled(true);
             return;
         }
-        // As vanilla's (GuiElementDropDown.cs:375): over the closed box with focus, the wheel steps the choice.
+        // As vanilla's (GuiElementDropDown.cs:375#OnMouseWheel): over the closed box with focus, the wheel steps the choice.
         if (!open && HasFocus && InBox(api.Input.MouseX, api.Input.MouseY))
         {
             args.SetHandled(true);

@@ -80,7 +80,7 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
             double fingerprint = Ms(200, () => LedgerStore.Fingerprint(full));
             // What the game itself does with the stack while the tooltip is up: GuiElementItemstackInfo.SetSourceSlot compares the
             // hovered stack with its copy (ItemStack.Equals over all attributes) and, on a change, clones it (vsapi
-            // GuiElementItemstackInfo.cs:252-270). Ours is the largest tree it meets.
+            // GuiElementItemstackInfo.cs:252-270#SetSourceSlot). Ours is the largest tree it meets.
             var copy = full.Clone();
             bool same = full.Equals(World, copy, GlobalConstants.IgnoredStackAttributes); double equals = Ms(200, () => full.Equals(World, copy, GlobalConstants.IgnoredStackAttributes));
             double clone = Ms(200, () => full.Clone());

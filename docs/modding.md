@@ -61,7 +61,7 @@ In this order:
     `IClaimTraverseable` and allow it (chests, baskets, vessels) the engine itself turns Use into Traverse inside it; asking for
     `Traverse` ourselves would be checked as build-or-break (decompiled `Vintagestory.Common.WorldMap`, `GetBlockingLandClaimant`
     ~326-329, `testBlockAccessInternal` ~243-254). Vanilla chests allow traverse only when `retrieveOnly || isPerPlayer`
-    (vssurvivalmod `BEGenericTypedContainer.cs:458`);
+    (vssurvivalmod `BEGenericTypedContainer.cs:458#AllowTraverse`);
   - padlocks and reinforcement: `ModSystemBlockReinforcement.IsLockedForInteract(pos, player)`.
 - Other protection mods hook `IEventAPI.OnTestBlockAccess`, which `TestAccess` calls, so they are covered.
 
@@ -88,8 +88,8 @@ In this order:
 - **A stack read from bytes** knows only its numeric id until it is resolved, so the same item can key as `game:tapestry-north` or by id.
   `StackKeys` resolves stacks through the world first.
 - **Our key is not the game's merge rule.** The game stacks a source onto a sink by `sink.Collectible.GetMergableQuantity(sink,
-  source, priority)` (vsapi `Collectible.cs:2538`, called from `ItemSlot.CanTakeFrom`, `ItemSlot.cs:110`): `Equals` with
-  `IgnoredStackAttributes`, but behaviors and items may override it (vssurvivalmod `ItemEgg.cs:12` ignores "chick"). It knows
+  source, priority)` (vsapi `Collectible.cs:2538#GetMergableQuantity`, called from `ItemSlot.CanTakeFrom`, `ItemSlot.cs:110#CanTakeFrom`): `Equals` with
+  `IgnoredStackAttributes`, but behaviors and items may override it (vssurvivalmod `ItemEgg.cs:12#GetMergableQuantity` ignores "chick"). It knows
   nothing of our config, so a worn and a fresh ingot share our key (durability ignored) and still need two slots. Plan moves by
   merge classes (`InvoicePoster.MergeClasses`), not by keys.
 - **A stack's bytes** (`ItemStack.cs:329#ToBytes`): int32 class (0 block, 1 item), int32 numeric id, int32 stack size, then the
@@ -196,24 +196,24 @@ In this order:
 
 - Slot grid search: `FilterItemsBySearchText(text)` without the name cache matches nothing for a non-empty text (vanilla skips every
   slot). Pass `searchCacheNames` (and `searchCache`); see `GridDialog.FilterByName`.
-- **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129`;
+- **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129#SingleComposer`;
   only `ClearComposers` and `Dispose` free them, `:42-59`). Dispose the old one before recomposing, as vanilla does
-  (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `HeldItemDialog.SetComposer`.
+  (vsessentialsmod `GuiDialogAddWayPoint.cs:164#SingleComposer`): `HeldItemDialog.SetComposer`.
 - **An element is disposed more than once, at different times.** The composer holds an interactive element in both its lists
-  and disposes each list (vsapi `GuiComposer.cs:795-796`, `:868-878`), and `CreateCompo` disposes the last composer of the same
+  and disposes each list (vsapi `GuiComposer.cs:795-796#interactiveElements`, `:868-878`), and `CreateCompo` disposes the last composer of the same
   name again when the next one is made (decompiled `GuiComposerManager.Create`), even one we disposed long ago: so on the window's
   next opening or recompose. A texture freed by its bare id (`GLDeleteTexture`) is then freed again after GL gave that id to
   another texture (a tooltip's, a scrollbar's): that one draws garbage or pieces of other windows, or, with `glDebugMode`, the
   client crashes on `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture` (its `TexSubImage2D` on the lost id). Keep every texture as a
-  `LoadedTexture` (its `Dispose` forgets the id, vsapi `LoadedTexture.cs:77`; wrap a bare id: `new LoadedTexture(api, id, w, h)`);
+  `LoadedTexture` (its `Dispose` forgets the id, vsapi `LoadedTexture.cs:77#Dispose`; wrap a bare id: `new LoadedTexture(api, id, w, h)`);
   `GuiTexturesTests` refuses a delete by id. Found 11.11.2026 (L10 of the album polish plan): `AlbumPageElement`.
-- **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
+- **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289#LoadedGuis`); on close the game drops it
   only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
   made per opening must set it and dispose itself on close (`HeldItemDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
 - **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
   `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`HeldItemDialog.Watch`) and name the
   item in its requests (`ShownItem`).
-- **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
+- **A tree array never equals its own clone** (`ItemStack.Equals`, vsapi `Other/ArrayAttribute.cs:26#Equals`: elements compared with `Equals(object)`, which `TreeAttribute` does not override; shown by `ReadingCostTests`, server 04.11.2026). A stack with a `TreeArrayAttribute` (our `entries`, `members`) is never "equal" to a copy, so the game's tooltip, which recomposes unless the hovered stack equals its copy (`GuiElementItemstackInfo.SetSourceSlot`, `:252`), rebuilds its text every frame for about a second after the tooltip appears (checked in game 04.11.2026, C6 of the collections-design plan); harmless for a text this cheap.
 
 - **A slot grid always draws stacks white** (`GuiElementItemSlotGridBase.cs:504#WhiteArgb`). To change how a stack looks in a
   vanilla grid, use a slot class of our own: `ItemSlot.OnBeforeRender` (`ItemSlot.cs:529#OnBeforeRender`) runs on every draw
@@ -226,7 +226,7 @@ In this order:
 - **Tapestry icons are 3D at an angle**; each piece's flat image is `textures/block/cloth/tapestry/{type}.png`
   (`BlockTapestry.cs:40#texturePath`), and drawn side by side the pieces make the picture.
 - **Text smaller than 14** (`WhiteDetailText`) does not read at the default GUI scale (the author, 05.11.2026).
-- **Vertical tabs light their first tab in the constructor** (vsapi `GuiElementVerticalTabs.cs:52`), whatever the `GuiTab`s say:
+- **Vertical tabs light their first tab in the constructor** (vsapi `GuiElementVerticalTabs.cs:52#Active`), whatever the `GuiTab`s say:
   set `Active` after constructing. Several tabs may be lit at once by setting `Active` yourself; a click clears the others unless
   `ToggleTabs` (`GuiElementVerticalTabs.cs:293#SetValue`). `Gui/AlbumTabs`.
 - **`OnEscapePressed` returning true means "closed".** The game calls it on every open dialog and, for each true, steps back in
@@ -237,16 +237,16 @@ In this order:
   the first that sets `Handled` takes the click; a move stops at the first that takes it, `:503`). An element that lies over others
   when open (a dropdown's list) must be added before them, and should not take the moves, so the ones under it can drop their
   tooltips. Vanilla's `AddDropDown` cannot show an item in a line: it composes its VTML names into a static texture
-  (`GuiElementListMenu.cs:237`), where an `<itemstack>` is not drawn. `Gui/IconDropDown`.
+  (`GuiElementListMenu.cs:237#richTextElem`), where an `<itemstack>` is not drawn. `Gui/IconDropDown`.
 - **Our own icon for `AddIconButton`:** `capi.Gui.Icons.CustomIcons[name] = capi.Gui.Icons.SvgIconSource(location)` (vsapi
-  `IconUtil.cs:21`); the button draws it in its own colour. `Gui/AlbumHeader`.
+  `IconUtil.cs:21#SvgIconSource`); the button draws it in its own colour. `Gui/AlbumHeader`.
 - **An SVG in its own colours: draw it into a Cairo surface, not with `LoadSvg`.** With no colour given, the game's rasterizer
   swaps red and blue for Cairo's byte order, and `LoadSvg` uploads those bytes as RGBA: yellow comes out blue (decompiled
   `SvgLoader.rasterizeSvg`, `LoadSvg`; seen in game 10.11.2026). With a colour given both are right (the file's shape, one colour).
-  `capi.Gui.DrawSvg` into an `ImageSurface`, then `generateTexture`, as vanilla's icons (vsapi `IconUtil.cs:31`): `AlbumPageElement.SvgTexture`.
-- **A passive item slot is always 48×48** (vsapi `GuiElementPassiveItemSlot.cs:30` sets the bounds' size). **A statbar draws a
-  segment line every 10** of its range (`GuiElementStatbar.cs:224`); `SetLineInterval` with a large value removes them.
-- **Text textures need whole pixels.** `TextTextureUtil` loads text without smoothing (`TextTextureUtil.cs:85`, `linearMag`
+  `capi.Gui.DrawSvg` into an `ImageSurface`, then `generateTexture`, as vanilla's icons (vsapi `IconUtil.cs:31#DrawSvg`): `AlbumPageElement.SvgTexture`.
+- **A passive item slot is always 48×48** (vsapi `GuiElementPassiveItemSlot.cs:30#inventory` sets the bounds' size). **A statbar draws a
+  segment line every 10** of its range (`GuiElementStatbar.cs:224#lineInterval`); `SetLineInterval` with a large value removes them.
+- **Text textures need whole pixels.** `TextTextureUtil` loads text without smoothing (`TextTextureUtil.cs:85#LoadOrUpdateCairoTexture`, `linearMag`
   false), so one drawn with `Render2DLoadedTexture` half a pixel off loses rows and columns of its letters ("i" without its dot).
   A centred window can stand half a pixel off: round every position (`AlbumPageElement.Snap`). Seen in game 08.11.2026 (A4 of
   the album view plan).
@@ -258,9 +258,9 @@ In this order:
 - The game writes the mod config back after loading it and drops comments: example settings cannot live as comments in the config file.
 - Config is read on each side: tooltip limits come from the client's own config, which may differ from the server's.
 - **Assets in `config/` are read on both sides, and a JSON patch with `"side": "server"` changes only the server's copy**
-  (`AssetCategory.cs:16`, `JsonPatchLoader.cs:254`): a definition read by the client then differs from the server's. Clients get
+  (`AssetCategory.cs:16#config`, `JsonPatchLoader.cs:254#targetSide`): a definition read by the client then differs from the server's. Clients get
   the server's mods (`ModsByServer`), so a universal patch reaches them. `blocktypes` and `itemtypes` load on the server only
-  (`AssetCategory.cs:11-12`); the client gets them, attributes included, from the server's registry.
+  (`AssetCategory.cs:11-12#blocktypes`); the client gets them, attributes included, from the server's registry.
 - **`api.Assets.GetMany(path)` without a domain returns that path in every domain** (AssetLocation.cs:255#BeginsWith), so
   `config/curiocatalogue/collections/` finds `<anymod>:config/curiocatalogue/collections/*.json` (07.11.2026, K1 of the collections
   core plan). Patches are applied in `AssetsLoaded` at order 0.05 (JsonPatchLoader.cs:195#ExecuteOrder) by rewriting the cached
@@ -269,7 +269,7 @@ In this order:
   get:** the server lists only universal mods for it (`ServerMain`, `Info.Side.IsUniversal()`), and one not `requiredOnClient`
   may be missing there, so the assets of a server-side mod, `config/` included, exist on the server only. A collection from such a mod is unknown to the
   client, as is one patched with `"side": "server"`.
-- **`AssetLocation.GetName()` keeps the file ending** (`AssetLocation.cs:383`): `tapestries.json` for `…/tapestries.json`. The id of a
+- **`AssetLocation.GetName()` keeps the file ending** (`AssetLocation.cs:383#GetName`): `tapestries.json` for `…/tapestries.json`. The id of a
   definition is `Path.GetFileNameWithoutExtension(location.Path)` (07.11.2026, K3).
 - **`IAssetManager` and `IAsset` cannot be mocked in `CurioCatalogue.Tests`:** NSubstitute's proxy needs `SkiaSharp` (the bitmap
   methods of `IAsset`), which the test project does not have (`FileNotFoundException` on the first call). The registry takes a
@@ -321,13 +321,13 @@ In this order:
   (AssetCategory.cs:12#itemtypes). Where an order matters (the grades poor < medium < rich < bountiful), write it down.
 - **Seashells** `seashell-{type}-{color}` (04.11.2026, details in the collections design plan, C2): a block, 42 combinations, a
   picked-up shell is a block stack of the same code. **A block patch's list is not always what generates:** on land
-  `BlockSeashell.TryPlaceBlockForWorldGen` (`BlockShell.cs:45`) draws its own type and colour, so the loose-shell patches that
+  `BlockSeashell.TryPlaceBlockForWorldGen` (`BlockShell.cs:45#TryPlaceBlockForWorldGen`) draws its own type and colour, so the loose-shell patches that
   name only clam and turritella give any of the 42; under water the patch's list holds. Before trusting `blockCodes` of a
   patch, check whether the block class overrides the placement.
 - **Butterflies** `butterfly-dead-{type}` (04.11.2026, details in the collections design plan, C3): 169 types, only from the bug net.
   The entity has a 170th, `reedbutterfly`, with no item: catching it kills it and gives nothing. **A `*ByType` with no matching
   key falls back to the C# default, not to "absent":** `reedbutterfly` has no `chanceByType` entry, so its `Chance` is 1, the
-  highest of all (`RegistryObjectType.cs:306#solveByType`, `SpawnConditions.cs:265`). The species is not in the code but in the
+  highest of all (`RegistryObjectType.cs:306#solveByType`, `SpawnConditions.cs:265#Chance`). The species is not in the code but in the
   Latin name, lang `itemdesc-creature-butterfly-{type}`.
 
 ## Other mods

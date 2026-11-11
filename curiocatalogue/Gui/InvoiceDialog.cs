@@ -103,7 +103,7 @@ public class InvoiceDialog : GridDialog
     public override void OnRenderGUI(float deltaTime)
     {
         // The slot under the mouse holds still, so its tooltip stays on one item (as vanilla's firepit reads the hovered slot,
-        // vssurvivalmod GuiDialogBlockEntityFirepit.cs:42).
+        // vssurvivalmod GuiDialogBlockEntityFirepit.cs:42#CurrentHoveredSlot).
         var hovered = capi.World.Player.InventoryManager.CurrentHoveredSlot;
         for (int i = 0; i < cycles.Count; i++)
         {

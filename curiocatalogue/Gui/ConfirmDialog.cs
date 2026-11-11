@@ -5,7 +5,7 @@ namespace CurioCatalogue.Gui;
 
 /// <summary>
 /// Vanilla's confirmation, made once per question: like our windows it leaves LoadedGuis and frees its composer when
-/// closed. Vanilla's own stays loaded until the game quits (it keeps UnregisterOnClose false, vsapi GuiDialog.cs:260).
+/// closed. Vanilla's own stays loaded until the game quits (it keeps UnregisterOnClose false, vsapi GuiDialog.cs:260#UnregisterOnClose).
 /// </summary>
 public sealed class ConfirmDialog(ICoreClientAPI capi, string text, Action<bool> onAnswer) : GuiDialogConfirm(capi, text, onAnswer)
 {

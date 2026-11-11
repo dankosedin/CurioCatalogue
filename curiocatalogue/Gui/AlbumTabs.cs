@@ -16,7 +16,7 @@ namespace CurioCatalogue.Gui;
 public sealed class AlbumTabs : GuiElementVerticalTabs
 {
     private const double CheckSize = 16, IconSize = 18, IconGap = 4;
-    private const double BasePadding = 3; // the base's unscaledTabPadding (GuiElementVerticalTabs.cs:19)
+    private const double BasePadding = 3; // the base's unscaledTabPadding (GuiElementVerticalTabs.cs:19#unscaledTabPadding)
     private const float ItemZ = 90; // over the tabs' textures (z 50), as the page's items
 
     private bool[] complete;
@@ -37,7 +37,7 @@ public sealed class AlbumTabs : GuiElementVerticalTabs
         svgs = tabs.Select((_, i) => i < icons.Count ? icons[i] as AssetLocation : null).ToArray();
         marks = new LoadedTexture?[tabs.Length];
         // The room of the icon. The base sizes a tab by its name's ink and the padding on both sides, and draws the name after the
-        // left padding (GuiElementVerticalTabs.cs:76, :121); leading spaces move the ink but are no ink (Cairo's text extents).
+        // left padding (GuiElementVerticalTabs.cs:80#padding, GuiElementVerticalTabs.cs:126#DrawTextLineAt); leading spaces move the ink but are no ink (Cairo's text extents).
         // So half the room is spaces and half more padding: the name starts after the icon, the right margin stays the padding.
         if (slots.Any(s => s != null) || svgs.Any(s => s != null))
         {

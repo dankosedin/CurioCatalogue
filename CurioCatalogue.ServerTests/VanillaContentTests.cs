@@ -31,7 +31,7 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
         // The window draws a value's icon in a table's heading (L2b), a level's and a layout's beside its name in the choice
         // (L2c): an item or block, or an SVG of ours, found by DefinitionIcons.Find; one the game lacks falls back to words,
         // silently, so a misspelt code or file is caught here. Our SVGs are in our mod, which this server loads (textures are
-        // universal: vsapi AssetCategory.cs:23).
+        // universal: vsapi AssetCategory.cs:23#textures).
         var seen = game.OnMain(() => Mod.Collections.All.Values
             .SelectMany(c => c.Definition.Dimensions
                 .SelectMany(d => c.Values[d.Code].Select(v => (Name: $"{c.Id} {d.Code} {v}", Icon: d.ValueIcon(v))))
@@ -56,7 +56,7 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
     {
         // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod
-        // BlockTapestry.cs:40#texturePath). Textures load on the server too (vsapi AssetCategory.cs:23, Universal), but the
+        // BlockTapestry.cs:40#texturePath). Textures load on the server too (vsapi AssetCategory.cs:23#textures, Universal), but the
         // Linux server archive CI uses ships no block textures (docs/test-server.md, checked 09.11.2026): there only the
         // attribute is checked, the files where the game has them.
         var seen = game.OnMain(() =>

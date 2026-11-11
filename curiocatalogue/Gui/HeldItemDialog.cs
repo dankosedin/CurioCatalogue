@@ -38,7 +38,7 @@ public abstract class HeldItemDialog : GuiDialog
 
     /// <summary>
     /// Every opening makes a new window, so a closed one is never used again: the game drops it from LoadedGuis
-    /// (decompiled GuiManager.OnGuiClosed; TryOpen registers it, vsapi GuiDialog.cs:289), and OnGuiClosed frees it.
+    /// (decompiled GuiManager.OnGuiClosed; TryOpen registers it, vsapi GuiDialog.cs:289#LoadedGuis), and OnGuiClosed frees it.
     /// </summary>
     public override bool UnregisterOnClose => true;
 
@@ -58,9 +58,9 @@ public abstract class HeldItemDialog : GuiDialog
     }
 
     /// <summary>
-    /// Shows a newly built window. The old composer is disposed first: the setter does not (vsapi GuiDialog.cs:129, only
+    /// Shows a newly built window. The old composer is disposed first: the setter does not (vsapi GuiDialog.cs:129#SingleComposer, only
     /// ClearComposers and Dispose do, :42-59), and its textures would stay until the game quits. Vanilla does the same
-    /// before recomposing (vsessentialsmod GuiDialogAddWayPoint.cs:164).
+    /// before recomposing (vsessentialsmod GuiDialogAddWayPoint.cs:164#SingleComposer).
     /// </summary>
     protected void SetComposer(GuiComposer composer)
     {

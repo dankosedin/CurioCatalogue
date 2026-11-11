@@ -122,7 +122,7 @@ sees a change.
       without "pictures"; `handbook-use-ledger-text` and `handbook-use-materials-text` (en, uk) make an album from any collection's
       member, not "with any tapestry piece" (found in L5, the author, 11.11.2026). Branch: `docs/album-texts`. After: V4 merged. Model: sonnet. Author: the text (reviewed with the lang at release).
       Done when: both languages; `AssetsTests` pass; the upgrade table's lang keys; pull request.
-- [ ] **L10. Textures of other elements drawn in place of the game's tooltip** (seen 11.11.2026 in W7; the release waits for it, the
+- [x] **L10. Textures of other elements drawn in place of the game's tooltip** (seen 11.11.2026 in W7; the release waits for it, the
       author). With `glDebugMode` on, the client crashes on `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture`: the item tooltip in the
       album (09.11.2026, A4 of the album view plan), the level dropdown with quick clicks (10.11.2026, L6), the item tooltip right
       after the album opened (11.11.2026, 11:47). With it off (the dev client since 11.11.2026), no crash but garbage: the tooltip's
@@ -402,3 +402,15 @@ sees a change.
   W7 passed in game (the author: seashells, crystals, tapestries). L7 done (final). Next: the pull request. During W7 the GL
   texture trouble came back (L10, a new step; `glDebugMode` set off in the dev client's `clientsettings.json`, so that it shows
   instead of crashing).
+- 11.11.2026: L10's cause found and fixed on `fix/gui-textures` (final unless the game says otherwise): the game disposes a GUI
+  element more than once, the second time later (`GuiComposerManager.Create` disposes the last composer of a name again on
+  the next one; decompiled), and `AlbumPageElement` freed its slot and corner textures by bare id, so the next album opening or
+  page freed a texture GL had meanwhile given to a tooltip or a scrollbar. Both are `LoadedTexture` now (freed once), the textures
+  of a recompose freed first, a debug line per dispose; `GuiTexturesTests` refuses a delete by id (mutation-checked);
+  `docs/modding.md` (GUI), case A33 in `functional.md`. No `CHANGELOG.md` line: the album page is new in 0.2. The game's
+  `AsyncRecompose` is not a race here: its upload runs on the main thread (the crash's stack, `ExecuteMainThreadTasks`), and
+  its error is the update of an id whose texture is gone, as in the other two crashes; A33 confirms it. Next: A33 in game (the author,
+  `glDebugMode` on), then L10 ticked and the pull request.
+- 11.11.2026: A33 passed in game (the author, `glDebugMode` on): no crash, no OpenGL error in the log; 15 album pages disposed
+  twice each, 14 of them a third and fourth time later (the last page waits in the game's cache). L10 done (final). Next: the
+  pull request.

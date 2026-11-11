@@ -199,6 +199,14 @@ In this order:
 - **Composers are not freed by the setter.** `SingleComposer = …` keeps the old composer and its textures (vsapi `GuiDialog.cs:129`;
   only `ClearComposers` and `Dispose` free them, `:42-59`). Dispose the old one before recomposing, as vanilla does
   (vsessentialsmod `GuiDialogAddWayPoint.cs:164`): `HeldItemDialog.SetComposer`.
+- **An element is disposed more than once, at different times.** The composer holds an interactive element in both its lists
+  and disposes each list (vsapi `GuiComposer.cs:795-796`, `:868-878`), and `CreateCompo` disposes the last composer of the same
+  name again when the next one is made (decompiled `GuiComposerManager.Create`), even one we disposed long ago: so on the window's
+  next opening or recompose. A texture freed by its bare id (`GLDeleteTexture`) is then freed again after GL gave that id to
+  another texture (a tooltip's, a scrollbar's): that one draws garbage or pieces of other windows, or, with `glDebugMode`, the
+  client crashes on `GL_INVALID_VALUE` in `LoadOrUpdateCairoTexture` (its `TexSubImage2D` on the lost id). Keep every texture as a
+  `LoadedTexture` (its `Dispose` forgets the id, vsapi `LoadedTexture.cs:77`; wrap a bare id: `new LoadedTexture(api, id, w, h)`);
+  `GuiTexturesTests` refuses a delete by id. Found 11.11.2026 (L10 of the album polish plan): `AlbumPageElement`.
 - **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289`); on close the game drops it
   only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
   made per opening must set it and dispose itself on close (`HeldItemDialog`, `ConfirmDialog`); otherwise it lives until the game quits.

@@ -97,10 +97,10 @@ public class ModDbPageTests
     {
         var html = ModDbPage.Generate(Input());
 
-        Assert.Contains("max-width: 960px", html);          // the card
-        Assert.Contains("flex-wrap: wrap", html);            // the hero
+        Assert.Contains("max-width:960px", html);          // the card
+        Assert.Contains("flex-wrap:wrap", html);            // the hero
         Assert.Contains("scroll-margin-top", html);          // anchors
-        Assert.Matches("<summary style=\"[^\"]*cursor: pointer", html);
+        Assert.Matches("<summary style=\"[^\"]*cursor:pointer", html);
     }
 
     [Fact]
@@ -293,27 +293,23 @@ public class ModDbPageTests
         Input(en: WithSeq("en", en ?? Seq("en")), uk: WithSeq("uk", uk ?? Seq("uk")));
 
     [Fact]
-    public void A_sequence_is_a_row_of_frames_with_captions_and_arrows()
+    public void A_sequence_is_a_row_of_frames_with_captions_and_no_arrows()
     {
         var html = ModDbPage.Generate(SeqInput());
 
         for (int n = 1; n <= 3; n++)
         {
-            Assert.Matches($"<figure [^>]*id=\"seq-album-chest-{n}\"", html);
-            Assert.Matches($"<figure [^>]*id=\"seq-uk-album-chest-{n}\"", html);
             Assert.Contains($"src=\"{Raw}docs/images/album-chest-{n}.en.png\" alt=\"Frame {n} en\"", html);
-            Assert.Contains($"Caption {n} of en, <strong>bold</strong>.", html);
-            Assert.Contains($"{n} / 3", html);
+            Assert.Contains($"<figcaption style=\"padding:6px 2px 4px;font-size:14px\">Caption {n} of en, <strong>bold</strong>.</figcaption>", html);
+            Assert.Contains($"Caption {n} of uk, <strong>bold</strong>.", html);
         }
-        Assert.Matches("<a href=\"#seq-album-chest-2\"[^>]*>next →</a>", html);
-        Assert.Matches("<a href=\"#seq-album-chest-1\"[^>]*>← back</a>", html);
-        Assert.Matches("<a href=\"#seq-album-chest-1\"[^>]*>first</a>", html);    // the last frame turns to the first
-        Assert.Matches("<a href=\"#seq-uk-album-chest-2\"[^>]*>далі →</a>", html);
-        Assert.Matches("<a href=\"#seq-uk-album-chest-1\"[^>]*>на початок</a>", html);
         Assert.DoesNotContain(":::", html);
-        // The first frame has no way back.
-        var first = System.Text.RegularExpressions.Regex.Match(html, "id=\"seq-album-chest-1\".*?</figure>", System.Text.RegularExpressions.RegexOptions.Singleline).Value;
-        Assert.DoesNotContain("← back", first);
+        // No arrows, no "n / N", no ids on the frames: they cost bytes (ModDB's size limit) and the scroll bar and the swipe are enough.
+        Assert.DoesNotContain("seq-", html);
+        Assert.DoesNotContain(" / 3", html);
+        Assert.DoesNotContain("next →", html);
+        Assert.DoesNotContain("далі", html);
+        Assert.Equal(6, System.Text.RegularExpressions.Regex.Matches(html, "<figure ").Count);
     }
 
     [Fact]
@@ -321,10 +317,63 @@ public class ModDbPageTests
     {
         var html = ModDbPage.Generate(SeqInput());
 
-        Assert.Matches("<div style=\"[^\"]*max-width: 900px[^\"]*\"><div style=\"[^\"]*overflow-x: auto[^\"]*scroll-snap-type: x mandatory", html);
-        Assert.Matches("<figure [^>]*style=\"[^\"]*flex: 0 0 100%[^\"]*scroll-snap-align: start[^\"]*scroll-margin-top: 60px", html);
-        Assert.Matches("<img src=\"[^\"]*album-chest-1[^>]*style=\"[^\"]*max-width: none", html);   // not the 420 px of the body's images
-        Assert.Matches("<figcaption style=\"[^\"]*justify-content: space-between", html);
+        Assert.Matches("<div style=\"[^\"]*max-width:900px[^\"]*\"><div style=\"[^\"]*overflow-x:auto[^\"]*scroll-snap-type:x mandatory", html);
+        Assert.Matches("<figure style=\"[^\"]*flex:0 0 100%[^\"]*scroll-snap-align:start", html);
+        Assert.Matches("<img src=\"[^\"]*album-chest-1[^>]*style=\"[^\"]*max-width:none", html);   // not the 420 px of the body's images
+    }
+
+    // --- size --------------------------------------------------------------------------------------------------------
+
+    [Fact]
+    public void A_page_over_the_limit_is_an_error_with_its_size()
+    {
+        var html = ModDbPage.Generate(Input());
+        int bytes = System.Text.Encoding.UTF8.GetByteCount(html);
+
+        ModDbPage.Generate(Input() with { MaxBytes = bytes });     // exactly the limit passes
+        var e = Fails(Input() with { MaxBytes = bytes - 1 });
+        Assert.Contains(e.Problems, p => p.Contains($"{bytes} bytes") && p.Contains($"{bytes - 1}"));
+    }
+
+    [Fact]
+    public void The_limit_counts_bytes_not_characters()
+    {
+        // Cyrillic is two bytes a letter: ModDB refused a page of 58 841 characters and 66 176 bytes (G3b).
+        var html = ModDbPage.Generate(Input());
+        Assert.True(System.Text.Encoding.UTF8.GetByteCount(html) > html.Length);
+        var e = Fails(Input() with { MaxBytes = html.Length });
+        Assert.Contains(e.Problems, p => p.Contains(" bytes"));
+    }
+
+    [Theory]
+    [InlineData("margin: 0 0 6px 0", "margin:0 0 6px")]
+    [InlineData("margin: 8px 0 8px 0", "margin:8px 0")]
+    [InlineData("padding: 0 16px 12px 16px", "padding:0 16px 12px")]
+    [InlineData("padding: 24px 28px", "padding:24px 28px")]
+    [InlineData("margin: 0 auto", "margin:0 auto")]
+    [InlineData("margin: 4px 4px", "margin:4px")]
+    [InlineData("margin: 1px 2px 3px 4px", "margin:1px 2px 3px 4px")]
+    [InlineData("scroll-margin-top: 56px;padding: 0 16px 12px 16px", "scroll-margin-top:56px;padding:0 16px 12px")]
+    [InlineData("box-shadow: 0 2px 10px rgba(60, 40, 20, 0.12);font-size: 15px", "box-shadow:0 2px 10px rgba(60, 40, 20, 0.12);font-size:15px")]
+    public void Styles_are_written_in_the_shortest_form_that_means_the_same(string style, string expected) =>
+        Assert.Equal(expected, ModDbPage.Shorten(style));
+
+    [Fact]
+    public void A_table_in_the_text_has_borders_and_padding()
+    {
+        var table = "| Collection | Made from |\n|---|---|\n| Tapestries | a tapestry piece |\n\n";
+        var html = ModDbPage.Generate(Input(en: Doc("en", t => t.Replace("![A shot]", table + "![A shot]")), uk: Doc("uk", t => t.Replace("![A shot]", table + "![A shot]"))));
+
+        Assert.Matches("<table style=\"[^\"]*border-collapse:collapse", html);
+        Assert.Matches("<th style=\"[^\"]*border:1px solid[^\"]*padding:5px 12px|<th style=\"[^\"]*padding:5px 12px[^\"]*border:1px solid", html);
+        Assert.Matches("<td style=\"[^\"]*padding:5px 12px[^\"]*\">Tapestries", html);
+    }
+
+    [Fact]
+    public void The_page_has_no_space_after_a_colon_in_styles()
+    {
+        var html = ModDbPage.Generate(Input());
+        Assert.DoesNotMatch("style=\"[^\"]*: ", html);
     }
 
     [Fact]

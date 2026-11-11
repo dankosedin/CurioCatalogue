@@ -86,11 +86,14 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 
       :::
       ```
-      The page shows a row of frames, one per width, turned by a swipe or by the links under the caption ("← back  n / N
-      next →", the last one "first"); each frame is a `<figure id="seq-<name>-<n>">` (`seq-uk-<name>-<n>` in the Ukrainian
-      part). The look is the template's CSS (`.seq`, `.seq-row`, `.seq-frame`, `.seq-nav`); the shape and what ModDB keeps:
+      The page shows a row of frames, one per width, turned by the scroll bar or a swipe; each frame is a `<figure>` with its
+      caption under it (no arrows, no "n / N", no ids: ModDB's size limit, below). The look is the template's CSS (`.seq`, `.seq-row`, `.seq-frame`); the shape and what ModDB keeps:
       "Sequences on ModDB" in `docs/plans/2026-11-04-mod-description.md`. GitHub shows the `:::` lines as text, the frames as
       images with paragraphs under them.
+    - **Size:** ModDB refuses a description of about 65 000 bytes ("Excessive size"), counting bytes, not characters (Cyrillic is two
+      a letter). The generator fails above `Contract.MaxPageBytes` (64 000, the reserve is for what the editor adds) and says the
+      size; the Cake task prints it. The inline styles are written short (no space after `:`, `margin`/`padding` in the shortest
+      form), since they repeat on every element. A sequence of three frames costs about 3 KB in both languages.
     - **After any change to a description** (a new, renamed or removed `##` section above all), run the real generator before
       the commit: `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=HEAD`. `PageGen.Tests` use sample
       descriptions, so only this step (and the `ModDB page` step of CI) sees the real ones. A new section also goes into

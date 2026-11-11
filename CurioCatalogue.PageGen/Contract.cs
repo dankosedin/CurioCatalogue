@@ -12,6 +12,9 @@ public static class Contract
     public const int InsideItems = 6;
     public const int InsideSubsections = 3;
 
+    /// <summary>ModDB refuses a description of about 65 000 bytes ("Excessive size"); it counts bytes, not characters (Cyrillic is two a letter). The reserve is for what the editor adds.</summary>
+    public const int MaxPageBytes = 64_000;
+
     /// <summary>Sections that are an accordion each, in the page's order.</summary>
     public static readonly string[] AccordionKeys =
     {

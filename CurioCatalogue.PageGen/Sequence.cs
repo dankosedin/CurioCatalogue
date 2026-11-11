@@ -13,20 +13,13 @@ namespace CurioCatalogue.PageGen;
 
 /// <summary>
 /// The <c>::: sequence &lt;name&gt;</c> block of the description: frames, each an image paragraph and a caption paragraph under it,
-/// rendered as a row of frames one per width with arrows on anchors (Decisions, "Sequences on ModDB", of
-/// docs/plans/2026-11-04-mod-description.md). The look is the template's CSS (classes seq, seq-row, seq-frame, seq-nav).
+/// rendered as a row of frames one per width, turned by the scroll bar or a swipe, no arrows (Decisions, "Sequences on ModDB", of
+/// docs/plans/2026-11-04-mod-description.md). The look is the template's CSS (classes seq, seq-row, seq-frame).
 /// </summary>
 public static class Sequence
 {
     /// <summary>A sequence as the cross-check of the two languages sees it.</summary>
     public sealed record Info(string Name, int Frames);
-
-    /// <summary>The words of the arrows, by language; the page shows en and uk only.</summary>
-    static readonly Dictionary<string, (string Back, string Next, string First)> Words = new()
-    {
-        ["en"] = ("← back", "next →", "first"),
-        ["uk"] = ("← назад", "далі →", "на початок"),
-    };
 
     /// <summary>Only the block parser of Markdig's custom containers: their inline form (<c>::text::</c>) is not wanted.</summary>
     public sealed class Extension : IMarkdownExtension
@@ -44,7 +37,7 @@ public static class Sequence
     /// Replaces every <c>:::</c> block of the document by the HTML of its sequence; anything else written with <c>:::</c> is a problem.
     /// Links must already be absolute. <paramref name="source"/> is the description's text, to see whether a block is closed.
     /// </summary>
-    public static List<Info> RenderAll(MarkdownDocument doc, string source, string lang, string where, List<string> problems, Func<Block, string> render)
+    public static List<Info> RenderAll(MarkdownDocument doc, string source, string where, List<string> problems, Func<Block, string> render)
     {
         var infos = new List<Info>();
         var names = new HashSet<string>();
@@ -66,8 +59,7 @@ public static class Sequence
 
             var frames = Frames(c, where, line, problems);
             infos.Add(new Info(name, frames.Count));
-            string prefix = "seq-" + (lang == "en" ? "" : lang + "-") + name + "-";
-            var html = Html(frames, prefix, Words.GetValueOrDefault(lang, Words["en"]), render);
+            var html = Html(frames, render);
             Replace(c, html);
         }
         return infos;
@@ -94,23 +86,17 @@ public static class Sequence
         return frames;
     }
 
-    static string Html(List<(LinkInline Image, ParagraphBlock Caption)> frames, string prefix, (string Back, string Next, string First) w, Func<Block, string> render)
+    static string Html(List<(LinkInline Image, ParagraphBlock Caption)> frames, Func<Block, string> render)
     {
         var sb = new StringBuilder();
         sb.Append("<div class=\"seq\"><div class=\"seq-row\">\n");
-        int n = frames.Count;
-        for (int i = 0; i < n; i++)
+        foreach (var (img, caption) in frames)
         {
-            var (img, caption) = frames[i];
             string alt = WebUtility.HtmlEncode(Description.PlainText(img));
             string src = WebUtility.HtmlEncode(img.Url ?? "");
             string captionHtml = Description.StripOuter(render(caption), "p");
-            sb.Append($"<figure class=\"seq-frame\" id=\"{prefix}{i + 1}\"><img src=\"{src}\" alt=\"{alt}\">");
-            sb.Append($"<figcaption><span class=\"seq-caption\">{captionHtml}</span><span class=\"seq-nav\">");
-            if (i > 0) sb.Append($"<a href=\"#{prefix}{i}\">{w.Back}</a> ");
-            sb.Append($"{i + 1} / {n} ");
-            sb.Append(i < n - 1 ? $"<a href=\"#{prefix}{i + 2}\">{w.Next}</a>" : $"<a href=\"#{prefix}1\">{w.First}</a>");
-            sb.Append("</span></figcaption></figure>\n");
+            sb.Append($"<figure class=\"seq-frame\"><img src=\"{src}\" alt=\"{alt}\">");
+            sb.Append($"<figcaption>{captionHtml}</figcaption></figure>\n");
         }
         sb.Append("</div></div>\n");
         return sb.ToString();

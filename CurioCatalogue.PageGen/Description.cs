@@ -52,7 +52,7 @@ public static class Description
         foreach (var link in doc.Descendants<LinkInline>())
             link.Url = links.Absolute(link.Url, link.IsImage);
 
-        var sequences = Sequence.RenderAll(doc, markdown, lang, where, problems, RenderBlock);
+        var sequences = Sequence.RenderAll(doc, markdown, where, problems, RenderBlock);
 
         // The head: everything before the first ##.
         int firstH2 = IndexOfHeading(doc, 2, 0);

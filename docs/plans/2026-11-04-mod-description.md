@@ -73,7 +73,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       Branch: `feature/mod-description` (stacked on `docs/mod-description`, the author, 11.11.2026). After: G2. Model: sonnet.
       Author: looks at the diff of the page.
       Done when: CI generates the page from the description (G3a); G3b done.
-- [ ] **G3c. The page within ModDB's size.** ModDB refuses a description over about 65 KB ("Excessive size", G3b, 11.11.2026):
+- [x] **G3c. The page within ModDB's size.** ModDB refuses a description over about 65 KB ("Excessive size", G3b, 11.11.2026):
       it counts bytes, not characters (a test page of 66 176 bytes and 58 841 characters was refused), and today's page
       without a sequence is already 60 634 bytes: 23 KB of it inline CSS, 33.6 KB the Ukrainian part (Cyrillic is two
       bytes a letter); a sequence of three frames costs ~5.5 KB in both languages. Without a change to what the player sees:
@@ -177,5 +177,14 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   template; both languages have the same sequences, checked; only the block form of Markdig's custom containers is on, not
   the inline `::text::`. The generator's argument for another English description is `descriptionEn`: `description` is a
   flag of Cake itself, so G3a's argument could not be used.
+
+- **The page within ModDB's size** (the author decided "n / N" away, 11.11.2026, G3c): no arrows, no "n / N", no `id` on the
+  frames (so no `seq-` ids and no `Words` of the arrows in `Sequence.cs`); the caption alone under the image. The generator fails
+  above `Contract.MaxPageBytes` = 64 000 bytes (`PageInput.MaxBytes` for tests). The saving came from the generator, not from the
+  template: `ModDbPage.Shorten` writes the inline styles short (no space after `:`, `margin`/`padding` in the shortest form
+  that means the same): 2.6 KB, less than the plan guessed (the 23 KB of inline CSS is mostly the styles repeating on 500+
+  elements, not the spaces); `code` lost its `border-radius`. `li`/`p` margins stay: they are not the default, the look would change.
+  Then the collections table got borders and padding (`.body table`, `th`, `td`; the live page showed it bare, 11.11.2026): the page is 60 424 bytes, +2.4 KB, since every cell carries its style. Room left for 0.2: ~3.5 KB, i.e. one sequence of three frames in both languages; more needs G5's decision (the Ukrainian part
+  shortened on the page, or moved off it).
 
 ## Where we stopped

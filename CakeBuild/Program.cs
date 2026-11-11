@@ -171,7 +171,7 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
         File.WriteAllText(Path.ChangeExtension(output, ".preview.html"),
             "<!doctype html>\n<html><head><meta charset=\"utf-8\"><title>Curio Catalogue (preview)</title></head>\n" +
             "<body style=\"margin: 0; padding: 24px; background: #888\">\n" + html + "</body></html>\n");
-        context.Log.Information("ModDB page for {0} at {1}: {2} ({3} KB)", context.Version, gitRef, Path.GetFullPath(output), html.Length / 1024);
+        context.Log.Information("ModDB page for {0} at {1}: {2} ({3} bytes of {4})", context.Version, gitRef, Path.GetFullPath(output), System.Text.Encoding.UTF8.GetByteCount(html), CurioCatalogue.PageGen.Contract.MaxPageBytes);
     }
 
     static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..].ToLowerInvariant();

@@ -6,7 +6,7 @@ using Scriban.Runtime;
 namespace CurioCatalogue.PageGen;
 
 /// <summary>Everything the generator needs, as values: reading files is the caller's job.</summary>
-public sealed class PageInput
+public sealed record PageInput
 {
     public required string DescriptionEn { get; init; }
     public required string DescriptionUk { get; init; }
@@ -26,6 +26,8 @@ public sealed class PageInput
     public required string RepoUrl { get; init; }
     /// <summary>Source and Report a bug in the row of buttons (ModDB's card has them too).</summary>
     public bool ModDbLinks { get; init; }
+    /// <summary>The page may not be larger than this many bytes (UTF-8); see <see cref="Contract.MaxPageBytes"/>.</summary>
+    public int MaxBytes { get; init; } = Contract.MaxPageBytes;
 }
 
 /// <summary>The two descriptions + template → the HTML that is pasted into ModDB's editor (docs/plans/2026-11-01-mod-page.md, "The generator's shape").</summary>
@@ -45,6 +47,9 @@ public static class ModDbPage
         if (problems.Count > 0) throw new ContractException(problems);
 
         html = Inline(html, problems);
+        int bytes = System.Text.Encoding.UTF8.GetByteCount(html);
+        if (bytes > input.MaxBytes)
+            problems.Add($"The page is {bytes} bytes, ModDB takes at most about 65 000 and the limit here is {input.MaxBytes}: shorten the descriptions or lighten the template's CSS");
         if (problems.Count > 0) throw new ContractException(problems);
         return html;
     }
@@ -139,6 +144,23 @@ public static class ModDbPage
         }
     }
 
+    /// <summary>
+    /// The size of the page is ModDB's limit (<see cref="Contract.MaxPageBytes"/>), and the styles are inline, repeated on every element:
+    /// no space after the colon, and <c>margin</c>/<c>padding</c> in the shortest form that means the same (<c>0 0 6px 0</c> is <c>0 0 6px</c>).
+    /// </summary>
+    public static string Shorten(string style)
+    {
+        style = Regex.Replace(style, ":\\s+", ":");
+        return Regex.Replace(style, "(?<![-\\w])(margin|padding):([^;]+)", m =>
+        {
+            var v = m.Groups[2].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (v.Count == 4 && v[3] == v[1]) v.RemoveAt(3);
+            if (v.Count == 3 && v[2] == v[0]) v.RemoveAt(2);
+            if (v.Count == 2 && v[1] == v[0]) v.RemoveAt(1);
+            return m.Groups[1].Value + ":" + string.Join(' ', v);
+        });
+    }
+
     static string Inline(string html, List<string> problems)
     {
         var result = PreMailer.Net.PreMailer.MoveCssInline(html, removeStyleElements: true, removeComments: true);
@@ -149,6 +171,8 @@ public static class ModDbPage
 
         page = Regex.Replace(page, "<!--.*?-->", "", RegexOptions.Singleline);
         page = Regex.Replace(page, "\\sclass=\"[^\"]*\"", "");
+        // PreMailer writes "prop: value;prop: value"; the space after the colon is 23 KB of bytes on the real page and means nothing.
+        page = Regex.Replace(page, "\\sstyle=\"([^\"]*)\"", m => " style=\"" + Shorten(m.Groups[1].Value) + "\"");
         page = page.Trim() + Environment.NewLine;
 
         if (Regex.IsMatch(page, "<style", RegexOptions.IgnoreCase))

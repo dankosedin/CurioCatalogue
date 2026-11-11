@@ -83,7 +83,7 @@ sees a change.
       Branch: `feat/butterflies-look`. After: L4a. Model: sonnet. Author: plays, writes the notes.
       Done when: tests pass (every one of the 169 in exactly one group), mutation-checked; the notes fixed or rejected; pull request.
       Split in two sessions (the author, 11.11.2026), one branch and one pull request:
-  - [ ] **L4ba. The derived dimension in the core.** `DimensionDef` `From` and `Map`, the reader, `CheckDefinition` (a source
+  - [x] **L4ba. The derived dimension in the core.** `DimensionDef` `From` and `Map`, the reader, `CheckDefinition` (a source
         value in two entries refused), a value the `map` lacks (its own, after the listed, a warning), no `drop` needed when the
         source is kept, never a part of a member's name; core and reader tests, mutation-checked. Nothing the player sees.
         Model: opus. After: L4a merged. Done when: core and adapter tests pass, mutation-checked.
@@ -292,6 +292,12 @@ sees a change.
     layouts' icons a sample too (L2c had none: one layout then); a frame's heading inside a tab names the species alone, not
     "family · species"; family names in words, drafts: Swallowtails, Skippers, Whites and sulphurs, Metalmarks, Gossamer-winged
     butterflies, Brush-footed butterflies, Moths (uk drafts in L4b, reviewed with the lang at release).
+- **Small points of L4ba, 11.11.2026** (agent; the author may overturn at the review): `from` names an earlier dimension (else
+  refused, so a chain cannot loop) and needs a `map`, a `map` needs a `from`; a value the source itself gives in a derived
+  dimension is replaced by the derived one; a level needs no `drop` for a derived dimension whose source it keeps or whose source
+  follows so (a family from a species from a kept type); a source value the map lacks gives one warning per dimension, which
+  replaces the list's "does not list" warning for it (a family from such a species warns once more, in its own dimension); a
+  derived dimension is no part of a member's name even when a level keeps it.
 
 ## Where we stopped
 
@@ -346,3 +352,6 @@ sees a change.
   (final). Next: the pull request.
 - 11.11.2026: L4a done (final) on `docs/butterflies-grouping`: Decisions, "The butterflies' grouping"; `docs/decisions.md`
   (Collections: the derived dimension); `ROADMAP.md`, Maybe (a level by species). Next: the pull request, then L4b.
+- 11.11.2026: L4ba done (final) on `feat/butterflies-look`, not pushed: `DimensionDef.From` and `Map`, the derivation in
+  `DefinedCollection.Build`, `CheckDefinition` (Decisions, "Small points of L4ba"), the reader's `from` and `map`; core and
+  adapter tests mutation-checked, all test projects green. Nothing the player sees. Next: L4bb on the same branch.

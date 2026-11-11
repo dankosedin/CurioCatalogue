@@ -149,7 +149,8 @@ public sealed class DefinedCollection
     /// dimension the level does not drop as <see cref="Drop.Max"/> in which all its items share a value, in the definition's order
     /// (the richest native copper, found in basalt only: "…, basalt"; a tapestry piece's place in its picture). Only dimensions
     /// with a <see cref="DimensionDef.NameKey"/>; the adapters also leave out a value with no translation. What the member leaves
-    /// free is said by <see cref="Free"/>. Empty: the member is named by its first item (butterflies).
+    /// free is said by <see cref="Free"/>. A derived dimension is never a part (L4a: its value follows from a kept one; a
+    /// butterfly keeps the game's name, not its species'). Empty: the member is named by its first item (butterflies).
     /// </summary>
     public IReadOnlyList<(DimensionDef Dimension, string Value)> NameParts(CollectionLevel level, Member member)
     {
@@ -157,7 +158,7 @@ public sealed class DefinedCollection
         var kept = keep.Select(code => Definition.Dimensions.First(d => d.Code == code));
         var shared = Definition.Dimensions.Where(d => !keep.Contains(d.Code) && level.Definition.Drop.GetValueOrDefault(d.Code) != Drop.Max);
         return kept.Concat(shared)
-            .Where(d => d.NameKey != null && member.Values.ContainsKey(d.Code))
+            .Where(d => d.NameKey != null && !d.IsDerived && member.Values.ContainsKey(d.Code))
             .Select(d => (d, member.Values[d.Code]))
             .ToList();
     }
@@ -179,21 +180,25 @@ public sealed class DefinedCollection
         var warnings = new List<string>();
         var dims = definition.Dimensions;
 
-        // The points: first of each name, not excluded, a value in every dimension.
+        // The points: first of each name, not excluded, the derived dimensions' values added, a value in every dimension.
         var excluded = NamePattern.Matcher(definition.Exclude);
+        var derive = new Derivation(dims);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var kept = new List<SourcePoint>();
-        foreach (var p in points)
+        foreach (var source in points)
         {
-            if (!seen.Add(p.Name)) { warnings.Add($"Point '{p.Name}' is given twice; the first is kept"); continue; }
-            if (excluded(p.Name)) continue;
+            if (!seen.Add(source.Name)) { warnings.Add($"Point '{source.Name}' is given twice; the first is kept"); continue; }
+            if (excluded(source.Name)) continue;
+            var p = derive.Point(source);
             var lacking = dims.Where(d => !p.Values.ContainsKey(d.Code)).Select(d => d.Code).ToList();
             if (lacking.Count > 0) errors.Add($"Point '{p.Name}' has no value for {string.Join(", ", lacking)}");
             else kept.Add(p);
         }
         if (errors.Count > 0) return new CollectionBuild.Invalid(definition.Id, errors);
+        warnings.AddRange(derive.Warnings());
 
-        var orders = dims.ToDictionary(d => d.Code, d => DimensionOrder.Of(d, kept.Select(p => p.Values[d.Code]), warnings));
+        var orders = dims.ToDictionary(d => d.Code,
+            d => DimensionOrder.Of(d, kept.Select(p => p.Values[d.Code]), warnings, quiet: derive.Unmapped(d.Code)));
         // Stable: points equal in every dimension keep the source's order.
         var sorted = kept.OrderBy(p => dims.Select(d => orders[d.Code].Index(p.Values[d.Code])).ToArray(), Lexicographic.Instance).ToList();
 
@@ -316,6 +321,7 @@ public sealed class DefinedCollection
         foreach (var d in def.Dimensions)
         foreach (var dup in d.Values.GroupBy(v => v).Where(g => g.Count() > 1))
             errors.Add($"Dimension '{d.Code}' lists '{dup.Key}' twice");
+        errors.AddRange(CheckDerived(def.Dimensions));
 
         if (def.Levels.Count == 0) errors.Add("No levels");
         foreach (var dup in def.Levels.GroupBy(l => l.Id).Where(g => g.Count() > 1)) errors.Add($"Level '{dup.Key}' is defined twice");
@@ -333,7 +339,8 @@ public sealed class DefinedCollection
             foreach (var d in level.Keep.Concat(level.Drop.Keys).Where(d => !known.Contains(d)).Distinct())
                 errors.Add($"{at} names an unknown dimension '{d}'");
             foreach (var d in level.Keep.Where(level.Drop.ContainsKey)) errors.Add($"{at} both keeps and drops '{d}'");
-            foreach (var d in codes.Where(c => !level.Keep.Contains(c) && !level.Drop.ContainsKey(c)))
+            // A derived dimension whose source the level keeps has one value per member already: nothing to say of it.
+            foreach (var d in codes.Where(c => !level.Keep.Contains(c) && !level.Drop.ContainsKey(c) && !FollowsFromKept(def.Dimensions, level, c)))
                 errors.Add($"{at} neither keeps nor drops '{d}' (say any or max)");
 
             foreach (var dup in level.Layouts.GroupBy(l => l.Id).Where(g => g.Count() > 1))
@@ -348,6 +355,40 @@ public sealed class DefinedCollection
             errors.Add($"A rule names an unknown dimension '{d}'");
 
         return errors;
+    }
+
+    /// <summary>A derived dimension names an earlier dimension and a map, and a source value is in at most one entry of the map:
+    /// else a point's value would be the definition's order of entries, a silent choice.</summary>
+    private static IEnumerable<string> CheckDerived(IReadOnlyList<DimensionDef> dims)
+    {
+        for (int i = 0; i < dims.Count; i++)
+        {
+            var d = dims[i];
+            string at = $"Dimension '{d.Code}'";
+            if (d.From == null)
+            {
+                if (d.Map != null) yield return $"{at} has a map but derives from no dimension (from)";
+                continue;
+            }
+            int source = dims.Select(x => x.Code).ToList().IndexOf(d.From);
+            if (source < 0) yield return $"{at} derives from an unknown dimension '{d.From}'";
+            else if (source >= i) yield return $"{at} derives from '{d.From}', which does not come before it";
+            if (d.Map == null) { yield return $"{at} derives from '{d.From}' but has no map"; continue; }
+            foreach (var dup in d.Map.SelectMany(e => e.Value.Select(v => (source: v, value: e.Key)))
+                         .GroupBy(p => p.source).Where(g => g.Count() > 1))
+                yield return $"{at} maps '{dup.Key}' of '{d.From}' more than once ({string.Join(", ", dup.Select(p => p.value))})";
+        }
+    }
+
+    /// <summary>A derived dimension whose source the level keeps, or whose source follows so from a kept one (a family from a
+    /// species from a kept type). Only an earlier source is followed, so a bad definition cannot loop.</summary>
+    private static bool FollowsFromKept(IReadOnlyList<DimensionDef> dims, LevelDef level, string code)
+    {
+        int i = dims.Select(x => x.Code).ToList().IndexOf(code);
+        var d = dims[i];
+        if (d.From == null) return false;
+        int source = dims.Select(x => x.Code).ToList().IndexOf(d.From);
+        return source >= 0 && source < i && (level.Keep.Contains(d.From) || FollowsFromKept(dims, level, d.From));
     }
 
     /// <summary>A layout groups and arranges by values each member must have, and a shape needs integer x and y.</summary>
@@ -411,7 +452,9 @@ public sealed class DefinedCollection
 
         public int Rank(string value) => rank[value];
 
-        public static DimensionOrder Of(DimensionDef dim, IEnumerable<string> occurring, List<string> warnings)
+        /// <param name="quiet">Unlisted values already warned of (a derived dimension's source values its map lacks).</param>
+        public static DimensionOrder Of(DimensionDef dim, IEnumerable<string> occurring, List<string> warnings,
+            IReadOnlySet<string> quiet)
         {
             var found = occurring.Distinct().ToList();
             if (dim.Values.Count == 0)
@@ -419,14 +462,64 @@ public sealed class DefinedCollection
 
             var listed = dim.Values.Where(found.Contains).ToList();
             var unlisted = found.Where(v => !dim.Values.Contains(v)).OrderBy(v => v, StringComparer.Ordinal).ToList();
-            if (unlisted.Count > 0)
-                warnings.Add($"Dimension '{dim.Code}' does not list {string.Join(", ", unlisted)}: they come last and rank lowest");
+            var loud = unlisted.Where(v => !quiet.Contains(v)).ToList();
+            if (loud.Count > 0)
+                warnings.Add($"Dimension '{dim.Code}' does not list {string.Join(", ", loud)}: they come last and rank lowest");
             // Rank: unlisted from -count up to -1, listed from 0 by their place in the list.
             var rank = unlisted.Select((v, i) => (v, r: i - unlisted.Count))
                 .Concat(listed.Select(v => (v, r: dim.Values.ToList().IndexOf(v))))
                 .ToDictionary(p => p.v, p => p.r);
             return new DimensionOrder(listed.Concat(unlisted).ToList(), rank);
         }
+    }
+
+    /// <summary>
+    /// The derived dimensions' values of each point (<see cref="DimensionDef.From"/>, <see cref="DimensionDef.Map"/>), in the
+    /// definition's order, so one derived from another derived (a family from a species) finds its source's value already set. A
+    /// source value no entry of the map lists is its own value; such values are remembered for one warning per dimension.
+    /// Assumes a definition <see cref="CheckDefinition"/> accepted (no source value in two entries).
+    /// </summary>
+    private sealed class Derivation
+    {
+        private readonly IReadOnlyList<(DimensionDef Dimension, IReadOnlyDictionary<string, string> BySource)> derived;
+        private readonly Dictionary<string, SortedSet<string>> unmapped = new();
+
+        public Derivation(IEnumerable<DimensionDef> dims)
+        {
+            derived = dims.Where(d => d.IsDerived)
+                .Select(d => (d, (IReadOnlyDictionary<string, string>)(d.Map ?? new Dictionary<string, IReadOnlyList<string>>())
+                    .SelectMany(e => e.Value.Select(source => (source, value: e.Key)))
+                    .ToDictionary(p => p.source, p => p.value, StringComparer.Ordinal)))
+                .ToList();
+            foreach (var (d, _) in derived) unmapped[d.Code] = new SortedSet<string>(StringComparer.Ordinal);
+        }
+
+        public SourcePoint Point(SourcePoint p)
+        {
+            if (derived.Count == 0) return p;
+            var values = new Dictionary<string, string>(p.Values);
+            foreach (var (d, bySource) in derived)
+            {
+                // No source value: the point lacks the source dimension, which Build reports; nor does it get this one.
+                if (!values.TryGetValue(d.From!, out var source)) { values.Remove(d.Code); continue; }
+                if (bySource.TryGetValue(source, out var value)) values[d.Code] = value;
+                else
+                {
+                    values[d.Code] = source;
+                    unmapped[d.Code].Add(source);
+                }
+            }
+            return p with { Values = values };
+        }
+
+        /// <summary>The source values a derived dimension's map lacks, met so far (empty for any other dimension).</summary>
+        public IReadOnlySet<string> Unmapped(string dimension) =>
+            unmapped.TryGetValue(dimension, out var set) ? set : ImmutableHashSet<string>.Empty;
+
+        public IEnumerable<string> Warnings() =>
+            derived.Where(x => unmapped[x.Dimension.Code].Count > 0)
+                .Select(x => $"Dimension '{x.Dimension.Code}' maps no value of '{x.Dimension.From}' for "
+                    + $"{string.Join(", ", unmapped[x.Dimension.Code])}: each is its own value, after the listed ones");
     }
 
     /// <summary>Compares int arrays element by element (a sort key of several dimensions).</summary>

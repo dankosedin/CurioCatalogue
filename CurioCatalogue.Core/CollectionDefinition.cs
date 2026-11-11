@@ -28,10 +28,19 @@ namespace CurioCatalogue.Core;
 /// The full name stays the heading's tooltip.</param>
 /// <param name="Icons">The icons of the values <see cref="Icon"/> does not fit, value → icon in the same forms (a crystal's
 /// <c>quartz_nativegold</c> → <c>game:nugget-nativegold</c>); without <see cref="Icon"/>, a whole table by hand. Null when none.</param>
+/// <param name="From">A derived dimension (the album polish plan, L4a: a butterfly's species, family, step of rarity): the code of an
+/// earlier dimension whose value gives this one's by <see cref="Map"/>; the source's own value in this dimension, if any, is
+/// replaced. Null for a dimension the source gives.</param>
+/// <param name="Map">A derived dimension's table: value → the source values that give it (<c>danaus-plexippus</c> → <c>[monarch]</c>).
+/// A source value in no entry is its own value here, after the listed ones, with a warning; in two entries, the definition is refused.</param>
 public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null,
-    string? AnyKey = null, string? ShortNameKey = null, IReadOnlyDictionary<string, string>? Icons = null)
+    string? AnyKey = null, string? ShortNameKey = null, IReadOnlyDictionary<string, string>? Icons = null,
+    string? From = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? Map = null)
 {
     public const string ValuePlaceholder = "{value}";
+
+    /// <summary>Its value is derived from another dimension's by a table (<see cref="From"/>), not given by the source.</summary>
+    public bool IsDerived => From != null;
 
     public string? ValueNameKey(string value) => NameKey?.Replace(ValuePlaceholder, value);
 

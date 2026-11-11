@@ -18,6 +18,17 @@ public static class MemberNames
     public static string? ValueName(DimensionDef dimension, string value) =>
         dimension.ValueNameKey(value) is { } key ? Translated(key) : null;
 
+    /// <summary>
+    /// A value's name for a group's heading, a tab, a table's heading in words: <see cref="ValueName(DimensionDef, string)"/>, or for a
+    /// picture of a <see cref="CollectionSource.Tapestry"/> source the game's own name (the picture has no <c>nameKey</c>, else it
+    /// would make tabs: the plan's L1, point 1); the value itself when nothing names it. By the source, not the collection's id
+    /// (L12): another mod's collection of tapestries is named alike.
+    /// </summary>
+    public static string ValueName(CollectionSource? source, DimensionDef dimension, string value) =>
+        ValueName(dimension, value)
+        ?? (source is CollectionSource.Tapestry && dimension.Code == "picture" ? Translated("game:tapestry-" + value) : null)
+        ?? value;
+
     /// <summary>A key's text, matched with wildcards; null when the language has none.</summary>
     public static string? Translated(string key) => Lang.GetMatchingIfExists(key);
 

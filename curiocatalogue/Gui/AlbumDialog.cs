@@ -380,17 +380,14 @@ public sealed class AlbumDialog : HeldItemDialog
         mark == null ? null
         : (mark.Argb, mark.NameKey == null ? null : $"<font color=\"#{mark.Argb & 0xFFFFFF:X6}\">{Lang.Get(mark.NameKey)}</font>");
 
-    /// <summary>A value's name for a group's heading, a tab, a table's heading in words: by <see cref="MemberNames.ValueName"/>, or
-    /// for a tapestry picture the game's own name (no <c>nameKey</c> on the picture, else it would make tabs: the plan's L1,
-    /// point 1); the value itself when nothing names it.</summary>
-    internal static string ValueName(DefinedCollection collection, DimensionDef dimension, string value) =>
-        MemberNames.ValueName(dimension, value)
-        ?? (collection.Id == CollectionRegistry.TapestriesId && dimension.Code == "picture" ? MemberNames.Translated("game:tapestry-" + value) : null)
-        ?? value;
+    /// <summary>A value's name for a group's heading, a tab, a table's heading in words: <see cref="MemberNames.ValueName(CollectionSource, DimensionDef, string)"/>
+    /// by the collection's source.</summary>
+    private string ValueName(DefinedCollection collection, DimensionDef dimension, string value) =>
+        MemberNames.ValueName(mod.Collections.SourceOf(collection.Id), dimension, value);
 
     /// <summary>Whether another value of the dimension has the same name: the game names "schematic-a" to "schematic-d" alike.
     /// The heading keeps the short name; the hint on hover adds the value (A4, the author: the code only on hover).</summary>
-    private static bool SharesName(DefinedCollection collection, DimensionDef dimension, string value)
+    private bool SharesName(DefinedCollection collection, DimensionDef dimension, string value)
     {
         string name = ValueName(collection, dimension, value);
         return collection.Values[dimension.Code].Count(v => ValueName(collection, dimension, v) == name) > 1;

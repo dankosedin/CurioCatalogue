@@ -14,7 +14,7 @@ says **Branch**, **After**, **Model**, **Author** (a decision or in-game work on
 goes ahead on its own) and **Done when**. A session that stops in the middle writes one line under "Where we stopped".
 
 The agent does not run the game: what only the game client can show is the author's, with exact steps written by the agent.
-The look steps (L2, L3, L4b) are driven by the author's notes from the game: the plan names what to look at, not what is wrong.
+The look steps (L2, L3, L4b, L11) are driven by the author's notes from the game: the plan names what to look at, not what is wrong.
 Each step updates `docs/testing/functional.md`, `CHANGELOG.md` and the upgrade table (`docs/testing/upgrade-0.1-to-0.2.md`,
 "Changes in 0.2.0 that need a case": lang keys, recipes) in its own pull request, where they apply; the READMEs where the player
 sees a change.
@@ -138,6 +138,37 @@ sees a change.
       Branch: `fix/gui-textures`. After: none. Model: opus. Author: reproduces in game by the agent's steps.
       Done when: the cause found and fixed, or ruled ours-free with the evidence; the author's steps pass with no `OpenGL` error in
       the log; a case in `functional.md`; pull request.
+- [ ] **L11. Tapestries: the look.** The step of the tapestries as L2–L4b were of the others (none had been planned; L6 left them
+      "unchanged; the author looks"). The author's idea (11.11.2026): a picture's dark frame stretches so that the page has no light
+      patches: frames on one line of pictures as tall as the tallest, the line's frames widened to the page's width (as L6 stretches
+      a group alone on its page), perhaps the last line down to the controls; and the picture centred in its frame, tried and kept
+      only if it looks better. Then the author's notes from the game, as L2. The rule lives in `AlbumPages` (the box of a group
+      apart from where its cells stand), so the butterflies' frames per species (`byfamily`) follow it too: looked at alike.
+      Branch: `feat/album-frames`. After: none. Model: opus. Author: plays, writes the notes, decides on centring.
+      Done when: the notes fixed or rejected with reasons (Decisions); `AlbumPagesTests` for the stretched frames, mutation-checked;
+      a case in `functional.md` passed; pull request.
+- [ ] **L12. A tapestry collection named by its source, not its id** (`ROADMAP.md`, 0.2, item 6, the author, 10.11.2026: a
+      collection's look by its asset alone, for other mods' authors). The game's names of tapestry pictures are looked up only for
+      the collection with the id `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw
+      picture codes. Tie it to the source kind (`CollectionSource.Tapestry`), wherever the picture's name is looked up
+      (`MemberNames` too, if it has the same special case).
+      Branch: `fix/tapestry-names`. After: none. Model: sonnet. Author: none.
+      Done when: a test with a second collection of the `tapestry` source under another id names its pictures by the game,
+      mutation-checked; no code compares a collection's id with `tapestries` for its look; pull request.
+- [ ] **L13. Want list window: a grid with no empty slots** (`ROADMAP.md`, 0.2, item 6, seen 10.11.2026 in L6). The window's grid
+      is the game's, always 10 columns with the last row filled up by empty slots, while the album's cells spread evenly over
+      their lines with none empty. First the author decides: the want list follows the album (lines spread evenly as `AlbumPages`
+      does, no empty slots) or keeps the look of the game's chests (then the step closes with the reason in Decisions). Then built.
+      Branch: `feat/wantlist-grid`. After: none. Model: sonnet. Author: the decision; the in-game check.
+      Done when: the decision in Decisions; if built, a case in `functional.md` passed (W7 still passes: the lines cycle); pull request.
+- [ ] **L14. A part for modders** (`ROADMAP.md`, 0.2, item 6, the author, 10.11.2026): how another mod adds a collection. The
+      definition's JSON (today only in `docs/decisions.md`, Collections), that the definition and its patches must reach the client
+      (not `"side": "server"`), icons (`icon`, `icons`, an SVG drawn in its own colours), the album recipe; `tapestries.json` and
+      the test mod as examples. Where it lives follows G1 of `2026-11-04-mod-description.md` (README becomes the project's README:
+      the part goes there, English only, unless G1 decides otherwise); `docs/decisions.md` keeps the why and points to it.
+      Branch: `docs/modders`. After: G1, L12 (the part promises a look by the asset alone). Model: sonnet. Author: the text
+      (public: reviewed before the pull request).
+      Done when: the part in place, every field it names checked against `CollectionDefinitionReader`; the author's yes; pull request.
 
 ## Decisions
 
@@ -146,6 +177,9 @@ sees a change.
 - **L1 after the seashells, not at once** (the author, 09.11.2026): the rule is right only with crystals and seashells in view.
   Rejected: L1 for tapestries now, the rest later (the rule made twice).
 - **The look steps are driven by the author's notes from the game** (the author, 09.11.2026), not guessed in advance.
+- **L11–L14 added to this plan after it was done** (the author, 11.11.2026): the tapestries had no look step of their own, and
+  three lines of `ROADMAP.md` 0.2 item 6 had no step (a tapestry collection by its source, the want list's grid, a part for
+  modders). The same item of the roadmap, so this plan, not a new one.
 - **No code review of its own** (the author, 09.11.2026): R1 of the release plan reads it, as item 4 and the album window.
 - **A branch and a pull request per step** (the author, 09.11.2026).
 - **Step letter L** (look); A, B, C, F, G, K, P, R, S, T and V are taken.

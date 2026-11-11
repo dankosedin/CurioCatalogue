@@ -243,8 +243,7 @@ public sealed class AlbumPages
             {
                 // As many lines as the width needs, the cells spread evenly over them: 16 at 12 a line is 8 + 8, not 12 + 4 (L6, the author).
                 int most = Math.Max(1, m.Width / m.Cell);
-                int lineCount = (members.Count + most - 1) / most;
-                int perLine = Math.Max(1, (members.Count + lineCount - 1) / Math.Max(1, lineCount));
+                int perLine = EvenLines.PerLine(members.Count, most);
                 var lines = members.Chunk(perLine)
                     .Select(chunk => new Line(m.Cell, chunk.Select((mem, i) => new PlacedMember(mem, i * m.Cell, 0)).ToList(), []))
                     .ToList();

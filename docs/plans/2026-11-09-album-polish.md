@@ -155,7 +155,7 @@ sees a change.
       Branch: `fix/tapestry-names`. After: none. Model: sonnet. Author: none.
       Done when: a test with a second collection of the `tapestry` source under another id names its pictures by the game,
       mutation-checked; no code compares a collection's id with `tapestries` for its look; pull request.
-- [ ] **L13. Want list window: a grid with no empty slots** (`ROADMAP.md`, 0.2, item 6, seen 10.11.2026 in L6). The window's grid
+- [x] **L13. Want list window: a grid with no empty slots** (`ROADMAP.md`, 0.2, item 6, seen 10.11.2026 in L6). The window's grid
       is the game's, always 10 columns with the last row filled up by empty slots, while the album's cells spread evenly over
       their lines with none empty. First the author decides: the want list follows the album (lines spread evenly as `AlbumPages`
       does, no empty slots) or keeps the look of the game's chests (then the step closes with the reason in Decisions). Then built.
@@ -375,6 +375,7 @@ sees a change.
     at both, the butterflies "look fine now". A picture is centred by its cells, not its box: a picture narrower than its name
     has a box as wide as the name (`MinGroupWidth`), and centring the box left it at the left (seen in game, Translocator).
 - **The look of a tapestry collection by its source** (L12, 11.11.2026): `MemberNames.ValueName(source, dimension, value)` names a `picture` of a `CollectionSource.Tapestry` source by the game (`game:tapestry-{value}`); `CollectionRegistry.SourceOf(id)` gives the source to the window. No code compares a collection's id with `tapestries` for its look (the id stays in the config's defaults and the old-config move only). Rejected: a flag in the definition JSON (the source kind already says it, and a mod author would have to know to set it).
+- **The want list window follows the album** (L13, the author, 11.11.2026): the invoice window (`InvoiceDialog`: a want list and the invoices of the ledger and the bill of materials, one window) spreads its lines evenly over rows as `AlbumPages` does and has a slot for each line, none empty. The rule is `EvenLines.PerLine` in the core, used by both; `GridDialog.FillView(evenly: true)`. The window is never narrower than 6 slots (its texts and the Cancel button need the room). The ledger window keeps the game's chest look (10 columns, the last row filled up). Rejected: keeping the chest look for the want list too (the only window of ours that looked unlike the album, seen in L6).
 
 ## Where we stopped
 
@@ -464,3 +465,4 @@ sees a change.
 - 11.11.2026: L8 done (final text for the author's review, reviewed with the lang at release) on `docs/album-texts`: `guide-text`, `handbook-use-album-text`, `handbook-use-ledger-text`, `handbook-use-materials-text` in en and uk (four collections named; an album from a piece of any collection; no "pictures"); the upgrade table; `AssetsTests` green. No `CHANGELOG.md` line: the guide's album text is new in 0.2. Next: the pull request.
 - 11.11.2026: L11 done (final) on `feat/album-frames`: Decisions, "The frames stretched"; `AlbumPagesTests` mutation-checked, all test projects green; A34 in `functional.md` passed in game (the author, en and uk), `CHANGELOG.md`. Next: the pull request.
 - 11.11.2026: L12 done (final) on `fix/tapestry-names`: the game's names of tapestry pictures follow the source kind, not the id (Decisions, "The look of a tapestry collection by its source"); `TooltipTests` has a server test with a second collection of the `tapestry` source, mutation-checked; all test projects green. No case in `functional.md` (nothing changes for the vanilla collections). Next: the pull request.
+- 11.11.2026: L13 done (final) on `feat/wantlist-grid`: Decisions, "The want list window follows the album"; `EvenLinesTests` mutation-checked; all test projects green (Core 210, adapters 240, server 232; the compat tests not run). W8 in `functional.md` passed in game (the author, en and uk, 11.11.2026; 3, 11, 23, 42 lines and two invoices). Next: the pull request.

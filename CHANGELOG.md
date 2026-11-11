@@ -17,6 +17,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 - **What a collection lacks is named by what it is,** not by the first item that fits: a want list's line, the first line of an album cell's tooltip and a slot of the want list window say "Ambush, left third" for a tapestry piece (pieces of one picture no longer share a name), "Native copper, bountiful, basalt" or "Native copper, any rock" for a crystal, "Scallop, any colour" for a seashell. Butterflies keep the game's own names. A collection's definition words this per level (`memberKey`); the definition key `inLists` is gone. English and Ukrainian.
 - **Rare seashells are marked in the album:** seafoam and turquoise shells, the game's rare colours, have a small golden corner on their cells and "Rare colour" in the tooltip. A collection's definition says which attributes are marked and in what colour (`marks`), so another mod's collection marks its own. English and Ukrainian.
 - **Another mod's tapestries are named like ours:** a collection of the `tapestry` source under any id shows the game's names of its pictures in the album window, not the raw picture codes.
+- **The want list window has no empty slots:** the invoice window (want list, bill of materials invoice, ledger invoice) spreads its lines evenly over rows as the album does (11 lines as 6 + 5, not 10 + 1 and nine empty slots) and has a slot for each line; the ledger window keeps the look of the game's chests.
 
 ## 0.1.1 (2026-10-31)
 

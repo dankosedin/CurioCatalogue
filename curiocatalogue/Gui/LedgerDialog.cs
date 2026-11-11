@@ -63,7 +63,7 @@ public class LedgerDialog : GridDialog
         int rows = FillView(Stacks());
 
         var font = CairoFont.WhiteSmallText();
-        double width = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, Cols, 1).fixedWidth + 12;
+        double width = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, MaxCols, 1).fixedWidth + 12;
         const double line = 30;
         double y = GuiStyle.TitleBarHeight + 5;
 

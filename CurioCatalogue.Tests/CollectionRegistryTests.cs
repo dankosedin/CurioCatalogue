@@ -246,6 +246,39 @@ public class CollectionRegistryTests
         Assert.Equal(["quartz"], ores.Level("ores")!.Members.Select(m => m.Id));
     }
 
+    // L4a: a dimension derived by a table, and one derived from it; the level keeps the source and says nothing of them.
+    private const string Moths = """
+        {
+          "source": { "kind": "variants", "code": "game:moth-{type}" },
+          "dimensions": [
+            { "code": "type", "values": [] },
+            { "code": "species", "values": ["luna", "atlas"], "nameKey": "k:species-{value}", "from": "type",
+              "map": { "atlas": ["atlas"], "luna": ["luna_male", "luna_female"] } },
+            { "code": "family", "values": [], "from": "species", "map": { "saturniidae": ["atlas", "luna"] } }
+          ],
+          "levels": [
+            { "id": "all", "keep": ["type"], "layouts": [ { "id": "f", "groupBy": ["family", "species"] } ] }
+          ]
+        }
+        """;
+
+    [Fact]
+    public void A_derived_dimension_is_read_from_its_source_and_map()
+    {
+        Add("othermod", "moths", Moths);
+        Codes("moth-atlas", "moth-luna_female", "moth-luna_male");
+
+        var moths = Registry().Defined("moths")!;
+        var all = moths.Levels.Single();
+
+        var species = moths.Definition.Dimensions[1];
+        Assert.Equal("type", species.From);
+        Assert.Equal(["luna_male", "luna_female"], species.Map!["luna"]);
+        Assert.Equal(("luna", "saturniidae"), (all.Find("luna_male")!.Values["species"], all.Find("luna_male")!.Values["family"]));
+        Assert.Equal([["saturniidae", "luna"], ["saturniidae", "atlas"]], all.Groups(all.DefaultLayout).Select(g => g.Values));
+        Assert.Empty(Errors());
+    }
+
     [Fact]
     public void A_variants_collection_with_no_variants_registered_is_not_there()
     {
@@ -285,6 +318,10 @@ public class CollectionRegistryTests
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": { "nameKey": "k:rare" } } } }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": { "color": "gold" } } } }""")]
     [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" } ], "levels": [ { "id": "l", "keep": ["a"] } ], "marks": { "rarity": { "rare": { "color": "#E0B04" } } } }""")]
+    // L4a: a map that is not an object, an entry that is not a list of texts, a source value in two entries (the core refuses it).
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" }, { "code": "b", "from": "a", "map": ["1"] } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" }, { "code": "b", "from": "a", "map": { "one": "1" } } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
+    [InlineData("""{ "source": { "kind": "variants", "code": "game:x-{a}" }, "dimensions": [ { "code": "a" }, { "code": "b", "from": "a", "map": { "one": ["1"], "uno": ["1"] } } ], "levels": [ { "id": "l", "keep": ["a"] } ] }""")]
     public void A_bad_definition_is_logged_and_the_other_collections_work(string json)
     {
         Add("badmod", "broken", json);

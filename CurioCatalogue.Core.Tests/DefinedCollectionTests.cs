@@ -400,6 +400,112 @@ public class DefinedCollectionTests
         Assert.Single(warnings);
     }
 
+    // --- Butterflies: dimensions derived by a table (the album polish plan, L4a), made-up types ---
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<string>> Map(params (string Value, string[] Sources)[] entries) =>
+        entries.ToDictionary(e => e.Value, e => (IReadOnlyList<string>)e.Sources);
+
+    private static readonly DimensionDef ButterflySpecies = new("species",
+        ["papilio-machaon", "danaus-plexippus", "limenitis-archippus", "attacus-atlas"], NameKey: "k:species-{value}", From: "type",
+        Map: Map(("danaus-plexippus", ["monarch"]), ("limenitis-archippus", ["viceroy"]), ("papilio-machaon", ["machaon-m", "machaon-f"]),
+            ("attacus-atlas", ["atlas"])));
+
+    private static readonly CollectionDefinition Butterflies = new(
+        "butterflies",
+        [
+            new DimensionDef("type", ["monarch", "viceroy", "machaon-m", "machaon-f", "atlas"]),
+            ButterflySpecies,
+            new DimensionDef("family", ["papilionidae", "nymphalidae", "moths"], NameKey: "k:family-{value}", From: "species",
+                Map: Map(("nymphalidae", ["danaus-plexippus", "limenitis-archippus"]), ("papilionidae", ["papilio-machaon"]),
+                    ("moths", ["attacus-atlas"]))),
+            new DimensionDef("rarity", ["rare", "common"], From: "type",
+                Map: Map(("rare", ["atlas", "machaon-f"]), ("common", ["monarch", "viceroy", "machaon-m"]))),
+        ],
+        // Keeps the type and says nothing of the derived three.
+        [
+            new LevelDef("all", ["type"], D(),
+            [
+                new LayoutDef("byfamily", ["family", "species"], new Arrangement.InOrder()),
+                new LayoutDef("byrarity", ["rarity"], new Arrangement.InOrder()),
+            ]),
+        ],
+        [],
+        []);
+
+    private static SourcePoint Butterfly(string type) =>
+        new($"butterfly-{type}", V(("type", type)), new ItemKey(CollectibleKind.Item, $"game:creature-butterfly-{type}", ""), type);
+
+    // The source's order differs from every dimension's, to see that the definition's orders win.
+    private static readonly IReadOnlyList<SourcePoint> ButterflyPoints =
+        new[] { "atlas", "viceroy", "machaon-f", "monarch", "machaon-m" }.Select(Butterfly).ToList();
+
+    private static IEnumerable<string> Ids(IEnumerable<Member> members) => members.Select(m => m.Id);
+
+    [Fact]
+    public void Derived_dimensions_give_each_type_a_value_by_their_maps_and_group_the_layouts()
+    {
+        var warnings = new List<string>();
+        var all = Built(DefinedCollection.Build(Butterflies, ButterflyPoints), warnings).Levels.Single();
+
+        Assert.Equal(["monarch", "viceroy", "machaon-m", "machaon-f", "atlas"], Ids(all.Members));
+        var female = all.Find("machaon-f")!;
+        Assert.Equal(V(("type", "machaon-f"), ("species", "papilio-machaon"), ("family", "papilionidae"), ("rarity", "rare")),
+            female.Values);
+
+        var byFamily = all.Groups(all.Layouts[0]);
+        Assert.Equal([["papilionidae", "papilio-machaon"], ["nymphalidae", "danaus-plexippus"], ["nymphalidae", "limenitis-archippus"],
+            ["moths", "attacus-atlas"]], byFamily.Select(g => g.Values));
+        Assert.Equal(["machaon-m", "machaon-f"], Ids(byFamily[0].Members));
+
+        var byRarity = all.Groups(all.Layouts[1]);
+        Assert.Equal([["rare"], ["common"]], byRarity.Select(g => g.Values));
+        Assert.Equal(["machaon-f", "atlas"], Ids(byRarity[0].Members));
+        Assert.Empty(warnings);
+    }
+
+    [Fact]
+    public void A_type_a_map_lacks_is_its_own_value_after_the_listed_ones_with_one_warning_per_dimension()
+    {
+        var warnings = new List<string>();
+        var points = ButterflyPoints.Append(Butterfly("reed")).Append(Butterfly("aardvark"));
+
+        var butterflies = Built(DefinedCollection.Build(Butterflies, points), warnings);
+        var all = butterflies.Levels.Single();
+
+        Assert.Equal("aardvark", all.Find("aardvark")!.Values["species"]);
+        // The species' own value is not in the family's map either: its own family, too.
+        Assert.Equal("reed", all.Find("reed")!.Values["family"]);
+        Assert.Equal(["papilio-machaon", "danaus-plexippus", "limenitis-archippus", "attacus-atlas", "aardvark", "reed"],
+            butterflies.Values["species"]);
+        Assert.Equal(["moths", "aardvark", "reed"], all.Groups(all.Layouts[0]).TakeLast(3).Select(g => g.Values[0]));
+        // One warning per dimension: the maps' own, then the type's list, which lacks them too.
+        Assert.Equal(["species", "family", "rarity", "type"], warnings.Select(w => w.Split('\'')[1]));
+        Assert.All(warnings, w => Assert.Contains("aardvark, reed", w));
+    }
+
+    [Fact]
+    public void A_derived_dimension_replaces_a_value_the_source_gives_for_it()
+    {
+        var points = ButterflyPoints.Select(p => p with { Values = V(("type", p.Values["type"]), ("species", "wrong")) });
+
+        var all = Built(DefinedCollection.Build(Butterflies, points)).Levels.Single();
+
+        Assert.Equal("danaus-plexippus", all.Find("monarch")!.Values["species"]);
+    }
+
+    [Fact]
+    public void A_derived_dimension_is_no_part_of_a_members_name_even_with_names_and_kept()
+    {
+        var bySpecies = Butterflies with
+        {
+            Levels = [.. Butterflies.Levels, new LevelDef("species", ["species"], D(("type", Drop.Any), ("rarity", Drop.Any)), [])],
+        };
+        var butterflies = Built(DefinedCollection.Build(bySpecies, ButterflyPoints));
+
+        foreach (var level in butterflies.Levels)
+            Assert.All(level.Members, m => Assert.Empty(butterflies.NameParts(level, m)));
+    }
+
     // --- Definitions that cannot be built ---
 
     public static TheoryData<string, CollectionDefinition> BadDefinitions => new()
@@ -424,6 +530,25 @@ public class DefinedCollectionTests
               Levels = [new LevelDef("x", ["type"], D(("color", Drop.Max)), [])] } },
         // K7: an album with no level chosen stores "".
         { "A level has an empty id", Seashells with { Levels = [new LevelDef("", ["type", "color"], D(), [])] } },
+        // L4a: a type in two species would be in two frames, by the order of the map's entries.
+        { "maps 'monarch' of 'type' more than once (danaus-plexippus, limenitis-archippus)", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with
+                { Map = Map(("danaus-plexippus", ["monarch"]), ("limenitis-archippus", ["viceroy", "monarch"])) }] } },
+        { "maps 'monarch' of 'type' more than once", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with { Map = Map(("danaus-plexippus", ["monarch", "monarch"])) }] } },
+        { "derives from an unknown dimension 'kind'", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with { From = "kind" }] } },
+        { "derives from 'family', which does not come before it", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with { From = "family" }, Butterflies.Dimensions[2]] } },
+        { "derives from 'species', which does not come before it", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with { From = "species" }] } },
+        { "derives from 'type' but has no map", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with { Map = null }] } },
+        { "has a map but derives from no dimension", Butterflies with
+            { Dimensions = [Butterflies.Dimensions[0], ButterflySpecies with { From = null }] } },
+        // A level that keeps neither the type nor the species says what it does with the family's source.
+        { "neither keeps nor drops 'species'", Butterflies with
+            { Levels = [new LevelDef("x", ["family"], D(("type", Drop.Any), ("rarity", Drop.Any)), [])] } },
     };
 
     [Theory]

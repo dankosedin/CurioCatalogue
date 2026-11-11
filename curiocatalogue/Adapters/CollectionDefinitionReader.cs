@@ -136,7 +136,18 @@ public static class CollectionDefinitionReader
             ? null
             : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
                 Text(o, "anyKey", errors, required: false), Text(o, "shortNameKey", errors, required: false),
-                TextMap(o, "icons", $"dimension '{code}'", errors));
+                TextMap(o, "icons", $"dimension '{code}'", errors), Text(o, "from", errors, required: false),
+                ListMap(o, "map", $"dimension '{code}'", errors));
+    }
+
+    /// <summary>An optional object of lists of texts (a derived dimension's <c>map</c>, value → its source values); null when absent.</summary>
+    private static Dictionary<string, IReadOnlyList<string>>? ListMap(JObject o, string name, string what, List<string> errors)
+    {
+        if (o[name] == null) return null;
+        if (o[name] is not JObject map) { errors.Add($"{what}: '{name}' is not an object"); return null; }
+        var result = new Dictionary<string, IReadOnlyList<string>>();
+        foreach (var (key, value) in map) result[key] = Strings(value, $"{what}: '{name}' of '{key}'", errors);
+        return result;
     }
 
     /// <summary>An optional object of texts (a dimension's <c>icons</c>, value → icon); null when absent.</summary>

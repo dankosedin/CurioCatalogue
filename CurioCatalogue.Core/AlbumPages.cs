@@ -113,8 +113,14 @@ public sealed class AlbumPages
     /// <summary>The dimension the tabs show; null with no tabs.</summary>
     public DimensionDef? TabDimension { get; }
 
-    private AlbumPages(IReadOnlyList<AlbumPage> pages, IReadOnlyList<AlbumTab> tabs, int width, DimensionDef? tabDimension)
+    /// <summary>The first of the layout's grouping dimensions a group's heading names: 1 inside tabs when the group is named by
+    /// more (the tab names the first: a butterfly species' frame says the species, not "family · species", L4a), else 0.</summary>
+    public int HeadingFrom { get; }
+
+    private AlbumPages(IReadOnlyList<AlbumPage> pages, IReadOnlyList<AlbumTab> tabs, int width, DimensionDef? tabDimension,
+        int headingFrom = 0)
     {
+        HeadingFrom = headingFrom;
         Pages = pages;
         Tabs = tabs;
         Width = width;
@@ -152,7 +158,7 @@ public sealed class AlbumPages
                 return new AlbumTab(t.Key, pages.FindIndex(Has), pages.Count(Has), t.ToList());
             })
             .ToList();
-        return new AlbumPages(pages, tabs, width, tabDim);
+        return new AlbumPages(pages, tabs, width, tabDim, layout.GroupBy.Count > 1 ? 1 : 0);
     }
 
     /// <summary>The tab a page belongs to (its index); null with no tabs.</summary>

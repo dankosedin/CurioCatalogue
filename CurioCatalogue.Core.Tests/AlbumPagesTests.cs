@@ -287,6 +287,24 @@ public class AlbumPagesTests
     }
 
     [Fact]
+    public void Inside_tabs_a_group_s_heading_leaves_the_tab_s_dimension_to_the_tab_when_it_has_more()
+    {
+        // By ore, then grade (the butterflies' family, then species, L4a): the tab names the ore, the frame the grade alone.
+        var definition = CrystalsDefinition with
+        {
+            Levels = CrystalsDefinition.Levels
+                .Select(l => l.Id != "all" ? l : l with { Layouts = [.. l.Layouts, new LayoutDef("by-ore-grade", ["ore", "grade"], new Arrangement.InOrder())] })
+                .ToList(),
+        };
+        var collection = Built(definition, CrystalPoints);
+
+        Assert.Equal(1, Pages(collection, "all", "by-ore-grade", Metrics(40, 30)).HeadingFrom);
+        // No tabs (all on one page): the heading names both. One grouping dimension: the frame keeps it, though the tab says it too.
+        Assert.Equal(0, Pages(collection, "all", "by-ore-grade", Metrics(200, 500)).HeadingFrom);
+        Assert.Equal(0, Pages(collection, "all", "by-ore", Metrics(130, 60)).HeadingFrom);
+    }
+
+    [Fact]
     public void The_page_buttons_turn_the_pages_of_the_tab_and_without_tabs_all_pages()
     {
         // A page of 25: copper (35 high) and tin (35) take two pages each, iron (25) one.

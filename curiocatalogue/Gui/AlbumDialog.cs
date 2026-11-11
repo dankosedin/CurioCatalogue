@@ -358,11 +358,14 @@ public sealed class AlbumDialog : HeldItemDialog
         var level = shown.Level!;
         var dims = collection.Definition.Dimensions.ToDictionary(d => d.Code);
         var groupBy = shown.Layout!.GroupBy;
+        // Inside tabs, the tab names the first dimension (L4a).
+        int from = shown.Pages?.HeadingFrom ?? 0;
         return new AlbumPageLook(
-            GroupName: g => string.Join(" · ", groupBy.Select((d, i) => ValueName(collection, dims[d], g.Values[i]))),
+            GroupName: g => string.Join(" · ", groupBy.Select((d, i) => (d, i)).Skip(from)
+                .Select(p => ValueName(collection, dims[p.d], g.Values[p.i]))),
             GroupHint: g =>
             {
-                var parts = groupBy.Select((d, i) => (Dimension: dims[d], Value: g.Values[i])).ToList();
+                var parts = groupBy.Select((d, i) => (Dimension: dims[d], Value: g.Values[i])).Skip(from).ToList();
                 if (!parts.Any(p => SharesName(collection, p.Dimension, p.Value))) return null;
                 return string.Join(" · ", parts.Select(p => ValueName(collection, p.Dimension, p.Value)
                     + (SharesName(collection, p.Dimension, p.Value) ? $" ({p.Value})" : "")));

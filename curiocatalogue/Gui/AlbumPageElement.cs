@@ -93,6 +93,9 @@ public sealed class AlbumPageElement : GuiElement
     }
 
     private readonly AlbumPage page;
+    /// <summary>The size of every page of the level (<see cref="AlbumPages.Width"/>, <see cref="AlbumPages.Height"/>): a frame
+    /// that reaches it is drawn to the element's edge.</summary>
+    private readonly int pageWidth, pageHeight;
     private readonly PageMetrics metrics;
     private readonly AlbumPageLook look;
     private readonly Cell[] cells;
@@ -129,6 +132,7 @@ public sealed class AlbumPageElement : GuiElement
         AlbumPageLook look) : base(capi, bounds)
     {
         page = pages.Pages[pageIndex];
+        (pageWidth, pageHeight) = (pages.Width, pages.Height);
         this.metrics = metrics;
         this.look = look;
         pad = PadOf(pages);
@@ -172,7 +176,7 @@ public sealed class AlbumPageElement : GuiElement
     private static double NameRoom(GroupBox box)
     {
         int total = box.Group.Members.Count;
-        return box.Width - ProgressFont.GetTextExtents($"{total}/{total}").Width / scaled(1) - CheckSize - 2 - NameGap - 4;
+        return box.Frame.Width - ProgressFont.GetTextExtents($"{total}/{total}").Width / scaled(1) - CheckSize - 2 - NameGap - 4;
     }
 
     /// <summary>
@@ -182,7 +186,7 @@ public sealed class AlbumPageElement : GuiElement
     /// </summary>
     public IEnumerable<(double X, double Y, double Width, double Height, string Text)> CutTexts =>
         groups.Where(g => g.Box.HeadingHeight > 0 && g.Hover != null)
-            .Select(g => ((double)g.Box.X + left, (double)g.Box.Y + pad, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.Hover!))
+            .Select(g => ((double)g.Box.Frame.X + left, (double)g.Box.Frame.Y + pad, NameRoom(g.Box), (double)g.Box.HeadingHeight, g.Hover!))
             .Concat(headings.Where(h => h.Svg != null || (h.InWords && h.Fitted != h.Name))
                 .Select(h => ((double)h.Placed.X + left, (double)h.Placed.Y + pad, (double)h.Placed.Width, (double)h.Placed.Height, h.Name)));
 
@@ -262,19 +266,18 @@ public sealed class AlbumPageElement : GuiElement
         ComposeGroupHeadings();
     }
 
-    /// <summary>A frame round each group, so that one picture is told from the next (A4): a soft dark fill and a thin edge. A
-    /// group alone on its page (a tab of crystals' `all`) has its frame stretched over the whole element, to the window's right
-    /// edge and the controls below (L6, the author): the page is then one block, not a small box in a large window.</summary>
+    /// <summary>A frame round each group, so that one picture is told from the next (A4): a soft dark fill and a thin edge. The
+    /// frames come stretched over the page (<see cref="GroupBox.Frame"/>, L11); one that reaches the page's right edge or its
+    /// bottom goes on to the element's, the window's right edge and the controls below (L6, the author), which may lie further
+    /// (a strip short of a cell, the tabs aside taller than the page): the page is then one block, no light patches.</summary>
     private void DrawFrames(Context ctx)
     {
-        var framed = groups.Where(g => g.Box.HeadingHeight > 0).ToList();
-        bool alone = framed.Count == 1 && groups.Length == 1;
-        foreach (var group in framed)
+        foreach (var group in groups.Where(g => g.Box.HeadingHeight > 0))
         {
-            var box = group.Box;
-            double x = Bounds.drawX + scaled(left + box.X - FramePad), y = Bounds.drawY + scaled(pad + box.Y - FramePad);
-            double w = alone ? Bounds.drawX + scaled(Bounds.fixedWidth) - x : scaled(box.Width + 2 * FramePad);
-            double h = alone ? Bounds.drawY + scaled(Bounds.fixedHeight) - y : scaled(box.Height + 2 * FramePad);
+            var frame = group.Box.Frame;
+            double x = Bounds.drawX + scaled(left + frame.X - FramePad), y = Bounds.drawY + scaled(pad + frame.Y - FramePad);
+            double w = frame.Right >= pageWidth ? Bounds.drawX + scaled(Bounds.fixedWidth) - x : scaled(frame.Width + 2 * FramePad);
+            double h = frame.Bottom >= pageHeight ? Bounds.drawY + scaled(Bounds.fixedHeight) - y : scaled(frame.Height + 2 * FramePad);
             GuiElement.RoundRectangle(ctx, x, y, w, h, scaled(4));
             ctx.SetSourceRGBA(0, 0, 0, 0.14);
             ctx.FillPreserve();
@@ -348,11 +351,11 @@ public sealed class AlbumPageElement : GuiElement
     {
         if (group.Name == null || group.Progress == null) return;
         var box = group.Box;
-        double top = y0 + scaled(box.Y);
+        double top = y0 + scaled(box.Frame.Y);
         double middle = top + scaled(box.HeadingHeight) / 2;
         // The count stands right after the name, dimmer: at the group's right edge it read as the next group's (A4). The textures
         // have TextPad of room around the words, so that no letter is cut.
-        double pad = scaled(TextPad), nameX = x0 + scaled(box.X), wordsEnd = nameX + group.Name.Width - 2 * pad;
+        double pad = scaled(TextPad), nameX = x0 + scaled(box.Frame.X), wordsEnd = nameX + group.Name.Width - 2 * pad;
         double progressX = wordsEnd + scaled(NameGap);
         api.Render.Render2DLoadedTexture(group.Name, Snap(nameX - pad), Snap(middle - group.Name.Height / 2.0));
         api.Render.Render2DLoadedTexture(group.Progress, Snap(progressX - pad), Snap(middle - group.Progress.Height / 2.0));

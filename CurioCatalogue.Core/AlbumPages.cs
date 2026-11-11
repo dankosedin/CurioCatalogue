@@ -28,12 +28,22 @@ public sealed record PlacedMember(Member Member, int X, int Y);
 /// or its name.</summary>
 public sealed record PlacedHeading(DimensionDef Dimension, string Value, int X, int Y, int Width, int Height);
 
+/// <summary>A rectangle on a page.</summary>
+public sealed record Box(int X, int Y, int Width, int Height)
+{
+    public int Right => X + Width;
+    public int Bottom => Y + Height;
+}
+
 /// <summary>
-/// A group on a page, or a part of it when the group is larger than a page.
+/// A group on a page, or a part of it when the group is larger than a page. X, Y, Width and Height are where its heading line and
+/// cells stand; <see cref="Frame"/> is the room the group has on the page, at least as large.
 /// </summary>
 /// <param name="Group">The whole group: its heading shows its progress, not the part's.</param>
 /// <param name="Continued">A part after the first; its heading says so.</param>
 /// <param name="HeadingHeight">The line of the group's name above its cells; 0 when the layout does not group.</param>
+/// <param name="Frame">The group's frame, its name at the top left: stretched so that a page of frames has no gaps but the
+/// groups' own (L11). The group's own box when the layout does not group (no frames).</param>
 public sealed record GroupBox(
     MemberGroup Group,
     bool Continued,
@@ -43,7 +53,18 @@ public sealed record GroupBox(
     int Height,
     int HeadingHeight,
     IReadOnlyList<PlacedMember> Cells,
-    IReadOnlyList<PlacedHeading> Headings);
+    IReadOnlyList<PlacedHeading> Headings,
+    Box Frame)
+{
+    /// <summary>The group moved by (dx, dy), its cells and headings with it; the frame stays.</summary>
+    public GroupBox Shifted(int dx, int dy) => this with
+    {
+        X = X + dx,
+        Y = Y + dy,
+        Cells = Cells.Select(c => c with { X = c.X + dx, Y = c.Y + dy }).ToList(),
+        Headings = Headings.Select(h => h with { X = h.X + dx, Y = h.Y + dy }).ToList(),
+    };
+}
 
 public sealed record AlbumPage(IReadOnlyList<GroupBox> Groups)
 {
@@ -117,15 +138,16 @@ public sealed class AlbumPages
     /// more (the tab names the first: a butterfly species' frame says the species, not "family · species", L4a), else 0.</summary>
     public int HeadingFrom { get; }
 
+    /// <param name="pages">As the groups were placed, before their frames are stretched (<see cref="Stretched"/>).</param>
     private AlbumPages(IReadOnlyList<AlbumPage> pages, IReadOnlyList<AlbumTab> tabs, int width, DimensionDef? tabDimension,
-        int headingFrom = 0)
+        int? centre, int headingFrom = 0)
     {
         HeadingFrom = headingFrom;
-        Pages = pages;
         Tabs = tabs;
         Width = width;
         Height = pages.SelectMany(p => p.Groups).Select(g => g.Y + g.Height).DefaultIfEmpty(0).Max();
         UsedWidth = pages.SelectMany(p => p.Groups).Select(g => g.X + g.Width).DefaultIfEmpty(0).Max();
+        Pages = pages.Select(p => Stretched(p, width, Height, centre)).ToList();
         TabDimension = tabDimension;
     }
 
@@ -133,7 +155,8 @@ public sealed class AlbumPages
     /// Lays out the groups of <paramref name="layout"/> on pages. A page holds whole groups in order, side by side while they fit
     /// its width, then on the next line; a group larger than a page goes on over the next pages by whole lines of cells, a table
     /// repeating its column headings. With tabs, a tab's groups start a page of their own (A4, the author: one tab, one page;
-    /// several groups of different tabs on a page surprised).
+    /// several groups of different tabs on a page surprised). The groups' frames are then stretched over the page
+    /// (<see cref="Stretched"/>); a picture (<see cref="Arrangement.Shape"/>) stands in the middle of its frame (L11, the author).
     /// </summary>
     public static AlbumPages Build(DefinedCollection collection, CollectionLevel level, LayoutDef layout, PageMetrics metrics)
     {
@@ -141,13 +164,16 @@ public sealed class AlbumPages
         var dims = collection.Definition.Dimensions.ToDictionary(d => d.Code);
         var boxes = groups.Select(g => Measure(collection, dims, layout, g, metrics)).ToList();
         int width = boxes.Select(b => b.Width).Append(metrics.Width).Max();
+        // A picture in the middle of its frame; members in order and tables at its top left, by their headings (L11, the author:
+        // the butterflies' species looked right so).
+        int? centre = layout.Arrange is Arrangement.Shape ? metrics.Cell : null;
 
         DimensionDef? tabDim = layout.GroupBy.Count > 0 && dims[layout.GroupBy[0]].NameKey != null ? dims[layout.GroupBy[0]] : null;
         string? TabOf(MemberGroup g) => tabDim == null ? null : g.Values[0];
 
         // Tabs only when everything does not fit one page as it is.
         var together = Paginate(boxes, width, metrics, _ => null);
-        if (tabDim == null || together.Count < 2) return new AlbumPages(together, [], width, null);
+        if (tabDim == null || together.Count < 2) return new AlbumPages(together, [], width, null, centre);
 
         var pages = Paginate(boxes, width, metrics, TabOf);
         var tabs = groups
@@ -158,7 +184,7 @@ public sealed class AlbumPages
                 return new AlbumTab(t.Key, pages.FindIndex(Has), pages.Count(Has), t.ToList());
             })
             .ToList();
-        return new AlbumPages(pages, tabs, width, tabDim, layout.GroupBy.Count > 1 ? 1 : 0);
+        return new AlbumPages(pages, tabs, width, tabDim, centre, layout.GroupBy.Count > 1 ? 1 : 0);
     }
 
     /// <summary>The tab a page belongs to (its index); null with no tabs.</summary>
@@ -352,6 +378,49 @@ public sealed class AlbumPages
             headings.AddRange(line.Headings.Select(h => h with { X = x + h.X, Y = lineY + h.Y }));
             lineY += line.Height;
         }
-        return new GroupBox(box.Group, continued, x, y, box.Width, lineY - y, box.HeadingHeight, cells, headings);
+        return new GroupBox(box.Group, continued, x, y, box.Width, lineY - y, box.HeadingHeight, cells, headings,
+            new Box(x, y, box.Width, lineY - y));
+    }
+
+    // --- Frames: stretched over the page, so that it has no light patches between them (L11, the author) ---
+
+    /// <summary>
+    /// The frames of a page of groups with headings stretched: on a shelf (groups side by side at one Y) all as tall as the
+    /// tallest, and widened by equal shares of the room left on the right so that the last ends at <paramref name="width"/>; the
+    /// frames of the last shelf down to <paramref name="height"/>. A group alone on its page so fills it (L6). With
+    /// <paramref name="centre"/> (the cell's size), each group's cells stand in the middle of its frame under the name; else the
+    /// group at its top left. A page with no headings
+    /// (no frames drawn) stays as it is.
+    /// </summary>
+    private static AlbumPage Stretched(AlbumPage page, int width, int height, int? centre)
+    {
+        if (page.Groups.All(g => g.HeadingHeight == 0)) return page;
+        var shelves = page.Groups.GroupBy(g => g.Y).OrderBy(s => s.Key).ToList();
+        var result = new List<GroupBox>();
+        for (int s = 0; s < shelves.Count; s++)
+        {
+            var shelf = shelves[s].OrderBy(g => g.X).ToList();
+            int top = shelves[s].Key;
+            int bottom = s == shelves.Count - 1 ? Math.Max(height, shelf.Max(g => g.Y + g.Height)) : shelf.Max(g => g.Y + g.Height);
+            int room = Math.Max(0, width - shelf[^1].X - shelf[^1].Width);
+            int moved = 0;
+            for (int i = 0; i < shelf.Count; i++)
+            {
+                var g = shelf[i];
+                int share = room / shelf.Count + (i == shelf.Count - 1 ? room % shelf.Count : 0);
+                var frame = new Box(g.X + moved, top, g.Width + share, bottom - top);
+                // Centred by its cells, not its box: a picture narrower than its name has a box as wide as the name (L11, seen in game).
+                int dx = moved, dy = 0;
+                if (centre is { } cell && g.Cells.Count > 0)
+                {
+                    int left = g.Cells.Min(c => c.X), cellsWidth = g.Cells.Max(c => c.X) + cell - left;
+                    dx = frame.X + (frame.Width - cellsWidth) / 2 - left;
+                    dy = (frame.Height - g.Height) / 2;
+                }
+                result.Add(g.Shifted(dx, dy) with { Frame = frame });
+                moved += share;
+            }
+        }
+        return new AlbumPage(result);
     }
 }

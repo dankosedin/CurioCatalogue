@@ -117,7 +117,7 @@ sees a change.
       once a second, paused while hovered).
       Branch: `feat/wantlist-cycle`. After: V4 merged. Model: sonnet. Author: the in-game check.
       Done when: tests pass, mutation-checked; a case in `functional.md` passed; pull request.
-- [ ] **L8. The guide and the album's handbook text name four collections** (`ROADMAP.md`, 0.2, item 6, seen 09.11.2026): `guide-text`
+- [x] **L8. The guide and the album's handbook text name four collections** (`ROADMAP.md`, 0.2, item 6, seen 09.11.2026): `guide-text`
       and `handbook-use-album-text` (en, uk) say there are four collections, not "the first is tapestries", and describe the album
       without "pictures"; `handbook-use-ledger-text` and `handbook-use-materials-text` (en, uk) make an album from any collection's
       member, not "with any tapestry piece" (found in L5, the author, 11.11.2026). Branch: `docs/album-texts`. After: V4 merged. Model: sonnet. Author: the text (reviewed with the lang at release).
@@ -414,3 +414,4 @@ sees a change.
 - 11.11.2026: A33 passed in game (the author, `glDebugMode` on): no crash, no OpenGL error in the log; 15 album pages disposed
   twice each, 14 of them a third and fourth time later (the last page waits in the game's cache). L10 done (final). Next: the
   pull request.
+- 11.11.2026: L8 done (final text for the author's review, reviewed with the lang at release) on `docs/album-texts`: `guide-text`, `handbook-use-album-text`, `handbook-use-ledger-text`, `handbook-use-materials-text` in en and uk (four collections named; an album from a piece of any collection; no "pictures"); the upgrade table; `AssetsTests` green. No `CHANGELOG.md` line: the guide's album text is new in 0.2. Next: the pull request.

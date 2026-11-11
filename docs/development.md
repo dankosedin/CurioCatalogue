@@ -103,6 +103,8 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
 - `tools/textures.ps1` draws our item textures as whole PNGs (no vanilla pixels copied).
 - `tools/modicon.ps1` makes `curiocatalogue/modicon.png` from `tools/modicon-source.png` (a pixelated in-game screenshot).
 - `tools/lang-table.pl` prints all texts of `lang/en.json` and `lang/uk.json` as Markdown tables, side by side, for proofreading.
+- `tools/butterflies.ps1` generates `butterflies.json` (species, families, steps of rarity) from the game's assets and prints the species' lang lines;
+  run it again when `ButterfliesTests` say the game moved a butterfly (L4a of `docs/plans/2026-11-09-album-polish.md`).
 - For an AI agent: make multi-line or quote-heavy edits (backslashes, `\n` in JSON, apostrophes in Ukrainian text) with an
   editor tool, not perl or shell heredocs; those corrupted files several times.
 - `ConvertFrom-Json` validates strict JSON (lang files, recipes). Item and block types are JSON5 (unquoted keys, comments): it

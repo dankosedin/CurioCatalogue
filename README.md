@@ -80,7 +80,7 @@ album window while the album is empty; the first piece taken fixes it, and "Star
 | Tapestries | a tapestry piece | one: 88 pieces in 31 pictures |
 | Ore crystals | an ore crystal | the richest crystal of each ore (16); each ore in each rock (118); every crystal (353) |
 | Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
-| Butterflies | a dead butterfly | one: all 169 |
+| Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
 
 - A want list says what is missing, not one item: where several items will do (a seashell of any colour, a crystal in any rock)
   it says "any colour" or "any rock" and takes whichever there is room for. Each line names what is missing by what it is

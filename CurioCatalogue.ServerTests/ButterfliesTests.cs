@@ -8,7 +8,9 @@ namespace CurioCatalogue.ServerTests;
 /// <summary>
 /// The butterflies (V4 of the vanilla collections plan; what they are: C3 of the collections design plan): our definition
 /// <c>butterflies.json</c> on the game's real items <c>butterfly-dead-{type}</c>, 169 of them (<c>reedbutterfly</c> has no item).
-/// One level, every dead butterfly a member of its own, no grouping.
+/// One level, every dead butterfly a member of its own; grouped (L4a of the album polish plan) by family and species, or by the
+/// step of spawn chance, from tables <c>tools/butterflies.ps1</c> generated from the game's assets. The tests below check those
+/// tables against the game, so an update of the game that moves a butterfly is caught: run the script again.
 /// </summary>
 [Collection(ServerCollection.Name)]
 public class ButterfliesTests(GameServerFixture server) : BookTestBase(server)
@@ -16,6 +18,83 @@ public class ButterfliesTests(GameServerFixture server) : BookTestBase(server)
     const string Id = "butterflies";
 
     DefinedCollection Butterflies => Mod.Collections.Defined(Id) ?? throw new InvalidOperationException("no butterfly collection");
+
+    LayoutDef Layout(string id) => Butterflies.Levels.Single().Layouts.Single(l => l.Id == id);
+
+    [Fact]
+    public void By_family_the_169_butterflies_are_in_109_species_each_in_exactly_one_and_in_one_of_seven_families()
+    {
+        var seen = game.OnMain(() =>
+        {
+            var level = Butterflies.Levels.Single();
+            var groups = level.Groups(Layout("byfamily"));
+            return (level.DefaultLayout.Id, groups.Count, groups.Sum(g => g.Members.Count),
+                groups.SelectMany(g => g.Members).Select(m => m.Id).Distinct().Count(),
+                groups.Select(g => g.Values[0]).Distinct().ToList(),
+                Butterflies.Definition.Dimensions.Single(d => d.Code == "species").Values.Count,
+                groups.Select(g => g.Values[1]).ToList());
+        });
+
+        Assert.Equal(("byfamily", 109, 169, 169), (seen.Item1, seen.Item2, seen.Item3, seen.Item4));
+        // Every value is a listed one: a species or family the tables lack would be its own value, after the listed (L4a).
+        Assert.Equal(["papilionidae", "hesperiidae", "pieridae", "riodinidae", "lycaenidae", "nymphalidae", "moths"], seen.Item5);
+        Assert.Equal(109, seen.Item6);
+        Assert.Equal(109, seen.Item7.Distinct().Count());
+    }
+
+    [Fact]
+    public void By_rarity_the_169_butterflies_are_in_six_steps_rarest_first()
+    {
+        var seen = game.OnMain(() => Butterflies.Levels.Single().Groups(Layout("byrarity"))
+            .Select(g => (g.Values[0], g.Members.Count)).ToList());
+
+        Assert.Equal([("legendary", 6), ("veryrare", 7), ("rare", 19), ("scarce", 38), ("uncommon", 44), ("common", 55)], seen);
+    }
+
+    [Fact]
+    public void A_species_is_the_genus_and_species_of_the_Latin_name_the_game_gives_each_of_its_types()
+    {
+        // The game's Latin: "itemdesc-creature-butterfly-{type}" (game/lang/en.json, 1.22.7), with stray spaces and capitals;
+        // subspecies and aberrations go with their species ("Polygonia c-album ab. dilutus").
+        var wrong = game.OnMain(() => Butterflies.Levels.Single().Members
+            .Select(m => (Type: m.Values["type"], Species: m.Values["species"],
+                Latin: Lang.Get("game:itemdesc-creature-butterfly-" + m.Values["type"])))
+            .Where(m => string.Join("-", m.Latin.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2)) != m.Species)
+            .Select(m => $"{m.Type}: {m.Species}, the game says '{m.Latin}'")
+            .ToList());
+
+        Assert.Empty(wrong);
+    }
+
+    [Fact]
+    public void A_species_is_named_by_its_Latin_binomial_alike_in_both_languages()
+    {
+        var species = game.OnMain(() => Butterflies.Definition.Dimensions.Single(d => d.Code == "species").Values.ToList());
+        foreach (var s in species)
+        {
+            var words = s.Split('-', 2);
+            string binomial = char.ToUpperInvariant(words[0][0]) + words[0][1..] + " " + words[1];
+            Assert.Equal(binomial, LangText("en", "butterflies-species-" + s));
+            Assert.Equal(binomial, LangText("uk", "butterflies-species-" + s));
+        }
+    }
+
+    [Fact]
+    public void A_step_of_rarity_is_one_spawn_chance_of_the_game_and_the_steps_go_from_the_rarest()
+    {
+        // The chance of each type: "chanceByType" of entities/animal/invertebrate/butterfly.json, read by the server.
+        var steps = game.OnMain(() => Butterflies.Levels.Single().Members
+            .GroupBy(m => m.Values["rarity"])
+            .Select(g => (Step: g.Key, Chances: g.Select(m => World.GetEntityType(new AssetLocation("game:butterfly-" + m.Values["type"])))
+                .Select(e => e.Server.SpawnConditions.Runtime.Chance).Distinct().ToList()))
+            .ToList());
+        var order = game.OnMain(() => Butterflies.Definition.Dimensions.Single(d => d.Code == "rarity").Values.ToList());
+
+        Assert.All(steps, s => Assert.Single(s.Chances));
+        var byOrder = steps.OrderBy(s => order.IndexOf(s.Step)).Select(s => s.Chances[0]).ToList();
+        Assert.Equal(byOrder.Order().ToList(), byOrder);
+        Assert.Equal(6, byOrder.Distinct().Count());
+    }
 
     [Fact]
     public void The_only_level_has_a_member_for_each_of_the_169_dead_butterflies_filled_by_that_butterfly_alone()
@@ -44,7 +123,7 @@ public class ButterfliesTests(GameServerFixture server) : BookTestBase(server)
     public void The_definitions_list_is_exactly_the_games_types_so_the_log_has_no_warning_of_an_unlisted_one()
     {
         var seen = game.OnMain(() => (
-            Butterflies.Definition.Dimensions.Single().Values.Order().ToList(),
+            Butterflies.Definition.Dimensions.Single(d => d.Code == "type").Values.Order().ToList(),
             World.Items.Where(i => i.Code is { Domain: "game" } c && c.Path.StartsWith("butterfly-dead-")).Select(i => i.Code.Path["butterfly-dead-".Length..]).Order().ToList()));
         Assert.Equal(seen.Item2, seen.Item1);
     }
@@ -114,10 +193,12 @@ public class ButterfliesTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
-    public void The_collection_and_its_progress_have_names_in_the_lang()
+    public void The_collection_its_progress_layouts_and_every_species_family_and_step_have_names_in_the_lang()
     {
         var missing = game.OnMain(() => new[] { Butterflies.Definition.NameKey, Butterflies.Definition.Levels.Single().ProgressKey }
-            .Where(key => key != null && Lang.Get(key) == key).ToList());
+            .Concat(Butterflies.Definition.Levels.Single().Layouts.Select(l => l.NameKey))
+            .Concat(Butterflies.Definition.Dimensions.Where(d => d.Code != "type").SelectMany(d => d.Values.Select(d.ValueNameKey)))
+            .Where(key => key == null || Lang.Get(key) == key).ToList());
         Assert.Empty(missing);
     }
 }

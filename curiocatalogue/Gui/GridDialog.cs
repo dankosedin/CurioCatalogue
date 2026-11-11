@@ -25,7 +25,7 @@ public abstract class GridDialog : HeldItemDialog
 
     public override void OnGuiClosed()
     {
-        // Clears the hovered slot, as vanilla does on close (vsessentialsmod GuiDialogCreatureContents.cs:103).
+        // Clears the hovered slot, as vanilla does on close (vsessentialsmod GuiDialogCreatureContents.cs:103#OnGuiClosed).
         SingleComposer?.GetSlotGrid(GridKey)?.OnGuiClosed(capi);
         base.OnGuiClosed();
     }

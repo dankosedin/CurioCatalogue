@@ -41,7 +41,7 @@ public class SeashellsTests(GameServerFixture server) : BookTestBase(server)
     [Fact]
     public void Seafoam_and_turquoise_shells_are_rare_and_marked_and_the_others_are_not()
     {
-        // C2: the game's own split is the colour (BlockShell.cs:13). The rule is data, and so is its mark (L3 of the album polish
+        // C2: the game's own split is the colour (BlockShell.cs:13#rarecolors). The rule is data, and so is its mark (L3 of the album polish
         // plan): a golden corner and "Rare colour", from seashells.json and the lang.
         var seen = game.OnMain(() =>
         {

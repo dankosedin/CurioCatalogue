@@ -43,7 +43,7 @@ public sealed class AlbumPageElement : GuiElement
     private static readonly double SlotSize = GuiElementPassiveItemSlot.unscaledSlotSize;
     private static readonly double ItemSize = GuiElementPassiveItemSlot.unscaledItemSize;
     private const double Corner = 12;
-    private const float ItemZ = 90, MarkZ = 250; // as the slot grid draws items and its cross (GuiElementItemSlotGridBase.cs:498, 512)
+    private const float ItemZ = 90, MarkZ = 250; // as the slot grid draws items and its cross (GuiElementItemSlotGridBase.cs:498#RenderItemstackToGui, 512)
 
     // A cell the search does not match is drawn dark (A2, "What stays of today's window": the matches lit, the rest dimmed).
     private const float Dim = 0.3f;
@@ -387,7 +387,7 @@ public sealed class AlbumPageElement : GuiElement
     }
 
     /// <summary>
-    /// A position on the screen in whole pixels. Text textures are sampled without smoothing (TextTextureUtil.cs:85, linearMag
+    /// A position on the screen in whole pixels. Text textures are sampled without smoothing (TextTextureUtil.cs:85#LoadOrUpdateCairoTexture, linearMag
     /// false), so one drawn half a pixel off loses rows and columns of its letters: an "i" without its dot (A4, checked in game
     /// 08.11.2026, when the window's height made it stand half a pixel off).
     /// </summary>
@@ -473,10 +473,10 @@ public sealed class AlbumPageElement : GuiElement
 
     /// <summary>
     /// Called more than once, at different times: the composer disposes an interactive element twice (it is in both its
-    /// lists, vsapi GuiComposer.cs:795-796, :868-878), and the game disposes the last composer of a name again when the next
+    /// lists, vsapi GuiComposer.cs:795-796#interactiveElements, :868-878), and the game disposes the last composer of a name again when the next
     /// one of that name is made (decompiled GuiComposerManager.Create), so on the album's next opening or page. By then GL
     /// may have given a freed id to another texture (a tooltip's): every texture here is a <see cref="LoadedTexture"/>,
-    /// which forgets its id when freed (vsapi LoadedTexture.cs:77). L10 of the album polish plan.
+    /// which forgets its id when freed (vsapi LoadedTexture.cs:77#Dispose). L10 of the album polish plan.
     /// </summary>
     public override void Dispose()
     {

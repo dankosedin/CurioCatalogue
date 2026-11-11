@@ -6,10 +6,10 @@ namespace CurioCatalogue.Gui;
 
 /// <summary>
 /// A button with an icon instead of text that looks as the game's text buttons ("Make a want list"): their brown background,
-/// shine and shade, the lighter face on hover and the darker one pressed (vsapi GuiElementTextButton.cs:102-258). The game's
+/// shine and shade, the lighter face on hover and the darker one pressed (vsapi GuiElementTextButton.cs:102-258#ComposeElements). The game's
 /// own icon button (GuiElementToggleButton) draws another background, so a row of both read as two kinds of buttons (album view
 /// plan, A4). The icon is drawn in the buttons' text colour over the button, inset as the game's icon button insets it
-/// (GuiElementToggleButton.cs:102).
+/// (GuiElementToggleButton.cs:102#DrawIcon).
 /// </summary>
 internal sealed class IconTextButton : GuiElementTextButton
 {

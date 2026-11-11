@@ -63,7 +63,7 @@ internal sealed class AlbumControls
             capi.Gui.Icons.CustomIcons[RestartIcon] = capi.Gui.Icons.SvgIconSource(new AssetLocation("curiocatalogue", "textures/icons/restart.svg"));
     }
 
-    /// <summary>The dropdowns' font: vanilla's AddDropDown draws in WhiteSmallText (vsapi GuiElementDropDown.cs:516), and the
+    /// <summary>The dropdowns' font: vanilla's AddDropDown draws in WhiteSmallText (vsapi GuiElementDropDown.cs:516#GuiElementDropDown), and the
     /// names are measured in the font they are drawn in (L6: measured in a smaller one, a long level name ran under the arrow).</summary>
     private static readonly CairoFont DropDownFont = CairoFont.WhiteSmallText();
 

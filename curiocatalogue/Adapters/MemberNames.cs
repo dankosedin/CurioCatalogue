@@ -14,7 +14,7 @@ public static class MemberNames
 {
     /// <summary>A value's name by its dimension's <see cref="DimensionDef.NameKey"/>, matched with the game's wildcard keys
     /// (<c>game:tapestry-{value}</c> names a piece by its picture's <c>tapestry-nightfall*</c>, as vssurvivalmod
-    /// BlockTapestry.cs:359); null when the dimension has no key or the language does not translate the value.</summary>
+    /// BlockTapestry.cs:359#GetMatching); null when the dimension has no key or the language does not translate the value.</summary>
     public static string? ValueName(DimensionDef dimension, string value) =>
         dimension.ValueNameKey(value) is { } key ? Translated(key) : null;
 

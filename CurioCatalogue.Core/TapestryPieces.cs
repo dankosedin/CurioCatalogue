@@ -34,7 +34,7 @@ public static class TapestryPieces
                 for (int n = 1; n <= Math.Max(w, h); n++)
                     pieces.Add(new TapestryPiece(name + n, name, w == 1 ? 1 : n, w == 1 ? n : 1, $"{size}-{n}"));
             else
-                // The digits are row then column ("yx"): 21 is the bottom left quarter (vssurvivalmod BlockTapestry.cs:148 and
+                // The digits are row then column ("yx"): 21 is the bottom left quarter (vssurvivalmod BlockTapestry.cs:148#neighbours2x2 and
                 // GetWordedSection, "Section: Bottom Left Quarter").
                 for (int y = 1; y <= h; y++)
                 for (int x = 1; x <= w; x++)

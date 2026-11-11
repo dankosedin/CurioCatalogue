@@ -187,7 +187,7 @@ public sealed class CollectionRegistry
     /// <summary>
     /// All tapestry pieces: from the tapestry block's "sizes" attribute, plus the config's additions (each its own picture).
     /// Assumption: a piece is the block with its name in the string attribute "type". A tapestry taken off a
-    /// wall of any side drops as tapestry-north (vssurvivalmod BehaviorHorizontalAttachable.cs:66, dropBlockFace defaults to
+    /// wall of any side drops as tapestry-north (vssurvivalmod BehaviorHorizontalAttachable.cs:66#dropBlockFace, dropBlockFace defaults to
     /// "north"; modding.md, Vanilla content we rely on). Only creative pick block gives another side (vssurvivalmod
     /// BlockTapestry.cs#OnPickBlock, "new ItemStack(this)"), and such a stack is not a member. A "sizes" of another shape throws,
     /// and the guard in <see cref="Load"/> logs it.

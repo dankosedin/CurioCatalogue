@@ -317,7 +317,7 @@ public sealed class AlbumDialog : HeldItemDialog
         var bounds = ElementBounds.Fixed(-260, GuiStyle.TitleBarHeight + TabsTop, 260, pages.Tabs.Count * TabHeight);
         var icons = TabIcons(pages).Select(code => DefinitionIcons.Find(capi.World, code)).ToArray();
         tabs = new AlbumTabs(capi, guiTabs, icons, bounds, OnTab);
-        // Set after the constructor, which lights the first tab (vsapi GuiElementVerticalTabs.cs:52).
+        // Set after the constructor, which lights the first tab (vsapi GuiElementVerticalTabs.cs:52#Active).
         for (int i = 0; i < guiTabs.Length; i++) guiTabs[i].Active = i == lit;
         composer.AddInteractiveElement(tabs, "tabs");
     }

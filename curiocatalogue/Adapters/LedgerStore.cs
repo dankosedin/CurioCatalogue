@@ -87,7 +87,7 @@ public sealed class LedgerStore
 
     /// <summary>
     /// A cheap hash of the book's or invoice's data, the same on client and server: the client gets the attributes as the
-    /// server's bytes, and a tree keeps its keys in insertion order (vsapi TreeAttribute.cs:97, ConcurrentSmallDictionary).
+    /// server's bytes, and a tree keeps its keys in insertion order (vsapi TreeAttribute.cs:97#attributes, ConcurrentSmallDictionary).
     /// Windows use it to notice changes and to name the item a request is about.
     /// </summary>
     public static int Fingerprint(ItemStack stack)

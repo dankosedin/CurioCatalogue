@@ -53,7 +53,7 @@ internal sealed class AlbumHeader
         paper = capi.World.GetItem(InvoicePoster.ParchmentCode);
         parchment = new DummySlot();
         // The game has no pencil icon (A1); ours goes where the icon buttons look for named icons, as the waypoint map's
-        // (vsessentialsmod WaypointMapLayer.cs:116#CustomIcons; vsapi IconUtil.cs:122 looks them up by name).
+        // (vsessentialsmod WaypointMapLayer.cs:116#CustomIcons; vsapi IconUtil.cs:122#CustomIcons looks them up by name).
         if (!capi.Gui.Icons.CustomIcons.ContainsKey(PencilIcon))
             capi.Gui.Icons.CustomIcons[PencilIcon] = capi.Gui.Icons.SvgIconSource(new AssetLocation("curiocatalogue", "textures/icons/pencil.svg"));
     }
@@ -114,7 +114,7 @@ internal sealed class AlbumHeader
                 .AddAutoSizeHoverText(facts.ProgressTooltip ?? "", font, 300, bar.FlatCopy(), "progress-tooltip");
         }
 
-        // The slot is 48 high whatever its bounds (vsapi GuiElementPassiveItemSlot.cs:30): centred on the row, it reaches into the
+        // The slot is 48 high whatever its bounds (vsapi GuiElementPassiveItemSlot.cs:30#inventory): centred on the row, it reaches into the
         // gaps above and below, where nothing else is drawn.
         double slot = GuiElementPassiveItemSlot.unscaledSlotSize;
         var sheets = ElementBounds.Fixed(width - slot, y + (Height - slot) / 2, slot, slot);
@@ -137,11 +137,11 @@ internal sealed class AlbumHeader
         if (composer.GetStatbar("progress") is { } bar)
         {
             bar.ShowValueOnHover = false; // the number is always shown, over the bar (A2)
-            bar.SetLineInterval(int.MaxValue); // no segment lines (vsapi GuiElementStatbar.cs:224)
+            bar.SetLineInterval(int.MaxValue); // no segment lines (vsapi GuiElementStatbar.cs:224#lineInterval)
         }
-        // The passive slot draws its stack at z 450 (vsapi GuiElementPassiveItemSlot.cs:75) and the count above that, over a
+        // The passive slot draws its stack at z 450 (vsapi GuiElementPassiveItemSlot.cs:75#RenderItemstackToGui) and the count above that, over a
         // hover text at its default 500 (A4: "4" over "Sheets: 4 of 32"); 1000 as vanilla's own top layer
-        // (vsapi GuiElementHoverText.cs:54; 1000 is used by vanilla elements drawn over everything).
+        // (vsapi GuiElementHoverText.cs:54#zPosition; 1000 is used by vanilla elements drawn over everything).
         if (composer.GetHoverText("sheets-tooltip") is { } sheetsTip) sheetsTip.ZPosition = 1000;
     }
 

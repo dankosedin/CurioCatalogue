@@ -116,6 +116,10 @@ Python and Node are not required; scripts are PowerShell (or Perl from Git for W
 - `tools/check-refs.ps1` checks every reference into the game source (`File.cs:line#Symbol`, see `docs/modding.md`): the symbol
   must be on that line at the game version in `modinfo.json`. It reads the clones named by `VINTAGE_STORY_SRC` (see
   `docs/onboarding.md`) at their "Updated to Version X" commits, without checking anything out. `-GameVersion x.y.z` checks another version.
+  A reference without `#symbol` fails too, as does one that moved; the archive and finished plans (no unticked step) are history and
+  are skipped. To write one: put the line of the declaration or expression you mean and a name that is on it (`File.cs:89#Name`);
+  a range (`File.cs:102-258#Name`) when the name is somewhere in it. It runs by hand before a release and at a game update, not in CI
+  (it needs the three source clones).
 
 ## Updating the game version
 

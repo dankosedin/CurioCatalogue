@@ -192,7 +192,7 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 
 **Technical**
 - **The server's config sent to clients** (review, 28.10.2026). Each side reads its own `ModConfig` file and the game does not
-  sync them (vsapi `ICoreAPI.cs:150`). The client then builds its own tapestry collection, item identity and sheet limits: album
+  sync them (vsapi `ICoreAPI.cs:146#StoreModConfig`). The client then builds its own tapestry collection, item identity and sheet limits: album
   progress, missing lists, tooltips and the recharge recipe differ from what the server does. Fix: one packet on join with the
   gameplay settings, used by the client instead of its file. Until then README asks admins to hand out the same file.
 - **All player messages built by the client,** in its language and with its key bindings: the server sends a code, numbers and

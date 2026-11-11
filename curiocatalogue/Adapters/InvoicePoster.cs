@@ -394,7 +394,7 @@ public sealed class InvoicePoster
     /// Numbers stacks by what the game would merge (<see cref="SourceSlot.Stack"/>): our keys ignore attributes the
     /// game does not (the config's ignored attributes), so two stacks of one key may still not go into one slot.
     /// Assumption: the game's rule is an equivalence, so comparing with one stack of each class is enough; vanilla's is
-    /// Equals with GlobalConstants.IgnoredStackAttributes; behaviors and some items may change it (vssurvivalmod ItemEgg.cs:12).
+    /// Equals with GlobalConstants.IgnoredStackAttributes; behaviors and some items may change it (vssurvivalmod ItemEgg.cs:12#GetMergableQuantity).
     /// </summary>
     private sealed class MergeClasses
     {
@@ -410,7 +410,7 @@ public sealed class InvoicePoster
 
         /// <summary>
         /// Would the game put <paramref name="source"/> onto a stack of <paramref name="sink"/>'s item, given room? Asked of
-        /// a single item, so that a full stack still answers (vsapi Collectible.cs:2558#GetMergableQuantity). An item that
+        /// a single item, so that a full stack still answers (vsapi Collectible.cs:2538#GetMergableQuantity). An item that
         /// does not stack (MaxStackSize 1) merges with nothing, which is right too.
         /// </summary>
         public static bool Merges(ItemStack sink, ItemStack source)

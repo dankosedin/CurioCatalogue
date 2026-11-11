@@ -6,7 +6,8 @@
 # "Updated to Version X"; files are read from that commit with `git show`, so the clones' working copies are not touched.
 #
 # Usage: tools/check-refs.ps1 [-SourceRoot <folder with the three clones>] [-GameVersion <x.y.z>]   (default: $env:VINTAGE_STORY_SRC)
-# Exit code 1 if a reference fails. References without a symbol are listed as warnings; references to our own files are skipped.
+# Exit code 1 if a reference fails or has no symbol (both listed); references to our own files are skipped, and so are the
+# archive and finished plans (history).
 
 param(
     [string]$SourceRoot = $env:VINTAGE_STORY_SRC,
@@ -63,6 +64,8 @@ $files = Get-ChildItem -Path $repoRoot -Recurse -File -Include *.cs, *.md |
 foreach ($file in $files) {
     $relative = $file.FullName.Substring($repoRoot.Length + 1)
     if ($relative -match $excluded) { continue }
+    # A finished plan (no unticked step) is history, like the archive.
+    if ($relative -match '^docs[\\/]plans[\\/]' -and -not (Select-String -Path $file.FullName -Pattern '^\s*- \[ \]' -Quiet)) { continue }
     $lineNo = 0
     foreach ($line in (Get-Content -Encoding UTF8 $file.FullName)) {
         $lineNo++
@@ -103,4 +106,4 @@ foreach ($file in $files) {
 }
 
 Write-Host "$checked checked, $failed failed, $warnings without a symbol"
-if ($failed -gt 0) { exit 1 }
+if ($failed -gt 0 -or $warnings -gt 0) { exit 1 }

@@ -64,8 +64,8 @@ internal static class GoldenStacks
     {
         var stack = new ItemStack(Convert.FromBase64String(golden.Bytes));
         Replace(world, stack, golden.Ids, golden.Name);
-        // Only the stack itself is resolved, as a world resolves a slot's stack when it loads (vsapi InventoryBase.cs:290); the
-        // stacks nested in its attributes stay unresolved, as the game leaves them (TreeAttribute.cs:736): the current code must resolve them.
+        // Only the stack itself is resolved, as a world resolves a slot's stack when it loads (vsapi InventoryBase.cs:290#ResolveBlockOrItem); the
+        // stacks nested in its attributes stay unresolved, as the game leaves them (TreeAttribute.cs:736#ResolveBlockOrItem): the current code must resolve them.
         stack.ResolveBlockOrItem(world);
         return stack;
     }

@@ -30,12 +30,14 @@ public sealed class DescriptionData
     public Dictionary<string, Section> Sections { get; init; } = new();
     /// <summary>The sections' keys in the description's order.</summary>
     public List<string> Keys { get; init; } = new();
+    /// <summary>The <c>::: sequence</c> blocks in the description's order (already rendered into the sections' HTML).</summary>
+    public List<Sequence.Info> Sequences { get; init; } = new();
 }
 
 /// <summary>Reads a description by the contract (docs/releasing.md). Problems are collected in the list, not thrown one by one.</summary>
 public static class Description
 {
-    static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UsePipeTables().Build();
+    static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UsePipeTables().Use<Sequence.Extension>().Build();
 
     public static DescriptionData Parse(string markdown, string lang, Links links, List<string> problems, int insideIndex = -1)
     {
@@ -49,6 +51,8 @@ public static class Description
 
         foreach (var link in doc.Descendants<LinkInline>())
             link.Url = links.Absolute(link.Url, link.IsImage);
+
+        var sequences = Sequence.RenderAll(doc, markdown, lang, where, problems, RenderBlock);
 
         // The head: everything before the first ##.
         int firstH2 = IndexOfHeading(doc, 2, 0);
@@ -104,7 +108,7 @@ public static class Description
         return new DescriptionData
         {
             Lang = lang, Title = title, HookHtml = hookHtml, WarningHtml = warningHtml, HeroSrc = heroSrc, HeroAlt = heroAlt,
-            Items = items, Sections = sections, Keys = keys,
+            Items = items, Sections = sections, Keys = keys, Sequences = sequences,
         };
     }
 
@@ -162,7 +166,7 @@ public static class Description
         return Regex.Replace(s, "[^a-z0-9]+", "-").Trim('-');
     }
 
-    static LinkInline? ImageOf(ParagraphBlock p)
+    internal static LinkInline? ImageOf(ParagraphBlock p)
     {
         var inlines = p.Inline?.ToList() ?? new List<Inline>();
         var img = inlines.OfType<LinkInline>().FirstOrDefault(l => l.IsImage);
@@ -172,7 +176,7 @@ public static class Description
         return onlyImage ? img : null;
     }
 
-    static string PlainText(ContainerInline? c)
+    internal static string PlainText(ContainerInline? c)
     {
         if (c == null) return "";
         var sb = new StringBuilder();
@@ -193,7 +197,7 @@ public static class Description
 
     static string InlineHtml(LeafBlock b) => StripOuter(RenderBlock(b), "p");
 
-    static string StripOuter(string html, string tag)
+    internal static string StripOuter(string html, string tag)
     {
         var m = Regex.Match(html.Trim(), $"^<{tag}[^>]*>(.*)</{tag}>$", RegexOptions.Singleline);
         return m.Success ? m.Groups[1].Value.Trim() : html.Trim();

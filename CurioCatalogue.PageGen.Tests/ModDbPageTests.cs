@@ -275,6 +275,104 @@ public class ModDbPageTests
         Assert.Contains("warning", e.Message);
     }
 
+    // --- sequences ---------------------------------------------------------------------------------------------------
+
+    /// <summary>A sequence of <paramref name="frames"/> frames named <paramref name="name"/>, as the description writes it.</summary>
+    static string Seq(string lang, int frames = 3, string name = "album-chest")
+    {
+        var sb = new System.Text.StringBuilder($"::: sequence {name}\n");
+        for (int n = 1; n <= frames; n++)
+            sb.Append($"![Frame {n} {lang}](../images/{name}-{n}.{lang}.png)\n\nCaption {n} of {lang}, **bold**.\n\n");
+        return sb.Append(":::\n\n").ToString();
+    }
+
+    /// <summary>The description with <paramref name="seq"/> put into "Getting started" (the first section after "What's inside"), before its shot.</summary>
+    static string WithSeq(string lang, string seq) => Doc(lang, t => t.Replace("![A shot]", seq + "![A shot]"));
+
+    static PageInput SeqInput(string? en = null, string? uk = null) =>
+        Input(en: WithSeq("en", en ?? Seq("en")), uk: WithSeq("uk", uk ?? Seq("uk")));
+
+    [Fact]
+    public void A_sequence_is_a_row_of_frames_with_captions_and_arrows()
+    {
+        var html = ModDbPage.Generate(SeqInput());
+
+        for (int n = 1; n <= 3; n++)
+        {
+            Assert.Matches($"<figure [^>]*id=\"seq-album-chest-{n}\"", html);
+            Assert.Matches($"<figure [^>]*id=\"seq-uk-album-chest-{n}\"", html);
+            Assert.Contains($"src=\"{Raw}docs/images/album-chest-{n}.en.png\" alt=\"Frame {n} en\"", html);
+            Assert.Contains($"Caption {n} of en, <strong>bold</strong>.", html);
+            Assert.Contains($"{n} / 3", html);
+        }
+        Assert.Matches("<a href=\"#seq-album-chest-2\"[^>]*>next →</a>", html);
+        Assert.Matches("<a href=\"#seq-album-chest-1\"[^>]*>← back</a>", html);
+        Assert.Matches("<a href=\"#seq-album-chest-1\"[^>]*>first</a>", html);    // the last frame turns to the first
+        Assert.Matches("<a href=\"#seq-uk-album-chest-2\"[^>]*>далі →</a>", html);
+        Assert.Matches("<a href=\"#seq-uk-album-chest-1\"[^>]*>на початок</a>", html);
+        Assert.DoesNotContain(":::", html);
+        // The first frame has no way back.
+        var first = System.Text.RegularExpressions.Regex.Match(html, "id=\"seq-album-chest-1\".*?</figure>", System.Text.RegularExpressions.RegexOptions.Singleline).Value;
+        Assert.DoesNotContain("← back", first);
+    }
+
+    [Fact]
+    public void A_sequence_scrolls_one_frame_per_width()
+    {
+        var html = ModDbPage.Generate(SeqInput());
+
+        Assert.Matches("<div style=\"[^\"]*max-width: 900px[^\"]*\"><div style=\"[^\"]*overflow-x: auto[^\"]*scroll-snap-type: x mandatory", html);
+        Assert.Matches("<figure [^>]*style=\"[^\"]*flex: 0 0 100%[^\"]*scroll-snap-align: start[^\"]*scroll-margin-top: 60px", html);
+        Assert.Matches("<img src=\"[^\"]*album-chest-1[^>]*style=\"[^\"]*max-width: none", html);   // not the 420 px of the body's images
+        Assert.Matches("<figcaption style=\"[^\"]*justify-content: space-between", html);
+    }
+
+    [Fact]
+    public void A_description_without_sequences_has_no_sequence_markup()
+    {
+        var html = ModDbPage.Generate(Input());
+        Assert.DoesNotContain("<figure", html);
+    }
+
+    [Theory]
+    [InlineData("::: note\n\nText.\n\n:::\n\n", "unknown block '::: note'")]
+    [InlineData("::: sequence\n\n![a](../images/a.png)\n\nA.\n\n![b](../images/b.png)\n\nB.\n\n:::\n\n", "needs a name")]
+    [InlineData("::: sequence Album Chest\n\n![a](../images/a.png)\n\nA.\n\n![b](../images/b.png)\n\nB.\n\n:::\n\n", "needs a name")]
+    [InlineData("::: sequence one\n\n![a](../images/a.png)\n\nA.\n\n:::\n\n", "1 frame(s)")]
+    [InlineData("::: sequence nocap\n\n![a](../images/a.png)\n\n![b](../images/b.png)\n\nB.\n\n:::\n\n", "a frame is an image")]
+    [InlineData("::: sequence textfirst\n\nA.\n\n![a](../images/a.png)\n\n:::\n\n", "a frame is an image")]
+    [InlineData("::: sequence inline\n\n![a](../images/a.png)\nA, glued to the image.\n\n![b](../images/b.png)\n\nB.\n\n:::\n\n", "a frame is an image")]
+    [InlineData("::: sequence icon\n\n![a](../images/a.png)\n\nA with ![an icon](../images/i.png) in it.\n\n![b](../images/b.png)\n\nB.\n\n:::\n\n", "a frame is an image")]
+    public void A_broken_sequence_is_an_error(string seq, string message)
+    {
+        var e = Fails(SeqInput(en: seq));
+        Assert.Contains(e.Problems, p => p.Contains("(en)") && p.Contains(message));
+    }
+
+    [Fact]
+    public void An_unclosed_sequence_is_an_error()
+    {
+        var e = Fails(Input(en: Doc("en") + Seq("en").Replace(":::\n\n", ""), uk: Doc("uk") + Seq("uk")));
+        Assert.Contains(e.Problems, p => p.Contains("(en)") && p.Contains("not closed"));
+    }
+
+    [Fact]
+    public void Two_sequences_with_one_name_are_an_error()
+    {
+        var e = Fails(SeqInput(en: Seq("en") + Seq("en"), uk: Seq("uk") + Seq("uk")));
+        Assert.Contains(e.Problems, p => p.Contains("(en)") && p.Contains("two sequences named 'album-chest'"));
+    }
+
+    [Fact]
+    public void Sequences_differ_between_languages_is_an_error()
+    {
+        var e = Fails(SeqInput(uk: Seq("uk", frames: 2)));
+        Assert.Contains(e.Problems, p => p.Contains("differ in sequences") && p.Contains("album-chest (3)") && p.Contains("album-chest (2)"));
+
+        e = Fails(SeqInput(uk: Seq("uk", name: "other")));
+        Assert.Contains(e.Problems, p => p.Contains("differ in sequences"));
+    }
+
     // --- the template ------------------------------------------------------------------------------------------------
 
     [Theory]

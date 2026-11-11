@@ -52,7 +52,7 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
     - `moddbLinks` (default `true`, the author chose it 03.11.2026): Source and Report a bug in the row of buttons; `false` leaves them out;
     - `out`: the output file; `rawBase`, `blobBase`: other places for images and links, e.g.
       `--rawBase=file:///C:/Projects/VintageStory/CurioCatalogue/` to look at a page before the files are on GitHub;
-      `description`, `descriptionUk`: other description files (their relative paths are still read from `docs/moddb/`).
+      `descriptionEn`, `descriptionUk`: other description files (their relative paths are still read from `docs/moddb/`); not `description`, a flag of Cake itself.
   - **The description** lives in `docs/moddb/description.md` and `description.uk.md`, beside the template: the only source of
     every text for players (what the mod does, getting started, gestures, configuration, compatibility, credits…). GitHub shows
     the files to players; `README.md` is the project's README and links to them (decided in G1 of
@@ -69,6 +69,28 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
       bill of materials, intake list, pick list), then a paragraph, then `###` subsections (each a nested accordion).
     - **No HTML** in the description; images and links by paths relative to `docs/moddb/` (`../images/album-chest.en.png`), as
       GitHub reads them; screenshots with the language suffix (`*.en.png`, `*.uk.png`).
+    - **Sequences** of screenshots (a mechanic in a few frames, a caption under each) are the one extension, a `::: sequence <name>`
+      block anywhere in a section: inside it, for each frame, an image in a paragraph of its own, then a caption paragraph
+      (inline Markdown allowed, no image); two frames or more; closed by `:::`. The name is lower-case letters, digits and `-`,
+      unique in the description; both descriptions have the same sequences (names and numbers of frames) in the same order.
+      ```
+      ::: sequence album-chest
+
+      ![The book and the inventory before](../images/album-chest-1.en.png)
+
+      Before: the album and a stack of tapestries.
+
+      ![The hint over the chest](../images/album-chest-2.en.png)
+
+      Point the album at the chest.
+
+      :::
+      ```
+      The page shows a row of frames, one per width, turned by a swipe or by the links under the caption ("← back  n / N
+      next →", the last one "first"); each frame is a `<figure id="seq-<name>-<n>">` (`seq-uk-<name>-<n>` in the Ukrainian
+      part). The look is the template's CSS (`.seq`, `.seq-row`, `.seq-frame`, `.seq-nav`); the shape and what ModDB keeps:
+      "Sequences on ModDB" in `docs/plans/2026-11-04-mod-description.md`. GitHub shows the `:::` lines as text, the frames as
+      images with paragraphs under them.
     - **After any change to a description** (a new, renamed or removed `##` section above all), run the real generator before
       the commit: `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=HEAD`. `PageGen.Tests` use sample
       descriptions, so only this step (and the `ModDB page` step of CI) sees the real ones. A new section also goes into

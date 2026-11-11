@@ -126,7 +126,7 @@ public sealed class DefaultTask : FrostingTask
 /// The ModDB page from docs/moddb/description.md, description.uk.md and template.html (docs/releasing.md, ModDB).
 /// Arguments: --ref=&lt;tag or SHA&gt; (default v&lt;version&gt;), --moddbLinks=false (leave Source and Report a bug out of the buttons; default true),
 /// --out=&lt;file&gt; (default Releases/moddb.html), --rawBase / --blobBase (to look at the page before the files are on GitHub,
-/// e.g. file:///C:/Projects/.../), --description / --descriptionUk (other descriptions, read as if they lay in docs/moddb/).
+/// e.g. file:///C:/Projects/.../), --descriptionEn / --descriptionUk (other descriptions, read as if they lay in docs/moddb/).
 /// </summary>
 [TaskName("ModDbPage")]
 public sealed class ModDbPageTask : FrostingTask<BuildContext>
@@ -141,7 +141,7 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
         var gitRef = context.Argument("ref", $"v{context.Version}");
         var input = new CurioCatalogue.PageGen.PageInput
         {
-            DescriptionEn = File.ReadAllText(context.Argument("description", "../docs/moddb/description.md")),
+            DescriptionEn = File.ReadAllText(context.Argument("descriptionEn", "../docs/moddb/description.md")),
             DescriptionUk = File.ReadAllText(context.Argument("descriptionUk", "../docs/moddb/description.uk.md")),
             Template = File.ReadAllText("../docs/moddb/template.html"),
             Version = context.Version,

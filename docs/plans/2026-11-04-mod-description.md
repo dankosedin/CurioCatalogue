@@ -52,7 +52,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       of the look). Author: approves the test page, pastes it, looks on the phone.
       Done when: Decisions says which markup survives, how it scrolls on the desktop and the phone, and the chosen shape of
       a sequence.
-- [ ] **G3. The generator reads the description.** Split in two (the author, 11.11.2026): G3a the move, G3b the sequences.
+- [x] **G3. The generator reads the description.** Split in two (the author, 11.11.2026): G3a the move, G3b the sequences.
   - [x] **G3a. The move.** Done 11.11.2026. Players' texts moved from the READMEs into `docs/moddb/description.md` and
         `description.uk.md` (moved, not rewritten: R2 rewrites them; image paths made relative to `docs/moddb/`), README cut
         down to what G1 left (with no "Adding a collection" yet: L14 writes it), `README.uk.md` removed, links to it updated
@@ -62,7 +62,8 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
         `PageGen.Tests` (mutation-checked: the head check, a path above the root, the folder of the paths); `CLAUDE.md`'s table;
         `CONTRIBUTING.md` for translators; `docs/development.md`'s layout.
         Check: `moddb.html` generated before and after the move (`--ref=HEAD`) is the same, byte for byte.
-  - [ ] **G3b. Sequences.** The `::: sequence` extension (frames, a caption under each) rendered into G2's markup; the
+  - [x] **G3b. Sequences.** Done 11.11.2026 (Decisions, "How a sequence is written"; the paste in "Sequences on ModDB";
+        the size it found is G3c). The `::: sequence` extension (frames, a caption under each) rendered into G2's markup; the
         contract in `docs/releasing.md` says how a sequence is written; `PageGen.Tests` for the sequences.
         Left by G2: the generated sequence pasted into the draft mod (the author, after a "yes" to the exact text): that ModDB
         keeps `id` on `<figure>` and `href="#…"` links, and the arrows and the swipe in Firefox and on the phone; how GitHub
@@ -72,6 +73,21 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       Branch: `feature/mod-description` (stacked on `docs/mod-description`, the author, 11.11.2026). After: G2. Model: sonnet.
       Author: looks at the diff of the page.
       Done when: CI generates the page from the description (G3a); G3b done.
+- [ ] **G3c. The page within ModDB's size.** ModDB refuses a description over about 65 KB ("Excessive size", G3b, 11.11.2026):
+      it counts bytes, not characters (a test page of 66 176 bytes and 58 841 characters was refused), and today's page
+      without a sequence is already 60 634 bytes: 23 KB of it inline CSS, 33.6 KB the Ukrainian part (Cyrillic is two
+      bytes a letter); a sequence of three frames costs ~5.5 KB in both languages. Without a change to what the player sees:
+      - the generator fails above a limit with a reserve (e.g. 64 000 bytes) and prints the size, so CI catches it before a paste;
+      - leaner inline CSS: no space after `:` in the styles, no style that repeats the default (`margin` on `li` and `p`),
+        a lighter `code`;
+      - a lighter sequence: no arrows (the author, 11.11.2026: the scroll bar and the swipe are enough), so no `id` on the
+        frames and no links; whether "n / N" stays, the author decides in the step.
+      What is left after it decides how much room 0.2 has; shortening the Ukrainian part on the page (the rest by a link to
+      `description.uk.md` on GitHub) or moving it off the page is G5's decision, once the shot list is known.
+      Branch: `feature/mod-description`. After: G3. Model: sonnet. Author: decides "n / N"; pastes the generated page into
+      the draft mod (after a "yes" to its text).
+      Done when: the generator checks the size (a test, mutation-checked); the real page is measured before and after and the
+      sizes are written here; the contract in `docs/releasing.md` names the limit and the sequence without arrows.
 - [ ] **G4. Shooting a sequence.** One frame is one state of the studio today (`docs/screenshots.md`); a sequence needs a
       chain of states taken again in every language. Research, then the process:
       - the state before and after, reproducible: copies of the props, the order of the frames, a macro per frame;
@@ -144,6 +160,9 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
     the author did not like, though the phone looked fine; a frame over the full width (~1470 px on the desktop, the whole
     screen, and with no arrows nothing says more frames follow); a table of frames (~110 px each on a phone); frames one under
     another. If ModDB drops the anchors, the same row without arrows, with "n / N." at the start of each caption.
+  - **The generated sequence pasted** (the author, 11.11.2026, G3b): the card with the sequences alone (the whole test page
+    was refused for its size, G3c); it looks right and turns with a swipe. The arrows go (G3c): the scroll bar and the swipe
+    are enough.
 
 - **G3 in two steps, on a stacked branch** (the author, 11.11.2026): G3a moves the texts and points the generator at the
   description, G3b adds the sequences; `feature/mod-description` starts from `docs/mod-description` (G1 and G2 are not on `main`
@@ -151,5 +170,12 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
 - **The description's paths are relative to `docs/moddb/`** (G3a, 11.11.2026), as GitHub reads them, so the images show on
   GitHub too; the generator resolves them from the description's folder. The head is strict: a block other than the title,
   the hook, the warning and the hero image is an error (the README-only lines it used to drop are gone with README).
+- **How a sequence is written** (G3b, 11.11.2026; the contract in `docs/releasing.md`): a frame is an image paragraph and a
+  caption paragraph under it, not both in one paragraph (on GitHub the caption would run on from the image's corner); the
+  name after `sequence` makes the ids, `seq-<name>-<n>` and `seq-uk-<name>-<n>` in the Ukrainian part (as `cc-uk-`); the first
+  frame has no "back"; the words of the arrows live in `Sequence.cs` (en, uk), since a sequence is rendered before the
+  template; both languages have the same sequences, checked; only the block form of Markdig's custom containers is on, not
+  the inline `::text::`. The generator's argument for another English description is `descriptionEn`: `description` is a
+  flag of Cake itself, so G3a's argument could not be used.
 
 ## Where we stopped

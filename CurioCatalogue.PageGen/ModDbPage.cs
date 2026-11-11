@@ -85,6 +85,11 @@ public static class ModDbPage
         }
         if (en.Items.Count != uk.Items.Count)
             problems.Add($"The descriptions differ: {en.Items.Count} list items in en and {uk.Items.Count} in uk");
+
+        // The same sequences (names and numbers of frames) in the same order: a sequence is a translation of the English one.
+        string Seqs(DescriptionData d) => string.Join(", ", d.Sequences.Select(s => $"{s.Name} ({s.Frames})"));
+        if (Seqs(en) != Seqs(uk))
+            problems.Add($"The descriptions differ in sequences: en has [{Seqs(en)}], uk has [{Seqs(uk)}]");
     }
 
     /// <summary>ModDB drops &lt;style&gt;, so what PreMailer cannot inline would be lost: no media queries, hover or pseudo-elements.</summary>

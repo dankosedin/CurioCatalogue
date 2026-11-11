@@ -96,7 +96,7 @@ public class CollectionRegistryTests
         Assert.Null(Pieces(registry));
         Assert.Empty(registry.All);
         // Its album recipe is still known as its own: the server takes it away at load (AlbumRecipes).
-        Assert.Equal(CollectionRegistry.TapestriesId, registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-album")));
+        Assert.Equal(CollectionRegistry.TapestriesId, registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-album-tapestries")));
     }
 
     [Fact]
@@ -130,8 +130,8 @@ public class CollectionRegistryTests
     {
         var registry = Registry();
 
-        Assert.Equal(CollectionRegistry.TapestriesId, registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-album")));
-        Assert.Null(registry.AlbumOf(new AssetLocation("othermod", "ledger-album")));
+        Assert.Equal(CollectionRegistry.TapestriesId, registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-album-tapestries")));
+        Assert.Null(registry.AlbumOf(new AssetLocation("othermod", "ledger-album-tapestries")));
         Assert.Null(registry.AlbumOf(new AssetLocation("curiocatalogue", "ledger-fallback")));
         Assert.Null(registry.AlbumOf(null));
     }
@@ -147,9 +147,9 @@ public class CollectionRegistryTests
     [Fact]
     public void A_recipe_two_definitions_claim_is_the_first_ones_and_logged()
     {
-        Add("othermod", "ores", Ores.Replace("\"exclude\"", "\"albumRecipe\": \"curiocatalogue:ledger-album\", \"exclude\""));
+        Add("othermod", "ores", Ores.Replace("\"exclude\"", "\"albumRecipe\": \"curiocatalogue:ledger-album-tapestries\", \"exclude\""));
 
-        Assert.Equal(CollectionRegistry.TapestriesId, Registry().AlbumOf(new AssetLocation("curiocatalogue", "ledger-album")));
+        Assert.Equal(CollectionRegistry.TapestriesId, Registry().AlbumOf(new AssetLocation("curiocatalogue", "ledger-album-tapestries")));
         Assert.Contains(Errors(), e => e.Contains("collection 'ores'") && e.Contains("already 'tapestries''s"));
     }
 

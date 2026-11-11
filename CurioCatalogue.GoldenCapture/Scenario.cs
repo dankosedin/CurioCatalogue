@@ -194,7 +194,7 @@ sealed class Scenario(GameServerFixture game)
         {
             var player = client.Player;
             Record("album-partial", player.InventoryManager.ActiveHotbarSlot.Itemstack!, new Inputs(
-                $"ledger-fallback from game:book-normal-olive, then ledger-album with a tapestry (8 sheets); Shift + RMB on a chest with the pieces {string.Join(", ", collected)} (and a second {pieces[0]}, left there); then a want list made in its window (a sheet spent)",
+                $"ledger-fallback from game:book-normal-olive, then ledger-album-tapestries with a tapestry (8 sheets); Shift + RMB on a chest with the pieces {string.Join(", ", collected)} (and a second {pieces[0]}, left there); then a want list made in its window (a sheet spent)",
                 Ours + "book-album-normal-olive",
                 Book: new BookIn("Album", 7, "", Sorted([.. missing.Select(p => E("game:tapestry-north", p))]),
                     new AlbumIn(CollectionRegistry.TapestriesId, Sorted([.. collected.Select(p => E("game:tapestry-north", p))]), Full: false))));
@@ -228,7 +228,7 @@ sealed class Scenario(GameServerFixture game)
             }
         }
         Record("album-full", hand.Itemstack!, new Inputs(
-            $"ledger-fallback from game:book-normal-gray, then ledger-album with a tapestry (8 sheets); Shift + RMB on chests with all {pieces.Count} pieces, 16 a chest, each clicked until empty (the inventory emptied in between)",
+            $"ledger-fallback from game:book-normal-gray, then ledger-album-tapestries with a tapestry (8 sheets); Shift + RMB on chests with all {pieces.Count} pieces, 16 a chest, each clicked until empty (the inventory emptied in between)",
             Ours + "book-album-normal-gray",
             Book: new BookIn("Album", 8, "", [], new AlbumIn(CollectionRegistry.TapestriesId, Sorted([.. pieces.Select(p => E("game:tapestry-north", p))]), Full: true))));
         Clear(player);
@@ -237,7 +237,7 @@ sealed class Scenario(GameServerFixture game)
     ItemStack NewAlbum(IServerPlayer player, string cover, string piece)
     {
         var ledger = Craft(player, "ledger-fallback", (0, Vanilla("metalnailsandstrips-iron")), (3, Vanilla("book-normal-" + cover)), (4, Vanilla("inkandquill")), (6, Vanilla("metalnailsandstrips-iron")));
-        return Craft(player, "ledger-album", (0, ledger), (1, Tapestry(piece)));
+        return Craft(player, "ledger-album-tapestries", (0, ledger), (1, Tapestry(piece)));
     }
 
     // ---- recording, checked by the release

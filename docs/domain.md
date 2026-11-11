@@ -149,7 +149,7 @@ A sheet is vanilla parchment; there is no separate blank item.
 
 | Id | Member | Levels (ids are stored in albums: not to be renamed) | Album recipe |
 |---|---|---|---|
-| `tapestries` | a tapestry piece | one | `ledger-album` |
+| `tapestries` | a tapestry piece | one | `ledger-album-tapestries` |
 | `crystals` | an ore crystal (`crystalizedore-{grade}-{ore}-{rock}`; 398 registered, 54 combinations excluded as never generated) | `richest` 16 (the richest grade of each ore), `rocks` 118 (ore × rock at its richest grade), `all` 353 | `ledger-album-crystals` |
 | `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data, marked by a golden corner (`marks`) | `ledger-album-seashells` |
 | `butterflies` | a dead butterfly (`butterfly-dead-{type}`; `reedbutterfly` has no item) | `all` 169, one entry each, the game's own names | `ledger-album-butterflies` |
@@ -186,7 +186,7 @@ with `*`; candidates that may not appear in survival: `aid-*`, `glider*`, `sympt
 ## Recipes
 
 Grid recipes in `recipes/grid/ledger.json`; the handbook shows each group as one slideshow. The album recipe of a collection is
-the one its definition names (`albumRecipe`, e.g. `curiocatalogue:ledger-album` for the tapestries), so a collection from another
+the one its definition names (`albumRecipe`, e.g. `curiocatalogue:ledger-album-tapestries` for the tapestries), so a collection from another
 mod brings its own; the item put in must be a member of that collection.
 
 | Group | Recipe | Result |

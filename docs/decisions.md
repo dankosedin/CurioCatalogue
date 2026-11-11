@@ -87,7 +87,7 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
   `rules` (`where`, `set`), `marks`: attribute → value → `{"color": "#RRGGBB" or "#AARRGGBB", "nameKey"}`, a member's corner in
   the album in that colour and its tooltip line in it, the first that fits (L3 of the album polish plan: the colour is data, so
   another mod marks its own attributes), `exclude`, `nameKey`: the collection's name in lower case, "tapestries", for "Album: {0}",
-  `albumRecipe`: the grid recipe that makes its album, by name with the domain (`curiocatalogue:ledger-album`). A definition that
+  `albumRecipe`: the grid recipe that makes its album, by name with the domain (`curiocatalogue:ledger-album-tapestries`). A definition that
   does not read, or that the core refuses (`DefinedCollection.CheckDefinition`, also called by the reader: e.g. a level dropping
   as `max` a dimension with no `values`, an empty level id), is logged as an error and skipped; the other collections work. Of
   the good definitions of one id the first is used, ours (`curiocatalogue`) before other domains, then the game's asset order; the

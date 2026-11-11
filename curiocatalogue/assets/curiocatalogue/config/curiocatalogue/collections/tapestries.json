@@ -1,6 +1,6 @@
 {
   "nameKey": "curiocatalogue:collection-tapestries",
-  "albumRecipe": "curiocatalogue:ledger-album",
+  "albumRecipe": "curiocatalogue:ledger-album-tapestries",
   "source": { "kind": "tapestry", "block": "game:tapestry-north" },
   "dimensions": [
     { "code": "picture", "values": [] },

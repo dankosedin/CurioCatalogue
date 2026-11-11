@@ -118,8 +118,10 @@ public sealed class AlbumPageElement : GuiElement
     private System.Func<Member, bool>? matches;
     private AlbumSlot? hovered;
     private bool composed;
-    private int slotTexture, cornerTexture;
-    private LoadedTexture? check;
+    /// <summary>Every texture of ours is a <see cref="LoadedTexture"/>, never a bare id: the game disposes an element more than
+    /// once (L10, <c>docs/modding.md</c>, GUI), and only a <see cref="LoadedTexture"/> forgets its id when it frees it.</summary>
+    private LoadedTexture? slotTexture, cornerTexture, check;
+    private int disposals;
 
     /// <param name="pages">All pages of the level: every page is centred by the widest (the window keeps its size).</param>
     /// <param name="bounds">Its size is the window's: at least the largest page with <see cref="PadOf"/> round it.</param>
@@ -232,8 +234,18 @@ public sealed class AlbumPageElement : GuiElement
     public override void ComposeElements(Context ctxStatic, ImageSurface surfaceStatic)
     {
         Bounds.CalcWorldBounds();
-        slotTexture = GuiElementItemSlotGridBase.DrawSlotBackground(api, scaled(SlotSize), scaled(SlotSize),
-            GuiStyle.DialogSlotBackColor, GuiStyle.DialogSlotFrontColor, null);
+        // Composed again (the game's RecomposeAllDialogs, e.g. a new GUI scale): the textures of the last time are freed first.
+        slotTexture?.Dispose();
+        cornerTexture?.Dispose();
+        check?.Dispose();
+        foreach (var heading in headings)
+        {
+            heading.Text?.Dispose();
+            heading.Mark?.Dispose();
+        }
+        int slotSize = (int)scaled(SlotSize);
+        slotTexture = new LoadedTexture(api, GuiElementItemSlotGridBase.DrawSlotBackground(api, scaled(SlotSize), scaled(SlotSize),
+            GuiStyle.DialogSlotBackColor, GuiStyle.DialogSlotFrontColor, null), slotSize, slotSize);
         cornerTexture = CornerTexture();
         DrawFrames(ctxStatic);
         check = api.Gui.LoadSvg(new AssetLocation("game:textures/icons/checkmark.svg"), (int)scaled(CheckSize), (int)scaled(CheckSize),
@@ -276,7 +288,7 @@ public sealed class AlbumPageElement : GuiElement
     private LoadedTexture SvgTexture(AssetLocation location) => SvgIcons.Texture(api, location, (int)scaled(ItemSize));
 
     /// <summary>A white triangle in the bottom right corner; drawn tinted, its colour is the mark's.</summary>
-    private int CornerTexture()
+    private LoadedTexture CornerTexture()
     {
         int size = (int)scaled(Corner);
         using var surface = new ImageSurface(Format.Argb32, size, size);
@@ -287,9 +299,9 @@ public sealed class AlbumPageElement : GuiElement
         ctx.LineTo(0, size);
         ctx.ClosePath();
         ctx.Fill();
-        int id = 0;
-        generateTexture(surface, ref id);
-        return id;
+        var texture = new LoadedTexture(api);
+        generateTexture(surface, ref texture);
+        return texture;
     }
 
     private void ComposeGroupHeadings()
@@ -405,7 +417,7 @@ public sealed class AlbumPageElement : GuiElement
         }
         else
         {
-            api.Render.Render2DTexturePremultipliedAlpha(slotTexture, x, y, scaled(SlotSize), scaled(SlotSize));
+            api.Render.Render2DTexturePremultipliedAlpha(slotTexture!.TextureId, x, y, scaled(SlotSize), scaled(SlotSize));
             if (cell.Slot.Itemstack != null)
             {
                 api.Render.RenderItemstackToGui(cell.Slot, x + scaled(SlotSize) / 2, y + scaled(SlotSize) / 2, ItemZ,
@@ -422,7 +434,7 @@ public sealed class AlbumPageElement : GuiElement
         if (look.Mark(cell.Placed.Member) is { } mark)
         {
             double size = scaled(Corner), side = cell.FlatTexture != 0 ? scaled(metrics.Cell) : scaled(SlotSize);
-            api.Render.Render2DTexture(cornerTexture, (float)(x + side - size), (float)(y + side - size), (float)size, (float)size, MarkZ, ColorOf(mark.Argb));
+            api.Render.Render2DTexture(cornerTexture!.TextureId, (float)(x + side - size), (float)(y + side - size), (float)size, (float)size, MarkZ, ColorOf(mark.Argb));
         }
     }
 
@@ -459,11 +471,20 @@ public sealed class AlbumPageElement : GuiElement
         hovered = null;
     }
 
+    /// <summary>
+    /// Called more than once, at different times: the composer disposes an interactive element twice (it is in both its
+    /// lists, vsapi GuiComposer.cs:795-796, :868-878), and the game disposes the last composer of a name again when the next
+    /// one of that name is made (decompiled GuiComposerManager.Create), so on the album's next opening or page. By then GL
+    /// may have given a freed id to another texture (a tooltip's): every texture here is a <see cref="LoadedTexture"/>,
+    /// which forgets its id when freed (vsapi LoadedTexture.cs:77). L10 of the album polish plan.
+    /// </summary>
     public override void Dispose()
     {
         base.Dispose();
-        if (slotTexture != 0) api.Render.GLDeleteTexture(slotTexture);
-        if (cornerTexture != 0) api.Render.GLDeleteTexture(cornerTexture);
+        disposals++;
+        ModLog.Debug(api, $"Album page disposed, time {disposals}");
+        slotTexture?.Dispose();
+        cornerTexture?.Dispose();
         check?.Dispose();
         foreach (var heading in headings)
         {

@@ -11,7 +11,7 @@ public class AssetsTests
 
     internal static string AssetsFolder => Assets;
 
-    private static string RepoRoot()
+    internal static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null && !File.Exists(Path.Combine(dir.FullName, "curiocatalogue.sln"))) dir = dir.Parent;

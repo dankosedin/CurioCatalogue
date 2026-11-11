@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
@@ -16,6 +17,8 @@ public class InvoiceDialog : GridDialog
 {
     private readonly CurioCatalogueModSystem mod;
     private Invoice invoice = null!;
+
+    private const int MinCols = 6;
 
     private static InvoiceDialog? open;
 
@@ -49,10 +52,11 @@ public class InvoiceDialog : GridDialog
         var wantedIn = mod.Store.WantedIn(invoice);
         cycles = invoice.Entries.Select(line => new Cycle(ItemInvoice.SlotStacks(wantedIn, line), line.Count)).ToList();
         int rows = FillView(cycles.Select(c => c.StackAt(0)).ToList(),
-            invoice.Entries.Select(line => ItemInvoice.SlotLine(wantedIn, line)).ToList());
+            invoice.Entries.Select(line => ItemInvoice.SlotLine(wantedIn, line)).ToList(), evenly: true);
 
         var font = CairoFont.WhiteSmallText();
-        double width = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, Cols, 1).fixedWidth + 12;
+        // A few lines make a narrow grid: the texts and the button above and below it need room (6 slots).
+        double width = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 0, Math.Max(Cols, MinCols), 1).fixedWidth + 12;
         double y = GuiStyle.TitleBarHeight + 5;
 
         var content = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);

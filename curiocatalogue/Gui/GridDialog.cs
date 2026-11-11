@@ -13,13 +13,17 @@ namespace CurioCatalogue.Gui;
 /// </summary>
 public abstract class GridDialog : HeldItemDialog
 {
-    protected const int Cols = 10;
+    /// <summary>The most slots on a line: the game's chest width.</summary>
+    protected const int MaxCols = 10;
     protected const int VisibleRows = 6;
     protected const string GridKey = "slotgrid";
     protected const string ScrollKey = "scrollbar";
 
     private InventoryGeneric? view;
     private double gridHeight;
+
+    /// <summary>Slots on a line of the grid being shown; set by <see cref="FillView"/>.</summary>
+    protected int Cols { get; private set; } = MaxCols;
 
     protected GridDialog(ICoreClientAPI capi, ItemSlot slot, bool offHand) : base(capi, slot, offHand) { }
 
@@ -29,10 +33,15 @@ public abstract class GridDialog : HeldItemDialog
         SingleComposer?.GetSlotGrid(GridKey)?.OnGuiClosed(capi);
         base.OnGuiClosed();
     }
-    /// <summary>Fills the client-only inventory with the stacks to show, at least one row.</summary>
-    protected int FillView(IReadOnlyList<ItemStack> stacks, IReadOnlyList<string?>? lines = null)
+    /// <summary>
+    /// Fills the client-only inventory with the stacks to show. By default as the game's chests: 10 columns, the last row filled up
+    /// with empty slots, at least one row. With <paramref name="evenly"/>, as the album: the lines spread evenly (<see cref="Core.EvenLines"/>),
+    /// a slot for each stack and none empty (L13).
+    /// </summary>
+    protected int FillView(IReadOnlyList<ItemStack> stacks, IReadOnlyList<string?>? lines = null, bool evenly = false)
     {
-        int slots = Math.Max(Cols, (stacks.Count + Cols - 1) / Cols * Cols);
+        Cols = evenly ? Core.EvenLines.PerLine(stacks.Count, MaxCols) : MaxCols;
+        int slots = evenly ? Math.Max(1, stacks.Count) : Math.Max(Cols, (stacks.Count + Cols - 1) / Cols * Cols);
         view = new InventoryGeneric(slots, "curiocatalogue-view", "view-" + capi.World.Player.PlayerUID, capi, (_, inv) => new ReadOnlySlot(inv))
         {
             TakeLocked = true,
@@ -43,7 +52,7 @@ public abstract class GridDialog : HeldItemDialog
             view[i].Itemstack = stacks[i];
             if (lines != null && view[i] is ReadOnlySlot slot) slot.Lines = lines[i];
         }
-        return slots / Cols;
+        return (slots + Cols - 1) / Cols;
     }
 
     /// <summary>A slot of the view, to change its stack in place (no composing; docs/modding.md, GUI).</summary>

@@ -43,9 +43,10 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
 
         Assert.DoesNotContain(seen, i => !i.Found);
         // The crystals' ores, grades and rocks (16 + 4 + 17), the ores in a host by the definition's table; three levels, two
-        // layouts. The seashells' two levels.
+        // layouts. The seashells' six colours, our round swatches, and two levels.
         Assert.Equal(37 + 3 + 2, seen.Count(i => i.Name.StartsWith("crystals ")));
-        Assert.Equal(2, seen.Count(i => i.Name.StartsWith("seashells ")));
+        Assert.Equal(6 + 2, seen.Count(i => i.Name.StartsWith("seashells ")));
+        Assert.Contains(("seashells color darkpurple", "curiocatalogue:textures/icons/seashell-darkpurple.svg", true), seen);
         Assert.Contains(("crystals ore galena_nativesilver", "game:nugget-nativesilver", true), seen);
         Assert.Contains(("crystals grade rich", "curiocatalogue:textures/icons/grade-rich.svg", true), seen);
         Assert.Contains(("crystals layout all byrock", "game:stone-granite", true), seen);

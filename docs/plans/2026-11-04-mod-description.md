@@ -263,6 +263,18 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
     live only in the repo. Kept close by `CLAUDE.md`'s table (both in the same PR) and by the players' round reading both
     (`docs/review.md`). A check of the guide's config keys against the config class: a `ROADMAP.md` line, not now.
 
+- **The test page of G4** (the author, 13.11.2026; pasted into the draft mod, looked at in desktop Chrome):
+  - **The carousel is variant A:** G3b's row of frames (one per width, scroll or swipe, a caption under each) after the collections
+    table, one frame per collection (the whole 1920×1080 shot of the album window). Variant B (each table row followed by its frame)
+    was built and dropped: the author had chosen A by mistake of the letter.
+  - **ModDB cuts the `expanded` class on saving** (checked on the page with the site's CSS, `.spoiler-toggle:not(.expanded) ~ *
+    { display:none }`): every native spoiler opens closed and a click opens it; an inline `style` on the toggle stays. So a section
+    cannot be open by default in a native spoiler (an inline `display:block` on its text would stop it from folding). Hence:
+    the English sections are plain (open), only the Ukrainian part is a spoiler (closed), as the generator already makes it;
+    `<details>` is not used. A section folded closed by default would be a choice of content, not a necessity: none for now.
+  - **The size:** the test page with two rows of four frames and the images from the gallery is 37 373 bytes (the limit 64 000;
+    the same page without the frames 33 138): a row of four frames costs about 2.1 KB per language.
+
 ## Where we stopped
 
 - 12.11.2026, G7a done (final, in `docs/guide/`, not yet committed until the author's yes): both guide files hold Getting started,
@@ -278,3 +290,13 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   `docs/releasing.md` has the new contract. The page is **32 454 bytes** (was 60 424 in G3c), so G5 has ~31 KB for frames.
   **Drafts:** the "What's new" texts (en, uk) are a short draft of 0.2 (R2 rewrites them); the spoiler's markup is from the
   Decisions, not yet seen on the site (G4's probe). Sections are open, no `<details>` left: G4 decides what folds. Next: G4.
+- 13.11.2026, G4 started: `main` (L15's seashell swatches) merged into the branch, so the frames show them. Decided with the
+  author: a frame is the whole 1920×1080 screenshot (not the window cropped); the test page takes its frames from the draft
+  mod's gallery (nothing in the repo or on GitHub); the variants are a hand-made copy of the generated page, not generator
+  options (the generator learns only the chosen form). The copy (a test, in the agent's scratchpad, rebuilt from the generated
+  page by a script there): under each collections table variant A (G3b's row of frames) and B (a table row, then a row with its
+  frame); folding: en Similar mods in `<details>`, Credits in the native spoiler; uk (inside the spoiler) the other way round,
+  so a spoiler in a spoiler and `<details>` in a spoiler are both seen; 43.9 KB. The `en` frames of 12.11.2026 (tapestries
+  page 1, crystals every crystal / native copper, butterflies by rarity / legendary) are kept; seashells `en` and all four
+  `uk` wait for the author, then the gallery upload and the URLs. Next: the URLs into the page, the author's yes, the paste.
+- 13.11.2026, G4's page tested (the author pasted it into the draft mod, looked in Chrome, "good enough"): decisions in "The test page of G4". Left: the generator makes the chosen form (the row of frames under the collections table, the frames' images from the gallery, the English sections plain, the Ukrainian part's spoiler as now); the checks the author has not done (the phone, Firefox). The test page itself is a throwaway in the agent's scratchpad; the frames (final for the test, not for 0.2: R3 shoots again) are in `Pictures\Vintagestory\g4-frames\` and in the draft mod's gallery. Next: the generator, then G5.

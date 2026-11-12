@@ -88,7 +88,8 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       the draft mod (after a "yes" to its text).
       Done when: the generator checks the size (a test, mutation-checked); the real page is measured before and after and the
       sizes are written here; the contract in `docs/releasing.md` names the limit and the sequence without arrows.
-- [ ] **G6. Showcase and guide.** The page is a showcase, the guide lives in the repo (Decisions, "A showcase and a guide"). Decided
+- [x] **G6. Showcase and guide.** Decided 12.11.2026 (Decisions, "The showcase and the guide: the split"); G7 added, G4, G5 and
+      R2, R5, R6 of the release plan updated. The page is a showcase, the guide lives in the repo (Decisions, "A showcase and a guide"). Decided
       with the author:
       - which sections of the description stay on the page and which go to the guide;
       - the guide's files (e.g. `docs/guide.md` and `guide.uk.md`) and how the showcase links into it;
@@ -98,23 +99,42 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       - what the in-game guide (`guide-text`, the handbook pages) shares with the guide in the repo, and who keeps them close.
       Branch: `docs/mod-description`. After: G3. Model: opus. Author: decides.
       Done when: Decisions has the split; G4, G5 and the release plan (R2) are updated where it changed them.
-- [ ] **G4. Shooting a sequence.** One frame is one state of the studio today (`docs/screenshots.md`); a sequence needs a
-      chain of states taken again in every language. Both forms are tried (Decisions, "Sequences: both tried"): an animated GIF
-      and a row of frames. Research, then the process:
-      - the state before and after, reproducible: copies of the props, the order of the frames, a macro per frame;
-      - the hint over the chest is seen only while looking at the block, which brings the selection frame
-        (`docs/screenshots.md` forbids it): whether the frame can be hidden (client settings, `.cf`, the engine), or it stays;
-      - full frames or crops of a region by `tools/screenshots.ps1` (the inventory and the book are a small part of a
-        1920×1080 frame, and a sequence is shown at ~800 px); the files' sizes, three per mechanic;
-      - a GIF: how it is recorded and made (a video of the client, then frames to GIF), its size and quality, one per language;
-      - a test sequence, the album taking tapestries from a chest, in `en` and `uk`, put into the description in both forms;
-        the author compares how they look on the page and on the phone, and picks.
-      Branch: `docs/mod-description` (the process), `feature/mod-description` if the script changes. After: G6. Model: opus
-      (the research), sonnet (the script). Author: shoots the test sequence.
-      Done when: `docs/screenshots.md` and `tools/studio/README.md` say how a sequence is shot; the test sequence is on the
-      generated page in both languages.
-- [ ] **G5. The shot list of 0.2.** Which mechanics get a sequence and which a single frame, with the stamp-album view and the
-      new collections; the gallery's order and its first image. Written into `docs/screenshots.md`; R3 shoots by it.
+- [ ] **G7. The guide in the repo, the showcase on the page** (G6, 12.11.2026). Two steps, each leaves the build green:
+  - [ ] **G7a. The guide.** `docs/guide/README.md` and `README.uk.md`: the sections that leave the page (Decisions, "The showcase
+        and the guide: the split") moved from the description, not rewritten (R2 rewrites them); "Sheets and covers" from
+        `guide-text` (until now only in the game); "Questions" as an empty heading or left out (the author decides in the step).
+        README gets "What may come next" and a link to `docs/guide/`. `CLAUDE.md`'s table: a row for `docs/guide/` (read before
+        changing what the player sees; update with such a change, both languages, and `guide-text` with the handbook pages in the
+        same PR), the description's row narrowed to the showcase; `docs/review.md`: the players' round reads both guides and
+        compares them. The description and the generator stay as they are (the page is cut in G7b).
+        Branch: `feature/mod-description`. After: G6. Model: sonnet. Author: looks at the guide on GitHub's preview (or the diff).
+        Done when: both guide files are in place with the same sections; every section that leaves the page is in them; README
+        links to them.
+  - [ ] **G7b. The generator reads the showcase.** The description cut to the showcase (the sections and their order in
+        Decisions); new keys `whats-new` and `collections`, the accordions of the moved sections and "Other" gone; the buttons:
+        Guide, README, Bugs, Ukrainian (the Ukrainian part: Guide only); the links to the guide and README made from the version
+        (`blob/v<version>/…`); one deep link under the collections table to the guide's collections section, with a check that the
+        heading exists in both guide files (the build fails otherwise). The contract in `docs/releasing.md`; `PageGen.Tests`
+        (mutation-checked: the missing heading, a missing `whats-new`). The page's size before and after written here.
+        Branch: `feature/mod-description`. After: G7a. Model: sonnet. Author: looks at the generated page (`moddb.preview.html`).
+        Done when: CI generates the showcase; the tests pass and are mutation-checked; the contract says the new shape.
+- [ ] **G4. The test page.** What G6 left to a look (Decisions, "The showcase and the guide: the split"), on one generated page
+      with today's shots (a test, not the 0.2 shots: those are R3's), in `en` and `uk`; the author pastes it into the draft mod
+      (after a "yes" to its exact text) and looks on the desktop and the phone:
+      - the collections carousel in two forms: a row of frames under the table (one album page per collection) and each table
+        row paired with its frame;
+      - which sections are open and which folded;
+      - the folded parts: all in ModDB's native spoiler, all in `<details>`, or `<details>` for the sections and the spoiler for the
+        Ukrainian part; whether the spoiler opens (the site's script) and how a spoiler inside a spoiler behaves.
+      The frames are single shots of the album window, one per collection, by today's process (`docs/screenshots.md`): no chain
+      of states. The album taking pieces from a chest is the guide's now (G6); whether it gets a sequence or a GIF there is G5's.
+      Branch: `feature/mod-description` (the variants are generator options or a hand-made copy of the page, decided in the step).
+      After: G7b. Model: sonnet. Author: shoots the frames, pastes the page, picks.
+      Done when: Decisions has the carousel's form, the open and folded sections and the folding element; the generator makes
+      the chosen form.
+- [ ] **G5. The shot list of 0.2.** The hero, a frame per collection for the carousel (in G4's form), the pictures of the guide
+      (whether the album taking pieces from a chest gets a sequence, a GIF or a frame), with the stamp-album view and the new
+      collections; the gallery's order and its first image. Written into `docs/screenshots.md`; R3 shoots by it.
       Branch: `docs/mod-description`. After: A2 of the album view, C7 of the collections design, G6, G4. Model: opus. Author:
       decides.
       Done when: the shot list of 0.2 is in `docs/screenshots.md`, approved.
@@ -209,6 +229,38 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
 - **The Ukrainian showcase in ModDB's native spoiler** (the author, 11.11.2026): `div.spoiler` with `spoiler-toggle` and
   `spoiler-text`, styled by the site's CSS, so it costs no inline styles; 1 006 mods use it, 130 of the top 300.
 - **Sequences: both tried** (the author, 11.11.2026): an animated GIF (one `<img>` on the page, as some popular mods show each
-  mechanic) and G3b's row of frames; the choice after G4's test.
+  mechanic) and G3b's row of frames; the choice after G4's test. Changed by G6 (12.11.2026): the mechanics go to the guide, the
+  page's carousel shows the collections (G4).
+- **The showcase and the guide: the split** (the author, 12.11.2026, G6):
+  - **What the page holds:** what a player needs to decide whether to install the mod, and what is vital: something that breaks
+    the game or loses items, with instructions what to do. A compatibility note is there only for a known incompatibility we have
+    instructions for. Removing the mod is not: the game deletes the items of any removed mod. "Server and client" is ModDB's
+    classification and a badge, not a section.
+  - **The page's sections, in this order:** the head (title, hook, badges, the warning, the hero); the buttons (Guide, README,
+    Bugs, Ukrainian); **What's new** in this version, a section of its own and first, since in early development the news matter
+    more than what the mod has; **What's inside** (six items with icons); **Collections**, the table, the mod's central feature,
+    with the carousel; **What it does not do**; **Similar mods**; **Credits** with "AI and human work" (it is part of the thanks);
+    **License**; the Ukrainian part. The warning keeps "back up your world"; that books may not carry over is said only when it is a
+    fact of that release. What it does not do and Similar mods stay on the page (they answer "is this mod for me"); weighed again
+    if the page reaches the limit.
+  - **Everything else leaves the page:** to the guide (getting started, gestures, the album taking pieces from a chest, the
+    collections' rules, fair play on servers, configuration, compatibility and supported containers, Better Crates, removing the
+    mod, sheets and covers, questions), to README ("What may come next", languages, contributing).
+  - **The guide:** `docs/guide/README.md` and `README.uk.md` (GitHub shows them on opening the folder; README links there), one
+    file per language. Rejected: `GUIDE.md` in the root (tidier in `docs/guide/`, and README leads there); several files per
+    language (one is searchable and has one link).
+  - **Links:** the page links to README and to the guide; the Ukrainian part only to `README.uk.md` of the guide. The links go to
+    the release's tag (`blob/v<version>/…`), made by the generator from the version, so the guide matches the version a player
+    downloads; the tag must exist before the page is pasted (R6). One deep link from the showcase: under the collections table to
+    the guide's collections section; the generator checks that heading in both guide files.
+  - **The generator** reads the description as the showcase and never the guide (besides the heading check): two sources, no marked
+    sections in one file. Built in G7.
+  - **Open and folded sections, the native spoiler and the carousel's form** are tried on one test page (G4): the spoiler for the
+    Ukrainian part stays as decided; for folded sections, the spoiler or `<details>`, by the look.
+  - **The in-game guide:** two hand-written texts, never one generated from the other (VTML's item icons, handbook links and keys
+    do not fit Markdown, nor the other way). The guide in the repo is the full one and the source of facts; the handbook is shorter,
+    for playing (getting started, gestures, the album, want lists, sheets and covers); configuration, compatibility and removal
+    live only in the repo. Kept close by `CLAUDE.md`'s table (both in the same PR) and by the players' round reading both
+    (`docs/review.md`). A check of the guide's config keys against the config class: a `ROADMAP.md` line, not now.
 
 ## Where we stopped

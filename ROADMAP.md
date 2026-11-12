@@ -236,6 +236,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.
+- **The guide's config keys checked** (G6 of the mod description plan, 12.11.2026): `docs/guide/` lists every key of
+  `ModConfig/curiocatalogue.json`, written by hand; a test that the keys named there are the fields of the config class, so a new or
+  renamed setting cannot go unseen.
 - **The review procedure, next ideas** (`docs/review.md`): tests from the C# expert as proof of a bug; a security role first in
   line for outside pull requests (calls out of the game, processes, build scripts, new dependencies) before anyone builds them;
   a check that the code does what `DESIGN.md`, the READMEs and the lang texts say.

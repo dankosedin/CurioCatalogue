@@ -12,6 +12,7 @@
     {
       "code": "color",
       "values": ["latte", "plain", "seafoam", "darkpurple", "cinnamon", "turquoise"],
+      "icon": "curiocatalogue:textures/icons/seashell-{value}.svg",
       "nameKey": "curiocatalogue:seashells-color-{value}",
       "anyKey": "curiocatalogue:seashells-any-color"
     }

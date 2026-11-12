@@ -169,6 +169,10 @@ sees a change.
       Branch: `docs/modders`. After: G1, L12 (the part promises a look by the asset alone). Model: sonnet. Author: the text
       (public: reviewed before the pull request).
       Done when: the part in place, every field it names checked against `CollectionDefinitionReader`; the author's yes; pull request.
+- [x] **L15. Seashells: colours headed by round swatches** (the author, 13.11.2026: forgotten after L2b, whose Decisions foresaw
+      "a seashell colour as a round swatch"). The table of `colors` headed by six SVG discs in the colour of each shell's stripes
+      (`seashell-{color}.svg`), the name on hover, as the crystals' grades; no code. Branch: `feat/seashell-swatches`. Model: opus.
+      Author: picks the look in game. Done when: tests pass; A35 in `functional.md` passed; pull request.
 
 ## Decisions
 
@@ -376,6 +380,10 @@ sees a change.
     has a box as wide as the name (`MinGroupWidth`), and centring the box left it at the left (seen in game, Translocator).
 - **The look of a tapestry collection by its source** (L12, 11.11.2026): `MemberNames.ValueName(source, dimension, value)` names a `picture` of a `CollectionSource.Tapestry` source by the game (`game:tapestry-{value}`); `CollectionRegistry.SourceOf(id)` gives the source to the window. No code compares a collection's id with `tapestries` for its look (the id stays in the config's defaults and the old-config move only). Rejected: a flag in the definition JSON (the source kind already says it, and a mod author would have to know to set it).
 - **The want list window follows the album** (L13, the author, 11.11.2026): the invoice window (`InvoiceDialog`: a want list and the invoices of the ledger and the bill of materials, one window) spreads its lines evenly over rows as `AlbumPages` does and has a slot for each line, none empty. The rule is `EvenLines.PerLine` in the core, used by both; `GridDialog.FillView(evenly: true)`. The window is never narrower than 6 slots (its texts and the Cancel button need the room). The ledger window keeps the game's chest look (10 columns, the last row filled up). Rejected: keeping the chest look for the want list too (the only window of ours that looked unlike the album, seen in L6).
+- **The seashells' colour swatches (L15, the author, 13.11.2026):** a solid disc of the colour of the shell's stripes (the darker
+  quarter of the pixels of the striped part of the game's `textures/block/creature/aquatic/seashell/{color}.png`), as large as
+  the crystals' largest grade mark (`r="9"` of 24). Rejected after both were seen in game: a ring of the shell's cream base
+  round a smaller disc of the stripes (truer to the shell, liked less). Dark purple is dim on the album's brown; its name on hover.
 
 ## Where we stopped
 
@@ -466,3 +474,6 @@ sees a change.
 - 11.11.2026: L11 done (final) on `feat/album-frames`: Decisions, "The frames stretched"; `AlbumPagesTests` mutation-checked, all test projects green; A34 in `functional.md` passed in game (the author, en and uk), `CHANGELOG.md`. Next: the pull request.
 - 11.11.2026: L12 done (final) on `fix/tapestry-names`: the game's names of tapestry pictures follow the source kind, not the id (Decisions, "The look of a tapestry collection by its source"); `TooltipTests` has a server test with a second collection of the `tapestry` source, mutation-checked; all test projects green. No case in `functional.md` (nothing changes for the vanilla collections). Next: the pull request.
 - 11.11.2026: L13 done (final) on `feat/wantlist-grid`: Decisions, "The want list window follows the album"; `EvenLinesTests` mutation-checked; all test projects green (Core 210, adapters 240, server 232; the compat tests not run). W8 in `functional.md` passed in game (the author, en and uk, 11.11.2026; 3, 11, 23, 42 lines and two invoices). Next: the pull request.
+- 13.11.2026: L15 done (final) on `feat/seashell-swatches`: six `seashell-{color}.svg`, `icon` on the colour dimension of
+  `seashells.json`; `VanillaContentTests` counts the swatches; both looks seen in game, the solid disc chosen (Decisions, "The
+  seashells' colour swatches"); A35 in `functional.md`, `CHANGELOG.md`. Next: the pull request.

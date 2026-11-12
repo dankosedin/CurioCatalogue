@@ -118,7 +118,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
         (mutation-checked: the missing heading, a missing `whats-new`). The page's size before and after written here.
         Branch: `feature/mod-description`. After: G7a. Model: sonnet. Author: looks at the generated page (`moddb.preview.html`).
         Done when: CI generates the showcase; the tests pass and are mutation-checked; the contract says the new shape.
-- [ ] **G4. The test page.** What G6 left to a look (Decisions, "The showcase and the guide: the split"), on one generated page
+- [x] **G4. The test page.** Done 13.11.2026 (Decisions, "The test page of G4"). What G6 left to a look (Decisions, "The showcase and the guide: the split"), on one generated page
       with today's shots (a test, not the 0.2 shots: those are R3's), in `en` and `uk`; the author pastes it into the draft mod
       (after a "yes" to its exact text) and looks on the desktop and the phone:
       - the collections carousel in two forms: a row of frames under the table (one album page per collection) and each table
@@ -300,3 +300,4 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   page 1, crystals every crystal / native copper, butterflies by rarity / legendary) are kept; seashells `en` and all four
   `uk` wait for the author, then the gallery upload and the URLs. Next: the URLs into the page, the author's yes, the paste.
 - 13.11.2026, G4's page tested (the author pasted it into the draft mod, looked in Chrome, "good enough"): decisions in "The test page of G4". Left: the generator makes the chosen form (the row of frames under the collections table, the frames' images from the gallery, the English sections plain, the Ukrainian part's spoiler as now); the checks the author has not done (the phone, Firefox). The test page itself is a throwaway in the agent's scratchpad; the frames (final for the test, not for 0.2: R3 shoots again) are in `Pictures\Vintagestory\g4-frames\` and in the draft mod's gallery. Next: the generator, then G5.
+- 13.11.2026, G4 done: no new generator code was needed, the row of frames is G3b's ::: sequence. Both descriptions have a `::: sequence collections` under the collections table (four frames: tapestries, ore crystals, seashells, butterflies), the frames are the test shots as JPEG 1920×1080 q88 in `docs/images/collection-<name>.<lang>.jpg` (**a draft**: R3 shoots again by G5's list, and may rename them). The generated page is **37 946 bytes** (limit 64 000), `PageGen.Tests` green. Not checked: the phone, Firefox. Next: G5.

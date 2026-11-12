@@ -41,6 +41,26 @@ An album collects one collection, chosen by the piece it is made from.
 | Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
 | Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
 
+::: sequence collections
+
+![The album of tapestries: the pictures, each with its pieces](../images/collection-tapestries.en.jpg)
+
+Tapestries: the pictures, each with its pieces.
+
+![The album of ore crystals: every crystal, an ore at a time](../images/collection-crystals.en.jpg)
+
+Ore crystals: every crystal, an ore at a time.
+
+![The album of seashells: every type in every colour](../images/collection-seashells.en.jpg)
+
+Seashells: every type in every colour.
+
+![The album of butterflies by rarity](../images/collection-butterflies.en.jpg)
+
+Butterflies: by rarity.
+
+:::
+
 The levels, the rules and what a want list says: see [the guide's section on collections](../guide/README.md#collections).
 
 ## What it does not do

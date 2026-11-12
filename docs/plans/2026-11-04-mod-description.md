@@ -99,7 +99,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       - what the in-game guide (`guide-text`, the handbook pages) shares with the guide in the repo, and who keeps them close.
       Branch: `docs/mod-description`. After: G3. Model: opus. Author: decides.
       Done when: Decisions has the split; G4, G5 and the release plan (R2) are updated where it changed them.
-- [ ] **G7. The guide in the repo, the showcase on the page** (G6, 12.11.2026). Two steps, each leaves the build green:
+- [x] **G7. The guide in the repo, the showcase on the page** (G6, 12.11.2026). Two steps, each leaves the build green:
   - [x] **G7a. The guide.** `docs/guide/README.md` and `README.uk.md`: the sections that leave the page (Decisions, "The showcase
         and the guide: the split") moved from the description, not rewritten (R2 rewrites them); "Sheets and covers" from
         `guide-text` (until now only in the game); "Questions" as an empty heading or left out (the author decides in the step).
@@ -110,7 +110,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
         Branch: `feature/mod-description`. After: G6. Model: sonnet. Author: looks at the guide on GitHub's preview (or the diff).
         Done when: both guide files are in place with the same sections; every section that leaves the page is in them; README
         links to them.
-  - [ ] **G7b. The generator reads the showcase.** The description cut to the showcase (the sections and their order in
+  - [x] **G7b. The generator reads the showcase.** The description cut to the showcase (the sections and their order in
         Decisions); new keys `whats-new` and `collections`, the accordions of the moved sections and "Other" gone; the buttons:
         Guide, README, Bugs, Ukrainian (the Ukrainian part: Guide only); the links to the guide and README made from the version
         (`blob/v<version>/…`); one deep link under the collections table to the guide's collections section, with a check that the
@@ -271,3 +271,10 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
   (without the handbook links). "Questions" is left out (no questions exist yet; add the heading when the first one does).
   README has "What may come next" and links to both guides; `CLAUDE.md`'s table has a row for `docs/guide/` and the description's
   row narrowed; `docs/review.md`: the round reads both guides and compares. Next: G7b.
+- 12.11.2026, G7b done (final, not yet committed until the author's yes): the descriptions are the showcase (sections: What's new,
+  What's inside, Collections with one deep link into the guide, What it does not do, Similar mods, Credits with "AI and human
+  work", License; the Ukrainian part in ModDB's native spoiler); `Contract.SectionKeys`, buttons Guide / README / Bugs / Ukrainian
+  (links from the ref), the heading check of the guide links (`GithubAnchor`), classes of the spoiler kept by the generator;
+  `docs/releasing.md` has the new contract. The page is **32 454 bytes** (was 60 424 in G3c), so G5 has ~31 KB for frames.
+  **Drafts:** the "What's new" texts (en, uk) are a short draft of 0.2 (R2 rewrites them); the spoiler's markup is from the
+  Decisions, not yet seen on the site (G4's probe). Sections are open, no `<details>` left: G4 decides what folds. Next: G4.

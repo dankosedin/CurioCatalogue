@@ -143,6 +143,8 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
         {
             DescriptionEn = File.ReadAllText(context.Argument("descriptionEn", "../docs/moddb/description.md")),
             DescriptionUk = File.ReadAllText(context.Argument("descriptionUk", "../docs/moddb/description.uk.md")),
+            GuideEn = File.ReadAllText($"../{CurioCatalogue.PageGen.Contract.GuideEnPath}"),
+            GuideUk = File.ReadAllText($"../{CurioCatalogue.PageGen.Contract.GuideUkPath}"),
             Template = File.ReadAllText("../docs/moddb/template.html"),
             Version = context.Version,
             GameVersion = (string?)modInfo["dependencies"]?["game"] ?? throw new Exception("modinfo.json has no dependencies.game"),

@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using Markdig;
+using Markdig.Syntax;
 using PreMailer.Net;
 using Scriban;
 using Scriban.Runtime;
@@ -12,6 +14,9 @@ public sealed record PageInput
     public required string DescriptionUk { get; init; }
     /// <summary>The descriptions' folder in the repository: their relative paths are read from it, as GitHub reads them.</summary>
     public string DescriptionDir { get; init; } = "docs/moddb/";
+    /// <summary>The guide's files (docs/guide/README.md, README.uk.md): read only to check the headings the descriptions link to.</summary>
+    public required string GuideEn { get; init; }
+    public required string GuideUk { get; init; }
     public required string Template { get; init; }
     public required string Version { get; init; }
     public required string GameVersion { get; init; }
@@ -24,7 +29,7 @@ public sealed record PageInput
     /// <summary>Where relative links point, e.g. https://github.com/dankosedin/CurioCatalogue/blob/v0.1.1/</summary>
     public required string BlobBase { get; init; }
     public required string RepoUrl { get; init; }
-    /// <summary>Source and Report a bug in the row of buttons (ModDB's card has them too).</summary>
+    /// <summary>Report a bug in the row of buttons (ModDB's card has it too).</summary>
     public bool ModDbLinks { get; init; }
     /// <summary>The page may not be larger than this many bytes (UTF-8); see <see cref="Contract.MaxPageBytes"/>.</summary>
     public int MaxBytes { get; init; } = Contract.MaxPageBytes;
@@ -40,6 +45,7 @@ public static class ModDbPage
         var en = Description.Parse(input.DescriptionEn, "en", links, problems);
         var uk = Description.Parse(input.DescriptionUk, "uk", links, problems, en.Keys.IndexOf(Contract.InsideKey));
         CrossCheck(en, uk, problems);
+        CheckGuideAnchors(en, uk, input, problems);
         CheckTemplateCss(input.Template, problems);
         if (problems.Count > 0) throw new ContractException(problems);
 
@@ -56,7 +62,7 @@ public static class ModDbPage
 
     static void CrossCheck(DescriptionData en, DescriptionData uk, List<string> problems)
     {
-        var known = Contract.AllKeys.ToHashSet();
+        var known = Contract.SectionKeys.ToHashSet();
         foreach (var k in en.Keys.Where(k => !known.Contains(k)))
             problems.Add($"Description (en): the section '{k}' is not known to the template; add it to the template and to Contract, or rename it");
         foreach (var k in known.Where(k => !en.Keys.Contains(k)))
@@ -81,13 +87,9 @@ public static class ModDbPage
         uk.Keys.Clear();
         uk.Keys.AddRange(en.Keys);
 
-        if (en.Sections.TryGetValue(Contract.InsideKey, out var ei) && uk.Sections.TryGetValue(Contract.InsideKey, out var ui))
-        {
-            if (ei.Subs.Count != Contract.InsideSubsections)
-                problems.Add($"Description (en): '{ei.Title}' has {ei.Subs.Count} ### subsections, the page shows {Contract.InsideSubsections}");
-            if (ei.Subs.Count != ui.Subs.Count)
-                problems.Add($"The descriptions differ: '{ei.Title}' has {ei.Subs.Count} ### subsections in en and {ui.Subs.Count} in uk");
-        }
+        foreach (var k in en.Keys)
+            if (en.Sections[k].Subs.Count != uk.Sections[k].Subs.Count)
+                problems.Add($"The descriptions differ: '{en.Sections[k].Title}' has {en.Sections[k].Subs.Count} ### subsections in en and {uk.Sections[k].Subs.Count} in uk");
         if (en.Items.Count != uk.Items.Count)
             problems.Add($"The descriptions differ: {en.Items.Count} list items in en and {uk.Items.Count} in uk");
 
@@ -95,6 +97,35 @@ public static class ModDbPage
         string Seqs(DescriptionData d) => string.Join(", ", d.Sequences.Select(s => $"{s.Name} ({s.Frames})"));
         if (Seqs(en) != Seqs(uk))
             problems.Add($"The descriptions differ in sequences: en has [{Seqs(en)}], uk has [{Seqs(uk)}]");
+    }
+
+    /// <summary>A link into the guide with a fragment must hit a heading of that file, by GitHub's rule for anchors; the build fails on a renamed or missing one.</summary>
+    static void CheckGuideAnchors(DescriptionData en, DescriptionData uk, PageInput input, List<string> problems)
+    {
+        var anchors = new Dictionary<string, HashSet<string>>
+        {
+            [Contract.GuideEnPath] = GuideHeadingAnchors(input.GuideEn),
+            [Contract.GuideUkPath] = GuideHeadingAnchors(input.GuideUk),
+        };
+        foreach (var (lang, d) in new[] { ("en", en), ("uk", uk) })
+            foreach (var (file, anchor) in d.GuideAnchors)
+            {
+                if (!anchors.TryGetValue(file, out var set))
+                    problems.Add($"Description ({lang}): a link to {file}#{anchor}: the generator knows only {Contract.GuideEnPath} and {Contract.GuideUkPath}");
+                else if (!set.Contains(anchor))
+                    problems.Add($"Description ({lang}): a link to {file}#{anchor}, but that file has no such heading");
+            }
+    }
+
+    static HashSet<string> GuideHeadingAnchors(string markdown) =>
+        Markdig.Markdown.Parse(markdown).Descendants<HeadingBlock>()
+            .Select(h => GithubAnchor(Description.PlainText(h.Inline))).ToHashSet();
+
+    /// <summary>GitHub's anchor of a heading: lower case, letters, digits, '-' and '_' kept, spaces become '-', the rest dropped.</summary>
+    public static string GithubAnchor(string heading)
+    {
+        var kept = Regex.Replace(heading.Trim().ToLowerInvariant(), @"[^\p{L}\p{N}_ -]", "");
+        return kept.Replace(' ', '-');
     }
 
     /// <summary>ModDB drops &lt;style&gt;, so what PreMailer cannot inline would be lost: no media queries, hover or pseudo-elements.</summary>
@@ -127,7 +158,10 @@ public static class ModDbPage
             raw_base = new Links(input.RawBase, input.BlobBase).RawBase,
             repo_url = input.RepoUrl,
             moddb_links = input.ModDbLinks,
-            known_keys = new { accordions = Contract.AccordionKeys, other = Contract.OtherKeys },
+            section_keys = Contract.SectionKeys,
+            guide_url_en = new Links(input.RawBase, input.BlobBase).BlobBase + Contract.GuideEnPath,
+            guide_url_uk = new Links(input.RawBase, input.BlobBase).BlobBase + Contract.GuideUkPath,
+            readme_url = new Links(input.RawBase, input.BlobBase).BlobBase + Contract.ReadmePath,
             en,
             uk,
         });
@@ -161,6 +195,9 @@ public static class ModDbPage
         });
     }
 
+    /// <summary>Classes of ModDB's native spoiler: <c>div.spoiler</c> with <c>spoiler-toggle</c> and <c>spoiler-text</c>.</summary>
+    static readonly HashSet<string> SiteClasses = new() { "spoiler", "spoiler-toggle", "spoiler-text" };
+
     static string Inline(string html, List<string> problems)
     {
         var result = PreMailer.Net.PreMailer.MoveCssInline(html, removeStyleElements: true, removeComments: true);
@@ -170,7 +207,8 @@ public static class ModDbPage
         var page = body.Success ? body.Groups[1].Value : result.Html;
 
         page = Regex.Replace(page, "<!--.*?-->", "", RegexOptions.Singleline);
-        page = Regex.Replace(page, "\\sclass=\"[^\"]*\"", "");
+        // Only ModDB's own spoiler keeps its classes (the site's CSS and script style it); ours are inlined and dropped.
+        page = Regex.Replace(page, "\\sclass=\"([^\"]*)\"", m => SiteClasses.Contains(m.Groups[1].Value) ? m.Value : "");
         // PreMailer writes "prop: value;prop: value"; the space after the colon is 23 KB of bytes on the real page and means nothing.
         page = Regex.Replace(page, "\\sstyle=\"([^\"]*)\"", m => " style=\"" + Shorten(m.Groups[1].Value) + "\"");
         page = page.Trim() + Environment.NewLine;

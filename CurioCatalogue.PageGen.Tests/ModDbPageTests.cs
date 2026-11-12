@@ -19,12 +19,15 @@ public class ModDbPageTests
     // The section titles of the sample; the Ukrainian description has other words at the same places.
     static readonly string[] EnTitles =
     {
-        "What's inside", "Getting started", "Collections", "Gestures", "Fair play on servers", "Configuration",
-        "Compatibility and known limitations", "Removing the mod", "Languages", "Contributing",        "AI and human work", "Credits", "License",
+        "What's new", "What's inside", "Collections", "What it does not do", "Similar mods", "Credits", "License",
     };
 
-    /// <summary>A description in docs/moddb/: head, then the sections with a line of text each; "What's inside" with its list and subsections.</summary>
-    static string Doc(string lang, Func<string, string>? edit = null, int items = 6, int subs = 3, string head = "")
+    /// <summary>The guide's headings the sample descriptions link to ("Collections" in the guide, by GitHub's anchor).</summary>
+    const string GuideEn = "# Guide\n\n## Getting started\n\n## Collections\n\nText.\n";
+    const string GuideUk = "# Посібник\n\n## Як почати\n\n## Колекції\n\nТекст.\n";
+
+    /// <summary>A description in docs/moddb/: head, then the sections with a line of text each; "What's inside" with its list, "Collections" with the deep link into the guide, "Credits" with <paramref name="subs"/> subsections.</summary>
+    static string Doc(string lang, Func<string, string>? edit = null, int items = 6, int subs = 1, string head = "")
     {
         bool en = lang == "en";
         var sb = new System.Text.StringBuilder();
@@ -36,26 +39,33 @@ public class ModDbPageTests
         {
             string title = en ? EnTitles[i] : $"Section {i} uk";
             sb.Append($"## {title}\n\n");
-            if (i == 0)
+            if (i == 1)
             {
                 for (int n = 1; n <= items; n++) sb.Append($"- **Item {n}** of {lang}.\n");
                 sb.Append($"\nThe paragraph under the list ({lang}).\n\n");
-                for (int s = 1; s <= subs; s++) sb.Append($"### Sub {s} {lang}\n\nText of sub {s}.\n\n");
             }
             else
             {
                 sb.Append($"Text of {title}, see [the guide](../guide.md) and `CONTRIBUTING.md`.\n\n");
-                if (i == 1) sb.Append("![A shot](../images/shot.en.png)\n\n");
+                if (i == 2)
+                {
+                    sb.Append(en ? "See [collections](../guide/README.md#collections).\n\n" : "Див. [колекції](../guide/README.uk.md#колекції).\n\n");
+                    sb.Append("![A shot](../images/shot.en.png)\n\n");
+                }
+                if (i == 5)
+                    for (int s = 1; s <= subs; s++) sb.Append($"### Sub {s} {lang}\n\nText of sub {s}.\n\n");
             }
         }
         var text = sb.ToString();
         return edit == null ? text : edit(text);
     }
 
-    static PageInput Input(string? en = null, string? uk = null, string? template = null, bool links = false) => new()
+    static PageInput Input(string? en = null, string? uk = null, string? template = null, bool links = false, string? guideEn = null) => new()
     {
         DescriptionEn = en ?? Doc("en"),
         DescriptionUk = uk ?? Doc("uk"),
+        GuideEn = guideEn ?? GuideEn,
+        GuideUk = GuideUk,
         Template = template ?? Template(),
         Version = "0.1.1",
         GameVersion = "1.22.7",
@@ -77,7 +87,9 @@ public class ModDbPageTests
 
         Assert.DoesNotContain("<style", html);
         Assert.DoesNotContain("<!--", html);
-        Assert.DoesNotContain("class=", html);
+        // The only classes left are ModDB's own spoiler's: its CSS and script style it.
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(html, "class=\"([^\"]*)\""))
+            Assert.Contains(m.Groups[1].Value, new[] { "spoiler", "spoiler-toggle", "spoiler-text" });
         Assert.DoesNotContain("@media", html);
         Assert.DoesNotContain("<html", html);
         foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(html, "(?:href|src)=\"([^\"]*)\""))
@@ -100,7 +112,7 @@ public class ModDbPageTests
         Assert.Contains("max-width:960px", html);          // the card
         Assert.Contains("flex-wrap:wrap", html);            // the hero
         Assert.Contains("scroll-margin-top", html);          // anchors
-        Assert.Matches("<summary style=\"[^\"]*cursor:pointer", html);
+        Assert.Matches("<h2 [^>]*scroll-margin-top:56px", html);
     }
 
     [Fact]
@@ -115,31 +127,57 @@ public class ModDbPageTests
     }
 
     [Fact]
-    public void Both_languages_have_anchors_and_the_ukrainian_one_is_nested()
+    public void Both_languages_have_a_heading_with_an_anchor_per_section_and_the_ukrainian_one_is_nested()
     {
         var html = ModDbPage.Generate(Input());
 
-        foreach (var key in new[] { "whats-inside", "getting-started", "gestures", "configuration", "other" })
+        foreach (var key in Contract.SectionKeys)
         {
             Assert.Contains($"id=\"cc-{key}\"", html);
             Assert.Contains($"id=\"cc-uk-{key}\"", html);
-            if (key != "other")
-            {
-                Assert.Contains($"href=\"#cc-{key}\"", html);
-                Assert.Contains($"href=\"#cc-uk-{key}\"", html);
-            }
         }
         Assert.Contains("id=\"cc-uk\"", html);
-        Assert.True(html.IndexOf("id=\"cc-uk\"", StringComparison.Ordinal) < html.IndexOf("id=\"cc-uk-gestures\"", StringComparison.Ordinal));
+        Assert.True(html.IndexOf("id=\"cc-uk\"", StringComparison.Ordinal) < html.IndexOf("id=\"cc-uk-collections\"", StringComparison.Ordinal));
         Assert.Contains("Title uk", html);
     }
 
     [Fact]
-    public void Whats_inside_and_getting_started_are_open_and_the_rest_closed()
+    public void Sections_are_open_and_the_ukrainian_part_is_in_ModDBs_native_spoiler()
     {
         var html = ModDbPage.Generate(Input());
 
-        Assert.Equal(4, System.Text.RegularExpressions.Regex.Matches(html, "<details open").Count);   // What's inside and Getting started, en and uk
+        Assert.DoesNotContain("<details", html);
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Matches(html, "<div class=\"spoiler\">").Count);
+        Assert.Matches(@"<div class=""spoiler-toggle""[^>]*>Українською</div>\s*<div class=""spoiler-text"" id=""cc-uk"">", html);
+        // The sections come in the contract's order.
+        int last = -1;
+        foreach (var key in Contract.SectionKeys)
+        {
+            int at = html.IndexOf($"id=\"cc-{key}\"", StringComparison.Ordinal);
+            Assert.True(at > last, key);
+            last = at;
+        }
+    }
+
+    [Fact]
+    public void Buttons_link_to_the_guide_and_the_readme_of_the_ref_and_the_ukrainian_part_to_its_guide()
+    {
+        var html = ModDbPage.Generate(Input());
+
+        Assert.Contains($"href=\"{Blob}docs/guide/README.md\"", html);
+        Assert.Contains($"href=\"{Blob}README.md\"", html);
+        Assert.Contains($"href=\"{Blob}docs/guide/README.uk.md\"", html);
+        Assert.Contains("href=\"#cc-uk\"", html);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(html, ">README<"));   // not in the Ukrainian part
+    }
+
+    [Fact]
+    public void The_deep_link_into_the_guide_points_at_the_collections_section()
+    {
+        var html = ModDbPage.Generate(Input());
+
+        Assert.Contains($"href=\"{Blob}docs/guide/README.md#collections\"", html);
+        Assert.Contains($"href=\"{Blob}docs/guide/README.uk.md#%D0%BA%D0%BE%D0%BB%D0%B5%D0%BA%D1%86%D1%96%D1%97\"", html);
     }
 
     [Fact]
@@ -161,7 +199,7 @@ public class ModDbPageTests
     {
         var input = new PageInput
         {
-            DescriptionEn = Doc("en"), DescriptionUk = Doc("uk"), Template = Template(), Version = "1.0.0", GameVersion = "1.22.7",
+            DescriptionEn = Doc("en"), DescriptionUk = Doc("uk"), GuideEn = GuideEn, GuideUk = GuideUk, Template = Template(), Version = "1.0.0", GameVersion = "1.22.7",
             LangCodes = new[] { "en" }, RawBase = Raw, BlobBase = Blob, RepoUrl = "https://example.org/r",
         };
         var html = ModDbPage.Generate(input);
@@ -181,7 +219,7 @@ public class ModDbPageTests
     }
 
     [Fact]
-    public void Source_and_bug_buttons_only_when_asked()
+    public void The_bug_button_only_when_asked()
     {
         Assert.DoesNotContain("/issues", ModDbPage.Generate(Input(links: false)));
         Assert.Contains("https://github.com/dankosedin/CurioCatalogue/issues", ModDbPage.Generate(Input(links: true)));
@@ -197,11 +235,36 @@ public class ModDbPageTests
     }
 
     [Fact]
-    public void Three_subsections_are_required_and_the_same_in_both_languages()
+    public void Subsections_are_the_same_in_both_languages()
     {
         var e = Fails(Input(uk: Doc("uk", subs: 2)));
-        Assert.Contains(e.Problems, p => p.Contains("3 ### subsections in en and 2 in uk"));
+        Assert.Contains(e.Problems, p => p.Contains("'Credits' has 1 ### subsections in en and 2 in uk"));
     }
+
+    [Fact]
+    public void A_link_to_a_guide_heading_that_does_not_exist_is_an_error()
+    {
+        var e = Fails(Input(guideEn: GuideEn.Replace("## Collections", "## Sets")));
+        Assert.Contains(e.Problems, p => p.Contains("(en)") && p.Contains("README.md#collections") && p.Contains("no such heading"));
+        Assert.DoesNotContain(e.Problems, p => p.Contains("(uk)"));
+
+        e = Fails(Input(uk: Doc("uk", t => t.Replace("#колекції", "#колекціі"))));
+        Assert.Contains(e.Problems, p => p.Contains("(uk)") && p.Contains("README.uk.md#колекціі"));
+    }
+
+    [Fact]
+    public void A_link_to_a_file_the_generator_does_not_read_is_an_error()
+    {
+        var e = Fails(Input(en: Doc("en", t => t.Replace("../guide/README.md#collections", "../guide/OTHER.md#collections"))));
+        Assert.Contains(e.Problems, p => p.Contains("(en)") && p.Contains("OTHER.md#collections") && p.Contains("knows only"));
+    }
+
+    [Theory]
+    [InlineData("Collections", "collections")]
+    [InlineData("Колекції", "колекції")]
+    [InlineData("Compatibility and known limitations", "compatibility-and-known-limitations")]
+    [InlineData("What's new?", "whats-new")]
+    public void Github_anchor_of_a_heading(string heading, string anchor) => Assert.Equal(anchor, ModDbPage.GithubAnchor(heading));
 
     [Fact]
     public void A_section_the_template_does_not_know_is_an_error()
@@ -220,9 +283,16 @@ public class ModDbPageTests
     [Fact]
     public void A_missing_section_is_an_error()
     {
-        var e = Fails(Input(en: Doc("en", t => t.Replace("## Gestures", "## Moves"))));
-        Assert.Contains(e.Problems, p => p.Contains("'gestures' is missing"));
+        var e = Fails(Input(en: Doc("en", t => t.Replace("## What it does not do", "## Moves"))));
+        Assert.Contains(e.Problems, p => p.Contains("'what-it-does-not-do' is missing"));
         Assert.Contains(e.Problems, p => p.Contains("'moves' is not known"));
+    }
+
+    [Fact]
+    public void A_missing_whats_new_is_an_error()
+    {
+        var e = Fails(Input(en: Doc("en", t => t.Replace("## What's new", "## News"))));
+        Assert.Contains(e.Problems, p => p.Contains("'whats-new' is missing"));
     }
 
     [Fact]
@@ -268,7 +338,7 @@ public class ModDbPageTests
     [Fact]
     public void Every_problem_is_reported_not_only_the_first()
     {
-        var e = Fails(Input(en: Doc("en", items: 4).Replace("> **Early development.** Back up your world.\n\n", ""), uk: Doc("uk", subs: 1)));
+        var e = Fails(Input(en: Doc("en", items: 4).Replace("> **Early development.** Back up your world.\n\n", ""), uk: Doc("uk", subs: 0)));
 
         Assert.True(e.Problems.Count >= 3, string.Join("; ", e.Problems));
         Assert.Contains("4 items", e.Message);

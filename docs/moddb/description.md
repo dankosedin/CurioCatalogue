@@ -10,6 +10,15 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 
 ![The album window: 6 of 88 pieces collected, the missing ones in a grid](../images/album-window.en.png)
 
+## What's new
+
+New in 0.2 (a draft: the release plan rewrites it):
+
+- **Four collections, not one:** tapestries, ore crystals, seashells and butterflies; each album collects the one it was made from.
+- **The album is a catalogue of pages:** every picture with its pieces in place, what you have and the missing ones as dim silhouettes.
+- **Albums remember what they collected,** piece by piece; albums of 0.1 are converted when first read, with nothing lost.
+- **Want lists name what is missing** ("Native copper, any rock") and take any item that will do.
+
 ## What's inside
 
 - **The album:** a collector's catalogue that knows what you are still missing, and takes one of each missing piece from a chest. Four collections: tapestries (88 pieces in 31 pictures), ore crystals, seashells (42) and butterflies (169); see "Collections" below.
@@ -21,21 +30,26 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 
 Books and lists are ordinary items. They hold their data themselves, so you can hand them over, put them on a shelf or lose them.
 
-### What it does not do
+## Collections
+
+An album collects one collection, chosen by the piece it is made from.
+
+| Collection | Made from | Levels |
+|---|---|---|
+| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures |
+| Ore crystals | an ore crystal | the richest crystal of each ore (16); each ore in each rock (118); every crystal (353) |
+| Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
+| Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
+
+The levels, the rules and what a want list says: see [the guide's section on collections](../guide/README.md#collections).
+
+## What it does not do
 
 - **No remote access, no storage network.** Items move only where you stand: you walk to the chest, click it and see the items move.
 - **No automatic sorting.** You decide what goes where; the books help to see and to move.
 - **No prices.** Trading stays between players; the mod only makes carrying things easier and more tangible.
 
-### What may come next
-
-Not promised, roughly in this order (details in `ROADMAP.md`):
-
-- albums that also see what is on display (walls, shelves, display cases), not only what lies in chests;
-- recipes put into a bill of materials;
-- collections of your own.
-
-### Similar mods
+## Similar mods
 
 Curio Catalogue is about collections you keep and carry by hand: books and lists are items, and you walk to the chest and see the items move. Other mods overlap with it a little; if one suits you better, use it.
 
@@ -48,113 +62,6 @@ Curio Catalogue is about collections you keep and carry by hand: books and lists
 
 Thanks to these authors: their work makes the game's mod community richer.
 
-## Getting started
-
-1. **Your first book.** A vanilla book in the middle of the crafting grid, nails and strips above and below it, ink and quill to
-   its right: a ledger with 8 sheets and the cover of the book you used. Anything written in that book is lost. A large book found
-   in ruins can be restored with a jug of lime water and ink and quill: that ledger has 32 sheets.
-
-   ![The first ledger in the crafting grid, with its tooltip](../images/first-ledger.en.png)
-
-2. **The album.** An empty ledger and any piece of the collection (a tapestry piece, an ore crystal, a seashell, a dead butterfly)
-   in the crafting grid; the piece stays. The piece you use decides the collection.
-3. **Collect.** Hold the album, or keep it in your off-hand with the main hand empty, and press **Shift + right click** on a chest.
-4. **Look.** Right click into the air opens the album as pages: every picture with its pieces in place, the ones you have
-   and the missing ones as dim silhouettes. Turn the pages with the buttons, or pick a group on its tab; a search lights the
-   matches. Under the title: the album's name (click the pencil to change it), a bar with how much is collected, and the sheets
-   left for want lists. The **Make a want list** button is in the row of controls.
-
-The in-game handbook has a Curio Catalogue guide and a page for every book.
-
-## Collections
-
-An album collects one collection, chosen by the piece it is made from. Where a collection has levels, you choose one in the
-album window while the album is empty; the first piece taken fixes it, and "Start over" frees it.
-
-| Collection | Made from | Levels |
-|---|---|---|
-| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures |
-| Ore crystals | an ore crystal | the richest crystal of each ore (16); each ore in each rock (118); every crystal (353) |
-| Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
-| Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
-
-- A want list says what is missing, not one item: where several items will do (a seashell of any colour, a crystal in any rock)
-  it says "any colour" or "any rock" and takes whichever there is room for. Each line names what is missing by what it is
-  ("Ambush, left third", "Native copper, basalt"), and so does the album's tooltip over a cell.
-- Butterflies on shelves, in display cases and in display mods are not read yet: take them into a chest first. The same holds for
-  tapestries on a wall.
-
-## Gestures
-
-![An album over a chest: Shift + right click takes new items for the collection](../images/album-chest.en.png)
-
-With a book in hand, or in your off-hand with the main hand empty:
-
-- **Shift + right click** on a container: the album takes what is new for the collection; a ledger or a bill of materials makes an
-  intake list for what the book lacks.
-- **Shift + Ctrl + right click** on a container: a pick list for what the book lists.
-- **Right click into the air:** opens the book.
-
-With a list in hand, **Shift + right click** on any container fills it. With a book in your off-hand the book is updated and
-the sheet comes back (an album only takes the sheet); without one the list becomes parchment. A want list is filled the same
-way: it takes what it lists, and a finished one becomes parchment.
-
-Plain right click and Ctrl + right click open containers as usual.
-
-![A ledger's intake list: the tapestries a chest has and the book lacks](../images/ledger-intake.en.png)
-
-## Fair play on servers
-
-- The server decides. A list moves everything it lists or nothing, and says what stopped it.
-- No more access than by hand: land claims, padlocks and reinforcement apply to every action, as to opening the chest yourself.
-- No remote access: items move only from the container you click.
-
-## Configuration
-
-`ModConfig/curiocatalogue.json`:
-
-- `MaxSheets` (32): sheets a book can hold.
-- `SoftEntryLimit` (500): a book with this many entries makes no more intake lists.
-- `ConsumeSheets` (false): hardcore; a filled list never gives its sheet back.
-- `ExtraIgnoredAttributes` (`["durability"]`): attributes ignored when comparing items, on top of the game's own.
-- `Collections`: settings per collection, by its id (`tapestries`): `Exclude` (names to leave out, `*` for any text, e.g. `["aid-*"]` for tapestry pieces), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
-- `Diagnostics` (false): write details to the game log, for finding problems.
-
-The server sends its `Collections` and `ExtraIgnoredAttributes` to every client when it joins, so the album and the tooltips follow the server's file, not the client's. The other settings the server alone acts on. A mod that brings a collection must be on the server and on every client: the definitions are read from each side's own assets.
-
-## Compatibility and known limitations
-
-- Needs Vintage Story 1.22.7. Install it on the server and on every client.
-- Mods that add tapestries to the game's tapestry list are picked up by the album.
-- Tested with Upgradeable Storage and Carry On.
-- **Better Crates** is not supported: its crates refuse our lists, and show lists and books wrongly (dark, turned around).
-- Our books and lists do not go into a vanilla crate: Shift + right click on a container is ours.
-- With `ConsumeSheets` on, the handbook's "the sheet comes back" does not apply.
-- Supported containers: chests, trunks, labeled chests, stationary baskets, storage vessels, crates, backpacks and baskets placed on
-  the ground, and other mods' chests built on the vanilla ones. On other blocks with an inventory (ovens, barrels,
-  shelves…) the mod says "This container is not supported yet". Per-player loot chests in ruins are refused.
-  If a container of another mod says so, tell us the mod and the block: see `CONTRIBUTING.md`.
-
-## Removing the mod
-
-The game deletes items of a removed mod. Without Curio Catalogue, every book and list disappears from inventories and chests,
-with the sheets in them; installing the mod again does not bring them back.
-
-## Languages
-
-English and Ukrainian. Translations are welcome: see `CONTRIBUTING.md`.
-
-## Contributing
-
-Bug reports, ideas, code and translations: see `CONTRIBUTING.md`. What may come next: see "What's inside" above and `ROADMAP.md`.
-
-## AI and human work
-
-- **Direction:** human. DankoSedin decides what the mod is, what it does and what it will not do.
-- **Code:** written by AI (Claude, Anthropic) within a framework of tests and documentation.
-- **Texts and translations:** everything the player reads, in English and Ukrainian, is written by AI under close human supervision.
-- **Assets:** item textures are drawn by script; the book shape and the mod icon are based on the game's own assets.
-
 ## Credits
 
 - Thanks to Anego Studios for Vintage Story, and for opening the code of its API and of the survival mod: it taught us how the
@@ -162,6 +69,13 @@ Bug reports, ideas, code and translations: see `CONTRIBUTING.md`. What may come 
 - Thanks to the [Fendragon server](https://discord.gg/2yNGvKcRP), where the author collects the very tapestries this mod was made for.
 - Thanks to Jeff Walker for [ExhaustiveMatching](https://github.com/WalkerCodeRanger/ExhaustiveMatching) (BSD-3-Clause), which turns a missed
   `switch` case into a compile error. It is used only when building; the mod zip holds none of its code.
+
+### AI and human work
+
+- **Direction:** human. DankoSedin decides what the mod is, what it does and what it will not do.
+- **Code:** written by AI (Claude, Anthropic) within a framework of tests and documentation.
+- **Texts and translations:** everything the player reads, in English and Ukrainian, is written by AI under close human supervision.
+- **Assets:** item textures are drawn by script; the book shape and the mod icon are based on the game's own assets.
 
 ## License
 

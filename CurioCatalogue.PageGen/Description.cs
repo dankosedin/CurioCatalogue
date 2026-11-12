@@ -32,6 +32,8 @@ public sealed class DescriptionData
     public List<string> Keys { get; init; } = new();
     /// <summary>The <c>::: sequence</c> blocks in the description's order (already rendered into the sections' HTML).</summary>
     public List<Sequence.Info> Sequences { get; init; } = new();
+    /// <summary>The links into the guide (docs/guide/) with a fragment: the file and the anchor; the generator checks that the heading exists.</summary>
+    public List<(string File, string Anchor)> GuideAnchors { get; init; } = new();
 }
 
 /// <summary>Reads a description by the contract (docs/releasing.md). Problems are collected in the list, not thrown one by one.</summary>
@@ -49,8 +51,15 @@ public static class Description
         foreach (var html in doc.Descendants<HtmlInline>())
             problems.Add($"{where}: HTML in the description (the tag {html.Tag}); use plain Markdown");
 
+        var guideAnchors = new List<(string, string)>();
         foreach (var link in doc.Descendants<LinkInline>())
+        {
+            var path = link.IsImage ? null : links.PathOf(link.Url);
+            int hash = path?.IndexOf('#') ?? -1;
+            if (path != null && hash >= 0 && path.StartsWith("docs/guide/"))
+                guideAnchors.Add((path[..hash], path[(hash + 1)..]));
             link.Url = links.Absolute(link.Url, link.IsImage);
+        }
 
         var sequences = Sequence.RenderAll(doc, markdown, where, problems, RenderBlock);
 
@@ -108,7 +117,7 @@ public static class Description
         return new DescriptionData
         {
             Lang = lang, Title = title, HookHtml = hookHtml, WarningHtml = warningHtml, HeroSrc = heroSrc, HeroAlt = heroAlt,
-            Items = items, Sections = sections, Keys = keys, Sequences = sequences,
+            Items = items, Sections = sections, Keys = keys, Sequences = sequences, GuideAnchors = guideAnchors,
         };
     }
 
@@ -221,13 +230,18 @@ public sealed class Links
         Dir = dir == "" || dir.EndsWith('/') ? dir : dir + "/";
     }
 
+    /// <summary>The path in the repository (with a fragment) of a relative link, as GitHub reads it; null for an absolute URL, an anchor in the page or a path above the root.</summary>
+    public string? PathOf(string? url)
+    {
+        if (string.IsNullOrEmpty(url) || url.StartsWith('#') || url.StartsWith("//") || Regex.IsMatch(url, "^[a-zA-Z][a-zA-Z0-9+.-]*:")) return null;
+        return Resolve(Dir + url);
+    }
+
     /// <summary>The absolute URL; a path that climbs above the repository's root stays relative, and the page check reports it.</summary>
     public string Absolute(string? url, bool image)
     {
-        if (string.IsNullOrEmpty(url)) return url ?? "";
-        if (url.StartsWith('#') || url.StartsWith("//") || Regex.IsMatch(url, "^[a-zA-Z][a-zA-Z0-9+.-]*:")) return url;
-        var path = Resolve(Dir + url);
-        return path == null ? url : (image ? RawBase : BlobBase) + path.Replace(" ", "%20");
+        var path = PathOf(url);
+        return path == null ? url ?? "" : (image ? RawBase : BlobBase) + path.Replace(" ", "%20");
     }
 
     /// <summary>"docs/moddb/../images/a.png" → "docs/images/a.png"; null above the root.</summary>

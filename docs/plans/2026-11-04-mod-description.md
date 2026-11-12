@@ -100,7 +100,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       Branch: `docs/mod-description`. After: G3. Model: opus. Author: decides.
       Done when: Decisions has the split; G4, G5 and the release plan (R2) are updated where it changed them.
 - [ ] **G7. The guide in the repo, the showcase on the page** (G6, 12.11.2026). Two steps, each leaves the build green:
-  - [ ] **G7a. The guide.** `docs/guide/README.md` and `README.uk.md`: the sections that leave the page (Decisions, "The showcase
+  - [x] **G7a. The guide.** `docs/guide/README.md` and `README.uk.md`: the sections that leave the page (Decisions, "The showcase
         and the guide: the split") moved from the description, not rewritten (R2 rewrites them); "Sheets and covers" from
         `guide-text` (until now only in the game); "Questions" as an empty heading or left out (the author decides in the step).
         README gets "What may come next" and a link to `docs/guide/`. `CLAUDE.md`'s table: a row for `docs/guide/` (read before
@@ -264,3 +264,10 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
     (`docs/review.md`). A check of the guide's config keys against the config class: a `ROADMAP.md` line, not now.
 
 ## Where we stopped
+
+- 12.11.2026, G7a done (final, in `docs/guide/`, not yet committed until the author's yes): both guide files hold Getting started,
+  Collections (table and rules), Gestures, Fair play, Configuration, Compatibility, Removing the mod, Sheets and covers, moved
+  verbatim from the description (only `CONTRIBUTING.md` made a link); "Sheets and covers" is `guide-text`'s, written as Markdown
+  (without the handbook links). "Questions" is left out (no questions exist yet; add the heading when the first one does).
+  README has "What may come next" and links to both guides; `CLAUDE.md`'s table has a row for `docs/guide/` and the description's
+  row narrowed; `docs/review.md`: the round reads both guides and compares. Next: G7b.

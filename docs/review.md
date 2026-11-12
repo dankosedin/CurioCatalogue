@@ -10,7 +10,7 @@ The order depends on where the change comes from (decided 04.11.2026):
   the docs and does not suit reviewing a bare idea yet.
   - **Code review:** after a feature that changes code, as the last step of its plan, or once at the end of a release over
     what the release changed. Each plan says which.
-  - **Players' round:** once per release, after the docs for players (both description files, `CHANGELOG.md`, the lang texts) are
+  - **Players' round:** once per release, after the docs for players (both description files, both guide files, `CHANGELOG.md`, the lang texts) are
     brought up to the release; it looks at the release as a player gets it.
 
 ## Common to both rounds
@@ -43,10 +43,11 @@ and keeps the usual course of play. The round does not run the game, so it also 
 them how a thing works means weak docs. The author checks the behaviour in game.
 
 **Input** (the same for every role): the change's description and diff (for a whole-mod round: none), `DESIGN.md`, `docs/moddb/description.md`,
-`description.uk.md`, `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
+`description.uk.md`, the guide in the repo (`docs/guide/README.md`, `README.uk.md`), `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
 help, window texts), `docs/images/` and the screenshots the author gives; and, so that no role re-proposes what is decided or
 makes up a mechanic, `docs/domain.md`, `ROADMAP.md` and the Decisions of the plan the change belongs to. Players do not read the source code;
 the makers may read the diff, but they report behaviour, not code.
+The two guides tell one story: the players' round reads the guide in the repo and the in-game guide (`guide-text`, the handbook pages) and compares them; a fact that differs, or is only in the shorter one and should be in both, is a finding.
 
 **Severity:** `blocker` (items lost, the player stuck, or the server harmed), `major` (the player misunderstands and does the
 wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opinion, marked as such).

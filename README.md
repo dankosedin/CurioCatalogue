@@ -10,8 +10,18 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 ## For players
 
 - Download: [Vintage Story ModDB](https://mods.vintagestory.at/curiocatalogue).
-- What the mod does, how to start, gestures, configuration and compatibility: the description,
+- How to start, gestures, collections, configuration, compatibility: the guide, [in English](docs/guide/README.md) and
+  [українською](docs/guide/README.uk.md).
+- What the mod is, in short: the description,
   [in English](docs/moddb/description.md) and [українською](docs/moddb/description.uk.md). The ModDB page is generated from it.
+
+## What may come next
+
+Not promised, roughly in this order (details in [ROADMAP.md](ROADMAP.md)):
+
+- albums that also see what is on display (walls, shelves, display cases), not only what lies in chests;
+- recipes put into a bill of materials;
+- collections of your own.
 
 ## Building and tests
 

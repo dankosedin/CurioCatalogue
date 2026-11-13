@@ -79,6 +79,15 @@ In this order:
 - **All or nothing:** `TryGiveItemstack` puts items in partly. Check the whole plan first (free room via `GetMergableQuantity` for
   partly filled slots, `ItemSlot.CanHold` for empty ones: bags with `storageFlags` refuse some items), then move with `TryPutInto`.
 - Player inventory: `IPlayerInventoryManager.GetOwnInventory("hotbar" / "backpack")`; off-hand `EntityAgent.LeftHandItemSlot`.
+- **Giving a stack to a player** (decompiled `VintagestoryLib` 1.22.7, 13.11.2026): `TryGiveItemstack` offers it, slot by slot, to the best
+  slot of every player inventory the player has opened (`PlayerInventoryManager.GetBestSuitedSlot`: each inventory's
+  `GetBestSuitedSlot`, the heaviest wins). In creative that includes the creative inventory, a black hole of weight 0.01: with the hotbar and
+  backpack full it swallows the stack, returns `false` and leaves the stack at size 0. It returns `true` as soon as *part* of the stack went
+  in and leaves the rest in the stack, so vanilla's "if not given, drop it" loses that rest. The off-hand (hotbar slot 11, weight 0.4) takes
+  only items with the `Offhand` storage flag (`ItemSlotOffHand.cs:10#StorageType`; our books and lists have none), slot 10 is a skill slot. Our `HandOut` asks only the hotbar (without the off-hand) and the
+  backpack with the same weights and drops what is left. In creative a stack on the ground is still lost: a player picks up any item within
+  1.5 blocks (`BehaviorCollectEntities.cs:98#OnFoundCollectible`; at once for an item no player threw, `EntityItem.cs:333#CanCollect`) through the
+  same `TryGiveItemstack`. Accepted for our lists (the author, 13.11.2026).
 
 ## Stacks and item identity
 

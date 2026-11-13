@@ -236,10 +236,11 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length;
 
     /// <summary>
-    /// The test players are in creative, where the inventory is never full: <c>TryGiveItemstack</c> puts a stack into any player
-    /// inventory the player has opened (decompiled VintagestoryLib 1.22.7, <c>PlayerInventoryManager.GetBestSuitedSlot</c>), and in
-    /// creative that includes the creative inventory, which swallows it (closing it does not help: it stays opened in creative).
-    /// In survival a full inventory refuses the stack and it is left whole. The player is this test's own.
+    /// The test players are in creative, where nothing lands on the ground for long: a creative player picks up an item at their
+    /// feet at once (<c>BehaviorCollectEntities.cs:98#OnFoundCollectible</c>, no delay for an item no player threw:
+    /// <c>EntityItem.cs:333#CanCollect</c>), and the pick-up goes through <c>TryGiveItemstack</c> into the creative inventory, which
+    /// swallows anything (decompiled VintagestoryLib 1.22.7, <c>PlayerInventoryManager.GetBestSuitedSlot</c>). A new list for a full
+    /// creative inventory is lost, as any item would be (the author, 13.11.2026, F2 of the fixes plan). The player is this test's own.
     /// </summary>
     static void AsInSurvival(IServerPlayer player)
     {
@@ -307,7 +308,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Album(8);
             AsInSurvival(client.Player);
-            client.Player.Entity.LeftHandItemSlot.Itemstack = Vanilla("stick"); // the off-hand would take it too
+            // The off-hand stays empty: a new list never goes there (the author, 13.11.2026).
             FillWithSticks(client.Player);
             return (LedgerStore.Fingerprint(hand.Itemstack), OnGroundNear(client.Player, "invoice-wantlist"));
         });
@@ -355,7 +356,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             var hand = player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Book("book-ledger-normal-brickred", 8);
             AsInSurvival(player);
-            player.Entity.LeftHandItemSlot.Itemstack = Vanilla("stick"); // the off-hand would take it too
+            // The off-hand stays empty: a new list never goes there (the author, 13.11.2026).
             FillWithSticks(player);
             int before = OnGroundNear(player, "invoice-incoming");
 
@@ -364,6 +365,59 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         });
         Assert.Equal(7, sheets);
         client.WaitFor(() => OnGroundNear(client.Player, "invoice-incoming") > onGround, "the intake list on the ground");
+    }
+
+    /// <summary>Sticks of the game lying near the player, summed (as <see cref="OnGroundNear"/>, the whole column). Main thread.</summary>
+    int SticksOnGroundNear(IServerPlayer player) =>
+        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 64, e => e is EntityItem { Itemstack: { } st }
+            && st.Collectible.Code.Domain == "game" && st.Collectible.Code.Path == "stick").Sum(e => ((EntityItem)e).Itemstack.StackSize);
+
+    [Fact]
+    public void Handing_out_a_stack_that_fits_in_part_drops_only_the_rest()
+    {
+        // F2 of the fixes plan: the game's TryGiveItemstack says "given" when part of a stack went in, and the usual
+        // "else drop it" loses the rest (PlayerInventoryManager.TryGiveItemstack, decompiled 1.22.7). Our lists are single,
+        // so a stack of sticks stands in for the general case.
+        var client = FakeClient.Join(game, "giver-part");
+        var (inSlot, onGround) = game.OnMain(() =>
+        {
+            var player = client.Player;
+            AsInSurvival(player);
+            FillWithSticks(player);
+            foreach (var slot in Slots(player).Where(s => !s.Empty)) slot.Itemstack.StackSize = 64; // full stacks: no room to merge (maxstacksize 64, stick.json)
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Vanilla("ingot-copper");
+            var partly = Slots(player)[2];
+            partly.Itemstack = Vanilla("stick", 60); // room for 4 more (maxstacksize 64, stick.json)
+            int before = SticksOnGroundNear(player);
+
+            HandOut.Give(player, Vanilla("stick", 10), hand);
+            // Counted in the same tick: the creative players of other tests stand at the spawn too and pick up what lies
+            // within 1.5 blocks a tick later (BehaviorCollectEntities.cs:98#OnFoundCollectible).
+            return (partly.StackSize, SticksOnGroundNear(player) - before);
+        });
+        Assert.Equal((64, 6), (inSlot, onGround));
+    }
+
+    [Fact]
+    public void Handing_out_to_a_full_creative_inventory_drops_the_stack_instead_of_the_creative_inventory()
+    {
+        // F2: the game's TryGiveItemstack would put it into the creative inventory, which swallows it (stack size 0 at once).
+        // Dropped, the stack is still picked up into it a tick later (AsInSurvival): the loss is accepted (the author, 13.11.2026);
+        // this only checks that the helper itself never offers the stack to the creative inventory.
+        var client = FakeClient.Join(game, "giver-creative");
+        var seen = game.OnMain(() =>
+        {
+            var player = client.Player;
+            FillWithSticks(player);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Vanilla("ingot-copper");
+            var list = new ItemStack(World.GetItem(new AssetLocation(CurioCatalogueModSystem.ModId, "invoice-wantlist")));
+
+            HandOut.Give(player, list, hand);
+            return (player.WorldData.CurrentGameMode, list.StackSize, FindOurs(player, "invoice-") == null);
+        });
+        Assert.Equal((EnumGameMode.Creative, 1, true), seen);
     }
 
     [Fact]

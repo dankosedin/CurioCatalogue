@@ -358,16 +358,7 @@ internal static class ModNetwork
 
             case MakeInvoiceResult.Made made:
                 slot.MarkDirty();
-                var hand = player.InventoryManager.ActiveHotbarSlot;
-                if (hand.Empty)
-                {
-                    hand.Itemstack = made.InvoiceStack;
-                    hand.MarkDirty();
-                }
-                else if (!player.InventoryManager.TryGiveItemstack(made.InvoiceStack, true))
-                {
-                    sapi.World.SpawnItemEntity(made.InvoiceStack, player.Entity.Pos.XYZ);
-                }
+                HandOut.Give(player, made.InvoiceStack, player.InventoryManager.ActiveHotbarSlot);
                 PlayerMessages.Tell(player, "wantlist-made", made.Invoice.Entries.Length, made.SheetsLeft, mod.Config.MaxSheets);
                 break;
 

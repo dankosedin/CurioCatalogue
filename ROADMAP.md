@@ -84,7 +84,7 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
      the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
 7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for
-   every reference), one helper for handing out items (a new list no longer vanishes in creative), lists out of the creative
+   every reference), one helper for handing out items (a new list in creative with a full inventory is still lost: accepted), lists out of the creative
    inventory but still in the handbook (last, after the recipes of the collections).
 8. **The release,** two plans (04.11.2026):
    - [the description plan](docs/plans/2026-11-04-mod-description.md), started early: the ModDB description as a document of
@@ -203,8 +203,8 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **All player messages built by the client,** in its language and with its key bindings: the server sends a code, numbers and
   stacks (as `ModNetwork.MissingItemsRefusal` does). Today the server translates our texts itself (`docs/architecture.md`,
   principle 2); only rebound keys show wrong. Do it when a feature touches these messages anyway. Review, 28.10.2026: messages
-  and handing out new items are spread over `ItemLedger`, `ItemInvoice`, `ModNetwork` and `EmptyHandGesture` ("into the empty
-  hand, else the inventory, else the ground" twice); one `Outcome` packet and one helper for handing out items. Code review of
+  are spread over `ItemLedger`, `ItemInvoice`, `ModNetwork` and `EmptyHandGesture`; one `Outcome` packet (handing out new items
+  is one helper since F2 of the fixes plan, `HandOut`). Code review of
   0.1.1: the messages after making a list (`invoice-made`, `wantlist-made`) name "Shift" as written, while the tooltip follows a
   rebinding; research how the client could name the key there.
 - **Books as a sum type** (28.10.2026): `LedgerBook | MaterialsBook | Album` instead of one `Ledger` with a `Mode` and an `AlbumInfo`

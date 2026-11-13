@@ -79,7 +79,8 @@ the engine ran it. How it works and its traps: `docs/test-server.md`.
   `Diagnostics` is tested through the flag of `ModLog` (internal, by reflection), not through the config.
   The branches the coverage review found untested (T9 of the server tests plan) are here too: an album started over, a want list into the empty
   main hand, refused, or on the ground, a list on the ground, a full ledger. A full inventory needs the player in survival (`AsInSurvival`):
-  a creative player's inventory is never full (`docs/test-server.md`).
+  a creative player's inventory is never full (`docs/test-server.md`). `HandOut` (F2 of the fixes plan) is called directly: a stack that fits
+  in part leaves only the rest on the ground, and a full creative inventory is never offered the stack.
 - **`CraftingTests`** crafts through a real player's grid (C1–C4 of `functional.md`): stacks put into the grid's slots, the output taken with
   `ActivateSlot` as the server does with the client's packet; it checks the recipe found, the book made (cover, sheets, entries, name) and
   what is left in the grid. How: `docs/test-server.md`, "Crafting on the server".

@@ -161,7 +161,7 @@ sees a change.
       does, no empty slots) or keeps the look of the game's chests (then the step closes with the reason in Decisions). Then built.
       Branch: `feat/wantlist-grid`. After: none. Model: sonnet. Author: the decision; the in-game check.
       Done when: the decision in Decisions; if built, a case in `functional.md` passed (W7 still passes: the lines cycle); pull request.
-- [ ] **L14. A part for modders** (`ROADMAP.md`, 0.2, item 6, the author, 10.11.2026): how another mod adds a collection. The
+- [x] **L14. A part for modders** (`ROADMAP.md`, 0.2, item 6, the author, 10.11.2026): how another mod adds a collection. The
       definition's JSON (today only in `docs/decisions.md`, Collections), that the definition and its patches must reach the client
       (not `"side": "server"`), icons (`icon`, `icons`, an SVG drawn in its own colours), the album recipe; `tapestries.json` and
       the test mod as examples. Where it lives follows G1 of `2026-11-04-mod-description.md` (README becomes the project's README:

@@ -56,6 +56,8 @@ when a structural decision is made. A decision that belongs to one feature goes 
 
 ## Collections
 
+How another mod writes a definition (the fields, the sources, the recipe): `README.md`, "Adding a collection"; below, the why.
+
 The shape of a collection (11-07, proposed by the AI assistant and accepted by the author; from the designs of tapestries, ore
 crystals, seashells and butterflies, plan `2026-11-04-collections-design.md`, and the album view, plan `2026-11-04-album-view.md`,
 A2). Being built by plan `2026-11-07-collections-core.md` (definitions, the registry, the album of format 2 and want lists by
@@ -158,7 +160,7 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
   when the message arrives the grid recipes may not be loaded yet; `docs/modding.md`, Network). The definitions themselves the
   client reads from its own assets (K1, 11-07, the author): a mod that brings a collection must be universal and required on the
   client, and a patch of a definition must not be `"side": "server"`, or the client does not know the collection (to say in the
-  README's part for modders). Rejected: sending the server's definitions in the packet too (one source, but more code for a
+  README's "Adding a collection"). Rejected: sending the server's definitions in the packet too (one source, but more code for a
   mistake the modder can avoid).
   **The album recipe is named by the definition** (`albumRecipe`; K7, 11-07, replacing a table in C#), so a mod brings a collection
   with its album by JSON alone: its definition and a grid recipe of an empty book and any member (which stays). The registry maps

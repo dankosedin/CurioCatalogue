@@ -78,7 +78,7 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      needed, they cannot). Found: the game's names of tapestry pictures are looked up only for the collection with the id
      `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw picture codes: tie it to the
      source kind, not the id. L12 of the plan.
-   - **A part for modders in the READMEs** (the author, 10.11.2026): the definition's JSON (now only in `docs/decisions.md`,
+   - **A part for modders in README** (the author, 10.11.2026; English only, G1 of the description plan): the definition's JSON (now only in `docs/decisions.md`,
      Collections), that the definition and its patches must reach the client (not `"side": "server"`), icons (`icon`, `icons`,
      an SVG drawn in its own colours), the album recipe. L14 of the plan.
    - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
@@ -236,6 +236,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.
+- **The guide's config keys checked** (G6 of the mod description plan, 12.11.2026): `docs/guide/` lists every key of
+  `ModConfig/curiocatalogue.json`, written by hand; a test that the keys named there are the fields of the config class, so a new or
+  renamed setting cannot go unseen.
 - **The review procedure, next ideas** (`docs/review.md`): tests from the C# expert as proof of a bug; a security role first in
   line for outside pull requests (calls out of the game, processes, build scripts, new dependencies) before anyone builds them;
   a check that the code does what `DESIGN.md`, the READMEs and the lang texts say.

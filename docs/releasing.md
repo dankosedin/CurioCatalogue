@@ -18,7 +18,7 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
 - CI (GitHub Actions) runs the core tests first (they need no game), then builds against the game server and runs all four test
   projects (`dotnet test curiocatalogue.sln`, including the server and the compatibility tests, which start a real server on the
   Linux runner); on `feature/*`, `main`, `release` and on every PR (on the merge result).
-  After the build it runs the generator `ModDbPage` (`--ref` is the commit): a README that breaks the contract fails CI; the page is
+  After the build it runs the generator `ModDbPage` (`--ref` is the commit): a description that breaks the contract fails CI; the page is
   uploaded as the artifact `moddb-page` (14 days), so it can be looked at before a merge.
   It downloads the game's server archive for the version in `modinfo.json` to get the DLLs, cached between runs (saved right after the download, so a red run does not download it again).
   - **The pinned mods** (`CurioCatalogue.CompatTests/mods/`) are cached with the key `pinned-mods-<hash of mods.json>`, saved also when a test fails; a changed pin
@@ -33,15 +33,15 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   with the zip and `moddb.html` (the page for that tag, made by `ModDbPage` in the job); the release notes are that version's section of `CHANGELOG.md`. The author uploads the same zip and notes to the
   ModDB by hand (it has no release API). This is the job `release` in `ci.yml`, after `build`.
 - **ModDB** (https://mods.vintagestory.at/curiocatalogue) takes HTML, not Markdown: paste the generated `moddb.html` in the editor's source
-  code mode (`<>`). The description is generated from the two READMEs (below): the English page with the whole Ukrainian version
-  in one accordion; images from raw GitHub at the release tag (or a SHA), relative links made absolute. The release's changelog is
+  code mode (`<>`). The page is generated from the two description files (below), a showcase: what the mod is and what is new; the guide lives in `docs/guide/` (G6): the English page with the whole Ukrainian version
+  in ModDB's native spoiler (`div.spoiler`, the one place where classes stay); images from raw GitHub at the release tag (or a SHA), relative links made absolute. The release's changelog is
   the `CHANGELOG.md` section. Screenshots and their size limits: `docs/screenshots.md`.
   - **The gallery** (uploaded by the author on the mod's page, not generated): the first image is the title card (`title.en.jpg`,
-    the gallery's first place decides what a player sees without scrolling); then, in this order, `album-window`, `album-chest`,
-    `wantlist`, `ledger-intake`, `materials`, `first-ledger` (the shot list of `docs/screenshots.md`); the `en` files (the `uk` ones are used by `README.uk.md`).
+    the gallery's first place decides what a player sees without scrolling); then the rest in the order of the column "Gallery"
+    of the shot list (`docs/screenshots.md`); the `en` files (the `uk` ones are used by `description.uk.md` and the Ukrainian guide).
   - **The generator** (shape: "The generator's shape" in `docs/plans/2026-11-01-mod-page.md`): the CakeBuild task `ModDbPage`,
     `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage` (`.\build.ps1 --target=ModDbPage` does the same where
-    the execution policy allows scripts). It reads `README.md`, `README.uk.md`, `modinfo.json`, `lang/*.json` and the template
+    the execution policy allows scripts). It reads `docs/moddb/description.md`, `description.uk.md`, the two guide files (only for the headings the descriptions link to), `modinfo.json`, `lang/*.json` and the template
     `docs/moddb/template.html` (the page's look: its CSS in one `<style>`, Scriban); the code is `CurioCatalogue.PageGen`.
     It writes `Releases/moddb.html` (the file to paste) and `Releases/moddb.preview.html` (the same with a charset, to look at in
     a browser). It fails with the list of every contract break, and when the template's CSS cannot be inlined (`@media`,
@@ -49,30 +49,65 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
     Arguments (`--name=value`):
     - `ref`: the tag or SHA that images and links point to on GitHub; default `v<version>`, so before a release the images 404:
       a page between releases uses the SHA of the merge commit on `main`;
-    - `moddbLinks` (default `true`, the author chose it 03.11.2026): Source and Report a bug in the row of buttons; `false` leaves them out;
+    - `moddbLinks` (default `true`, the author chose it 03.11.2026): Report a bug in the row of buttons (the others, Guide, README and Ukrainian, are always there; the Ukrainian part has Guide only); `false` leaves them out;
     - `out`: the output file; `rawBase`, `blobBase`: other places for images and links, e.g.
       `--rawBase=file:///C:/Projects/VintageStory/CurioCatalogue/` to look at a page before the files are on GitHub;
-      `readme`, `readmeUk`: other READMEs.
-  - **The README contract** (for the generated page, `docs/plans/2026-11-01-mod-page.md`; the generator fails with a clear
-    message when it is broken). Both READMEs keep it, together:
-    - **The head** (everything before the first `##`): the `#` title, the hook as the first paragraph, any README-only lines
-      (dropped from the page), the early-development warning as one blockquote, one image (the hero's).
-    - **Sections `##`:** each has a key, the slug of its English title (`getting-started`); the template knows every key, and an
+      `descriptionEn`, `descriptionUk`: other description files (their relative paths are still read from `docs/moddb/`); not `description`, a flag of Cake itself.
+  - **The description** lives in `docs/moddb/description.md` and `description.uk.md`, beside the template: the only source of
+    the showcase text for players (what is new, what the mod does, the collections, what it does not do, similar mods, credits); the explaining texts are the guide in `docs/guide/`. GitHub shows
+    the files to players; `README.md` is the project's README and links to them (decided in G1 of
+    `docs/plans/2026-11-04-mod-description.md`).
+  - **The description contract** (the generator fails with a clear message when it is broken). Both files keep it, together:
+    - **The head** (everything before the first `##`): the `#` title, the hook as the first paragraph, the early-development
+      warning as one blockquote, one image (the hero's); nothing else, since the page would not show it.
+    - **Sections `##`:** each has a key, the slug of its English title (`whats-new`); the template knows every key, and an
       unknown one is an error, so a new section is not lost silently. Renaming an English title changes its key: change the
       template with it.
+    - **The sections** (`Contract.SectionKeys`, the page's order): What's new, What's inside, Collections, What it does not do,
+      Similar mods, Credits (with `### AI and human work`), License. The page shows them in that order, whatever the file's.
     - **Both languages:** the same sections in the same order (Ukrainian ones are matched to English ones by position), the same
-      `###` in "What's inside".
+      `###` under each.
+    - **Links into the guide:** a relative link to `docs/guide/README.md` or `README.uk.md` with a `#fragment` (the one under the
+      collections table) must hit a heading of that file, by GitHub's rule for anchors (lower case, spaces to `-`, punctuation
+      dropped); the build fails on a renamed or missing heading, or on another file in `docs/guide/`. The buttons Guide and README
+      are made from the version: `blob/<ref>/docs/guide/README.md`, `README.md`; the Ukrainian part has its own Guide button only.
     - **"What's inside":** a list of exactly six items, one thing each, in the order of the icons (album, want list, ledger,
-      bill of materials, intake list, pick list), then a paragraph, then `###` subsections (each a nested accordion).
-    - **No HTML** in README; images and links by relative paths; screenshots with the language suffix (`*.en.png`, `*.uk.png`).
-    - **After any change to a README** (a new, renamed or removed `##` section above all), run the real generator before the
-      commit: `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=HEAD`. `PageGen.Tests` use sample
-      READMEs, so only this step (and the `ModDB page` step of CI) sees the real ones. A new section also goes into
-      `Contract.cs` (`AccordionKeys` or `OtherKeys`, in README order) and into the sample of `ModDbPageTests.cs`.
+      bill of materials, intake list, pick list), then a paragraph; no subsections.
+    - **No HTML** in the description; images and links by paths relative to `docs/moddb/` (`../images/album-chest.en.png`), as
+      GitHub reads them; screenshots with the language suffix (`*.en.png`, `*.uk.png`).
+    - **Sequences** of screenshots (a mechanic in a few frames, a caption under each) are the one extension, a `::: sequence <name>`
+      block anywhere in a section: inside it, for each frame, an image in a paragraph of its own, then a caption paragraph
+      (inline Markdown allowed, no image); two frames or more; closed by `:::`. The name is lower-case letters, digits and `-`,
+      unique in the description; both descriptions have the same sequences (names and numbers of frames) in the same order.
+      ```
+      ::: sequence album-chest
+
+      ![The book and the inventory before](../images/album-chest-1.en.png)
+
+      Before: the album and a stack of tapestries.
+
+      ![The hint over the chest](../images/album-chest-2.en.png)
+
+      Point the album at the chest.
+
+      :::
+      ```
+      The page shows a row of frames, one per width, turned by the scroll bar or a swipe; each frame is a `<figure>` with its
+      caption under it (no arrows, no "n / N", no ids: ModDB's size limit, below). The look is the template's CSS (`.seq`, `.seq-row`, `.seq-frame`); the shape and what ModDB keeps:
+      "Sequences on ModDB" in `docs/plans/2026-11-04-mod-description.md`. GitHub shows the `:::` lines as text, the frames as
+      images with paragraphs under them.
+    - **Size:** ModDB refuses a description of about 65 000 bytes ("Excessive size"), counting bytes, not characters (Cyrillic is two
+      a letter). The generator fails above `Contract.MaxPageBytes` (64 000, the reserve is for what the editor adds) and says the
+      size; the Cake task prints it. The inline styles are written short (no space after `:`, `margin`/`padding` in the shortest
+      form), since they repeat on every element. A sequence of three frames costs about 3 KB in both languages.
+    - **After any change to a description** (a new, renamed or removed `##` section above all), run the real generator before
+      the commit: `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage --ref=HEAD`. `PageGen.Tests` use sample
+      descriptions, so only this step (and the `ModDB page` step of CI) sees the real ones. A new section also goes into
+      `Contract.cs` (`SectionKeys`, in the page's order) and into the sample of `ModDbPageTests.cs`.
 - **Changelog:** a version's heading is `## X.Y.Z (unreleased)` while it is being made and `## X.Y.Z (YYYY-MM-DD)` from the
   release day; the release job fails on a missing, undated or empty section. Before a release: the version in `modinfo.json`,
-  the date in `CHANGELOG.md` and the version in both READMEs' early-development warning. A fresh Fendragon invite in both READMEs'
-  thanks (an invite expires in 30 days); the author asks for it on the server.
+  the date in `CHANGELOG.md` and the version in the early-development warning of `README.md` and of both descriptions. A fresh Fendragon invite in the credits of both descriptions
+  (an invite expires in 30 days); the author asks for it on the server.
 - **Before a release**, with the release zip:
   - a minor release (0.x.0), or a patch that changes stored data, network messages or access checks: all of
     `docs/testing/functional.md` and the release's `docs/testing/upgrade-<from>-to-<to>.md`, in single player and on the

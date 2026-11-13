@@ -123,10 +123,10 @@ public sealed class DefaultTask : FrostingTask
 }
 
 /// <summary>
-/// The ModDB description from README.md, README.uk.md and docs/moddb/template.html (docs/releasing.md, ModDB).
+/// The ModDB page from docs/moddb/description.md, description.uk.md and template.html (docs/releasing.md, ModDB).
 /// Arguments: --ref=&lt;tag or SHA&gt; (default v&lt;version&gt;), --moddbLinks=false (leave Source and Report a bug out of the buttons; default true),
 /// --out=&lt;file&gt; (default Releases/moddb.html), --rawBase / --blobBase (to look at the page before the files are on GitHub,
-/// e.g. file:///C:/Projects/.../), --readme / --readmeUk (other READMEs).
+/// e.g. file:///C:/Projects/.../), --descriptionEn / --descriptionUk (other descriptions, read as if they lay in docs/moddb/).
 /// </summary>
 [TaskName("ModDbPage")]
 public sealed class ModDbPageTask : FrostingTask<BuildContext>
@@ -141,8 +141,10 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
         var gitRef = context.Argument("ref", $"v{context.Version}");
         var input = new CurioCatalogue.PageGen.PageInput
         {
-            ReadmeEn = File.ReadAllText(context.Argument("readme", "../README.md")),
-            ReadmeUk = File.ReadAllText(context.Argument("readmeUk", "../README.uk.md")),
+            DescriptionEn = File.ReadAllText(context.Argument("descriptionEn", "../docs/moddb/description.md")),
+            DescriptionUk = File.ReadAllText(context.Argument("descriptionUk", "../docs/moddb/description.uk.md")),
+            GuideEn = File.ReadAllText($"../{CurioCatalogue.PageGen.Contract.GuideEnPath}"),
+            GuideUk = File.ReadAllText($"../{CurioCatalogue.PageGen.Contract.GuideUkPath}"),
             Template = File.ReadAllText("../docs/moddb/template.html"),
             Version = context.Version,
             GameVersion = (string?)modInfo["dependencies"]?["game"] ?? throw new Exception("modinfo.json has no dependencies.game"),
@@ -171,7 +173,7 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
         File.WriteAllText(Path.ChangeExtension(output, ".preview.html"),
             "<!doctype html>\n<html><head><meta charset=\"utf-8\"><title>Curio Catalogue (preview)</title></head>\n" +
             "<body style=\"margin: 0; padding: 24px; background: #888\">\n" + html + "</body></html>\n");
-        context.Log.Information("ModDB page for {0} at {1}: {2} ({3} KB)", context.Version, gitRef, Path.GetFullPath(output), html.Length / 1024);
+        context.Log.Information("ModDB page for {0} at {1}: {2} ({3} bytes of {4})", context.Version, gitRef, Path.GetFullPath(output), System.Text.Encoding.UTF8.GetByteCount(html), CurioCatalogue.PageGen.Contract.MaxPageBytes);
     }
 
     static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..].ToLowerInvariant();

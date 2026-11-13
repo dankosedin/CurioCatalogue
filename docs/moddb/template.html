@@ -1,6 +1,6 @@
 <!--
   The look of the ModDB description (docs/plans/2026-11-01-mod-page.md, "The generator's shape").
-  Scriban fills it from README.md and README.uk.md, PreMailer moves the CSS below into inline style="" (ModDB drops style blocks),
+  Scriban fills it from description.md and description.uk.md (beside it), PreMailer moves the CSS below into inline style="" (ModDB drops style blocks),
   then comments are removed. So in the CSS: no @media, :hover or pseudo-elements (the generator refuses them).
   Sections are found by key: the slug of the English title (CurioCatalogue.PageGen/Contract.cs).
 -->
@@ -30,13 +30,6 @@
 .cc td.icon img { display: block; width: 64px; height: 64px; border-radius: 6px; }
 .cc td.text { padding: 10px 8px; vertical-align: top; border-bottom: 1px solid #ece2cf; }
 .cc tr.last td { border-bottom: none; }
-.cc .accordions { margin: 24px 0 0 0; }
-.cc details { margin: 0 0 8px 0; border: 1px solid #e2d6bf; border-radius: 8px; background: #fff; }
-.cc summary { padding: 10px 14px; cursor: pointer; font-weight: bold; font-size: 17px; color: #4a2c10; }
-.cc .inner { scroll-margin-top: 56px; padding: 0 16px 12px 16px; }
-.cc .subs { margin: 14px 0 0 0; }
-.cc .subs details { background: #fbf7ef; }
-.cc .subs summary { font-size: 15px; }
 .cc .body p { margin: 0 0 8px 0; }
 .cc .body ul { margin: 0 0 8px 0; padding-left: 22px; }
 .cc .body ol { margin: 0; padding-left: 22px; }
@@ -44,23 +37,29 @@
 .cc .body h3 { margin: 14px 0 6px 0; font-size: 16px; color: #4a2c10; }
 .cc .body img { display: block; width: 100%; max-width: 420px; height: auto; margin: 8px 0 8px 0; border-radius: 6px; border: 1px solid #d8c8a8; }
 .cc .body a { color: #7a3f10; }
-.cc code { background: #f1e9da; padding: 1px 5px; border-radius: 4px; }
-.cc .rest { margin: 12px 0 0 0; }
-.cc .rest p { margin: 0 0 8px 0; }
+.cc .body table { border-collapse: collapse; margin: 8px 0 12px 0; font-size: 14px; }
+.cc .body th { padding: 5px 12px; text-align: left; background: #efe4cf; color: #4a2c10; border: 1px solid #d8c8a8; }
+.cc .body td { padding: 5px 12px; vertical-align: top; border: 1px solid #e2d6bf; }
+.cc .seq { max-width: 900px; margin: 8px 0 12px 0; }
+.cc .seq-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+.cc .seq-frame { flex: 0 0 100%; min-width: 0; margin: 0; scroll-snap-align: start; }
+.cc .body .seq-frame img { display: block; box-sizing: border-box; width: 100%; max-width: none; height: auto; margin: 0; border-radius: 6px; border: 1px solid #d8c8a8; }
+.cc .seq-frame figcaption { padding: 6px 2px 4px 2px; font-size: 14px; }
+.cc code { background: #f1e9da; padding: 1px 5px; }
+</style>
 </style>
 {{~
-# Labels of the page itself (everything else comes from the READMEs).
+# Labels of the page itself (everything else comes from the descriptions).
 ui = {
   en: { universal: "Server and client", server: "Server", client: "Client", early: "Early development",
-        other: "Other", ukrainian: "Українською", source: "Source", bugs: "Report a bug",
+        ukrainian: "Українською", guide: "Guide", bugs: "Report a bug",
         langs: { en: "English", uk: "Українська" } },
   uk: { universal: "Сервер і клієнт", server: "Сервер", client: "Клієнт", early: "Рання розробка",
-        other: "Інше", ukrainian: "", source: "Код", bugs: "Повідомити про помилку",
+        ukrainian: "", guide: "Посібник", bugs: "Повідомити про помилку",
         langs: { en: "English", uk: "Українська" } }
 }
 # The icons of the "What's inside" list, by the order of its items.
 icons = ["book-album", "invoice-wantlist", "book-ledger", "book-materials", "invoice-incoming", "invoice-outgoing"]
-buttons = ["whats-inside", "getting-started", "gestures", "configuration"]
 
 ~}}
 
@@ -104,15 +103,17 @@ func page(l, nested)
 </div>
 
 <div class="buttons">
-  {{~ for k in buttons ~}}
-  <a class="btn" href="#{{ p }}{{ k }}">{{ l.sections[k].title | html.escape }}</a>
+  {{~ if nested ~}}
+  <a class="btn" href="{{ guide_url_uk }}">{{ t.guide }}</a>
+  {{~ else ~}}
+  <a class="btn" href="{{ guide_url_en }}">{{ t.guide }}</a>
+  <a class="btn" href="{{ readme_url }}">README</a>
+  {{~ end ~}}
+  {{~ if moddb_links ~}}
+  <a class="btn btn-ext" href="{{ repo_url }}/issues">{{ t.bugs }}</a>
   {{~ end ~}}
   {{~ if !nested ~}}
   <a class="btn" href="#cc-uk">{{ ui.en.ukrainian }}</a>
-  {{~ end ~}}
-  {{~ if moddb_links ~}}
-  <a class="btn btn-ext" href="{{ repo_url }}">{{ t.source }}</a>
-  <a class="btn btn-ext" href="{{ repo_url }}/issues">{{ t.bugs }}</a>
   {{~ end ~}}
 </div>
 
@@ -120,11 +121,10 @@ func page(l, nested)
 {{ l.warning_html }}
 </div>
 
-{{~ inside = l.sections["whats-inside"] ~}}
-<div class="accordions">
-<details open>
-<summary>{{ inside.title | html.escape }}</summary>
-<div class="inner" id="{{ p }}whats-inside">
+{{~ for k in section_keys ~}}
+{{~ s = l.sections[k] ~}}
+<h2 class="section" id="{{ p }}{{ k }}">{{ s.title | html.escape }}</h2>
+{{~ if k == "whats-inside" ~}}
 <table class="inside">
 {{~ for item in l.items ~}}
   <tr{{ if for.last }} class="last"{{ end }}>
@@ -133,52 +133,24 @@ func page(l, nested)
   </tr>
 {{~ end ~}}
 </table>
-<div class="rest body">
-{{ inside.html }}
-</div>
-<div class="subs">
-{{~ for sub in inside.subs ~}}
-<details>
-<summary>{{ sub.title | html.escape }}</summary>
-<div class="inner body">
+{{~ end ~}}
+<div class="body">
+{{ s.html }}
+{{~ for sub in s.subs ~}}
+<h3>{{ sub.title | html.escape }}</h3>
 {{ sub.html }}
-</div>
-</details>
 {{~ end ~}}
 </div>
-</div>
-</details>
-
-{{~ for k in known_keys.accordions ~}}
-{{~ s = l.sections[k] ~}}
-<details{{ if k == "getting-started" }} open{{ end }}>
-<summary>{{ s.title | html.escape }}</summary>
-<div class="inner body" id="{{ p }}{{ k }}">
-{{ s.html }}
-</div>
-</details>
 {{~ end ~}}
-
-<details>
-<summary>{{ t.other }}</summary>
-<div class="inner body" id="{{ p }}other">
-{{~ for k in known_keys.other ~}}
-{{~ s = l.sections[k] ~}}
-<h3>{{ s.title | html.escape }}</h3>
-{{ s.html }}
-{{~ end ~}}
-</div>
-</details>
 {{~ if !nested ~}}
 
-<details>
-<summary>{{ ui.en.ukrainian }}</summary>
-<div class="inner" id="cc-uk">
+<div class="spoiler">
+<div class="spoiler-toggle">{{ ui.en.ukrainian }}</div>
+<div class="spoiler-text" id="cc-uk">
 {{ page uk true }}
 </div>
-</details>
-{{~ end ~}}
 </div>
+{{~ end ~}}
 </div>
 {{~ end ~}}
 {{~ page en false ~}}

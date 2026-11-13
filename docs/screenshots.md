@@ -88,19 +88,39 @@ it yet), so `materials` shows its intake list, not its window.
 
 ## Shot list
 
-Each shot in `en` and `uk`, as `<shot>.<lang>.<ext>` (P3 of the plan). A shot's macro (Alt+1 … Alt+7, the files
-`tools/studio/macros/11-shot-<shot>.json` … `17-…`) sets the resolution, hides the HUD parts and moves the camera to the
-shot's point; the window, the hands and the gesture are done by hand, as the table says.
+The shot list of 0.2 (decided 13.11.2026, G5 of `docs/plans/2026-11-04-mod-description.md`). Each shot in `en` and `uk`, as
+`<shot>.<lang>.<ext>` in `docs/images/`. The column "Gallery" is the order of the ModDB gallery (the `en` files only);
+`docs/releasing.md` follows it.
 
-| Key | Shot | In the hands | By hand after the macro | In the frame |
+- **One camera point** for every shot but `album-chest-2`: the background is the same in all of them, so what changes (the
+  window, the page) draws the eye by itself, and a carousel turns without the scene jumping (the frames of G4 were shot so).
+  `album-chest-2` looks at the chest, so it has a point of its own.
+- **The albums are as full as the mod's version:** in 0.2 about 20 % of each collection collected, in 1.0 full (the author's
+  Easter egg, 13.11.2026: the fuller the mod, the fuller the albums). The progress line reads about a fifth: tapestries ~18 of
+  88, seashells ~8 of 42, butterflies ~34 of 169; the crystals' page in the frame (native copper) about a fifth full.
+- **Windows centred ("auto")**, except `title`: there the album's window is on the left (`tools/studio/dialog-positions.json`)
+  and the tapestry wall on the right, its plank frames being gaps on the album's page.
+
+| Shot | Gallery | Where | In the hands, by hand | In the frame |
 |---|---|---|---|---|
-| Alt+1 | `title` | the album | right click into the air | the album's window on the left (its position from `tools/studio/dialog-positions.json`), the tapestry wall on the right: the frames on the wall are pieces in its "Missing" grid; one corner of plain brick for the slanted ribbon of two or three words (drawn by the script, P3) |
-| Alt+2 | `album-window` | the album | right click into the air | the album's window in the middle: name, progress line, "Missing" |
-| Alt+3 | `album-chest` | the album | Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
-| Alt+4 | `wantlist` | the want list | right click into the air | the want list's window |
-| Alt+5 | `ledger-intake` | the ledger's intake list, the ledger in the off-hand | right click into the air | the list's window (tapestries), the chest behind it |
-| Alt+6 | `materials` | the bill of materials' intake list, the book in the off-hand | right click into the air | the list's window with counts (planks, resin), the basket behind it |
-| Alt+7 | `first-ledger` | — | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid; F12 after the chat is gone (15 s: the game mode messages come after `.clearchat`) | the inventory, the first ledger's recipe in the grid and the ledger as the result |
+| `title` (JPEG, the ribbon) | 1 | the hero of the showcase and README | the tapestries album; right click into the air | the album's window on the left on a page of the tapestries, the wall on the right; one corner of plain brick for the slanted ribbon (drawn by the script) |
+| `collection-tapestries` (JPEG) | 2 | the showcase's carousel | the tapestries album; right click into the air | page 1 |
+| `collection-crystals` (JPEG) | 3 | the carousel | the ore crystals album | level "Every crystal", the page of native copper |
+| `collection-seashells` (JPEG) | 4 | the carousel | the seashells album | level "Every type in every colour" |
+| `collection-butterflies` (JPEG) | 5 | the carousel; the guide, second of the butterflies' pair | the butterflies album | "By rarity" |
+| `album-chest-1` | — | the guide, Gestures: first of three | the tapestries album; right click into the air | the page with the gaps the chest will fill |
+| `album-chest-2` | 6 | the guide, Gestures: second | the album; Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
+| `album-chest-3` | — | the guide, Gestures: third | the album; right click into the air | the same page, the new pieces in place |
+| `album-level` | — | the guide, Collections | an empty ore crystals album; right click into the air | the window with the choice of a level |
+| `wantlist` | 7 | the guide, Collections | a want list of ore crystals at "Each ore in each rock"; right click into the air | the want list's window, lines that say "any rock" |
+| `butterflies-family` | — | the guide, Collections: first of the butterflies' pair | the butterflies album | "By family" |
+| `ledger-intake` | 8 | the guide, Gestures | the ledger's intake list, the ledger in the off-hand; right click into the air | the list's window (tapestries) |
+| `materials` | 9 | the guide | the bill of materials' intake list, the book in the off-hand; right click into the air | the list's window with counts (planks, resin) |
+| `first-ledger` | 10 | the guide, Getting started | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid; F12 after the chat is gone (15 s: the game mode messages come after `.clearchat`) | the inventory, the first ledger's recipe in the grid and the ledger as the result |
+
+`album-window` of 0.1 is gone: the hero is `title`, the album's window is shown by the carousel. The props, the macros and
+the script for this list are made before the shooting (R3 of `docs/plans/2026-11-04-release-0.2.md`); until then the macros
+in `tools/studio/macros/` are the seven shots of 0.1 (Alt+1 … Alt+7, a camera point each).
 
 Alt+0 is the rebuild, Alt+9 the point-finding macro. Ctrl+1 … Ctrl+4 are taken by the game (the bag slots of the
 inventory). On the author's machine the macros that give tapestry pieces are on Ctrl+Shift+1 … Ctrl+Shift+9.

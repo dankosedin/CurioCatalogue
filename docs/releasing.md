@@ -37,8 +37,8 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
   in ModDB's native spoiler (`div.spoiler`, the one place where classes stay); images from raw GitHub at the release tag (or a SHA), relative links made absolute. The release's changelog is
   the `CHANGELOG.md` section. Screenshots and their size limits: `docs/screenshots.md`.
   - **The gallery** (uploaded by the author on the mod's page, not generated): the first image is the title card (`title.en.jpg`,
-    the gallery's first place decides what a player sees without scrolling); then, in this order, `album-window`, `album-chest`,
-    `wantlist`, `ledger-intake`, `materials`, `first-ledger` (the shot list of `docs/screenshots.md`); the `en` files (the `uk` ones are used by `description.uk.md`).
+    the gallery's first place decides what a player sees without scrolling); then the rest in the order of the column "Gallery"
+    of the shot list (`docs/screenshots.md`); the `en` files (the `uk` ones are used by `description.uk.md` and the Ukrainian guide).
   - **The generator** (shape: "The generator's shape" in `docs/plans/2026-11-01-mod-page.md`): the CakeBuild task `ModDbPage`,
     `dotnet run --project CakeBuild/CakeBuild.csproj -- --target=ModDbPage` (`.\build.ps1 --target=ModDbPage` does the same where
     the execution policy allows scripts). It reads `docs/moddb/description.md`, `description.uk.md`, the two guide files (only for the headings the descriptions link to), `modinfo.json`, `lang/*.json` and the template

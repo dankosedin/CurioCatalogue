@@ -132,7 +132,7 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
       After: G7b. Model: sonnet. Author: shoots the frames, pastes the page, picks.
       Done when: Decisions has the carousel's form, the open and folded sections and the folding element; the generator makes
       the chosen form.
-- [ ] **G5. The shot list of 0.2.** The hero, a frame per collection for the carousel (in G4's form), the pictures of the guide
+- [x] **G5. The shot list of 0.2.** Done 13.11.2026 (Decisions, "The shot list of 0.2"; the list in `docs/screenshots.md`). The hero, a frame per collection for the carousel (in G4's form), the pictures of the guide
       (whether the album taking pieces from a chest gets a sequence, a GIF or a frame), with the stamp-album view and the new
       collections; the gallery's order and its first image. Written into `docs/screenshots.md`; R3 shoots by it.
       Branch: `docs/mod-description`. After: A2 of the album view, C7 of the collections design, G6, G4. Model: opus. Author:
@@ -274,6 +274,21 @@ its exact text (global rule). Screenshots are the author's, with the steps writt
     `<details>` is not used. A section folded closed by default would be a choice of content, not a necessity: none for now.
   - **The size:** the test page with two rows of four frames and the images from the gallery is 37 373 bytes (the limit 64 000;
     the same page without the frames 33 138): a row of four frames costs about 2.1 KB per language.
+
+- **The shot list of 0.2** (the author, 13.11.2026, G5; the list itself in `docs/screenshots.md`, "Shot list"):
+  - **One title card** is the gallery's first image and the hero of the showcase and README (the stamp-album view of the
+    tapestries on the left, the wall on the right, the ribbon). On ModDB it shows twice (the gallery, then the hero), accepted:
+    README has no gallery. Rejected: another hero (README loses the title card); no hero on ModDB (a change of the head contract).
+    `album-window` goes: the carousel shows the album's window.
+  - **The carousel** keeps G4's four frames (tapestries page 1, crystals "Every crystal" on native copper, seashells "Every type
+    in every colour", butterflies "By rarity").
+  - **The albums are as full as the version:** about 20 % in 0.2, full in 1.0, an Easter egg (the author). Rejected: half full,
+    almost full.
+  - **One camera point** for all shots but the chest's (the author): the background stays, what changes draws the eye.
+  - **The guide:** the album taking from a chest as three frames (before, the hint over the chest, after), one under another
+    with captions; rejected: a GIF (the script would have to build one per language), one frame as in 0.1. New: the choice of a
+    level, a want list saying "any rock", the butterflies' two layouts as a pair (`butterflies-family` and the carousel's frame).
+  - **The gallery:** ten `en` shots, the order in the shot list's column "Gallery".
 
 ## Where we stopped
 

@@ -15,6 +15,13 @@ The order depends on where the change comes from (decided 04.11.2026):
 
 ## Common to both rounds
 
+- **A fresh session, by a hand-off.** A round is run and moderated in a session that starts with it, never at the end of the
+  session that did the work: there every role's report and every check of the moderation is read on top of the whole work's
+  context (on 03.11.2026 the moderation in such a session cost five times K7's, see "What a round costs"). The working session
+  stops and hands off: it writes into the plan's review step the scope (the branch and the commit where it left `main`), the
+  prompts to reuse or what changes in them, and what to look at closely; then the author clears the context (`/clear`) and the
+  round starts from the step. If the moderation itself grows long (many groups, fixes discussed at length), it hands off the
+  same way: the reports, the merge and the groups decided so far are saved, and a new session goes on from them.
 - **Roles in parallel.** One shared block (below) plus one role paragraph per subagent. Show the author the prompts before a
   round that changes them; reuse them as they are otherwise.
 - **Never** start the game, push, comment or publish. Competitors' code is not read (`CLAUDE.md`'s clean-room rule): a role
@@ -164,6 +171,18 @@ branch left `main`, about 35 findings after the merge; costs 157–260 thousand 
   the cube `OnGroundNear` searches) was found by the author from the test world's layout (T4). Ask a role that meets a flake to find
   the cause, or say so in the prompt.
 - **Not run:** the architect with rights (above); its second run stays at R1 of 0.2.
+
+**What a round costs** (measured 14.11.2026 from the session logs at API prices, the code reviews of 28.10–07.11). A code review
+round costs $13–19: the five roles $6–14, the moderation $2–10; a players' round of Sonnet roles about $1. That is about 8% of a
+week of work, the price of two or three `/step` sessions, so the review is not where a week's cost goes. In K7: QA (Opus) $5.0,
+Teammate (Opus) $3.8, Architect (Opus) $2.4, C# expert (Sonnet) $1.7, Hostile (Sonnet) $1.0.
+- **The start is cheap, the walk is not.** A role starts at 19–40 thousand tokens (the worktree roles load `CLAUDE.md`), $0.1–0.3;
+  the rest is how long it reads the code and on which model. Fewer roles save little; a narrower scope and Sonnet where the role
+  allows save more.
+- **Each role earned its place in K7**, except the C# expert, whose findings were mostly the others' (its own: C2, C6). Its
+  agreement still counted (R1 by all five). Keep it while it costs under $2; drop it first if a round must be cheaper.
+- **Moderate in a fresh session.** The moderation cost $1.7 in K7 (a fresh session, the reports saved outside it) and $9.6 on
+  03.11 (in a long session at 280 thousand tokens of context). Hence the hand-off rule at the top of this page.
 
 ## To weigh at the next players' round
 

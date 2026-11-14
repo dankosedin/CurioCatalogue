@@ -94,11 +94,16 @@ server reaches them only after they are dropped; in the game that is a restart.
 
 **A creative player's inventory is never full** (decompiled `VintagestoryLib` 1.22.7, checked 03.11.2026). `TryGiveItemstack` puts the stack into
 the best slot of any player inventory the player has opened (`PlayerInventoryManager.GetBestSuitedSlot`); in creative that includes the creative
-inventory, which swallows anything. With the hotbar and backpack full it then returns `false` and leaves the stack at size 0, so our
-"else drop it on the ground" spawns nothing (in game a new list would vanish; `ROADMAP.md`). `CloseInventory` does not close the creative
-inventory while the player is in creative. A test that needs a full inventory switches its own player to survival
-(`WorldData.CurrentGameMode = EnumGameMode.Survival`, then `BroadcastPlayerData(true)`; `BookEdgeTests.AsInSurvival`): then the stack is
-refused whole.
+inventory, which swallows anything. With the hotbar and backpack full it then returns `false` and leaves the stack at size 0.
+`CloseInventory` does not close the creative inventory while the player is in creative. The mod hands out its lists itself (`HandOut`,
+`docs/modding.md`), but an item on the ground is no way round: a creative player picks it up at once into the same inventory (checked
+13.11.2026). A test that needs a full inventory switches its own player to survival (`WorldData.CurrentGameMode = EnumGameMode.Survival`,
+then `BroadcastPlayerData(true)`; `BookEdgeTests.AsInSurvival`): then the stack is refused whole.
+
+**Other test players pick up what lies near the spawn.** Every test player stands at the spawn and stays joined; those in creative pick up any
+item within 1.5 blocks a tick after it lands (`BehaviorCollectEntities.cs:98#OnFoundCollectible`), so an item a test drops may be gone before
+the test looks. A test that checks the ground counts in the same main-thread call as the drop (`SpawnItemEntity` adds the entity at once:
+`BookEdgeTests.Handing_out_a_stack_that_fits_in_part_drops_only_the_rest`).
 
 **Crafting on the server** (decompiled `VintagestoryLib` 1.22.7, checked 02.11.2026). The grid is the player's own inventory
 `craftinggrid-<uid>` (`InventoryCraftingGrid`: slots 0–8 row by row, 9 the output), there on the server for a creative player too

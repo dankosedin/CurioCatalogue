@@ -107,7 +107,7 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
   gives the game's tooltip through `Gui/AlbumSlot`.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
-- `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`.
+- `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`, `HandOut` (a new list into the hand, the hotbar and the backpack, else the ground).
 
 ### Main flows
 

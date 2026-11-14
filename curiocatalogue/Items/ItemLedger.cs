@@ -131,16 +131,8 @@ public class ItemLedger : Item
 
             case MakeInvoiceResult.Made made:
                 ledgerSlot.MarkDirty();
-                if (intoSlot is { Empty: true })
-                {
-                    // Straight into the empty hand: the next Shift + right-click posts it.
-                    intoSlot.Itemstack = made.InvoiceStack;
-                    intoSlot.MarkDirty();
-                }
-                else if (!player.InventoryManager.TryGiveItemstack(made.InvoiceStack, true))
-                {
-                    api.World.SpawnItemEntity(made.InvoiceStack, player.Entity.Pos.XYZ);
-                }
+                // Straight into the empty hand if it can: the next Shift + right-click posts it.
+                HandOut.Give(player, made.InvoiceStack, intoSlot);
                 PlayerMessages.Tell(player, "invoice-made",
                     PlayerMessages.ItemName(player, made.InvoiceStack), made.Invoice.Entries.Length, made.SheetsLeft, Mod.Config.MaxSheets);
                 break;

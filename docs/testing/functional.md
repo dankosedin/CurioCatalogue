@@ -110,6 +110,7 @@ which build, who ran it, and each `❌` with its reason.
 | L3 ⚙ | 0.1.0 | Bill of materials: the same two gestures | Lists by count; the book shrinks as items are taken |
 | L4 ⚙ | 0.1.0 | Window: search, sorting, rename, clear | Work as in A1, A6, A7 |
 | L5 ⚙ | 0.1.0 | `SoftEntryLimit: 3`; a book with 2 entries, intake list with 1 new item | Filled, warning "limit 3"; the next one says the book is full |
+| L6 ⚙ | 0.2.0 | Where a new list goes. In survival: the hotbar and the backpack full (`/giveitem stick 64` until full), the off-hand empty; a ledger in the main hand, Shift + right click on a chest; then an album in the main hand, "Make a want list" in its window; then one free backpack slot, the same again. In creative, the same with a full hotbar and backpack | Survival, full: each list lies on the ground at your feet, never in the off-hand, and the book's sheets −1; with a free slot the list is in that slot. Creative, full: the list is lost (the player picks it up into the creative inventory at once, as any item; accepted), the sheets −1. ⚙ `BookEdgeTests` A5, L1 and `Handing_out_…` (F2 of the fixes plan) |
 
 ## Lists
 

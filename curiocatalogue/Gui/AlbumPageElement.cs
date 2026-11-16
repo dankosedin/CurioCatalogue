@@ -61,6 +61,9 @@ public sealed class AlbumPageElement : GuiElement
         public readonly AlbumSlot Slot = slot;
         public IReadOnlyList<ItemStack> Stacks = [];
         public Slideshow Show = Slideshow.Start;
+        /// <summary>The member's mark, asked of the look once per <see cref="AlbumPageElement.Show"/>, not per frame: the
+        /// look finds it with LINQ and builds its tooltip line (F4 of the fixes-0.2 plan, measured in the client).</summary>
+        public (int Argb, string? Line)? Mark;
         public bool Collected;
         public bool Lit = true;
         public int FlatTexture;
@@ -144,7 +147,7 @@ public sealed class AlbumPageElement : GuiElement
         var inventory = new InventoryGeneric(placedCells.Count + placedHeadings.Count, "curiocatalogue-albumpage",
             "albumpage-" + capi.World.Player.PlayerUID, capi, (_, inv) => new AlbumSlot(inv));
         int slot = 0;
-        cells = placedCells.Select(c => new Cell(c, (AlbumSlot)inventory[slot++])).ToArray();
+        cells = placedCells.Select(c => new Cell(c, (AlbumSlot)inventory[slot++]) { Mark = look.Mark(c.Member) }).ToArray();
         headings = placedHeadings.Select(h =>
         {
             var s = (AlbumSlot)inventory[slot++];
@@ -208,18 +211,19 @@ public sealed class AlbumPageElement : GuiElement
         {
             var member = cell.Placed.Member;
             cell.Collected = collected.Contains(member.Id);
+            cell.Mark = look.Mark(member);
             // A stack of a removed mod cannot be drawn or named; its cell stays empty.
             var stacks = album.StacksToShow(member).OfType<ItemStack>().Where(s => s.Collectible != null).ToList();
             if (!stacks.SequenceEqual(cell.Stacks)) cell.Show = Slideshow.Start;
             cell.Stacks = stacks;
             cell.Slot.Itemstack = stacks.Count > 0 ? stacks[cell.Show.Index % stacks.Count] : null;
-            cell.Slot.Lines = Lines(member, cell.Collected);
+            cell.Slot.Lines = Lines(member, cell.Collected, cell.Mark);
         }
         Highlight(matches); // the stack put in may match where the member did not
         if (composed) ComposeGroupHeadings();
     }
 
-    private string Lines(Member member, bool isCollected)
+    private string Lines(Member member, bool isCollected, (int Argb, string? Line)? mark)
     {
         var lines = new List<string>();
         // The member's name above "Missing": the stack shown may be one of several, or a piece that looks like another (L1).
@@ -229,7 +233,7 @@ public sealed class AlbumPageElement : GuiElement
             ? $"<font color=\"#84ff84\">{Lang.Get("curiocatalogue:albumwindow-collected")}</font>"
             : $"<font color=\"#ff8484\">{Lang.Get("curiocatalogue:albumwindow-missing")}</font>");
         if (name == null && !isCollected && look.Freedom(member) is { } free) lines.Add(free);
-        if (look.Mark(member) is { Line: { } markLine }) lines.Add(markLine);
+        if (mark is { Line: { } markLine }) lines.Add(markLine);
         return string.Join("\n", lines);
     }
 
@@ -434,15 +438,26 @@ public sealed class AlbumPageElement : GuiElement
             }
         }
 
-        if (look.Mark(cell.Placed.Member) is { } mark)
+        if (cell.Mark is { } mark)
         {
             double size = scaled(Corner), side = cell.FlatTexture != 0 ? scaled(metrics.Cell) : scaled(SlotSize);
             api.Render.Render2DTexture(cornerTexture!.TextureId, (float)(x + side - size), (float)(y + side - size), (float)size, (float)size, MarkZ, ColorOf(mark.Argb));
         }
     }
 
-    private static Vec4f ColorOf(int argb) =>
-        new(((argb >> 16) & 0xff) / 255f, ((argb >> 8) & 0xff) / 255f, (argb & 0xff) / 255f, ((argb >> 24) & 0xff) / 255f);
+    /// <summary>A mark's colour, made once per colour: <c>Vec4f</c> is a class, and a mark is drawn every frame (docs/modding.md,
+    /// "Memory and garbage").</summary>
+    private Vec4f ColorOf(int argb)
+    {
+        if (!markColors.TryGetValue(argb, out var color))
+        {
+            color = new(((argb >> 16) & 0xff) / 255f, ((argb >> 8) & 0xff) / 255f, (argb & 0xff) / 255f, ((argb >> 24) & 0xff) / 255f);
+            markColors[argb] = color;
+        }
+        return color;
+    }
+
+    private readonly Dictionary<int, Vec4f> markColors = [];
 
     // --- The mouse: the game's tooltip for the cell or icon heading under it ---
 

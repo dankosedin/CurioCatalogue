@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -89,17 +91,28 @@ public sealed class LedgerStore
     /// A cheap hash of the book's or invoice's data, the same on client and server: the client gets the attributes as the
     /// server's bytes, and a tree keeps its keys in insertion order (vsapi TreeAttribute.cs:97#attributes, ConcurrentSmallDictionary).
     /// Windows use it to notice changes and to name the item a request is about.
+    /// The bytes go into a buffer kept per thread (the client's and the server's main threads share a process in singleplayer):
+    /// <c>ToBytes()</c> would grow a new stream and copy it out on every call. What is left is the engine's: an enumerator per
+    /// subtree (vsapi ConcurrentSmallDictionary.cs:181#GetEnumerator).
     /// </summary>
     public static int Fingerprint(ItemStack stack)
     {
         if (stack.Attributes.GetTreeAttribute(RootKey) is not TreeAttribute tree) return 0;
+        var buffer = fingerprintBuffer ??= new MemoryStream();
+        var writer = fingerprintWriter ??= new BinaryWriter(buffer);
+        buffer.SetLength(0);
+        tree.ToBytes(writer);
+        writer.Flush();
         unchecked
         {
             int hash = (int)2166136261;
-            foreach (byte b in tree.ToBytes()) hash = (hash ^ b) * 16777619;
+            foreach (byte b in buffer.GetBuffer().AsSpan(0, (int)buffer.Length)) hash = (hash ^ b) * 16777619;
             return hash;
         }
     }
+
+    [ThreadStatic] private static MemoryStream? fingerprintBuffer;
+    [ThreadStatic] private static BinaryWriter? fingerprintWriter;
 
     /// <summary>Is the stack's data from a newer build of the mod? Then it must not be written (the layout is unknown).</summary>
     public static bool IsNewer(ItemStack? stack) =>

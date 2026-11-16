@@ -380,6 +380,21 @@ In this order:
   built once and cached (colours, `Vec4f`, which is a class in vsapi `Vec4f.cs:7#Vec4f`, strings, arrays); no LINQ, no
   closures. Everywhere else (a click, a packet, a tooltip on change) immutable records and LINQ stay the default: clear code
   matters more than a few objects. Our server does nothing per tick; keep it so.
+- **Serializing a tree makes garbage of several times its size.** `TreeAttribute.ToBytes()` grows a new `MemoryStream` and
+  copies it out (vsapi TreeAttribute.cs:215#ToBytes); while the JIT still runs the engine's unoptimized code, every subtree also
+  costs an enumerator (ConcurrentSmallDictionary.cs:181#GetEnumerator, a `yield`). A full crystal album (19 KB) cost 130 KB a call.
+  On a repeated path write into a kept buffer (`ToBytes(BinaryWriter)`, as `LedgerStore.Fingerprint`), or better, do not serialize.
+- **The client puts a new stack into a slot for every update from the server** (decompiled `InventoryNetworkUtil.UpdateSlotStack`,
+  1.22.7: the stack made from the packet, always): the same object in the slot means nothing came, a free check before reading
+  the stack's data again (`HeldItemDialog.Watch`).
+- **The engine's item rendering allocates per item per frame** (decompiled `InventoryItemRenderer.RenderItemstackToGui`, 1.22.7:
+  `new Vec4f` for the colours, `new ItemRenderInfo`), in every slot of every window, vanilla's too. Not ours to remove; do not
+  count it against our code.
+- **Measuring:** `GC.GetAllocatedBytesForCurrentThread()` around a call, after a warm-up call (`ReadingCostTests.Allocated`,
+  `SlideshowTests`). The numbers depend on the JIT's tier: the same engine call allocated 45 KB cold and nothing once optimized,
+  so compare with a reference measured the same way, not with a fixed number. In the client, `dotnet-counters` do not show a
+  mod's few hundred KB/s against the game's 5–8 MB/s; `dotnet-trace collect -p <pid> --profile gc-verbose` records a sample
+  per ~100 KB allocated with its type (`GCAllocationTick`), which does (F4 of `docs/plans/2026-11-04-fixes-0.2.md`).
 - **Debug logging costs nothing when off:** `ModLog.Debug` takes an interpolated string handler, so the text is not built
   unless diagnostics are on. Keep that signature for any new logging on a hot path.
 

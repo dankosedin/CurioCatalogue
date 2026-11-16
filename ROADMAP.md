@@ -223,16 +223,6 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   reports a failure in a collection fixture's `Dispose` and whether `dotnet test` turns red on it.
 - **Known log noise per test project** (the same review): `LogProblems.KnownNoise` is shared by the server and the compatibility tests.
   When a second pinned mod brings noise of its own, give each fixture its own list, so another mod's pattern cannot hide our warning.
-- **A flaky server test** (plan backward-compat, B1, 04.11.2026): one `dotnet test curiocatalogue.sln` run had 2 failures in
-  `CurioCatalogue.ServerTests` (2 min 22 s instead of 1 min 21 s, the compatibility tests running alongside); the next runs, alone
-  and of the whole solution, were green. Which tests failed was not seen. Next time: keep the output (a `trx` logger) and look for a
-  timeout under load. Seen again in B6 (04.11.2026): `BookEdgeTests.L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full`
-  failed after 30 s in a whole-solution run (server tests 1 min 41 s instead of 1 min 12 s); green alone right after. Seen again in
-  L1a (10.11.2026): `BookEdgeTests` L1 and `A5_a_want_list_lands_on_the_ground_when_the_inventory_is_full` failed in a run of
-  `CurioCatalogue.ServerTests` alone (2 min 35 s instead of 1 min 28 s); green alone and in the next whole run.
-  Seen again after T4's fix (A4 of the album view, 08.11.2026): twice in whole-solution runs, 30 s, green alone. The column search did
-  not end it; next: keep the `trx` output and log the ground items near the player when the wait ends (where the list landed, or
-  whether it was dropped at all).
 - **`HandbookIndexFix` touches shared index entries** (review, 28.10.2026): it replaces the sample stack of every ingredient entry
   that one of our recipes uses, so another mod's clutter-based recipe may show a plain sample in the handbook. A known risk; look
   at it when someone reports it or when the game changes the index.

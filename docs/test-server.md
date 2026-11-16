@@ -102,8 +102,9 @@ then `BroadcastPlayerData(true)`; `BookEdgeTests.AsInSurvival`): then the stack 
 
 **Other test players pick up what lies near the spawn.** Every test player stands at the spawn and stays joined; those in creative pick up any
 item within 1.5 blocks a tick after it lands (`BehaviorCollectEntities.cs:98#OnFoundCollectible`), so an item a test drops may be gone before
-the test looks. A test that checks the ground counts in the same main-thread call as the drop (`SpawnItemEntity` adds the entity at once:
-`BookEdgeTests.Handing_out_a_stack_that_fits_in_part_drops_only_the_rest`).
+the test looks (the flake of `BookEdgeTests` A5 and L1, 04.11–10.11.2026). A test that checks a drop counts the drop, not the ground:
+`BookEdgeTests.Drops` listens to `OnEntitySpawn` (`SpawnItemEntity` fires it at once, decompiled `ServerMain.SpawnEntity`), or the test
+counts the ground in the same main-thread call as the drop (`Handing_out_a_stack_that_fits_in_part_drops_only_the_rest`).
 
 **Crafting on the server** (decompiled `VintagestoryLib` 1.22.7, checked 02.11.2026). The grid is the player's own inventory
 `craftinggrid-<uid>` (`InventoryCraftingGrid`: slots 0–8 row by row, 9 the output), there on the server for a creative player too

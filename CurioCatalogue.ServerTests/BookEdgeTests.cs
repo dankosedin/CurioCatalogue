@@ -226,14 +226,34 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     // ---- branches the coverage review found untested (T9 of the server tests plan)
 
     /// <summary>
-    /// How many items of ours with this code prefix lie on the ground near the player. Main thread. Every test player stands
-    /// at the spawn, so a test compares the count before and after its own click.
-    /// The whole column, not a cube: the test chests float at the spawn's height + 6 and the player is above the ground, so a dropped
-    /// item falls onto a chest lid or down to the ground, out of ±4 blocks (the flake of K3, K4 and K7: T4 of the K7 review).
+    /// Counts the items of ours with this code prefix dropped for this player (spawned as an item entity within 2 blocks of them) from
+    /// its making until it is disposed. The drop is counted, not what lies on the ground: every test player stands at the spawn and stays
+    /// joined, and those in creative pick up any item within 1.5 blocks a tick after it lands (<c>BehaviorCollectEntities.cs:98#OnFoundCollectible</c>),
+    /// so the list was often gone before the test looked: the flake of A5 and L1 (04.11–10.11.2026), found in F2 of the fixes plan.
+    /// <c>SpawnItemEntity</c> fires <c>OnEntitySpawn</c> (decompiled VintagestoryLib 1.22.7, <c>ServerMain.SpawnEntity</c>).
     /// </summary>
-    int OnGroundNear(IServerPlayer player, string codePrefix) =>
-        World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 64, e => e is EntityItem { Itemstack: { } st }
-            && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId && st.Collectible.Code.Path.StartsWith(codePrefix)).Length;
+    sealed class Drops : IDisposable
+    {
+        readonly GameServerFixture game;
+        readonly EntityDelegate onSpawn;
+        int count;
+
+        public Drops(GameServerFixture game, IServerPlayer player, string codePrefix)
+        {
+            this.game = game;
+            onSpawn = e =>
+            {
+                if (e is EntityItem { Itemstack: { } st } && st.Collectible.Code.Domain == CurioCatalogueModSystem.ModId
+                    && st.Collectible.Code.Path.StartsWith(codePrefix) && e.Pos.DistanceTo(player.Entity.Pos) < 2)
+                    Interlocked.Increment(ref count);
+            };
+            game.OnMain(() => { game.Api.Event.OnEntitySpawn += onSpawn; return true; });
+        }
+
+        public int Count => Volatile.Read(ref count);
+
+        public void Dispose() => game.OnMain(() => { game.Api.Event.OnEntitySpawn -= onSpawn; return true; });
+    }
 
     /// <summary>
     /// The test players are in creative, where nothing lands on the ground for long: a creative player picks up an item at their
@@ -303,19 +323,20 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     public void A5_a_want_list_lands_on_the_ground_when_the_inventory_is_full()
     {
         var client = FakeClient.Join(game, "wanter-full");
-        var (fingerprint, onGround) = game.OnMain(() =>
+        var fingerprint = game.OnMain(() =>
         {
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Album(8);
             AsInSurvival(client.Player);
             // The off-hand stays empty: a new list never goes there (the author, 13.11.2026).
             FillWithSticks(client.Player);
-            return (LedgerStore.Fingerprint(hand.Itemstack), OnGroundNear(client.Player, "invoice-wantlist"));
+            return LedgerStore.Fingerprint(hand.Itemstack);
         });
+        using var drops = new Drops(game, client.Player, "invoice-wantlist");
 
         client.SendToMod(new MakeWantListRequest { Book = new ShownItem { HotbarSlot = 0, Fingerprint = fingerprint } });
 
-        client.WaitFor(() => OnGroundNear(client.Player, "invoice-wantlist") > onGround, "the want list on the ground");
+        client.WaitFor(() => drops.Count == 1, "the want list dropped on the ground");
         Assert.Equal(7, game.OnMain(() => BookState(client.Player.InventoryManager.ActiveHotbarSlot.Itemstack!).Sheets));
     }
 
@@ -348,7 +369,8 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
     public void L1_an_intake_list_lands_on_the_ground_when_the_inventory_is_full()
     {
         var client = FakeClient.Join(game, "maker-full");
-        var (sheets, onGround) = game.OnMain(() =>
+        using var drops = new Drops(game, client.Player, "invoice-incoming");
+        var sheets = game.OnMain(() =>
         {
             var player = client.Player;
             var (pos, chest) = TestBlocks.Place(game, "chest-east");
@@ -358,16 +380,14 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             AsInSurvival(player);
             // The off-hand stays empty: a new list never goes there (the author, 13.11.2026).
             FillWithSticks(player);
-            int before = OnGroundNear(player, "invoice-incoming");
 
             Click(player, hand, pos);
-            return (BookState(hand.Itemstack!).Sheets, before);
+            return BookState(hand.Itemstack!).Sheets;
         });
-        Assert.Equal(7, sheets);
-        client.WaitFor(() => OnGroundNear(client.Player, "invoice-incoming") > onGround, "the intake list on the ground");
+        Assert.Equal((7, 1), (sheets, drops.Count)); // dropped in the click's own tick
     }
 
-    /// <summary>Sticks of the game lying near the player, summed (as <see cref="OnGroundNear"/>, the whole column). Main thread.</summary>
+    /// <summary>Sticks of the game lying near the player, summed (the whole column: the test chests float at the spawn's height + 6, so a dropped item may land on a lid or far below). Main thread.</summary>
     int SticksOnGroundNear(IServerPlayer player) =>
         World.GetEntitiesAround(player.Entity.Pos.XYZ, 4, 64, e => e is EntityItem { Itemstack: { } st }
             && st.Collectible.Code.Domain == "game" && st.Collectible.Code.Path == "stick").Sum(e => ((EntityItem)e).Itemstack.StackSize);

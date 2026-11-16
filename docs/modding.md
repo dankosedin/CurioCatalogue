@@ -362,6 +362,27 @@ In this order:
 - **Every file in a mod's `patches/` is applied, whatever its extension:** a `tapestry-sizes.json.off` still patched (seen in the
   compatibility tests 02.11.2026). To switch a patch off, move the file out of the folder.
 
+## Memory and garbage
+
+- **The runtime:** the game 1.22.7 runs on .NET 10; its `*.runtimeconfig.json` set no GC options, so the client and the server
+  get the default workstation GC with background collection. Some server admins switch the server to server GC
+  (`DOTNET_gcServer=1`, advised in community hosting guides); with it .NET 10 also turns on DATAS, which adapts the number of heaps.
+  The engine itself calls `GC.Collect` with large object heap compaction when it unloads chunks (decompiled
+  `ServerSystemUnloadChunks`, `SystemCompressChunks`).
+- **Allocation is cheap, garbage is not free.** A new object is a pointer bump, and a short-lived one dies in gen0, but every
+  gen0 collection stops all threads, and the game's main thread shares those pauses with every mod. The .NET JIT's escape
+  analysis (stack allocation of objects that never leave a method) is narrower than HotSpot's: an object stored in a field
+  always goes to the heap. An array of 85 000 bytes or more goes to the large object heap and is collected only with gen2.
+- **In C# immutable does not mean heap.** A `readonly record struct` is immutable and allocates nothing when held in a local
+  or a field; a `record` (class) allocates every time. (A Scala `case class` that lives inline, as an `Int` does.)
+- **Rule: on a hot path no new class instances.** A hot path runs every frame (`RenderInteractiveElements`, `OnRenderGUI`),
+  every tick, or once per item over a large container. There: small values as `readonly record struct`, everything else
+  built once and cached (colours, `Vec4f`, which is a class in vsapi `Vec4f.cs:7#Vec4f`, strings, arrays); no LINQ, no
+  closures. Everywhere else (a click, a packet, a tooltip on change) immutable records and LINQ stay the default: clear code
+  matters more than a few objects. Our server does nothing per tick; keep it so.
+- **Debug logging costs nothing when off:** `ModLog.Debug` takes an interpolated string handler, so the text is not built
+  unless diagnostics are on. Keep that signature for any new logging on a hot path.
+
 ## A server inside the test process
 
 In `docs/test-server.md`.

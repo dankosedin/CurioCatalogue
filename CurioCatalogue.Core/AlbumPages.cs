@@ -89,7 +89,9 @@ public sealed record AlbumPage(IReadOnlyList<GroupBox> Groups)
 /// </summary>
 /// <param name="Index">The stack shown, of however many the cell has.</param>
 /// <param name="Shown">Seconds it has been shown.</param>
-public sealed record Slideshow(int Index, double Shown)
+/// <remarks>A struct: it is ticked for every cycling cell every frame, and a tick must make no garbage (docs/modding.md,
+/// "Memory and garbage").</remarks>
+public readonly record struct Slideshow(int Index, double Shown)
 {
     public const double SecondsPerStack = 1;
 

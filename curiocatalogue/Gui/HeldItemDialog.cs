@@ -20,6 +20,7 @@ public abstract class HeldItemDialog : GuiDialog
 
     private long tickListener;
     private int fingerprint;
+    private ItemStack? watched;
 
     public override string ToggleKeyCombinationCode => null!;
 
@@ -45,7 +46,8 @@ public abstract class HeldItemDialog : GuiDialog
     public override void OnGuiOpened()
     {
         base.OnGuiOpened();
-        fingerprint = Slot.Itemstack is { } stack ? LedgerStore.Fingerprint(stack) : 0;
+        watched = Slot.Itemstack;
+        fingerprint = watched is { } stack ? LedgerStore.Fingerprint(stack) : 0;
         tickListener = capi.Event.RegisterGameTickListener(_ => Watch(), 500);
         ModLog.Debug(capi, $"{GetType().Name} opened, loaded dialogs: {capi.Gui.LoadedGuis.Count}");
     }
@@ -74,6 +76,11 @@ public abstract class HeldItemDialog : GuiDialog
         // checked in game 28.10.2026).
         bool switched = !OffHand && capi.World.Player.InventoryManager.ActiveHotbarSlotNumber != hotbarSlot;
         if (switched || !StillShows(Slot.Itemstack)) { TryClose(); return; }
+        // A change from the server always comes as a new stack: the client puts the one made from the packet into the slot
+        // (decompiled InventoryNetworkUtil.UpdateSlotStack, VintagestoryLib 1.22.7). The same stack needs no fingerprint, which
+        // serializes the whole book (docs/modding.md, "Memory and garbage").
+        if (ReferenceEquals(Slot.Itemstack, watched)) return;
+        watched = Slot.Itemstack;
         int now = LedgerStore.Fingerprint(Slot.Itemstack!);
         if (now == fingerprint) return;
         fingerprint = now;

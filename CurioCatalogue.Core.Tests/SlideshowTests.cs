@@ -34,4 +34,20 @@ public class SlideshowTests
         Assert.Equal(show, show.Tick(5, 3, hovered: true));
         Assert.Equal(Slideshow.Start, Slideshow.Start.Tick(5, 1, false));
     }
+
+    /// <summary>
+    /// The album and the invoice window tick every cycling cell every frame: a tick makes no garbage (F4 of
+    /// docs/plans/2026-11-04-fixes-0.2.md; docs/modding.md, "Memory and garbage").
+    /// </summary>
+    [Fact]
+    public void A_tick_allocates_nothing()
+    {
+        var show = Slideshow.Start.Tick(0.4, 3, false); // warm-up: the JIT compiles Tick
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        for (int frame = 0; frame < 1000; frame++) show = show.Tick(0.016, 3, false);
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.Equal(0, allocated);
+        Assert.Equal(1, show.Index); // 0.4 + 16 s: 16 steps, of three stacks
+    }
 }

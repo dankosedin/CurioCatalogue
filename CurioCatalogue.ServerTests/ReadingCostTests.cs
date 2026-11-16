@@ -41,6 +41,16 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
         return times[runs / 2];
     }
 
+    /// <summary>The bytes one run of <paramref name="action"/> allocates on this thread (after a warm-up run, so that the
+    /// first call's one-time costs are not counted).</summary>
+    static long Allocated(Action action)
+    {
+        action();
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        action();
+        return GC.GetAllocatedBytesForCurrentThread() - before;
+    }
+
     static InventoryCraftingGrid Grid(IServerPlayer player) =>
         (InventoryCraftingGrid)player.InventoryManager.GetOwnInventory(GlobalConstants.craftingInvClassName);
 
@@ -51,6 +61,37 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
         var members = collection.Levels[0].Order.Take(collected);
         Mod.Store.WriteAlbum(stack, Core.Album.New(collection, 8, "").Collect(members.Select(m => (m.Id, new FilledBy(m.Fillers[0], m.Stacks[0])))));
         return stack;
+    }
+
+    /// <summary>
+    /// F4 of the fixes-0.2 plan: an open book window fingerprints the book every 500 ms (<c>HeldItemDialog.Watch</c>), so the
+    /// fingerprint must not make garbage, least of all an array on the large object heap (85 000 bytes and more, collected
+    /// only with gen2; docs/modding.md, "Memory and garbage"). The largest album of each real collection: its largest level, all
+    /// collected. What the engine's own serialization allocates is not ours to remove: an enumerator per subtree (vsapi
+    /// ConcurrentSmallDictionary.cs:181#GetEnumerator) until the JIT's optimized code takes over (seen here 16.11.2026: about
+    /// 45 KB for the crystals when cold, nothing once warm). So the fingerprint is compared with the engine writing the same
+    /// tree into nowhere, measured just before it: the JIT only ever makes that cheaper, never dearer.
+    /// </summary>
+    [Fact]
+    public void The_fingerprint_of_the_largest_album_of_every_collection_adds_no_garbage_to_the_engines_serialization()
+    {
+        var seen = game.OnMain(() => Mod.Collections.All.Values.Select(collection =>
+        {
+            var level = collection.Levels.MaxBy(l => l.Members.Count)!;
+            var stack = Ours("book-album-normal-brickred");
+            var album = (Core.Album.New(collection, 8, "") with { Level = level.Id })
+                .Collect(level.Members.Select(m => (m.Id, new FilledBy(m.Fillers[0], m.Stacks[0]))));
+            Mod.Store.WriteAlbum(stack, album);
+            var tree = (Vintagestory.API.Datastructures.TreeAttribute)stack.Attributes.GetTreeAttribute(LedgerStore.RootKey);
+            var nowhere = new BinaryWriter(Stream.Null);
+            long engine = Allocated(() => tree.ToBytes(nowhere));
+            long ours = Allocated(() => LedgerStore.Fingerprint(stack));
+            return (Album: $"{collection.Id}/{level.Id}", level.Members.Count, Bytes: tree.ToBytes().Length, Engine: engine, Ours: ours);
+        }).ToList());
+
+        foreach (var s in seen)
+            output.WriteLine($"{s.Album}: {s.Count} members, {s.Bytes} bytes; the fingerprint allocates {s.Ours} bytes, the engine's serialization {s.Engine}");
+        Assert.All(seen, s => Assert.True(s.Ours <= s.Engine, $"{s.Album}: the fingerprint allocates {s.Ours} bytes, the engine's serialization {s.Engine}"));
     }
 
     [Theory]
@@ -78,6 +119,7 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
             double readHalf = Ms(200, () => Mod.Store.ReadAlbum(half));
             double tooltip = Ms(200, () => { info.Clear(); full.Collectible.GetHeldItemInfo(new DummySlot(full), info, World, false); });
             double fingerprint = Ms(200, () => LedgerStore.Fingerprint(full));
+            long fingerprintBytes = Allocated(() => LedgerStore.Fingerprint(full));
             // What the game itself does with the stack while the tooltip is up: GuiElementItemstackInfo.SetSourceSlot compares the
             // hovered stack with its copy (ItemStack.Equals over all attributes) and, on a change, clones it (vsapi
             // GuiElementItemstackInfo.cs:252-270#SetSourceSlot). Ours is the largest tree it meets.
@@ -98,7 +140,7 @@ public class ReadingCostTests(GameServerFixture server, ITestOutputHelper output
             double gridEmpty = InGrid(empty), gridAlbum = InGrid(full);
 
             report.AppendLine($"{members} members, album {bytesFull / 1024.0:F0} KB: read {read:F2} ms (half collected {readHalf:F2}), tooltip {tooltip:F2}, " +
-                              $"fingerprint {fingerprint:F2}, game compare of the stack with its own clone {equals:F2} (equal: {same}), clone {clone:F2}, read+progress {progress:F2}; grid put+clear: empty ledger {gridEmpty:F2}, album {gridAlbum:F2}");
+                              $"fingerprint {fingerprint:F2} ({fingerprintBytes} bytes allocated), game compare of the stack with its own clone {equals:F2} (equal: {same}), clone {clone:F2}, read+progress {progress:F2}; grid put+clear: empty ledger {gridEmpty:F2}, album {gridAlbum:F2}");
             budget = new[] { read, tooltip, fingerprint, gridAlbum, clone }.Max();
             return 0;
         }));

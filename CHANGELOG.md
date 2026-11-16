@@ -18,6 +18,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 - **Rare seashells are marked in the album:** seafoam and turquoise shells, the game's rare colours, have a small golden corner on their cells and "Rare colour" in the tooltip. A collection's definition says which attributes are marked and in what colour (`marks`), so another mod's collection marks its own. English and Ukrainian.
 - **Another mod's tapestries are named like ours:** a collection of the `tapestry` source under any id shows the game's names of its pictures in the album window, not the raw picture codes.
 - **The want list window has no empty slots:** the invoice window (want list, bill of materials invoice, ledger invoice) spreads its lines evenly over rows as the album does (11 lines as 6 + 5, not 10 + 1 and nine empty slots) and has a slot for each line; the ledger window keeps the look of the game's chests.
+- **The lists are out of the creative inventory.** An intake list, a pick list and a want list taken from the creative tab were blank and useless; they are no longer listed there (`/giveitem` still gives one). Each keeps its page in the handbook, and the guide's links to them work. Books stay in the creative inventory.
 
 ## 0.1.1 (2026-10-31)
 

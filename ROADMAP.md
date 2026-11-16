@@ -85,7 +85,7 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
      the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
 7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for
    every reference), one helper for handing out items (a new list in creative with a full inventory is still lost: accepted), lists out of the creative
-   inventory but still in the handbook (last, after the recipes of the collections).
+   inventory but still in the handbook (F3, done).
 8. **The release,** two plans (04.11.2026):
    - [the description plan](docs/plans/2026-11-04-mod-description.md), started early: the ModDB description as a document of
      its own instead of the READMEs, sequences of screenshots with captions, the shot list of 0.2;
@@ -161,8 +161,8 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 
 - **Books from the creative inventory** (review, 28.10.2026). They have no data: a book has 0 sheets, an album follows no
   collection and says "the collection is complete". Defaults with sheets would break how the handbook shows the recipes, so 0.1.0
-  leaves it as it is. Open: hide them from the creative inventory, or defaults that keep the handbook working. Lists: see Next,
-  0.2, item 7 (a blank list is refused and cancels to nothing since 0.1.1).
+  leaves it as it is. Open: hide them from the creative inventory, or defaults that keep the handbook working. Lists: out of the creative inventory in 0.2 (item 7, F3);
+  a blank list is refused and cancels to nothing since 0.1.1.
 
 **Containers**
 - **More vanilla containers** for invoices: cabinets, shelves and other blocks with an inventory that we now refuse as "not supported yet".

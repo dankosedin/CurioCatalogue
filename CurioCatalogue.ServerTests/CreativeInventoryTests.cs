@@ -41,12 +41,27 @@ public class CreativeInventoryTests(GameServerFixture game)
     }
 
     [Fact]
-    public void The_blank_lists_are_in_the_tabs_today()
+    public void The_lists_are_not_in_the_tabs_but_have_handbook_pages()
     {
-        // ROADMAP.md, "Lists out of the creative inventory": they are to leave the tabs; when that lands, this test changes with it.
+        // F3 (docs/plans/2026-11-04-fixes-0.2.md): a list taken from the creative tab is blank and useless, so the three leave the tabs;
+        // `handbook.include` keeps their pages (vsapi Collectible.cs:2474#GetHandBookStacks).
         var lists = Listed().Where(p => p.Key.StartsWith("invoice-")).ToList();
         Assert.Equal(["invoice-incoming", "invoice-outgoing", "invoice-wantlist"], lists.Select(p => p.Key).Order());
-        Assert.All(lists, p => Assert.Equal(Tabs, Tabs.Where(p.Value.Contains)));
+        Assert.All(lists, p => Assert.Empty(p.Value));
+    }
+
+    [Fact]
+    public void Every_list_and_every_book_has_exactly_one_handbook_page()
+    {
+        // What the client's handbook asks each collectible for (SurvivalHandbook.cs:138#SetupBehaviorAndGetItemStacks). For our items the
+        // method never touches the client API (only creative stacks do), so the server can ask with null; a later recipe, collection or
+        // creative-tab change cannot lose a page unseen. The page's content and links stay a game check (functional.md).
+        var pages = game.OnMain(() => game.Api.World.Items.Where(i => i.Code?.Domain == "curiocatalogue" && (i.Code.Path.StartsWith("book-") || i.Code.Path.StartsWith("invoice-")))
+            .ToDictionary(i => i.Code.Path, i => i.GetHandBookStacks(null)?.Select(s => s.Collectible.Code.Path).ToList() ?? []));
+
+        Assert.Equal(72 + 3, pages.Count);
+        var wrong = pages.Where(p => !p.Value.SequenceEqual([p.Key])).Select(p => $"{p.Key}: [{string.Join(", ", p.Value)}]").ToList();
+        Assert.True(wrong.Count == 0, string.Join("; ", wrong));
     }
 
     [Fact]

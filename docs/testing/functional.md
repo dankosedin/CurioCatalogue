@@ -47,6 +47,7 @@ which build, who ran it, and each `❌` with its reason.
 | C7 | 0.1.1 | H over an empty aged ledger, and over one with entries (three different aged covers) | The book's own handbook page opens, with "Created by" and "Ingredient for"; not the handbook's main page |
 | C8 | 0.1.1 | In the guide, click "ages its cover" (English and Ukrainian) | The page of an aged ledger opens |
 | C9 | 0.1.1 | "Ingredient for" on a page of an aged book, then on a normal one | The aged page shows the aged covers' recipes, the normal page the normal covers'; recolouring takes aged books too (`DESIGN.md` 2.5) |
+| C10 ⚙ | 0.2.0 | Creative inventory, search "list", "intake", "want", then the three tabs' pages | None of the three lists is in any tab (books still are: C6). Open the handbook, search "intake list", "pick list", "want list": each has its own page, with its use text (no "Created by", no "Ingredient for": no recipe makes or takes a list). In the guide and on the three kinds of book pages, every link to a list (intake, pick, want; English and Ukrainian) opens that list's page, not the handbook's main page. ⚙ `CreativeInventoryTests` (the lists are in no tab, every book and list has one page) and `AssetsTests` (F3 of the fixes plan) |
 
 ## The album
 
@@ -126,7 +127,7 @@ which build, who ran it, and each `❌` with its reason.
 | I8 ⚙ | 0.1.0 | Shift + Ctrl + right click with an album in hand | The mod does nothing; the game handles the click |
 | I9 ⚙ | 0.1.0 | Plain right click and Ctrl + right click on a chest | Open it as usual |
 | I10 ⚙ | 0.1.0 | Put a list on the ground, on a shelf | Behaves as an ordinary item |
-| I11 ⚙ | 0.1.1 | A blank intake list, a blank pick list and a blank want list from the creative inventory (`/giveitem` or the tab), a ledger in the off-hand; Shift + right click on a chest | Red "Nothing to fill: …" (Ukrainian too); the list stays in the hand, the book keeps its sheets, nothing moves. Then Cancel in its window, with the ledger in the off-hand and again without one: "The list is cancelled."; the list is gone, the book keeps its sheets, no parchment |
+| I11 ⚙ | 0.1.1 | A blank intake list, a blank pick list and a blank want list made with `/giveitem` (they are not in the creative tabs since 0.2), a ledger in the off-hand; Shift + right click on a chest | Red "Nothing to fill: …" (Ukrainian too); the list stays in the hand, the book keeps its sheets, nothing moves. Then Cancel in its window, with the ledger in the off-hand and again without one: "The list is cancelled."; the list is gone, the book keeps its sheets, no parchment |
 | I12 ⚙ | 0.1.1 | Make a want list from an album; cancel it in its window three ways: with an album in the off-hand, with a ledger in the off-hand, with nothing in the off-hand. Then the same with an intake list, in `en` and `uk` | Want list: "The want list is cancelled, its sheet is back in the album." / "…in the book." / "…and is now parchment." (uk: "Список бажаного скасовано, …"); intake list keeps "The list is cancelled…" (uk: "Накладну анульовано…"). The sheet and the parchment go as before |
 
 ## Access (S)

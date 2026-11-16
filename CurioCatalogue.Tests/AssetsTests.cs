@@ -154,6 +154,18 @@ public class AssetsTests
     }
 
     [Fact]
+    public void The_lists_keep_their_handbook_pages_without_the_creative_inventory()
+    {
+        // A list from the creative tab is blank and useless (F3); the handbook builds its page for `handbook.include` instead
+        // (vsapi Collectible.cs:2474#GetHandBookStacks). Both halves together: one without the other loses the pages or the blank lists.
+        var invoice = Load(Path.Combine("itemtypes", "invoice.json"));
+
+        Assert.Null(invoice["creativeinventory"]);
+        Assert.True((bool)invoice["attributes"]!["handbook"]!["include"]!);
+        Assert.Null(invoice["attributes"]!["handbook"]!["exclude"]);
+    }
+
+    [Fact]
     public void Recipe_icons_group_by_kind_and_age()
     {
         // groupBy by type: the first key matching the code wins (RegistryObjectType.cs:356#jsonObj), {kind} is the variant's value.

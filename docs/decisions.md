@@ -180,6 +180,27 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
 - **Windows read the item, actions are requests** (10-26): the client shows the item's attributes, which the game syncs; rename,
   clear and cancel go to the server, which checks the item is still in the same hand. The windows check their item every 0.5 s.
 
+## Client and windows
+
+Decided at the code review of 0.2 (17.11.2026, R1, G7): what the windows of the album settled, written where a reviewer looks.
+
+- **Page geometry lives in the core.** `AlbumPages` and `PageMetrics` lay the album out as plain numbers (pages, tabs, cells,
+  what is under the mouse), so the layout is unit-tested without the game; the window only draws it. Rejected: measuring in the
+  element while drawing (untestable, and a refresh would move cells).
+- **`HeldItemDialog` and one book window.** The windows of a book in a hand share one base that watches the item and closes with
+  it, and `BookWindow` keeps one open at a time. Rejected: a dialog per kind of book with its own watching.
+- **Window state is client-only and static, and reset at the client's start.** The `open` of `BookWindow` and `InvoiceDialog`
+  is a static; the engine disposes dialogs on disconnect without closing them (decompiled, R1 G2.5), so `StartClientSide`
+  resets it. Nothing of a window reaches the server except the requests.
+- **Our own GUI elements, not composed vanilla ones, where the look needs it** (`AlbumPageElement`, `IconDropDown`,
+  `IconTextButton`): vanilla's cannot draw a page of flat pictures and icons in a dropdown. Each owns its textures as
+  `LoadedTexture`s (principle 9).
+- **One naming function, and the look by source kind.** `MemberNames.ValueName` names a value for tabs, table headings and name
+  parts; a tapestry's picture is named by its source, not by the collection's id (another mod's tapestries look alike).
+- **The fingerprint buffer is per thread.** `LedgerStore` reuses a `MemoryStream` and `BinaryWriter` marked `[ThreadStatic]`:
+  the client's render thread and the server's thread both fingerprint stacks, and one shared buffer would mix them.
+  Rejected: allocating per call (a hot path, principle 9); a lock (needless between two threads).
+
 ## Diagnostics and tests
 
 - **Diagnostics behind a config flag that also skips gathering the data** (10-26, author): a custom interpolated string handler

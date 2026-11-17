@@ -100,6 +100,11 @@ sent to clients, messages built by the client), then recipes into a bill of mate
 0. **The golden stacks of 0.2.0, first** (the author, 11.11.2026): captured from the release zip of 0.2.0, with what B6 left for
    that capture (0.2, item 1: one file for the golden format, the tooltip of every golden stack, the capture built by CI).
 
+0a. **A refactor by principle 8 before item 3** (code review of 0.2, R1, G7): `AlbumDialog`, `AlbumPageElement`,
+   `DefinedCollection`, `AlbumPages` and the helpers of `ItemInvoice` have grown past what is read whole; split them (one job
+   each) as their own change, before custom collections lands in them. The server's config line in the log names the album
+   header too (a small change in the same pass).
+
 1. **Invoices:**
    - **Names from the book.** A want list from the album "Danko's tapestries" is called "Want list for: Danko's tapestries"; the same
      for invoices from a named book.
@@ -115,9 +120,16 @@ sent to clients, messages built by the client), then recipes into a bill of mate
    - **into raw materials:** "5 barrels" becomes boards and hoops; needs a choice when an item has several recipes;
    - **template entries** ("any boards"): vanilla ingredients are often wildcards, so expanding recipes needs them. The deepest
      change to the core (exact `ItemKey` matching, which stack a transfer takes), so it is done early, with this feature.
+   - **The planner for it** (R1, G8): `Transfer.PlanWhatFits` takes an option whole from one key and a key to one line
+     (`InvoicePoster.FullyMoved` relies on it). A third planner, crediting by line index, comes with template lines (the
+     architect's probe: "5 planks" from 3 oak and 2 pine, or an exact and a template line on one item, are not planned right today).
 3. **Custom collections.** The player writes what a full set is (search in the book's window, the handbook) and turns the book into
    an album of that collection: progress, taking only new items, want lists. Covers everything the mod has no built-in collection
    for. New: the collection lives in the item, not in `CollectionRegistry`. Brings **search in the book's window** with it.
+   To decide before its core (code review of 0.2, R1, G8): a want list stores only the collection id and the member ids, so one
+   made from a custom album loses "any of" at another player, whose game lacks that collection (decide the want list's format
+   first); and a collection builder out of `CollectionRegistry.Build`, which builds only from a registered definition today.
+   Also by item 3: the by-id lookups (title, source, layout key, tooltip) are rerouted to the collection the item carries (G7).
 4. **Chests on boats** (an entity's inventory). The author loves boats. Costlier than it looks (review, 28.10.2026): "a container"
    is a block position everywhere (the network request, `InvoiceMaker` / `InvoicePoster`, `ContainerAccess`, hints as a
    `BlockBehavior`, the invoice's saved position). First a `ContainerTarget` (block | entity) behind `ContainerReader` and
@@ -128,7 +140,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
    event bus (`configlib:curiocatalogue:config-saved`) that rebuilds what the config feeds. After the server's config sent to
    clients (Later, Technical): ConfigLib does not change the file a client reads. A test that every path in the asset exists in
    the config class. To check first: two writers of one file (our write-back on start, ConfigLib's) and what ConfigLib does
-   with a file that does not parse.
+   with a file that does not parse. Needs one `Reconfigure()` that rebuilds what the config feeds, and a second look at what a
+   restart still has to do: `Disabled`, `Exclude` and `Add` of a collection need one today (the recipes are changed once, at
+   `AssetsFinalize`), and the settings packet would be sent again to the players online (R1, G8).
 
 ## Later
 
@@ -150,7 +164,9 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   `game:tapestry`, but the mods that add tapestries today add blocks of their own, class `BlockTapestry` with their own `sizes`:
   Craftable Companion (`craftablecompanion:tapestry-*`, one 2×2 picture sold by the artisan) and Astria Porta
   (`astriaporta:astriaportatapestry-*`, two pictures found in its ruins). Open: count every `BlockTapestry` block (one collection,
-  or one per mod?), what such a stack drops as, and whether players want it. A pinned compatibility test then.
+  or one per mod?), what such a stack drops as, and whether players want it. A pinned compatibility test then. The `tapestry` source would take the prefix of the names from the
+  block's `FirstCodePart` and the flat image's path from the block's texture (today both are the game's: `game:tapestry-{value}`,
+  `game:textures/block/cloth/tapestry/`; R1, G3.1).
 - **Decorating a complete album:** golden corners or a seal on the cover for a full collection, a decorated page for a complete
   picture, maybe steps (25 / 50 / 100 %). On the book itself it depends on our own book model (see Spin-off ideas); in the window it does not.
 
@@ -242,7 +258,8 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   plan, C3); 0.2 shows them as a layout of the butterfly album by those steps (the album polish plan, L4a). The mark on a cell is a coloured corner, the tier its colour (the album view plan, A2, 07.11.2026); a frame or a foil
   effect, as on MTG cards, are ideas for the feature.
 - **Butterflies by species:** a second level of the butterfly album, 109 members, any form of a species fills one (male,
-  female, a colour morph, a season). Data only once the species is a dimension (the album polish plan, L4a, 11.11.2026).
+  female, a colour morph, a season). Data only once the species is a dimension (the album polish plan, L4a, 11.11.2026). With it an "other" bucket for the butterflies of mods that the family map does not
+  list: today each gets a tab of its own (R1, G3.9).
 - **An album that improves:** one cell per kind holding the best specimen, with a quality order: e.g. per berry bush type the
   cutting with the most good traits and no bad ones; a better one found replaces the one kept (the author, 04.11.2026). Another
   kind of album beside "is it collected"; the berry bush traits in the collections design plan, C4.

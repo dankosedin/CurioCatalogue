@@ -35,6 +35,11 @@ those that outlive their feature. Dates are 2026.
    land in something big (several hundred lines, or several jobs in one place), first think whether to split it; the split is
    its own change, before the feature, so the feature's diff stays readable. The same holds for plan steps: a step fits one
    session (one layer or one flow, some tens of edits); a bigger one is split while planning.
+9. **Hot paths make no garbage; GUI textures are `LoadedTexture`s.** What runs every frame or on every mouse move (the album
+   page's drawing, `CellAt`, `HeadingAt`, a fingerprint of a stack) uses loops and lookups prepared once, not LINQ, closures or
+   new collections, and reuses its buffers (a per-thread one for the fingerprint). A texture of ours is a `LoadedTexture`,
+   never a bare GL id, and its `Dispose` is safe to call twice: the game disposes GUI textures itself and may do it before we do
+   (`docs/modding.md`, "Closed dialogs" and textures; the cause of L10, 11.11.2026). Found at the code review of 0.2 (R1).
 
 ### Layers
 
@@ -87,6 +92,9 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `CollectionRegistry`: the collections known in this world, from the definitions of every domain and the config; a bad definition is logged once and skipped.
 - `CollectionDefinitionReader`: reads and checks the definition assets (a bad one is `Bad`, never an exception).
 - `AlbumRecipes`: at `AssetsFinalize` reads the definitions itself and removes the album recipe of every switched-off collection from the server's grid recipes.
+- `MemberNames`: the one function that names a value (for tabs, table headings and a member's name parts): by the dimension's
+  `nameKey`, or by the source for a tapestry's picture. `DefinitionIcons`: the icons a definition names (an item, a block or an
+  SVG), found the same way by the window and the tests.
 
 #### Glue
 
@@ -105,6 +113,8 @@ CurioCatalogueModSystem       composition root: config, lazily created services,
 - `Gui/AlbumPageElement`: one page of the album window drawn by us from `AlbumPages` (stacks, flat tapestry images, headings,
   the rarity corner, cycling stacks, search dimming); `Show(album)` flips what is collected without composing again; hover
   gives the game's tooltip through `Gui/AlbumSlot`.
+- `Gui/IconDropDown` (our dropdown with icons; where its list stands and scrolls is `Gui/DropDownList`, plain numbers),
+  `Gui/IconTextButton`, `Gui/SvgIcons` (an SVG as a `LoadedTexture`, in its own colours), `Gui/ConfirmDialog`.
 - `ModNetwork`: one channel. Client → server: `MakeInvoiceRequest`, `RenameLedgerRequest`, `ClearLedgerRequest`, `CancelInvoiceRequest`,
   `MakeWantListRequest`, `ChooseLevelRequest`. Server → client: `MissingItemsRefusal` (the client names the items in its own language), `CollectionSettingsPacket` (the server's `Collections` and `ExtraIgnoredAttributes`, on join).
 - `PlayerMessages` (refusals as red in-game errors, results in chat), `ModLog` (diagnostics), `HandbookIndexFix`, `HandOut` (a new list into the hand, the hotbar and the backpack, else the ground).

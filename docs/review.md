@@ -99,7 +99,7 @@ wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opi
 
 ## Code review
 
-Five roles look for defects in the code that passed the players' round. Each may read `game-src` and build against the game
+Five roles (with the architect, as decided at R1 of 0.2, one with rights) look for defects in the code that passed the players' round. Each may read `game-src` and build against the game
 DLLs; never start the game.
 
 **Severity:** `critical`, `major`, `minor`, `nit`. **Categories:** `correctness`, `network`, `access`, `data`, `tests`,
@@ -112,7 +112,9 @@ DLLs; never start the game.
 > says otherwise. Every claim cites its evidence: our file and line, `game-src` (vsapi, vssurvivalmod, vsessentialsmod) file
 > and line, or the decompiled engine; otherwise mark it UNVERIFIED and say what would confirm it. Give a failure scenario with
 > concrete inputs. Do not start the game, do not commit, do not read competitors' code. Report in the format below and end with
-> "Checked, no issues": what you read and found fine.
+> "Checked, no issues": what you read and found fine. Where the change brings data the game reads (JSON assets, recipes, lang),
+> check it against the game's assets it names, not only against our code. What an admin decides (a collection switched off,
+> the config's `Exclude`) is theirs: do not report that the mod fails to protect or show what the admin chose to hide.
 
 **Roles:**
 
@@ -120,7 +122,7 @@ DLLs; never start the game.
    server-decides rule, what breaks on the next change. A suspected bug comes with a test that fails, as a diff in the report.
 2. **C# expert** (Sonnet, read-only). Language and runtime: nullability, disposal, collections, LINQ, async and threads, the
    engine's lifecycle (client and server sides, events, unloading).
-3. **Architect** (Opus, read-only). The structure against `docs/architecture.md`: the pure core, adapters, network messages,
+3. **Architect** (Opus, in its own worktree, with rights; before R1 of 0.2 read-only: see "What the code review of 0.2 taught"). The structure against `docs/architecture.md`: the pure core, adapters, network messages,
    where a responsibility lives; whether `docs/decisions.md` records the structural decisions of the change.
    **Questions from the future:** the moderator names two or three coming items of `ROADMAP.md` (or of the next plans) and asks
    what in this change those items will touch and where it will hurt.
@@ -142,10 +144,10 @@ read-only, one in its own worktree with the worktree roles' paragraph. The one w
 against none) and cost more (14 min and 183 thousand tokens against 6 min and 129 thousand), but 6 of its 12 findings were the
 Teammate's: given the shared block's test defects and "check by a mutation", it spent its rights on them. The one structural
 finding of the round (album expectations tied to the game's tapestries, while albums follow their collection) came from the
-read-only one and the C# expert; the worktree one missed it. Decided: the architect stays read-only. The experiment runs once
+read-only one and the C# expert; the worktree one missed it. Decided then: the architect stays read-only; the experiment runs once
 more at the code review of 0.2, as below.
 
-**Architect with rights (an experiment, to run again).** Next to the read-only architect, one more on Opus in its own worktree,
+**Architect with rights (run twice; at R1 of 0.2 it became the only architect, see the end of this section).** Next to the read-only architect, one more on Opus in its own worktree,
 with the same role paragraph and the same questions from the future, but not the worktree roles' paragraph and not the test
 defects of the "mostly tests" scope. Instead:
 
@@ -170,7 +172,21 @@ branch left `main`, about 35 findings after the merge; costs 157–260 thousand 
 - **A flaky test needs its cause, not a mention.** `BookEdgeTests.L1` flaked in K3, K4 and K7; the cause (a dropped list falls out of
   the cube `OnGroundNear` searches) was found by the author from the test world's layout (T4). Ask a role that meets a flake to find
   the cause, or say so in the prompt.
-- **Not run:** the architect with rights (above); its second run stays at R1 of 0.2.
+- **Its second run** was R1 of 0.2, below.
+
+**What the code review of 0.2 taught** (R1 of `2026-11-04-release-0.2.md`, 16–17.11.2026). Six roles (the five and the architect
+with rights) on `ac8602c..e9677a3` and the page generator; eight groups after the merge; one major, no critical.
+- **The architects compared (the second run of the experiment).** Read-only: 264 thousand tokens, 7.9 minutes, 6 findings in
+  role (2 of them its alone), no proof. With rights: 245 thousand, 8.6 minutes, 5 in role (2 alone), one probe (the planner:
+  "5 planks" from 3 oak and 2 pine); it kept to its role this time, with the paragraph above. The proof is the difference worth
+  having; the findings in role are the same count. **Decided: one architect, with rights, instead of the read-only one.**
+- **Check data against the game's assets.** Only the Hostile reviewer did (H1: ilmenite in kimberlite never generates, because the
+  54 exclusions were compared with `placeblock` and the definition's `inblock` lacks kimberlite); no other role looked at
+  the JSON the game reads. The shared block now asks every role to check data against the assets it names.
+- **Agreement still signals.** The GUI-scale bug (names and counts kept at the old scale) was found by all six roles.
+- **A finding that is right, and wrong for the context** (W1, G4): an album whose collection is switched off shows only what was
+  placed, and what the admin's `Exclude` removed is hidden. The switch-off and `Exclude` are the admin's decisions; showing or
+  protecting what they hide would decide for the admin. Rejected, and the rule is written where reviewers read it (below).
 
 **What a round costs** (measured 14.11.2026 from the session logs at API prices, the code reviews of 28.10–07.11). A code review
 round costs $13–19: the five roles $6–14, the moderation $2–10; a players' round of Sonnet roles about $1. That is about 8% of a

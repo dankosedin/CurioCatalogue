@@ -71,7 +71,7 @@ members, the resolver, the packet and the recipe of a disabled collection are in
   or a mod comes in by itself) and `tapestry` (blocks with a `sizes` attribute: picture, size, the piece's place x, y). Later
   kinds: the book itself (custom collections), a rule on an attribute (berry bush traits). Everything else is data: dimensions,
   levels, layouts, attribute rules, exclusions. Rejected: every collection in C# (no collection from another mod, no patch by an
-  admin); every member listed in data (353 crystals by hand, and the list does not follow mods).
+  admin); every member listed in data (349 crystals by hand, and the list does not follow mods).
 - **The JSON of a definition** (K3, 11-07; read by `CollectionDefinitionReader` into the core's records; `tapestries.json` is the
   example; the id is the file's name): `source` (`{"kind": "variants", "code": "game:crystalizedore-{grade}-{ore}-{rock}"}`, each
   `{name}` a dimension taking the text between dashes, the point's name the code without domain; or `{"kind": "tapestry", "block":
@@ -107,7 +107,7 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
   when the collection is built. A rule on an attribute is a further kind of filler, reserved.
 - **Levels are projections of the full set.** A level keeps some dimensions; for each dimension it drops it says `any` (any value
   fills the member) or `max` (only the highest value that occurs, in the dimension's order): crystals keep `ore` with grade
-  `max` (16), `ore` and `rock` with grade `max` (118), all three (353); seashells keep `type` (7, colour `any`) or both (42). A
+  `max` (16), `ore` and `rock` with grade `max` (117), all three (349); seashells keep `type` (7, colour `any`) or both (42). A
   collection with one level shows no choice.
 - **Dimensions** have their values in order, a list in the definition (K1, 11-07: the game keeps no order of a variant group at
   run time, and item ids follow the world's history; a mod adds its value to the list with a patch); a value the source finds
@@ -128,7 +128,7 @@ free, "any colour"; `shortNameKey`: a shorter name of a value for a table headin
 - **The config's `Collections.<id>`** (`Exclude`, `Add`, `Disabled`; C5) works on each source's own name of a member: the item
   code without domain for `variants` (`crystalizedore-*-uranium-*`), the piece name for `tapestry`, so the old `TapestryExclude`
   and `TapestryAdd` move into `Collections.tapestries` unchanged. The id is the one albums already store, `tapestries`.
-  Combinations that never occur (54 crystals) are the definition's own default `exclude`; computing them from the loaded deposits
+  Combinations that never occur (58 crystals) are the definition's own default `exclude`; computing them from the loaded deposits
   was left for later.
 - **An album stores what it collected, not what it misses** (format 2): its level (or none chosen) and, per collected member, the
   member's id and the stack that filled it. What is missing is the collection minus that. So the album remembers the code that

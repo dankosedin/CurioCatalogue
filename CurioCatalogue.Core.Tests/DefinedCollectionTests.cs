@@ -47,11 +47,12 @@ public class DefinedCollectionTests
         "sandstone", "shale", "limestone", "chalk", "whitemarble", "redmarble", "greenmarble",
     ];
 
-    /// <summary>The 54 combinations that never generate in vanilla (collections design, C1).</summary>
+    /// <summary>The 58 combinations that never generate in vanilla (collections design, C1).</summary>
     private static readonly string[] NeverGenerated =
     [
         "crystalizedore-*-uranium-*", "crystalizedore-*-stibnite-*", "crystalizedore-*-hematite-sandstone",
         "crystalizedore-rich-magnetite-slate", "crystalizedore-bountiful-magnetite-slate", "crystalizedore-rich-ilmenite-peridotite",
+        "crystalizedore-*-ilmenite-kimberlite",
     ];
 
     private static CollectionDefinition Crystals(IReadOnlyList<string>? grades = null) => new(
@@ -94,12 +95,12 @@ public class DefinedCollectionTests
     }
 
     [Fact]
-    public void Crystal_levels_have_16_118_and_353_members()
+    public void Crystal_levels_have_16_117_and_349_members()
     {
         var warnings = new List<string>();
         var crystals = Built(DefinedCollection.Build(Crystals(), CrystalPoints), warnings);
 
-        Assert.Equal([16, 118, 353], crystals.Levels.Select(l => l.Members.Count));
+        Assert.Equal([16, 117, 349], crystals.Levels.Select(l => l.Members.Count));
         Assert.Empty(warnings);
         Assert.DoesNotContain("uranium", crystals.Values["ore"]);
     }
@@ -123,7 +124,8 @@ public class DefinedCollectionTests
 
         Assert.Equal("medium", richest.Find("galena_nativesilver")!.Values["grade"]);
         Assert.Equal("rich", richest.Find("magnetite")!.Values["grade"]);
-        Assert.Equal(14, richest.Members.Count(m => m.Values["grade"] == "bountiful"));
+        Assert.Equal("rich", richest.Find("ilmenite")!.Values["grade"]);   // its bountiful was in kimberlite only (R1, G1)
+        Assert.Equal(13, richest.Members.Count(m => m.Values["grade"] == "bountiful"));
 
         // A crystal of a lower grade fills nothing at this level.
         Assert.Null(richest.MemberOf(CrystalKey("crystalizedore-poor-quartz_nativegold-granite")));
@@ -171,9 +173,9 @@ public class DefinedCollectionTests
     {
         var level = Built(DefinedCollection.Build(Crystals(), CrystalPoints)).Level("ore-rock")!;
 
-        // Collections design, C1: medium 44, rich 31, bountiful 43; cassiterite bountiful in granite, medium in andesite.
+        // Collections design, C1: medium 44, rich 31, bountiful 43, less 1 for ilmenite in kimberlite (R1, G1: 42); cassiterite bountiful in granite, medium in andesite.
         var byGrade = level.Members.GroupBy(m => m.Values["grade"]).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(new Dictionary<string, int> { ["medium"] = 44, ["rich"] = 31, ["bountiful"] = 43 }, byGrade);
+        Assert.Equal(new Dictionary<string, int> { ["medium"] = 44, ["rich"] = 31, ["bountiful"] = 42 }, byGrade);
         Assert.Equal("bountiful", level.Find("cassiterite-granite")!.Values["grade"]);
         Assert.Equal([CrystalKey("crystalizedore-medium-cassiterite-andesite")], level.Find("cassiterite-andesite")!.Fillers);
         Assert.All(level.Members, m => Assert.Single(m.Fillers));
@@ -194,7 +196,7 @@ public class DefinedCollectionTests
 
         var byRock = all.Groups(all.Layouts[1]);
         Assert.Equal(Rocks.Length, byRock.Count);
-        Assert.Equal(353, byRock.Sum(g => g.Members.Count));
+        Assert.Equal(349, byRock.Sum(g => g.Members.Count));
 
         // The default layout gives the order of taking new: whole ores first.
         Assert.Equal(byOre.SelectMany(g => g.Members), all.Order);
@@ -221,7 +223,7 @@ public class DefinedCollectionTests
 
         var progress = all.Progress(rhodochrosite.Append("poor-nativecopper-andesite").Append("no-such-member"));
 
-        Assert.Equal(new LevelProgress(rhodochrosite.Count + 1, 353, 1, 16), progress);
+        Assert.Equal(new LevelProgress(rhodochrosite.Count + 1, 349, 1, 16), progress);
     }
 
     // --- Seashells: 7 types × 6 colours, made-up keys ---
@@ -320,6 +322,17 @@ public class DefinedCollectionTests
         ],
         [],
         exclude);
+
+    [Fact]
+    public void A_shape_with_a_coordinate_below_1_is_refused_with_the_members()
+    {
+        // R1a (G3.6): coordinates count from 1; the page makes a line for each y from 1 up, so a 0 would be dropped without a word.
+        var points = PiecePoints.Append(Piece("odd", "ambush", "3x1", 0, 1)).ToList();
+
+        var errors = Errors(DefinedCollection.Build(Tapestries(), points));
+
+        Assert.Contains(errors, e => e.Contains("count from 1") && e.Contains("odd"));
+    }
 
     [Fact]
     public void Tapestry_pieces_are_grouped_by_picture_in_its_shape()
@@ -521,6 +534,9 @@ public class DefinedCollectionTests
             { Levels = [new LevelDef("x", ["type"], D(("color", Drop.Any)), [new LayoutDef("l", [], new Arrangement.Table("type", "color"))])] } },
         { "no integer x and y", Seashells with
             { Levels = [new LevelDef("x", ["type", "color"], D(), [new LayoutDef("l", [], new Arrangement.Shape())])] } },
+        // R1a (G3.5): the table must tell the members of a group apart, else two share a cell and one is unseen.
+        { "fall into one cell of the table 'type' x 'type'", Seashells with
+            { Levels = [new LevelDef("x", ["type", "color"], D(), [new LayoutDef("l", [], new Arrangement.Table("type", "type"))])] } },
         { "lists 'plain' twice", Seashells with { Dimensions = [new DimensionDef("type", ShellTypes), new DimensionDef("color", ["plain", "plain"])] } },
         { "unknown dimension 'colour'", Seashells with
             { Rules = [new AttributeRule(new Dictionary<string, IReadOnlyList<string>> { ["colour"] = ["plain"] }, V())] } },

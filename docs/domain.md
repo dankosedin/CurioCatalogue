@@ -150,7 +150,7 @@ A sheet is vanilla parchment; there is no separate blank item.
 | Id | Member | Levels (ids are stored in albums: not to be renamed) | Album recipe |
 |---|---|---|---|
 | `tapestries` | a tapestry piece | one | `ledger-album-tapestries` |
-| `crystals` | an ore crystal (`crystalizedore-{grade}-{ore}-{rock}`; 398 registered, 54 combinations excluded as never generated) | `richest` 16 (the richest grade of each ore), `rocks` 118 (ore × rock at its richest grade), `all` 353 | `ledger-album-crystals` |
+| `crystals` | an ore crystal (`crystalizedore-{grade}-{ore}-{rock}`; 398 registered, 58 combinations excluded as never generated) | `richest` 16 (the richest grade of each ore), `rocks` 117 (ore × rock at its richest grade), `all` 349 | `ledger-album-crystals` |
 | `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data, marked by a golden corner (`marks`) | `ledger-album-seashells` |
 | `butterflies` | a dead butterfly (`butterfly-dead-{type}`; `reedbutterfly` has no item) | `all` 169, one entry each, the game's own names | `ledger-album-butterflies` |
 
@@ -233,7 +233,7 @@ mod brings its own; the item put in must be a member of that collection.
   its own, as a stamp album. Pages hold whole groups in order (a picture, an ore); collected pieces in their places, missing ones
   translucent, points of a table that do not exist left blank. A group of two dimensions is a table headed by icons (rock ×
   grade: stones and round marks; words for a dimension with no icon), each value's name on hover. The player switches the **layout** at any time (crystals by ore or by rock, tapestries by picture or by size); it is
-  presentation only, kept on the client. A collection with several **levels** (crystals 16 / 118 / 353, seashells 7 / 42) has its
+  presentation only, kept on the client. A collection with several **levels** (crystals 16 / 117 / 349, seashells 7 / 42) has its
   level chosen in the window while the album is empty, fixed by the first piece, freed by "Start over"; with no level chosen the
   album refuses to take new and makes no want list. Tabs for a grouping with names when there is more than one page, each tab
   with pages of its own, its value's icon before its name (a dropdown in the row of controls when the tabs are taller than the

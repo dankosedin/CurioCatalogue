@@ -52,7 +52,7 @@ public class InvoiceDialog : GridDialog
         var wantedIn = mod.Store.WantedIn(invoice);
         cycles = invoice.Entries.Select(line => new Cycle(ItemInvoice.SlotStacks(wantedIn, line), line.Count)).ToList();
         int rows = FillView(cycles.Select(c => c.StackAt(0)).ToList(),
-            invoice.Entries.Select(line => ItemInvoice.SlotLine(wantedIn, line)).ToList(), evenly: true);
+            invoice.Entries.Select(line => ItemInvoice.SlotLine(wantedIn, line, wantedIn is { } w ? mod.Collections.SourceOf(w.Collection.Id) : null)).ToList(), evenly: true);
 
         var font = CairoFont.WhiteSmallText();
         // A few lines make a narrow grid: the texts and the button above and below it need room (6 slots).

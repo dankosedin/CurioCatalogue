@@ -30,6 +30,9 @@ public abstract record CollectionSource
 /// </summary>
 public sealed record VariantPattern(string Code, string Domain, System.Text.RegularExpressions.Regex Regex, IReadOnlyList<string> Names)
 {
+    /// <summary>The text before the first <c>{name}</c>, the part a code must have to be meant by the pattern (empty if it starts with a name).</summary>
+    public string Prefix => new Vintagestory.API.Common.AssetLocation(Code).Path is var path && path.IndexOf('{') is var i && i > 0 ? path[..i] : "";
+
     private static readonly System.Text.RegularExpressions.Regex Placeholder = new(@"\{([^{}]*)\}");
     private static readonly System.Text.RegularExpressions.Regex ValidName = new(@"^[A-Za-z_][A-Za-z0-9_]*$");
 

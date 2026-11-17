@@ -462,4 +462,29 @@ public class AlbumPagesTests
         Assert.Equal("iron", basalt.HeadingAt(ironX + 1, box.Y + 5)?.Value);
         Assert.Equal("rich", basalt.HeadingAt(box.X + 1, richTin.Y + 1)?.Value);
     }
+
+    // --- Review 0.2 (teammate), R1a: what a definition or the config can make of a page ---
+
+    [Fact]
+    public void A_reversed_table_puts_a_value_its_dimension_does_not_list_at_the_bottom_where_it_ranks()
+    {
+        // A mod adds a grade "trace" the definition does not list: it "comes last and ranks lowest" (DimensionOrder), so with
+        // the rows highest first (README: "reverseRows: true the highest row first") its row belongs at the bottom.
+        var definition = CrystalsDefinition with
+        {
+            Levels = [CrystalsDefinition.Levels[1] with
+            {
+                Layouts = [new LayoutDef("by-ore", ["ore"], new Arrangement.Table("grade", "rock", ReverseRows: true))],
+            }],
+        };
+        var points = CrystalPoints.Append(new SourcePoint("crystal-trace-copper-granite", V(("grade", "trace"), ("ore", "copper"), ("rock", "granite")),
+            new ItemKey(CollectibleKind.Item, "game:crystal-trace-copper-granite", ""), "trace"));
+        var collection = Built(definition, points);
+        var copper = Pages(collection, "all", "by-ore", Metrics(200, 200)).Pages[0].Groups.Single(g => g.Group.Values[0] == "copper");
+
+        Assert.Equal(["rich", "poor", "trace"],
+            copper.Headings.Where(h => h.Dimension.Code == "grade").OrderBy(h => h.Y).Select(h => h.Value));
+        // The group's members take the same order as the rows.
+        Assert.Equal("trace", copper.Group.Members.Last().Values["grade"]);
+    }
 }

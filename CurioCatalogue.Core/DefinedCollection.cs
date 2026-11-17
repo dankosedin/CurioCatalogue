@@ -295,7 +295,7 @@ public sealed class DefinedCollection
         Func<Member, int[]> within = layout.Arrange switch
         {
             Arrangement.Table t => m =>
-                [(t.ReverseRows ? -1 : 1) * orders[t.Rows].Index(m.Values[t.Rows]), orders[t.Columns].Index(m.Values[t.Columns])],
+                [t.ReverseRows ? orders[t.Rows].ReverseIndex(m.Values[t.Rows]) : orders[t.Rows].Index(m.Values[t.Rows]), orders[t.Columns].Index(m.Values[t.Columns])],
             Arrangement.Shape _ => m => [Coordinate(m, Arrangement.Shape.Y)!.Value, Coordinate(m, Arrangement.Shape.X)!.Value],
             Arrangement.InOrder _ => _ => [],
             _ => throw ExhaustiveMatch.Failed(layout.Arrange),
@@ -401,12 +401,29 @@ public sealed class DefinedCollection
             var without = members.Where(m => !m.Values.ContainsKey(d)).Select(m => m.Id).ToList();
             if (without.Count > 0) errors.Add($"{at}: '{d}' is not one value in members {string.Join(", ", without.Take(5))}");
         }
+        if (layout.Arrange is Arrangement.Table table && errors.Count == 0)
+        {
+            // Two members of one group in one cell: only the first could be seen or hovered, so the table must tell them apart.
+            foreach (var group in members.GroupBy(m => string.Join("\n", layout.GroupBy.Select(d => m.Values[d]))))
+            {
+                var twins = group.GroupBy(m => (m.Values[table.Rows], m.Values[table.Columns])).FirstOrDefault(c => c.Count() > 1);
+                if (twins == null) continue;
+                errors.Add($"{at}: members {string.Join(", ", twins.Take(5).Select(m => m.Id))} fall into one cell of the table "
+                    + $"'{table.Rows}' x '{table.Columns}'; group or arrange by the dimensions that tell them apart");
+                break;
+            }
+        }
         if (layout.Arrange is Arrangement.Shape)
         {
             var without = members
                 .Where(m => Coordinate(m, Arrangement.Shape.X) is null || Coordinate(m, Arrangement.Shape.Y) is null)
                 .Select(m => m.Id).ToList();
             if (without.Count > 0) errors.Add($"{at}: no integer x and y in members {string.Join(", ", without.Take(5))}");
+            // Coordinates count from 1 (a piece's digits): AlbumPages makes a line for each from 1 up.
+            var below = members
+                .Where(m => Coordinate(m, Arrangement.Shape.X) is < 1 || Coordinate(m, Arrangement.Shape.Y) is < 1)
+                .Select(m => m.Id).ToList();
+            if (below.Count > 0) errors.Add($"{at}: x and y count from 1, not in members {string.Join(", ", below.Take(5))}");
         }
         return errors;
     }
@@ -441,14 +458,21 @@ public sealed class DefinedCollection
         /// <summary>The values that occur, in order.</summary>
         public IReadOnlyList<string> Values { get; }
 
-        private DimensionOrder(IReadOnlyList<string> values, IReadOnlyDictionary<string, int> rank)
+        private readonly int listedCount;
+
+        private DimensionOrder(IReadOnlyList<string> values, IReadOnlyDictionary<string, int> rank, int listedCount)
         {
             Values = values;
+            this.listedCount = listedCount;
             index = values.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i);
             this.rank = rank;
         }
 
         public int Index(string value) => index[value];
+
+        /// <summary>The place of a value with the rows reversed (a table's <c>reverseRows</c>): the listed values highest first,
+        /// the unlisted ones, which rank lowest, stay last in their order.</summary>
+        public int ReverseIndex(string value) => index[value] is var i && i < listedCount ? listedCount - 1 - i : i;
 
         public int Rank(string value) => rank[value];
 
@@ -458,7 +482,7 @@ public sealed class DefinedCollection
         {
             var found = occurring.Distinct().ToList();
             if (dim.Values.Count == 0)
-                return new DimensionOrder(found, found.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i));
+                return new DimensionOrder(found, found.Select((v, i) => (v, i)).ToDictionary(p => p.v, p => p.i), found.Count);
 
             var listed = dim.Values.Where(found.Contains).ToList();
             var unlisted = found.Where(v => !dim.Values.Contains(v)).OrderBy(v => v, StringComparer.Ordinal).ToList();
@@ -469,7 +493,7 @@ public sealed class DefinedCollection
             var rank = unlisted.Select((v, i) => (v, r: i - unlisted.Count))
                 .Concat(listed.Select(v => (v, r: dim.Values.ToList().IndexOf(v))))
                 .ToDictionary(p => p.v, p => p.r);
-            return new DimensionOrder(listed.Concat(unlisted).ToList(), rank);
+            return new DimensionOrder(listed.Concat(unlisted).ToList(), rank, listed.Count);
         }
     }
 

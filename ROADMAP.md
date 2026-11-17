@@ -42,8 +42,8 @@ its plan) or once at the end of the release; each plan says which. Butterflies w
    they give the core (item 2, Decisions); each a definition asset, its album recipe and its lang, and fills the upgrade table.
    What each needs (collections design plan, Decisions):
    - **Ore crystals** (29.10.2026, players on the author's server collect them): `crystalizedore-{grade}-{ore}-{rock}`, source
-     `variants`; three levels (16 / 118 / 353: ore with the richest grade, ore × rock with the richest grade, every combination);
-     the 54 combinations that never generate as the definition's `exclude`; rocks' stones as icons; grade names of our own; the
+     `variants`; three levels (16 / 117 / 349: ore with the richest grade, ore × rock with the richest grade, every combination);
+     the 58 combinations that never generate as the definition's `exclude`; rocks' stones as icons; grade names of our own; the
      rock shown wherever a missing piece is listed (pieces of two rocks share a name).
    - **Seashells** (asked on the ModDB page, 30.10.2026): block `seashell-{type}-{color}`, source `variants`; two levels
      (7: type, any colour; 42: type × colour); the rare colours (seafoam, turquoise) as an attribute rule, shown or not as item 6

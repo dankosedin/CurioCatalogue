@@ -137,6 +137,24 @@ public class SeashellsTests(GameServerFixture server) : BookTestBase(server)
     }
 
     [Fact]
+    public void A_type_with_one_colour_left_is_named_plainly_not_any_colour()
+    {
+        // R1, G3.11: the level's member key words what the member leaves free; with one colour left (the admin's Exclude) nothing is free.
+        var (one, several) = game.OnMain(() =>
+        {
+            var points = Shells.Level("colors")!.Members
+                .Where(m => m.Values["type"] != "scallop" || m.Values["color"] == "seafoam")
+                .Select(m => new SourcePoint(m.Id, m.Values, m.Fillers[0], m.Stacks[0])).ToList();
+            var trimmed = Assert.IsType<CollectionBuild.Built>(DefinedCollection.Build(Shells.Definition, points)).Collection;
+            string? Of(DefinedCollection c) => MemberNames.Name(c, c.Level("types")!, c.Level("types")!.Find("scallop")!);
+            return (Of(trimmed), Of(Shells));
+        });
+        // Plain: the one colour left is shared by all its items, so it is a part of the name like the rock of the richest copper.
+        Assert.Equal($"{LangText("en", "seashells-type-scallop")}, {LangText("en", "seashells-color-seafoam").ToLowerInvariant()}", one);
+        Assert.Equal(LangText("en", "seashells-member-type", LangText("en", "seashells-type-scallop")), several);
+    }
+
+    [Fact]
     public void A_shell_of_a_colour_is_named_by_its_type_and_colour_in_lower_case()
     {
         var name = game.OnMain(() => MemberNames.Name(Shells, Shells.Level("colors")!, Shells.Level("colors")!.Find("scallop-seafoam")!));

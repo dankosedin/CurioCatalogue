@@ -158,7 +158,7 @@ public sealed class CollectionRegistry
         if (parsed.Source is CollectionSource.Variants && config.Add.Length > 0)
             problems.Warning($"Collections.{id}.Add in the config is ignored: only a tapestry collection can add a member by name");
 
-        var points = Points(parsed.Source, config.Add);
+        var points = Points(id, parsed.Source, config.Add);
         if (points == null || points.Count == 0)
         {
             ModLog.Debug(world.Api, $"collection {id}: its source finds nothing, so there is no collection");
@@ -181,10 +181,10 @@ public sealed class CollectionRegistry
         }
     }
 
-    private List<SourcePoint>? Points(CollectionSource source, IReadOnlyList<string> add) => source switch
+    private List<SourcePoint>? Points(string id, CollectionSource source, IReadOnlyList<string> add) => source switch
     {
         CollectionSource.Tapestry t => TapestryPoints(t, add),
-        CollectionSource.Variants v => VariantPoints(v.Pattern),
+        CollectionSource.Variants v => VariantPoints(id, v.Pattern),
         _ => throw ExhaustiveMatching.ExhaustiveMatch.Failed(source),
     };
 
@@ -223,17 +223,26 @@ public sealed class CollectionRegistry
     }
 
     /// <summary>Every registered item and block whose code fits the pattern. The point's name is the code without domain.</summary>
-    private List<SourcePoint> VariantPoints(VariantPattern pattern)
+    private List<SourcePoint> VariantPoints(string id, VariantPattern pattern)
     {
         var points = new List<SourcePoint>();
+        var unmatched = new List<string>();
         foreach (var collectible in world.Collectibles)
         {
             if (collectible?.Code == null || collectible.Code.Domain != pattern.Domain) continue;
             var match = pattern.Regex.Match(collectible.Code.Path);
-            if (!match.Success) continue;
+            if (!match.Success)
+            {
+                // Starts as the pattern does but is not one value per name (a dash in a value, say): left out, and said once (R1, G3.8).
+                if (pattern.Prefix.Length > 0 && collectible.Code.Path.StartsWith(pattern.Prefix, StringComparison.Ordinal)) unmatched.Add(collectible.Code.Path);
+                continue;
+            }
             var stack = new ItemStack(collectible);
             points.Add(new SourcePoint(collectible.Code.Path, pattern.Names.ToDictionary(n => n, n => match.Groups[n].Value), keys.KeyOf(stack), stack));
         }
+        if (unmatched.Count > 0)
+            problems.Warning($"collection '{id}': {unmatched.Count} codes start with '{pattern.Prefix}' but do not fit the pattern '{pattern.Code}' (a value has no dash), so they are not in it: "
+                + string.Join(", ", unmatched.Order().Take(3)));
         return points;
     }
 }

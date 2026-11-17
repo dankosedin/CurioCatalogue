@@ -302,8 +302,8 @@ public sealed class AlbumDialog : HeldItemDialog
         5 + (shown.Line != null ? 26 : 0) + pageHeight + 2 * AlbumPageElement.PadOf(pages) + 6 + Line + 8 + 2 + AlbumHeader.Height;
 
     /// <summary>A tab's name: its value's.</summary>
-    private static string TabName(AlbumPages pages, AlbumTab tab) =>
-        MemberNames.ValueName(pages.TabDimension!, tab.Value) ?? tab.Value;
+    private string TabName(AlbumPages pages, AlbumTab tab) =>
+        ValueName(shown.Collection!, pages.TabDimension!, tab.Value);
 
     /// <summary>The tabs' icons' codes: their values' (L2c).</summary>
     private static string?[] TabIcons(AlbumPages pages) => pages.Tabs.Select(t => pages.TabDimension!.ValueIcon(t.Value)).ToArray();
@@ -370,7 +370,8 @@ public sealed class AlbumDialog : HeldItemDialog
                 return string.Join(" · ", parts.Select(p => ValueName(collection, p.Dimension, p.Value)
                     + (SharesName(collection, p.Dimension, p.Value) ? $" ({p.Value})" : "")));
             },
-            Name: m => shown.Refused == null ? MemberNames.Name(collection, level, m) : null,
+            ValueName: (dimension, value) => ValueName(collection, dimension, value),
+            Name: m => shown.Refused == null ? MemberNames.Name(collection, level, m, mod.Collections.SourceOf(collection.Id)) : null,
             Freedom: m => shown.Refused == null ? MemberNames.Freedom(collection, level, m) : null,
             Mark: m => shown.Refused == null ? Mark(collection.Definition.MarkOf(m)) : null);
     }

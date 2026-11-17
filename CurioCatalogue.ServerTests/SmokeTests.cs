@@ -1,3 +1,4 @@
+using Vintagestory.Server;
 using Vintagestory.API.Common;
 using Xunit.Abstractions;
 
@@ -12,6 +13,13 @@ public class SmokeTests(GameServerFixture game, ITestOutputHelper output)
     {
         output.WriteLine($"data {game.DataPath}, port {game.Port}, started in {game.StartTime.TotalSeconds:n1} s");
         Assert.True(game.OnMain(() => game.Api.ModLoader.IsModEnabled("curiocatalogue")));
+    }
+
+    [Fact]
+    public void The_engines_autosave_is_off()
+    {
+        // A save pauses the server for seconds; a run is longer than the 300 s default. Off in the fixture (GameServerFixture).
+        Assert.Equal(0, MagicNum.ServerAutoSave);
     }
 
     [Theory]

@@ -168,7 +168,9 @@ public sealed class ModDbPageTask : FrostingTask<BuildContext>
 
         var output = context.Argument("out", "../Releases/moddb.html");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
-        File.WriteAllText(output, html);
+        // A run that looks at a local copy (file:/// bases) holds paths of this disk: it writes the preview only, never the file to paste.
+        bool local = input.RawBase.StartsWith("file:///") || input.BlobBase.StartsWith("file:///");
+        if (!local) File.WriteAllText(output, html);
         // For looking at it in a browser (a bare fragment has no charset); the file to paste is the one above.
         File.WriteAllText(Path.ChangeExtension(output, ".preview.html"),
             "<!doctype html>\n<html><head><meta charset=\"utf-8\"><title>Curio Catalogue (preview)</title></head>\n" +

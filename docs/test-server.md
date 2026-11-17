@@ -28,6 +28,12 @@ Traps, in the order they showed up (each blocked the next):
 5. **Our assets.** The Debug build has no assets: add our `assets` folder with `AddOrigin`, as the launch profiles do. An origin
    is not a mod: with our mod missing, our item JSON still loads, without our classes.
 
+
+**The engine's autosave is off** (`MagicNum.ServerAutoSave = 0` before the server is made; R1c, 18.11.2026). The default is every 300 s
+(`ServerSystemAutoSaveGame.OnServerTick`, decompiled 1.22.7) and a save suspends the server (`ServerMain.Suspend`); a full run is longer than
+that, with every test's player still joined. The one flake of `BookEdgeTests.L5` (a 30 s wait, 16.11.2026, test 228 of 236) is explained by it
+only as the most likely cause: nobody saw the save in a log, and the line is gone. If a test of this kind fails again after this, the cause is
+not the autosave: keep the run's log (`GameServerFixture.LogEntries()`), do not rerun until green.
 Not needed: the game's `Lib` on `PATH` (the native libraries load without it, checked 02.11.2026).
 
 **Other mods in the test server** (checked 02.11.2026). A mod zip in a `ModPaths` folder loads as in the game. A code mod's zip is

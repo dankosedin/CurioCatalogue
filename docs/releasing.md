@@ -51,7 +51,8 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
       a page between releases uses the SHA of the merge commit on `main`;
     - `moddbLinks` (default `true`, the author chose it 03.11.2026): Report a bug in the row of buttons (the others, Guide, README and Ukrainian, are always there; the Ukrainian part has Guide only); `false` leaves them out;
     - `out`: the output file; `rawBase`, `blobBase`: other places for images and links, e.g.
-      `--rawBase=file:///C:/Projects/VintageStory/CurioCatalogue/` to look at a page before the files are on GitHub;
+      `--rawBase=file:///C:/Projects/VintageStory/CurioCatalogue/` to look at a page before the files are on GitHub (`file:///` links pass only then,
+      and only `moddb.preview.html` is written: the file to paste is never made with paths of this disk);
       `descriptionEn`, `descriptionUk`: other description files (their relative paths are still read from `docs/moddb/`); not `description`, a flag of Cake itself.
   - **The description** lives in `docs/moddb/description.md` and `description.uk.md`, beside the template: the only source of
     the showcase text for players (what is new, what the mod does, the collections, what it does not do, similar mods, credits); the explaining texts are the guide in `docs/guide/`. GitHub shows

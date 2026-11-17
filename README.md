@@ -59,7 +59,7 @@ the same id: the one of `curiocatalogue` wins, then the game's asset order; the 
 | `nameKey` | no | The collection's name in lower case, a lang key (`yourmod:collection-shells`): "Album: {0}". |
 | `albumRecipe` | no | The grid recipe that makes the album, by name with its domain: `yourmod:ledger-album-shells`. |
 | `exclude` | no | Names of members to leave out (what a source gives, e.g. `crystalizedore-*-uranium-*` for `variants`). |
-| `rules` | no | `{ "where": { dimension: [values] }, "set": { attribute: "text" } }`: attributes of members by their values. |
+| `rules` | no | `{ "where": { dimension: [values] }, "set": { attribute: "text" } }`: attributes of members by their values. One attribute has a meaning: `texture`, an image asset with its domain (`yourmod:textures/block/pieces/{x}.png`), which the album draws flat, edge to edge, in place of the stack (as it does for tapestry pieces, which the `tapestry` source gives their own). |
 | `marks` | no | `{ attribute: { value: { "color": "#RRGGBB" or "#AARRGGBB", "nameKey": … } } }`: the corner mark and the tooltip line, in that colour, of a member with that attribute (the first that fits). |
 
 **Sources** (`source.kind`):
@@ -69,8 +69,13 @@ the same id: the one of `curiocatalogue` wins, then the game's asset order; the 
   follow the loaded game and mods. A code with a name twice, or a name that is not a letter followed by letters, digits or `_`,
   is refused.
 - `tapestry`: the pieces of a block's `sizes` attribute. `{ "kind": "tapestry", "block": "game:tapestry-north" }`; the
-  dimensions are `picture`, `piece` and `section`, and the pieces' places are `x` and `y`. A collection of this source is named
-  by the game (`game:tapestry-{value}`) wherever it has a `piece` dimension, whatever its id.
+  dimensions are `picture`, `piece` and `section`, and the pieces' places are `x` and `y`. The game names a **picture**
+  (`game:tapestry-{value}`), which the source takes by itself (`picture` needs no `nameKey`).
+  A `piece` has no name of its own: to name members by it, give `piece` a `nameKey` (`game:tapestry-{value}` matches a piece to
+  its picture's name), as
+  [`tapestries.json`](curiocatalogue/assets/curiocatalogue/config/curiocatalogue/collections/tapestries.json) does.
+  The source also gives each piece the flat image the game puts on the wall (`game:textures/block/cloth/tapestry/{piece}.png`);
+  it takes the names and the images of the game's tapestries only, so another mod's tapestry blocks are not a source yet.
 
 A collection whose source finds nothing (no such items: your mod's collection without your mod) is simply not shown.
 
@@ -85,7 +90,7 @@ A collection whose source finds nothing (no such items: your mod's collection wi
 | `anyKey` | no | A phrase in lower case for what a member of several items leaves free ("any colour"). |
 | `icon` | no | A value's icon with `{value}`: an item or block code (`game:nugget-{value}`) or an SVG by its path (`yourmod:textures/icons/shell-{value}.svg`). |
 | `icons` | no | Value → icon, for the values `icon` does not fit; alone it makes a whole table's headings. |
-| `from`, `map` | no | A derived dimension: `from` names an earlier dimension, `map` gives each value its source values (value → list). For grouping only; never part of a member's name. A source value in two entries is refused; one the `map` lacks is its own value, with a warning. |
+| `from`, `map` | no | A derived dimension: `from` names an earlier dimension, `map` gives each value its source values (value → list). For grouping only; never part of a member's name. A level that keeps the source dimension says nothing of the derived one (it follows); a level that keeps neither must still drop it. A source value in two entries is refused; one the `map` lacks is its own value, with a warning. |
 
 An SVG is drawn in its own colours. An icon the game does not have (a removed mod's item, a missing file) is not an error: the
 window shows the name alone.
@@ -106,14 +111,14 @@ groups), `arrange` and optionally `nameKey` and `icon`. `arrange` is `{ "kind": 
 
 An album is made in the crafting grid from an empty ledger or bill of materials and any one member of the collection (which
 stays). For your collection, bring a grid recipe like ours (`recipes/grid/ledger.json` of this mod, `ledger-album-crystals`),
-with your member item for `C` (`isTool` with no durability cost keeps it) and the `name` you wrote in `albumRecipe`:
+with your member for `C` (`"type": "block"` for a block such as a seashell, `"item"` for an item; `isTool` with no durability cost keeps it) and the `name` you wrote in `albumRecipe`:
 
 ```json
 {
   "ingredientPattern": "LC",
   "ingredients": {
     "L": { "type": "item", "code": "curiocatalogue:book-{kind}-{cover}" },
-    "C": { "type": "item", "code": "game:seashell-*", "isTool": true, "toolDurabilityCost": 0 }
+    "C": { "type": "block", "code": "game:seashell-*", "isTool": true, "toolDurabilityCost": 0 }
   },
   "allowedVariants": {
     "kind": ["ledger", "materials"],

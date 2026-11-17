@@ -234,7 +234,8 @@ public sealed class Links
     public string? PathOf(string? url)
     {
         if (string.IsNullOrEmpty(url) || url.StartsWith('#') || url.StartsWith("//") || Regex.IsMatch(url, "^[a-zA-Z][a-zA-Z0-9+.-]*:")) return null;
-        return Resolve(Dir + url);
+        // "/docs/x.md" is read from the repository's root, as GitHub reads it, not from the description's folder.
+        return Resolve(url.StartsWith('/') ? url : Dir + url);
     }
 
     /// <summary>The absolute URL; a path that climbs above the repository's root stays relative, and the page check reports it.</summary>

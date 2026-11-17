@@ -158,6 +158,10 @@ public class GameServerFixture : IDisposable
             RequirePath("the data path", GamePaths.DataPath, DataPath);
             GamePaths.EnsurePathsExist();
 
+            // The engine saves the world every 300 s (ServerSystemAutoSaveGame, decompiled 1.22.7; MagicNum.ServerAutoSave = 0 turns it off). A full run
+            // is longer, and a save pauses the main thread with hundreds of joined players: the suspected cause of the one L5 flake (R1c, G5.1).
+            MagicNum.ServerAutoSave = 0;
+
             var args = new ServerProgramArgs
             {
                 DataPath = DataPath,

@@ -195,6 +195,22 @@ public class ModDbPageTests
     }
 
     [Fact]
+    public void Titles_and_the_heros_alt_text_are_escaped()
+    {
+        // The template escapes plain text (html.escape). In text the inlining re-serializes the page and escapes anyway; in an
+        // attribute it does not: without the escape a '"' in the hero's alt text ends the attribute (mutation-checked 16.11.2026).
+        // "< 2" is no tag for Markdown (a tag would be refused as HTML in the description), but is one character to escape.
+        var html = ModDbPage.Generate(Input(
+            en: Doc("en", t => t.Replace("# Title en", "# Title 1 < 2 & co").Replace("![The hero]", "![The \"hero\" < 3]")
+                .Replace("### Sub 1 en", "### Sub 1 < 2 & en"))));
+
+        Assert.Contains("Title 1 &lt; 2 &amp; co", html);
+        Assert.Contains("alt=\"The &quot;hero&quot; ", html); // inside an attribute "<" may stay (HTML serialization escapes & and ")
+        Assert.Contains("Sub 1 &lt; 2 &amp; en", html);
+        Assert.DoesNotContain("1 < 2", html);
+    }
+
+    [Fact]
     public void Early_development_badge_goes_with_version_zero()
     {
         var input = new PageInput
@@ -333,6 +349,27 @@ public class ModDbPageTests
     {
         var e = Fails(Input(en: Doc("en", t => t.Replace("](../guide.md)", "](../../../guide.md)"))));
         Assert.Contains(e.Problems, p => p.Contains("relative or unknown link") && p.Contains("../../../guide.md"));
+    }
+
+
+    [Fact]
+    public void A_local_file_link_in_a_description_is_an_error_unless_the_run_is_a_local_preview()
+    {
+        // A paste file must not carry a path of the author's disk (Q7 of the R1 review): file:/// is allowed only when the bases are file:///.
+        var withLocalLink = Doc("en", t => t.Replace("](../guide.md)", "](file:///C:/Users/me/guide.md)"));
+        var e = Fails(Input(en: withLocalLink));
+        Assert.Contains(e.Problems, p => p.Contains("relative or unknown link") && p.Contains("file:///C:/Users/me/guide.md"));
+
+        var preview = Input(en: withLocalLink) with { RawBase = "file:///C:/repo/", BlobBase = "file:///C:/repo/" };
+        Assert.Contains("href=\"file:///C:/Users/me/guide.md\"", ModDbPage.Generate(preview));
+    }
+
+    [Fact]
+    public void The_heros_source_is_escaped_in_its_attribute()
+    {
+        // Markdown lets a link target in <...> hold a quote (Links.Absolute leaves it as it is); an unescaped one ends the src attribute.
+        var html = ModDbPage.Generate(Input(en: Doc("en", t => t.Replace("](../images/hero.png)", "](<../images/a\"b.png>)"))));
+        Assert.Contains("images/a&quot;b.png", html);
     }
 
     [Fact]
@@ -541,6 +578,8 @@ public class ModDbPageTests
     [InlineData("../images/a.png", true, Raw + "docs/images/a.png")]
     [InlineData("./template.html", false, Blob + "docs/moddb/template.html")]
     [InlineData("../../CONTRIBUTING.md", false, Blob + "CONTRIBUTING.md")]
+    [InlineData("/CONTRIBUTING.md", false, Blob + "CONTRIBUTING.md")]            // from the root of the repository, not from docs/moddb
+    [InlineData("/docs/images/a.png", true, Raw + "docs/images/a.png")]
     [InlineData("../../../x.md", false, "../../../x.md")]
     [InlineData("#gestures", false, "#gestures")]
     public void Relative_urls_are_read_from_the_descriptions_folder(string url, bool image, string expected) =>

@@ -101,6 +101,19 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     }
 
     [Fact]
+    public void The_tapestries_are_88_pieces_in_31_pictures_as_the_guide_says()
+    {
+        // docs/guide/README.md, Collections, and A12 ("the bar at 0/88"): the other collections' numbers are pinned by their own tests
+        // (CrystalsTests, SeashellsTests, ButterfliesTests); a game update that adds a tapestry is caught here, not by a player.
+        var seen = game.OnMain(() =>
+        {
+            var tapestries = Mod.Collections.Defined("tapestries")!;
+            return (tapestries.Levels.Single().Members.Count, tapestries.Values["picture"].Count);
+        });
+        Assert.Equal((88, 31), seen);
+    }
+
+    [Fact]
     public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
     {
         // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod

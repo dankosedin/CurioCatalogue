@@ -328,7 +328,8 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             var hand = client.Player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Album(8);
             AsInSurvival(client.Player);
-            // The off-hand stays empty: a new list never goes there (the author, 13.11.2026).
+            // The off-hand stays empty, which also keeps the list out of it; a list could not go there anyway (invoice.json has no storageFlags: General only,
+            // vsapi ItemSlotOffHand.cs:10), so the skip of the off-hand in HandOut is tested in Handing_out_never_fills_the_off_hand... below.
             FillWithSticks(client.Player);
             return LedgerStore.Fingerprint(hand.Itemstack);
         });
@@ -378,7 +379,8 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             var hand = player.InventoryManager.ActiveHotbarSlot;
             hand.Itemstack = Book("book-ledger-normal-brickred", 8);
             AsInSurvival(player);
-            // The off-hand stays empty: a new list never goes there (the author, 13.11.2026).
+            // The off-hand stays empty, which also keeps the list out of it; a list could not go there anyway (invoice.json has no storageFlags: General only,
+            // vsapi ItemSlotOffHand.cs:10), so the skip of the off-hand in HandOut is tested in Handing_out_never_fills_the_off_hand... below.
             FillWithSticks(player);
 
             Click(player, hand, pos);
@@ -426,6 +428,7 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
         // Dropped, the stack is still picked up into it a tick later (AsInSurvival): the loss is accepted (the author, 13.11.2026);
         // this only checks that the helper itself never offers the stack to the creative inventory.
         var client = FakeClient.Join(game, "giver-creative");
+        using var drops = new Drops(game, client.Player, "invoice-wantlist");
         var seen = game.OnMain(() =>
         {
             var player = client.Player;
@@ -438,6 +441,57 @@ public class BookEdgeTests(GameServerFixture server) : BookTestBase(server)
             return (player.WorldData.CurrentGameMode, list.StackSize, FindOurs(player, "invoice-") == null);
         });
         Assert.Equal((EnumGameMode.Creative, 1, true), seen);
+        // Dropped, not merely kept out of the creative inventory: a helper that gives up in creative would pass the lines above.
+        Assert.Equal(1, drops.Count);
+    }
+
+    [Fact]
+    public void L6_a_new_list_goes_into_the_one_free_slot_and_never_into_the_off_hand()
+    {
+        // L6 (functional.md): "with a free slot the list is in that slot". A list cannot be held in the off-hand at all (invoice.json
+        // has no storageFlags: General only; vsapi ItemSlotOffHand.cs:10#StorageType), so this does not test HandOut's skip of it:
+        // the next test does.
+        var client = FakeClient.Join(game, "maker-one-free");
+        using var drops = new Drops(game, client.Player, "invoice-incoming");
+        var seen = game.OnMain(() =>
+        {
+            var player = client.Player;
+            var (pos, chest) = TestBlocks.Place(game, "chest-east");
+            ((IBlockEntityContainer)chest).Inventory[0].Itemstack = Vanilla("ingot-copper", 5);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Book("book-ledger-normal-brickred", 8);
+            AsInSurvival(player);
+            FillWithSticks(player, leaveOneFree: true); // Slots(player)[1], a hotbar slot, stays free
+
+            Click(player, hand, pos);
+            return (Free: Slots(player)[1].Itemstack?.Collectible.Code.Path, OffHandEmpty: player.Entity.LeftHandItemSlot.Empty,
+                BookState(hand.Itemstack!).Sheets);
+        });
+        Assert.Equal(("invoice-incoming", true, 7), seen);
+        Assert.Equal(0, drops.Count);
+    }
+
+    [Fact]
+    public void Handing_out_never_fills_the_off_hand_even_with_an_item_it_could_hold()
+    {
+        // F2: the off-hand is for the book. The game would offer it (suitability 0.4 for an empty off-hand, decompiled
+        // InventoryPlayerHotbar.GetSuitability, 1.22.7) to anything with the Offhand storage flag, as our books have (book.json
+        // storageFlags 257). Should the lists ever get that flag, this keeps them out of the off-hand too.
+        var client = FakeClient.Join(game, "giver-offhand");
+        using var drops = new Drops(game, client.Player, "book-");
+        var offHandEmpty = game.OnMain(() =>
+        {
+            var player = client.Player;
+            AsInSurvival(player);
+            FillWithSticks(player);
+            var hand = player.InventoryManager.ActiveHotbarSlot;
+            hand.Itemstack = Vanilla("ingot-copper");
+
+            HandOut.Give(player, Book("book-ledger-normal-brickred", 8), hand);
+            return player.Entity.LeftHandItemSlot.Empty;
+        });
+        Assert.True(offHandEmpty);
+        Assert.Equal(1, drops.Count);
     }
 
     [Fact]

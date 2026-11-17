@@ -47,7 +47,6 @@
 .cc .seq-frame figcaption { padding: 6px 2px 4px 2px; font-size: 14px; }
 .cc code { background: #f1e9da; padding: 1px 5px; }
 </style>
-</style>
 {{~
 # Labels of the page itself (everything else comes from the descriptions).
 ui = {
@@ -99,7 +98,7 @@ func page(l, nested)
       {{ if early }}<span class="badge badge-early">{{ t.early }}</span>{{ end }}
     </div>
   </div>
-  <div class="hero-image"><img src="{{ l.hero_src }}" alt="{{ l.hero_alt | html.escape }}"></div>
+  <div class="hero-image"><img src="{{ l.hero_src | html.escape }}" alt="{{ l.hero_alt | html.escape }}"></div>
 </div>
 
 <div class="buttons">

@@ -52,7 +52,8 @@ public static class ModDbPage
         var html = Fill(input, en, uk, problems);
         if (problems.Count > 0) throw new ContractException(problems);
 
-        html = Inline(html, problems);
+        // file:/// links pass only when the run looks at a local copy (--rawBase=file:///...): the page is for the preview then, see CakeBuild.
+        html = Inline(html, problems, allowFileLinks: input.RawBase.StartsWith("file:///") || input.BlobBase.StartsWith("file:///"));
         int bytes = System.Text.Encoding.UTF8.GetByteCount(html);
         if (bytes > input.MaxBytes)
             problems.Add($"The page is {bytes} bytes, ModDB takes at most about 65 000 and the limit here is {input.MaxBytes}: shorten the descriptions or lighten the template's CSS");
@@ -198,7 +199,7 @@ public static class ModDbPage
     /// <summary>Classes of ModDB's native spoiler: <c>div.spoiler</c> with <c>spoiler-toggle</c> and <c>spoiler-text</c>.</summary>
     static readonly HashSet<string> SiteClasses = new() { "spoiler", "spoiler-toggle", "spoiler-text" };
 
-    static string Inline(string html, List<string> problems)
+    static string Inline(string html, List<string> problems, bool allowFileLinks)
     {
         var result = PreMailer.Net.PreMailer.MoveCssInline(html, removeStyleElements: true, removeComments: true);
         foreach (var w in result.Warnings) problems.Add("CSS could not be inlined: " + w);
@@ -218,7 +219,7 @@ public static class ModDbPage
         foreach (Match m in Regex.Matches(page, "\\s(?:href|src)=\"([^\"]*)\""))
         {
             var url = m.Groups[1].Value;
-            if (!url.StartsWith("http://") && !url.StartsWith("https://") && !url.StartsWith('#') && !url.StartsWith("file:///"))
+            if (!url.StartsWith("http://") && !url.StartsWith("https://") && !url.StartsWith('#') && !(allowFileLinks && url.StartsWith("file:///")))
                 problems.Add($"A relative or unknown link is left in the page: {url}");
         }
         return page;

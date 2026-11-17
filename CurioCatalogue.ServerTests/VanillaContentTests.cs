@@ -54,6 +54,53 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     }
 
     [Fact]
+    public void A_variants_pattern_warns_once_of_codes_with_its_prefix_that_it_does_not_fit()
+    {
+        // R1, G3.8: a value is the text between dashes, so a code with another number of parts is left out. A definition that
+        // forgot the rock of "crystalizedore-{grade}-{ore}-{rock}" finds none of the crystals; the log says why, once.
+        const string json = """
+            { "source": { "kind": "variants", "code": "game:crystalizedore-{grade}-{ore}" },
+              "dimensions": [ { "code": "grade", "values": [] }, { "code": "ore", "values": [] } ],
+              "levels": [ { "id": "all", "keep": ["grade", "ore"], "drop": {} } ] }
+            """;
+        int mark = game.LogMark();
+        int found = game.OnMain(() =>
+        {
+            var registry = new CollectionRegistry(World, Mod.Keys, new Dictionary<string, CollectionSettings>(),
+                () => [new DefinitionAsset(new AssetLocation("othermod", CollectionRegistry.DefinitionsPath + "pairs.json"), json)]);
+            return registry.All.Count;
+        });
+
+        var warnings = game.LogSince(mark).Where(l => l.Type == EnumLogType.Warning && l.Text.Contains("collection 'pairs'")).ToList();
+        Assert.Equal(0, found);
+        var warning = Assert.Single(warnings);
+        Assert.Contains("crystalizedore-", warning.Text);
+        Assert.Contains("do not fit the pattern", warning.Text);
+    }
+
+    [Fact]
+    public void Every_lang_key_a_collection_names_is_in_the_lang()
+    {
+        // A key the lang lacks shows as the key itself in the window, the tooltip and the want list (Lang.Get), silently.
+        // The per-collection tests check some keys; this checks every key every definition names: the collection, its levels
+        // (name, progress, member), layouts, marks, and each value that occurs (name, short name) with the "any" phrase.
+        // Wildcard keys (game:tapestry-{value}) as the window matches them (MemberNames.Translated).
+        var missing = game.OnMain(() => Mod.Collections.All.Values.SelectMany(c =>
+                new[] { c.Definition.NameKey }
+                .Concat(c.Definition.Levels.SelectMany(l => new[] { l.NameKey, l.ProgressKey, l.MemberKey }))
+                .Concat(c.Definition.Levels.SelectMany(l => l.Layouts.Select(y => y.NameKey)))
+                .Concat((c.Definition.Marks ?? []).Select(m => m.NameKey))
+                .Concat(c.Definition.Dimensions.SelectMany(d => c.Values[d.Code]
+                    .SelectMany(v => new[] { d.ValueNameKey(v), d.ValueShortNameKey(v) }).Append(d.AnyKey)))
+                .OfType<string>().Where(key => MemberNames.Translated(key) == null).Select(key => $"{c.Id}: {key}"))
+            .Distinct()
+            // A picture of one piece is named by the piece alone: no key for its section, on purpose (album polish plan, L1).
+            .Except(["tapestries: curiocatalogue:tapestries-section-1x1"]).ToList());
+
+        Assert.Empty(missing);
+    }
+
+    [Fact]
     public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
     {
         // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod

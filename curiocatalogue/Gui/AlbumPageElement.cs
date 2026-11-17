@@ -15,6 +15,7 @@ namespace CurioCatalogue.Gui;
 /// <param name="GroupName">A group's heading.</param>
 /// <param name="GroupHint">The text on hover over a group's name when the name alone does not tell it from another
 /// ("Schematic (schematic-a)"); null when it does.</param>
+/// <param name="ValueName">A value's name for a table heading in words, by the collection's source (<see cref="MemberNames.ValueName"/>).</param>
 /// <param name="Name">A member's name by its values, what it leaves free included ("Native copper, any rock"), the first line
 /// of its cell's tooltip under the stack's own name; null when no value names it (butterflies: the stack's name is its name).</param>
 /// <param name="Freedom">What a member of several items leaves free ("any rock"); null for a member of one item. Said on its own
@@ -23,6 +24,7 @@ namespace CurioCatalogue.Gui;
 public sealed record AlbumPageLook(
     System.Func<MemberGroup, string> GroupName,
     System.Func<MemberGroup, string?> GroupHint,
+    System.Func<DimensionDef, string, string> ValueName,
     System.Func<Member, string?> Name,
     System.Func<Member, string?> Freedom,
     System.Func<Member, (int Argb, string? Line)?> Mark);
@@ -151,7 +153,7 @@ public sealed class AlbumPageElement : GuiElement
         headings = placedHeadings.Select(h =>
         {
             var s = (AlbumSlot)inventory[slot++];
-            string name = MemberNames.ValueName(h.Dimension, h.Value) ?? h.Value;
+            string name = look.ValueName(h.Dimension, h.Value);
             string shortName = h.Dimension.ValueShortNameKey(h.Value) is { } shortKey ? Lang.Get(shortKey) : name;
             switch (IconOf(h))
             {

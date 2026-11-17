@@ -269,7 +269,12 @@ public sealed class AlbumPages
                 DimensionDef rowDim = dims[t.Rows], colDim = dims[t.Columns];
                 // Only the values that occur in the group, in the dimension's order.
                 var rowValues = collection.Values[t.Rows].Where(v => members.Any(mem => mem.Values[t.Rows] == v)).ToList();
-                if (t.ReverseRows) rowValues.Reverse();
+                if (t.ReverseRows)
+                {
+                    // The listed values highest first; one the dimension does not list ranks lowest and stays last (DimensionOrder).
+                    bool Listed(string v) => rowDim.Values.Count == 0 || rowDim.Values.Contains(v);
+                    rowValues = rowValues.Where(Listed).Reverse().Concat(rowValues.Where(v => !Listed(v))).ToList();
+                }
                 var colValues = collection.Values[t.Columns].Where(v => members.Any(mem => mem.Values[t.Columns] == v)).ToList();
                 int rowHeadWidth = rowDim.HasIcons ? m.Cell : m.TextHeadingWidth;
                 int colHeadHeight = colDim.HasIcons ? m.Cell : m.Heading;

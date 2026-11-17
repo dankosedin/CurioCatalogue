@@ -7,9 +7,9 @@ namespace CurioCatalogue.ServerTests;
 
 /// <summary>
 /// The ore crystals (V2 of the vanilla collections plan; what they are: C1 of the collections design plan): our definition
-/// <c>crystals.json</c> on the game's real items. Of the 407 variants the item allows, 54 never generate and are the
-/// definition's <c>exclude</c>; three levels: the richest of each ore (16), the richest each rock gets of each ore (118), every
-/// combination (353).
+/// <c>crystals.json</c> on the game's real items. Of the 407 variants the item allows, 58 never generate and are the
+/// definition's <c>exclude</c>; three levels: the richest of each ore (16), the richest each rock gets of each ore (117), every
+/// combination (349).
 /// </summary>
 [Collection(ServerCollection.Name)]
 public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
@@ -23,7 +23,7 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
     static string Grade(ItemKey key) => CodeOf(key).Split('-')[1];
 
     [Fact]
-    public void The_levels_have_16_118_and_353_members_and_none_of_a_crystal_that_never_generates()
+    public void The_levels_have_16_117_and_349_members_and_none_of_a_crystal_that_never_generates()
     {
         var seen = game.OnMain(() => (
             Crystals.Level("richest")!.Members.Count,
@@ -31,22 +31,76 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
             Crystals.Level("all")!.Members.Count,
             Crystals.Level("all")!.Members.SelectMany(m => m.Fillers).Select(CodeOf)
                 .Where(p => p.Contains("-uranium-") || p.Contains("-stibnite-") || p.EndsWith("-hematite-sandstone")
-                    || p is "crystalizedore-rich-magnetite-slate" or "crystalizedore-bountiful-magnetite-slate" or "crystalizedore-rich-ilmenite-peridotite")
+                    || p is "crystalizedore-rich-magnetite-slate" or "crystalizedore-bountiful-magnetite-slate" or "crystalizedore-rich-ilmenite-peridotite" || p.EndsWith("-ilmenite-kimberlite"))
                 .ToList(),
             World.Items.Count(i => i.Code is { Domain: "game" } c && c.Path.StartsWith("crystalizedore-"))));
 
         // The item allows 407, but its "ore" group is loaded from worldproperties/block/ore-graded.json, which has no stibnite:
-        // its 9 are never registered (checked on this server 09.11.2026). 398 less the other 45 that never generate.
+        // its 9 are never registered (checked on this server 09.11.2026). 398 less the other 49 that never generate.
         Assert.Equal(398, seen.Item5);
-        Assert.Equal((16, 118, 353), (seen.Item1, seen.Item2, seen.Item3));
+        Assert.Equal((16, 117, 349), (seen.Item1, seen.Item2, seen.Item3));
         Assert.Empty(seen.Item4);
+    }
+
+    [Fact]
+    public void Every_crystal_of_the_album_is_generated_by_a_deposit_of_the_game_in_its_rock_and_grade()
+    {
+        // R1, G1: ilmenite in kimberlite was listed in the deposit's placeblock but not in its inblock, so it never generated and
+        // the definition did not say so. The deposits are read as the game reads them (worldgen/deposits, a child deposit takes the
+        // rocks of its parent): a crystal is generated where its rock is in the inblock list and its grade is allowed there.
+        var (generated, missing) = game.OnMain(() =>
+        {
+            var generated = new Dictionary<string, HashSet<string>>();
+            foreach (var asset in game.Api.Assets.GetMany("worldgen/deposits/"))
+                foreach (var deposit in Newtonsoft.Json.Linq.JArray.Parse(asset.ToText()))
+                    Collect(deposit, null, generated);
+
+            var missing = Crystals.Level("all")!.Members.SelectMany(m => m.Fillers).Select(CodeOf)
+                .Where(code =>
+                {
+                    var parts = code.Split('-');   // crystalizedore-{grade}-{ore}-{rock}
+                    return !generated.TryGetValue(parts[2], out var set) || !set.Contains(parts[1] + "-" + parts[3]);
+                })
+                .ToList();
+            return (generated, missing);
+        });
+
+        Assert.Empty(missing);
+        // The ores the definition lists, but uranium and stibnite, have a deposit the walk understood (so a change of the files'
+        // shape fails here, not silently).
+        foreach (var ore in Crystals.Definition.Dimensions.Single(d => d.Code == "ore").Values.Except(["uranium", "stibnite"]))
+            Assert.True(generated.ContainsKey(ore), ore + " has no deposit found");
+    }
+
+    static void Collect(Newtonsoft.Json.Linq.JToken deposit, List<string>? parentRocks, Dictionary<string, HashSet<string>> generated)
+    {
+        var attributes = deposit["attributes"];
+        var rocks = attributes?["inblock"]?["allowedVariants"]?.Select(v => (string)v!).ToList() ?? parentRocks;
+        var placeblock = attributes?["placeblock"];
+        var code = (string?)placeblock?["code"];
+        if (code != null && rocks != null && System.Text.RegularExpressions.Regex.Match(code, @"^ore-\*-(.+)-\{rock\}$") is { Success: true } m)
+        {
+            var set = generated.TryGetValue(m.Groups[1].Value, out var s) ? s : generated[m.Groups[1].Value] = [];
+            if (placeblock!["allowedVariantsByInBlock"] is Newtonsoft.Json.Linq.JObject byRock)
+            {
+                foreach (var rock in rocks)
+                    if (byRock["rock-" + rock] is { } grades)
+                        foreach (var grade in grades) set.Add((string)grade! + "-" + rock);
+            }
+            else if (placeblock["allowedVariants"] is { } all)
+            {
+                foreach (var grade in all) foreach (var rock in rocks) set.Add((string)grade! + "-" + rock);
+            }
+        }
+        foreach (var child in deposit["childDeposits"] ?? new Newtonsoft.Json.Linq.JArray())
+            Collect(child, rocks, generated);
     }
 
     [Fact]
     public void The_richest_of_each_ore_is_filled_only_by_its_highest_grade_from_any_rock()
     {
-        // C1: bountiful for 14 ores; native silver in galena is medium at most; magnetite rich (its bountiful, only in slate,
-        // never generates). Quartz gold: bountiful in 13 rocks, so the member is filled by any of 13 codes.
+        // C1: bountiful for 13 ores; native silver in galena is medium at most; magnetite rich (its bountiful, only in slate,
+        // never generates); ilmenite rich (its bountiful was in kimberlite only, R1 G1). Quartz gold: bountiful in 13 rocks, so the member is filled by any of 13 codes.
         var seen = game.OnMain(() => Crystals.Level("richest")!.Members.ToDictionary(
             m => m.Values["ore"],
             m => (Grades: string.Join(",", m.Fillers.Select(Grade).Distinct()), Rocks: m.Fillers.Count)));
@@ -54,7 +108,8 @@ public class CrystalsTests(GameServerFixture server) : BookTestBase(server)
         Assert.Equal(16, seen.Count);
         Assert.Equal("medium", seen["galena_nativesilver"].Grades);
         Assert.Equal("rich", seen["magnetite"].Grades);
-        Assert.All(seen.Where(s => s.Key is not ("galena_nativesilver" or "magnetite")), s => Assert.Equal("bountiful", s.Value.Grades));
+        Assert.Equal("rich", seen["ilmenite"].Grades);
+        Assert.All(seen.Where(s => s.Key is not ("galena_nativesilver" or "magnetite" or "ilmenite")), s => Assert.Equal("bountiful", s.Value.Grades));
         Assert.Equal(13, seen["quartz_nativegold"].Rocks);
     }
 

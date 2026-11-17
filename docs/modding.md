@@ -318,7 +318,9 @@ In this order:
   repaired with glue, it breaks into nothing.
 - Iron parts: `metalnailsandstrips-<metal>`; vanilla has 14 metals.
 - **Ore crystals** `crystalizedore-{grade}-{ore}-{rock}` (04.11.2026, details in the collections design plan, C1): 407 allowed,
-  but 54 never generate (uranium and stibnite have no deposits at all in 1.22.7); only mining gives them, never an explosion.
+  but 58 never generate (uranium and stibnite have no deposits at all in 1.22.7; ilmenite in kimberlite is in the deposit's
+  `placeblock` but not in its `inblock`, so it never generates either, found by R1, 17.11.2026; `CrystalsTests` reads every deposit);
+  only mining gives them, never an explosion.
   The name has no rock ("Poor crystallized chunk of {ore}"), only the tooltip and the icon do: two codes, one name.
   Names of the values (07.11.2026): `game:ore-{ore}` and `game:rock-{rock}` exist in `en` and `uk` for every value of
   `block/ore-graded` and `block/rockwithdeposit`; the grade has only `game:ore-grade-{grade}`, "Quality: Poor", so its names are ours.

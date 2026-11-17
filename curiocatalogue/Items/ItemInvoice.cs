@@ -181,7 +181,7 @@ public class ItemInvoice : ItemRollable
 
         var wantedIn = Mod.Store.WantedIn(invoice);
         foreach (var line in invoice.Entries.Take(TooltipLines))
-            dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, LineName(wantedIn, line)));
+            dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-line", line.Count, LineName(wantedIn, line, wantedIn is { } w ? Mod.Collections.SourceOf(w.Collection.Id) : null)));
         if (invoice.Entries.Length > TooltipLines)
             dsc.AppendLine(Lang.Get("curiocatalogue:invoice-info-more", invoice.Entries.Length - TooltipLines));
     }
@@ -191,17 +191,17 @@ public class ItemInvoice : ItemRollable
     /// with no value named the item it shows and what it leaves free. The item alone for a line of format 1 or of a collection the
     /// game does not have: the line then wants exactly that item.
     /// </summary>
-    internal static string LineName((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line)
+    internal static string LineName((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line, CollectionSource? source)
     {
         string itemName = NameOf((ItemStack)line.Sample);
-        return Wanted(wantedIn, line) is var (collection, level, member) ? MemberNames.NameOr(collection, level, member, itemName) : itemName;
+        return Wanted(wantedIn, line) is var (collection, level, member) ? MemberNames.NameOr(collection, level, member, itemName, source) : itemName;
     }
 
     /// <summary>What a want list's slot says under the item's own text in the window: its member's name, or with no value named
     /// only what it leaves free ("any of 3 kinds"); null when neither (and as <see cref="LineName"/>).</summary>
-    internal static string? SlotLine((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line) =>
+    internal static string? SlotLine((DefinedCollection Collection, CollectionLevel Level)? wantedIn, Entry line, CollectionSource? source) =>
         Wanted(wantedIn, line) is var (collection, level, member)
-            ? MemberNames.Name(collection, level, member) ?? MemberNames.Freedom(collection, level, member)
+            ? MemberNames.Name(collection, level, member, source) ?? MemberNames.Freedom(collection, level, member)
             : null;
 
     /// <summary>What a want list's slot shows in the window, in turn (L7 of the album polish plan): its member's items, the line's

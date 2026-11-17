@@ -99,6 +99,8 @@ public class CurioCatalogueModSystem : ModSystem
 
     public override void StartClientSide(Vintagestory.API.Client.ICoreClientAPI api)
     {
+        Gui.BookWindow.Reset();
+        Gui.InvoiceDialog.Reset();
         EmptyHandGesture.StartClient(api, this);
         ModNetwork.StartClient(api, this);
         api.Event.LevelFinalize += () =>

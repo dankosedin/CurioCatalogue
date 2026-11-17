@@ -69,6 +69,28 @@ public class AlbumPagesTests
         Assert.Equal((salvation.X, salvation.Y + 15), At(salvation, "salvation21"));
     }
 
+    // --- A level with no members (the config's Exclude: ["*"]; R1, T1/G2.3) ---
+
+    [Fact]
+    public void A_level_with_no_members_has_one_empty_page_so_that_a_page_index_always_reads()
+    {
+        var none = Built(
+            new CollectionDefinition("tapestries",
+                [new DimensionDef("picture", []), new DimensionDef("piece", [])],
+                [new LevelDef("pieces", ["piece"], new Dictionary<string, Drop> { ["picture"] = Drop.Any },
+                    [new LayoutDef("pictures", ["picture"], new Arrangement.Shape())])],
+                [], []),
+            []);
+
+        var pages = Pages(none, "pieces", "pictures", Metrics(100, 100));
+
+        var only = Assert.Single(pages.Pages);
+        Assert.Empty(only.Groups);
+        Assert.Empty(only.Members);
+        Assert.Equal((0, 1), pages.PagerAt(0));
+        Assert.Null(pages.PageOf("ambush1"));
+        Assert.Null(only.CellAt(0, 0, 10));
+    }
     [Fact]
     public void Groups_stand_side_by_side_while_they_fit_the_width_then_on_the_next_line()
     {

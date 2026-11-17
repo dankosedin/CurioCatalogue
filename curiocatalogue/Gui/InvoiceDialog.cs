@@ -28,6 +28,9 @@ public class InvoiceDialog : GridDialog
         Refresh();
     }
 
+    /// <summary>As <see cref="BookWindow.Reset"/>: a new game session starts with no window open.</summary>
+    internal static void Reset() => open = null;
+
     public static void Open(ICoreClientAPI capi, CurioCatalogueModSystem mod, ItemSlot slot)
     {
         open?.TryClose();

@@ -37,7 +37,7 @@ public sealed class AlbumDialog : HeldItemDialog
     private const double AroundThePage = 282;
 
     // Vanilla's vertical tabs, one under another (AddTabs), from under the title bar.
-    private const double TabHeight = 30, TabsTop = 15;
+    private const double TabHeight = AlbumTabs.TabHeight, TabsTop = 15;
 
     private readonly CurioCatalogueModSystem mod;
     private readonly CairoFont font = CairoFont.WhiteDetailText();
@@ -45,6 +45,10 @@ public sealed class AlbumDialog : HeldItemDialog
     private Album album = null!;
     private View shown = null!;
     private string? composedFor;
+    /// <summary>What <see cref="composedFor"/> was made of, by identity: a registry rebuilt under the same id (ConfigLib) is another
+    /// collection (R1, G2.4).</summary>
+    private DefinedCollection? composedCollection;
+    private CollectionLevel? composedLevel;
     private int page;
     private string search = "";
     private readonly Dictionary<string, string> searchNames = new();
@@ -85,12 +89,12 @@ public sealed class AlbumDialog : HeldItemDialog
         // Without the collection, what it holds is all there is to lay out; it changes only by starting over.
         string key = $"{refusal}|{collection?.Id}|{level?.Id}|{album.IsEmpty}|{album.Name}|"
             + (refusal == null ? "" : album.Collected.Count.ToString());
-        if (key == composedFor && pageElement != null)
+        if (key == composedFor && ReferenceEquals(collection, composedCollection) && ReferenceEquals(level, composedLevel) && pageElement != null)
         {
             ShowCollected();
             return;
         }
-        composedFor = key;
+        (composedFor, composedCollection, composedLevel) = (key, collection, level);
         shown = Read(refusal, collection, level, keepLayout: null);
         page = Math.Min(page, Math.Max(0, (shown.Pages?.Pages.Count ?? 1) - 1));
         Compose();

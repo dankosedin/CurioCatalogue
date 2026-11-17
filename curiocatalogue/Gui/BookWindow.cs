@@ -19,6 +19,11 @@ public static class BookWindow
         open.TryOpen();
     }
 
+    /// <summary>A new game session (the client starts again after leaving a world): the game disposes the loaded dialogs on leaving
+    /// without closing them (decompiled GuiManager.Dispose, 1.22.7: <c>Dispose</c>, no <c>TryClose</c>), so the window of the last
+    /// session would stay here, "open" and dead, and the next opening would close it with the old client's api (R1, G2.5).</summary>
+    internal static void Reset() => open = null;
+
     /// <summary>A window says it closed; the next opening has nothing to close.</summary>
     internal static void Closed(GuiDialog dialog)
     {

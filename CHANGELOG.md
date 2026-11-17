@@ -19,6 +19,7 @@ What changed in each version of Curio Catalogue. A version's section is its rele
 - **Another mod's tapestries are named like ours:** a collection of the `tapestry` source under any id shows the game's names of its pictures in the album window, not the raw picture codes.
 - **The want list window has no empty slots:** the invoice window (want list, bill of materials invoice, ledger invoice) spreads its lines evenly over rows as the album does (11 lines as 6 + 5, not 10 + 1 and nine empty slots) and has a slot for each line; the ledger window keeps the look of the game's chests.
 - **The lists are out of the creative inventory.** An intake list, a pick list and a want list taken from the creative tab were blank and useless; they are no longer listed there (`/giveitem` still gives one). Each keeps its page in the handbook, and the guide's links to them work. Books stay in the creative inventory.
+- **The album window holds up:** after a change of the GUI scale the group names and counts are cut and drawn for the new scale; a collection whose pieces the config excludes all opens as an empty page and its layout can be switched; a book opens again after leaving a world and joining another; the page's tooltips cost less on every mouse move.
 
 ## 0.1.1 (2026-10-31)
 

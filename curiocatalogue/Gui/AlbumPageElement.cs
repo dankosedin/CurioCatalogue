@@ -73,14 +73,15 @@ public sealed class AlbumPageElement : GuiElement
 
     /// <summary>A table's heading: an item or block (<paramref name="icon"/>, its tooltip the game's), an SVG of ours
     /// (<paramref name="svg"/>, its name on hover) or words.</summary>
-    private sealed class Heading(PlacedHeading placed, AlbumSlot? icon, AssetLocation? svg, string name, string fitted)
+    private sealed class Heading(PlacedHeading placed, AlbumSlot? icon, AssetLocation? svg, string name, string fitted, string shortName)
     {
         public readonly PlacedHeading Placed = placed;
         public readonly AlbumSlot? Icon = icon;
         public readonly AssetLocation? Svg = svg;
         public readonly string Name = name;
-        /// <summary>The name in words, cut with "…" to the heading's width.</summary>
-        public readonly string Fitted = fitted;
+        /// <summary>The name in words, cut with "…" to the heading's width at the scale composed for (<see cref="AlbumPageElement.Refit"/>).</summary>
+        public string Fitted = fitted;
+        public readonly string Short = shortName;
         public bool InWords => Icon == null && Svg == null;
         public LoadedTexture? Text, Mark;
     }
@@ -89,9 +90,9 @@ public sealed class AlbumPageElement : GuiElement
     {
         public readonly GroupBox Box = box;
         public readonly string FullName = name;
-        public readonly string Fitted = fitted;
+        public string Fitted = fitted;
         /// <summary>The text on hover: the hint, else the full name when it is cut; null for none.</summary>
-        public readonly string? Hover = hint ?? (fitted != name ? name : null);
+        public string? Hover => hint ?? (Fitted != FullName ? FullName : null);
         public int Count = -1;
         public bool Complete;
         public LoadedTexture? Name, Progress;
@@ -106,6 +107,10 @@ public sealed class AlbumPageElement : GuiElement
     private readonly Cell[] cells;
     private readonly Heading[] headings;
     private readonly Group[] groups;
+    /// <summary>The cell and the heading of a placed one, made once: the mouse move looks them up on every move (R1, G2.6). By
+    /// reference: the placed records compare by value.</summary>
+    private readonly Dictionary<PlacedMember, Cell> cellOf = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<PlacedHeading, Heading> headingOf = new(ReferenceEqualityComparer.Instance);
     private static readonly CairoFont GroupFont = CairoFont.WhiteSmallText(), HeadingFont = CairoFont.WhiteDetailText();
     private static readonly CairoFont ProgressFont = CairoFont.WhiteSmallText().WithColor([1, 1, 1, 0.6]);
     private const double CheckSize = 16, NameGap = 8;
@@ -160,11 +165,11 @@ public sealed class AlbumPageElement : GuiElement
                 case ItemStack icon:
                     s.Itemstack = icon;
                     s.HeadingName = name;
-                    return new Heading(h, s, null, name, name);
+                    return new Heading(h, s, null, name, name, shortName);
                 case AssetLocation svg:
-                    return new Heading(h, null, svg, name, name);
+                    return new Heading(h, null, svg, name, name, shortName);
                 default:
-                    return new Heading(h, null, null, name, Fit(shortName, HeadingFont, h.Width));
+                    return new Heading(h, null, null, name, Fit(shortName, HeadingFont, h.Width), shortName);
             }
         }).ToArray();
         groups = page.Groups.Select(g =>
@@ -174,6 +179,16 @@ public sealed class AlbumPageElement : GuiElement
             string? hint = look.GroupHint(g.Group) is { } h ? h + continued : null;
             return new Group(g, name, g.HeadingHeight > 0 ? Fit(name, GroupFont, NameRoom(g)) : name, hint);
         }).ToArray();
+        foreach (var cell in cells) cellOf[cell.Placed] = cell;
+        foreach (var heading in headings) headingOf[heading.Placed] = heading;
+    }
+
+    /// <summary>Cuts the texts with "…" again to the room they have at the current GUI scale (the font's extents are in pixels):
+    /// the constructor cut them at the scale of the time, and a recompose at a new scale keeps the element (R1, G2.1).</summary>
+    private void Refit()
+    {
+        foreach (var heading in headings.Where(h => h.InWords)) heading.Fitted = Fit(heading.Short, HeadingFont, heading.Placed.Width);
+        foreach (var group in groups.Where(g => g.Box.HeadingHeight > 0)) group.Fitted = Fit(group.FullName, GroupFont, NameRoom(group.Box));
     }
 
     /// <summary>The width a group's name has beside its progress and check mark. Measured with every member collected
@@ -253,6 +268,15 @@ public sealed class AlbumPageElement : GuiElement
             heading.Text?.Dispose();
             heading.Mark?.Dispose();
         }
+        // The names and counts too: they were made at the old scale, and ComposeGroupHeadings skips what it thinks is made (G2.1).
+        foreach (var group in groups)
+        {
+            group.Name?.Dispose();
+            group.Progress?.Dispose();
+            group.Name = group.Progress = null;
+            group.Count = -1;
+        }
+        Refit();
         int slotSize = (int)scaled(SlotSize);
         slotTexture = new LoadedTexture(api, GuiElementItemSlotGridBase.DrawSlotBackground(api, scaled(SlotSize), scaled(SlotSize),
             GuiStyle.DialogSlotBackColor, GuiStyle.DialogSlotFrontColor, null), slotSize, slotSize);
@@ -473,8 +497,8 @@ public sealed class AlbumPageElement : GuiElement
         if (Bounds.PointInside(args.X, args.Y) && Covered?.Invoke(args.X, args.Y) != true)
         {
             int x = (int)((args.X - Bounds.renderX) / scaled(1)) - left, y = (int)((args.Y - Bounds.renderY) / scaled(1)) - pad;
-            if (page.CellAt(x, y, metrics.Cell) is { } placed) now = cells.First(c => c.Placed == placed).Slot;
-            else if (page.HeadingAt(x, y) is { } heading) now = headings.First(h => h.Placed == heading).Icon;
+            if (page.CellAt(x, y, metrics.Cell) is { } placed) now = cellOf[placed].Slot;
+            else if (page.HeadingAt(x, y) is { } heading) now = headingOf[heading].Icon;
         }
         if (now?.Itemstack == null) now = null;
         if (now == hovered) return;

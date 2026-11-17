@@ -71,12 +71,23 @@ public sealed record AlbumPage(IReadOnlyList<GroupBox> Groups)
     public IEnumerable<Member> Members => Groups.SelectMany(g => g.Cells).Select(c => c.Member);
 
     /// <summary>The member whose cell (<paramref name="cell"/> square) holds the point; null over background, a heading or a gap.</summary>
-    public PlacedMember? CellAt(int x, int y, int cell) =>
-        Groups.SelectMany(g => g.Cells).FirstOrDefault(c => Inside(x, y, c.X, c.Y, cell, cell));
+    public PlacedMember? CellAt(int x, int y, int cell)
+    {
+        // Loops, not LINQ: it runs on every mouse move over the page (R1, G2.6; the hot-path rule of docs/modding.md).
+        foreach (var group in Groups)
+            foreach (var c in group.Cells)
+                if (Inside(x, y, c.X, c.Y, cell, cell)) return c;
+        return null;
+    }
 
     /// <summary>The table heading that holds the point; null elsewhere.</summary>
-    public PlacedHeading? HeadingAt(int x, int y) =>
-        Groups.SelectMany(g => g.Headings).FirstOrDefault(h => Inside(x, y, h.X, h.Y, h.Width, h.Height));
+    public PlacedHeading? HeadingAt(int x, int y)
+    {
+        foreach (var group in Groups)
+            foreach (var h in group.Headings)
+                if (Inside(x, y, h.X, h.Y, h.Width, h.Height)) return h;
+        return null;
+    }
 
     // The right and bottom edges belong to the next cell: cells stand edge to edge (a tapestry picture).
     private static bool Inside(int x, int y, int left, int top, int width, int height) =>
@@ -149,7 +160,8 @@ public sealed class AlbumPages
         Width = width;
         Height = pages.SelectMany(p => p.Groups).Select(g => g.Y + g.Height).DefaultIfEmpty(0).Max();
         UsedWidth = pages.SelectMany(p => p.Groups).Select(g => g.X + g.Width).DefaultIfEmpty(0).Max();
-        Pages = pages.Select(p => Stretched(p, width, Height, centre)).ToList();
+        // Never none: a level with no members (the config's Exclude: ["*"]) has one empty page, so a page index always reads (R1, G2.3).
+        Pages = pages.Count == 0 ? [new AlbumPage([])] : pages.Select(p => Stretched(p, width, Height, centre)).ToList();
         TabDimension = tabDimension;
     }
 

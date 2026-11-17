@@ -220,6 +220,7 @@ In this order:
 - **Closed dialogs stay loaded.** `TryOpen` registers a dialog in `LoadedGuis` (vsapi `GuiDialog.cs:289#LoadedGuis`); on close the game drops it
   only when `UnregisterOnClose` is true (decompiled `GuiManager.OnGuiClosed`), default false, `GuiDialogConfirm` included. A dialog
   made per opening must set it and dispose itself on close (`HeldItemDialog`, `ConfirmDialog`); otherwise it lives until the game quits.
+- **Leaving a world disposes the loaded dialogs without closing them** (decompiled `GuiManager.Dispose`, 1.22.7: `loadedGui?.Dispose()`; no `TryClose`, so no `OnGuiClosed`). A static that holds "the open window" (`BookWindow`, `InvoiceDialog`) is stale in the next session, and closing it would use the old client's api: reset it when the client starts (`StartClientSide`). Found in R1b (G2.5).
 - **The hotbar switches while a dialog is open:** number keys and the wheel change the active slot (decompiled `HudHotbar`,
   `OnKeySlot`; checked in game 28.10.2026). A window about the item in the hand must notice it (`HeldItemDialog.Watch`) and name the
   item in its requests (`ShownItem`).

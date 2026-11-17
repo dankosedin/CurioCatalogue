@@ -15,6 +15,10 @@ namespace CurioCatalogue.Gui;
 /// </summary>
 public sealed class AlbumTabs : GuiElementVerticalTabs
 {
+    /// <summary>The room a tab takes in the column: vanilla's tab height and the spacing under it (<see cref="GuiElementVerticalTabs"/>
+    /// <c>unscaledTabHeight</c> 25 + <c>unscaledTabSpacing</c> 5, vsapi GuiElementVerticalTabs.cs:17); the window sizes the column
+    /// and decides on the aside tabs by it. <c>TabMetricsTests</c> pins it to the game's.</summary>
+    public const double TabHeight = 30;
     private const double CheckSize = 16, IconSize = 18, IconGap = 4;
     private const double BasePadding = 3; // the base's unscaledTabPadding (GuiElementVerticalTabs.cs:19#unscaledTabPadding)
     private const float ItemZ = 90; // over the tabs' textures (z 50), as the page's items

@@ -33,9 +33,9 @@ An album collects one collection, chosen by the piece it is made from.
 
 | Collection | Made from | Levels | Shown |
 |---|---|---|---|
-| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures | picture by picture |
-| Ore crystals | an ore crystal | *The richest of each ore* (16), *Each ore in each rock* (117), *Every crystal* (349) | by ore or by rock |
-| Seashells | a seashell | *Every type* (7), *Every type in every colour* (42) | one table |
+| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures | by picture or by size |
+| Ore crystals | an ore crystal | *The richest of each ore* (16), *Each ore in each rock* (117), *Every crystal* (349) | by level, see [Layouts](#layouts) |
+| Seashells | a seashell | *Every type* (7), *Every type in every colour* (42) | by level, see [Layouts](#layouts) |
 | Butterflies | a dead butterfly | one: all 169 | by family or by rarity |
 
 ### Levels
@@ -46,19 +46,23 @@ no want list. The first piece taken fixes the level; to choose another, press **
 again.
 
 - *The richest of each ore:* one crystal of each ore, of its richest grade, from any rock.
-- *Each ore in each rock:* each ore in every rock it is found in, of its richest grade; one table of ores by rocks.
+- *Each ore in each rock:* each ore in every rock it is found in, of its richest grade.
 - *Every crystal:* every grade of each ore in each rock.
 - *Every type:* one shell of each type, in any colour.
-- *Every type in every colour:* one table of types by colours. Seafoam and turquoise, the game's rare colours, have a small
-  golden corner and "Rare colour" in the tooltip.
+- *Every type in every colour:* each type in each of its six colours.
 
 ### Layouts
 
-Where a collection can be shown in more than one way, the layout dropdown switches the view at any time; what is collected
-stays the same.
+A layout is how the album lays its pieces out on the pages. Where a level can be shown in more than one way, the layout
+dropdown switches the view at any time; what is collected stays the same.
 
-- Ore crystals at *Every crystal*: **by ore**, a table of grades by rocks for each ore, or **by rock**, a table of grades by ores
-  for each rock.
+- Tapestries: **by picture**, a frame for each picture with its pieces in place, or **by size**, the same frames on a tab for
+  each picture size, from the smallest: 1×1, 2×1, 1×2, 3×1, 1×3, 2×2, 4×1 (width × height, in pieces).
+- Ore crystals: *The richest of each ore* is one page of 16 crystals; *Each ore in each rock* one table of ores by rocks;
+  *Every crystal* is shown **by ore**, a table of grades by rocks for each ore, or **by rock**, a table of grades by ores for
+  each rock.
+- Seashells: *Every type* is one page of 7 shells; *Every type in every colour* one table of types by colours. Seafoam and
+  turquoise, the game's rare colours, have a small golden corner and "Rare colour" in the tooltip.
 - Butterflies: **by family**, seven tabs (the moths as one) with a frame for each of the 109 species, headed by its Latin name,
   or **by rarity**, six tabs by how often the game spawns them, from legendary to common.
 
@@ -109,7 +113,7 @@ Plain right click and Ctrl + right click open containers as usual.
 - `SoftEntryLimit` (500): a book with this many entries makes no more intake lists.
 - `ConsumeSheets` (false): hardcore; a filled list never gives its sheet back.
 - `ExtraIgnoredAttributes` (`["durability"]`): attributes ignored when comparing items, on top of the game's own.
-- `Collections`: settings per collection, by its id (`tapestries`): `Exclude` (names to leave out, `*` for any text, e.g. `["aid-*"]` for tapestry pieces), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
+- `Collections`: settings per collection, by its id (`tapestries`, `crystals`, `seashells`, `butterflies`): `Exclude` (names to leave out, `*` for any text: a tapestry piece's name, e.g. `["aid-*"]`, or an item's code without `game:`, e.g. `["crystalizedore-*-uranium-*"]`), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
 - `Diagnostics` (false): write details to the game log, for finding problems.
 
 The server sends its `Collections` and `ExtraIgnoredAttributes` to every client when it joins, so the album and the tooltips follow the server's file, not the client's. The other settings the server alone acts on. A mod that brings a collection must be on the server and on every client: the definitions are read from each side's own assets.
@@ -131,7 +135,6 @@ The server sends its `Collections` and `ExtraIgnoredAttributes` to every client 
 
 The game deletes items of a removed mod. Without Curio Catalogue, every book and list disappears from inventories and chests,
 with the sheets in them; installing the mod again does not bring them back.
-
 
 ## Sheets and covers
 

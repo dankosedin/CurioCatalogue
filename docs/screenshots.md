@@ -18,9 +18,9 @@ The studio (a WorldEdit schematic) and the macros live in `tools/studio/`; the p
 
 - The scene is kept as a WorldEdit schematic (`/we export`, JSON) in `tools/studio/`, not as a world file: a `.vcdbs` is a
   ~9 MB SQLite database that every save rewrites whole.
-- The schematic `tools/studio/studio.json` (exported 03.11.2026, 465 blocks, 21×8×24): a raised floor of walnut planks, a wall
+- The schematic `tools/studio/studio.json` (exported again 19.11.2026 with the props of 0.2, 472 blocks, 21×8×24): a raised floor of walnut planks, a wall
   of claystone bricks with leaded windows, tapestries with plank frames where a piece is missing, a chest between two
-  cabinets, a display case, a mannequin, a bookshelf; beside the floor, a stack of four trunks. Only vanilla blocks and
+  cabinets, a display case, a mannequin, a bookshelf; beside the floor, the props trunks. Only vanilla blocks and
   ours: no other mod is needed to rebuild it.
 - It carries the block entities: the chest's contents, the books with their data (checked in game 03.11.2026 on a test
   schematic), the cabinets', the display case's and the mannequin's contents (in the file). A book's entries keep the
@@ -68,20 +68,34 @@ back into `tools/studio/` and check that the answer counts the blocks you expect
 
 ## Props
 
-The player's inventory is not in the schematic, so everything the shots hold lives in the studio's **props trunks** (the
-stack of four beside the floor) and goes into the schematic with them. A rebuilt world has the props ready; each language
+The player's inventory is not in the schematic, so everything the shots hold lives in the studio's **props trunks** (beside
+the floor) and goes into the schematic with them. A rebuilt world has the props ready; each language
 starts from a rebuilt world, so a shot that changes a prop (taking new, filling a list) finds it fresh.
 
 - **One cover for every book:** `darkgreen`, which exists both normal and aged (teal and purple have no aged variant);
   the icons of P4 use the same cover. The vanilla book of `first-ledger` is `game:book-normal-darkgreen`, so the
   ledger it makes has that cover too.
-- In the schematic (exported 03.11.2026, 17:05): the album, the ledger, the bill of materials, a want list and the first
-  ledger's ingredients. The shots are taken in the order of the list, so a shot that changes a prop (`album-chest` adds
-  pieces to the album) comes after the shots that need it unchanged. The intake lists of `ledger-intake` and
-  `materials` are made during the run (`tools/studio/README.md`).
+- In the schematic (exported 19.11.2026, 00:55), as a rebuilt world shows them (checked in game 19.11.2026):
+  - **Tapestries album**, named "Tapestries": 18 of 88 (the wall's pieces and four whole pictures: Ambush, The Morning,
+    Salvation, Diet of Kings); `album-chest` makes it 24.
+  - **Ore crystals album**, level *Every crystal*: 70 of 349, native copper 6 of 31 (the page of `collection-crystals`).
+  - **Seashells album**, level *Every type in every colour*: 8 of 42, two of them rare colours (seafoam, turquoise).
+  - **Butterflies album**: 34 of 169 (every fifth species of the definition's list).
+  - An **empty ore crystals album** (no level chosen) for `album-level`, and a **want list** of ore crystals at *The
+    richest of each ore* (16 lines) for `wantlist`.
+  - The **ledger**, the **bill of materials** (empty) and the first ledger's ingredients.
+  - The books, the lists and the ingredients share one trunk; the other three albums each lie in a trunk of their own,
+    with spare items of their collection (what the album took went into the inventory, and back into the trunk).
+    Other trunks hold spare tapestry pieces.
+- How the props were made (19.11.2026, for the next version's fuller albums): the items were given by macros of
+  `/giveitem` and `/giveblock` (crystals only of the grades and rocks the game's deposits generate, read from
+  `worldgen/deposits/metalore/*.json`), put into a trunk outside the studio and taken by Shift + right click; the albums
+  were crafted from ledgers of the first-ledger recipe (a given ledger has 0 sheets, so it makes no want list).
+- The shots are taken in the order of the list, so a shot that changes a prop (`album-chest` adds pieces to the album)
+  comes after the shots that need it unchanged. The intake lists of `ledger-intake` and `materials` are made during the
+  run (`tools/studio/README.md`).
 
-The album has taken every piece on the tapestry wall, so its "Missing" grid has the frames' pieces among the rest.
-The studio's **chest** holds duplicates of pieces on the wall and a few pieces the album lacks (what `album-chest` takes);
+The studio's **chest** holds duplicates of pieces on the wall and six pieces the album lacks (what `album-chest` takes);
 the ledger's intake list (`ledger-intake`) is made from it. The **handbasket** on the cabinet holds planks and resin: the
 bill of materials' intake list (`materials`) is made from it. The bill of materials itself is empty (nothing posted into
 it yet), so `materials` shows its intake list, not its window.
@@ -112,15 +126,15 @@ The shot list of 0.2 (decided 13.11.2026, G5 of `docs/plans/2026-11-04-mod-descr
 | `album-chest-2` | 6 | the guide, Gestures: second | the album; Shift + right click on the chest, F12 within 15 s | looking at the chest, the Shift hint at the bottom; in the chat the message of the "take new" just done |
 | `album-chest-3` | — | the guide, Gestures: third | the album; right click into the air | the same page, the new pieces in place |
 | `album-level` | — | the guide, Collections | an empty ore crystals album; right click into the air | the window with the choice of a level |
-| `wantlist` | 7 | the guide, Collections | a want list of ore crystals at "Each ore in each rock"; right click into the air | the want list's window, lines that say "any rock" |
+| `wantlist` | 7 | the guide, Collections | a want list of ore crystals at "The richest of each ore" (its lines are "any rock"; "Each ore in each rock" names one rock in every line); right click into the air | the want list's window, its slots showing the crystals of each line in turn (no tooltip) |
 | `butterflies-family` | — | the guide, Collections: first of the butterflies' pair | the butterflies album | "By family" |
 | `ledger-intake` | 8 | the guide, Gestures | the ledger's intake list, the ledger in the off-hand; right click into the air | the list's window (tapestries) |
 | `materials` | 9 | the guide | the bill of materials' intake list, the book in the off-hand; right click into the air | the list's window with counts (planks, resin) |
 | `first-ledger` | 10 | the guide, Getting started | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid; F12 after the chat is gone (15 s: the game mode messages come after `.clearchat`) | the inventory, the first ledger's recipe in the grid and the ledger as the result |
 
 `album-window` of 0.1 is gone: the hero is `title`, the album's window is shown by the carousel. The props, the macros and
-the script for this list are made (R3a of `docs/plans/2026-11-04-release-0.2.md`); the props and the real camera points
-follow in R3a-2 (until then the points in the macros are drafts taken from 0.1).
+the script for this list are made (R3a of `docs/plans/2026-11-04-release-0.2.md`), the camera points taken in the
+studio of 0.2 (19.11.2026).
 
 **Macros by camera, not by shot** (decided 18.11.2026): the shots share one camera point, so three macros do for 14 shots,
 and the book in the hand says which shot it is. **Alt+1** the common point (`11-shot-point.json`: `title`, `collection-*`,
@@ -150,10 +164,13 @@ centres the window. A container's window is placed by its block, not by this lis
 
 - Every shot keeps its windows on "auto" (centred), so `en` and `uk` frames match, except `title`: there the album's
   window is on the left and the tapestry wall on the right (a centred window covers the wall).
-- All our books share one dialog name, `curiocatalogue-ledger` (the lists: `curiocatalogue-invoice`), so the position
-  for `title` would move `album-window` too. It is kept in `tools/studio/dialog-positions.json` and written by
-  `tools/screenshots.ps1 -Action Prepare`; `title` is shot first, then "auto" in the album window's ☰ menu puts it back
-  in the centre for the rest of the run.
+- The album's window has its own dialog name, `curiocatalogue-album` (since 0.2; the ledger and the bill of materials:
+  `curiocatalogue-ledger`, the lists: `curiocatalogue-invoice`), so the position for `title` moves every album shot. It
+  is kept in `tools/studio/dialog-positions.json` (78, 52: the album's window is 975 px high at GUI scale 1.0, so its
+  top stays where "auto" puts it) and written by `tools/screenshots.ps1 -Action Prepare`; `title` is shot first, then
+  "auto" in the album window's ☰ menu puts it back in the centre for the rest of the run.
+- The stored X and Y are the window's top left corner in pixels divided by the GUI scale (vsapi
+  `GuiElementDialogTitleBar.cs`, 1.22.7).
 - The inventory (`inventory-backpack`) opens on the right on "auto"; for `first-ledger` it is dragged to the centre, and
   that position is in the same file. The inventory is in no other shot, so it may stay.
 - "auto" in the ☰ menu writes `null` for the window in `dialogPositions`.

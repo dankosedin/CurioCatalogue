@@ -105,6 +105,8 @@
   "curiocatalogue:ledgerwindow-info": "Sheets: {0} of {1} · Entries: {2} (limit {3})",
   "curiocatalogue:album-name": "Album: {0}",
   "curiocatalogue:collection-tapestries": "tapestries",
+  "curiocatalogue:tapestries-layout-pictures": "By picture",
+  "curiocatalogue:tapestries-layout-bysize": "By size",
   "curiocatalogue:tapestries-progress": "Pieces {0} of {1} · whole pictures {2} of {3}",
   "curiocatalogue:tapestries-section-2x1-1": "left half",
   "curiocatalogue:tapestries-section-2x1-2": "right half",

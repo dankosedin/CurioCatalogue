@@ -140,7 +140,7 @@ public static class CollectionDefinitionReader
             : new DimensionDef(code, values, Text(o, "nameKey", errors, required: false), Text(o, "icon", errors, required: false),
                 Text(o, "anyKey", errors, required: false), Text(o, "shortNameKey", errors, required: false),
                 TextMap(o, "icons", $"dimension '{code}'", errors), Text(o, "from", errors, required: false),
-                ListMap(o, "map", $"dimension '{code}'", errors));
+                ListMap(o, "map", $"dimension '{code}'", errors), Flag(o, "tabs", errors));
     }
 
     /// <summary>An optional object of lists of texts (a derived dimension's <c>map</c>, value → its source values); null when absent.</summary>

@@ -114,6 +114,23 @@ public class VanillaContentTests(GameServerFixture server) : BookTestBase(server
     }
 
     [Fact]
+    public void The_tapestries_by_size_are_seven_tabs_in_the_order_of_the_pieces_count_with_no_warning_of_a_size_the_game_has()
+    {
+        // R7: the sizes of vanilla 1.22.7 and how many pictures each has (modding.md, Vanilla content we rely on); a game update
+        // with a new size is caught here, and a size of the definition's list the game lacks too.
+        int mark = game.LogMark();
+        var seen = game.OnMain(() =>
+        {
+            var level = Mod.Collections.Defined("tapestries")!.Levels.Single();
+            var layout = level.Layouts.Single(l => l.Id == "bysize");
+            return level.Groups(layout).GroupBy(g => g.Values[0]).Select(t => $"{t.Key}:{t.Count()}").ToList();
+        });
+
+        Assert.Equal(["1x1:1", "2x1:2", "1x2:11", "3x1:6", "1x3:1", "2x2:9", "4x1:1"], seen);
+        Assert.DoesNotContain(game.LogSince(mark), l => l.Text.Contains("Dimension 'size'"));
+    }
+
+    [Fact]
     public void Every_tapestry_piece_has_the_flat_image_the_album_draws()
     {
         // The album draws a piece's own texture (Member.FlatTexture), the one the game puts on the wall (vssurvivalmod

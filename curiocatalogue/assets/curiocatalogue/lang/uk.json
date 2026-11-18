@@ -105,6 +105,8 @@
   "curiocatalogue:ledgerwindow-info": "Аркуші: {0} з {1} · Записи: {2} (ліміт {3})",
   "curiocatalogue:album-name": "Альбом: {0}",
   "curiocatalogue:collection-tapestries": "гобелени",
+  "curiocatalogue:tapestries-layout-pictures": "За картинами",
+  "curiocatalogue:tapestries-layout-bysize": "За розміром",
   "curiocatalogue:tapestries-progress": "Шматків {0} з {1} · цілих малюнків {2} з {3}",
   "curiocatalogue:tapestries-section-2x1-1": "ліва половина",
   "curiocatalogue:tapestries-section-2x1-2": "права половина",

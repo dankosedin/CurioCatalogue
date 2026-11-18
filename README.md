@@ -1,3 +1,4 @@
+| `tabs` | no | `true`: the values make tabs when this is the first dimension of a layout's `groupBy`, though they have no `nameKey` (the tapestries' `size`, whose tabs are named by the value, "3×1"). A dimension with a `nameKey` makes tabs anyway. |
 # Curio Catalogue
 
 A Vintage Story mod about collecting and keeping account of things, in the spirit of an old counting house.

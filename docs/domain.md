@@ -1,4 +1,4 @@
-# Domain: terms and mechanics
+ `tapestries` | a tapestry piece | one; two layouts, `pictures` and `bysize` (a tab per size, 1×1 … 4×1) |# Domain: terms and mechanics
 
 What the mod's things are called and how they behave, as built in 0.1.0. Why the mod exists and for whom: `DESIGN.md`.
 How it is built: `docs/architecture.md`.

@@ -182,7 +182,7 @@ public sealed class AlbumPages
         // the butterflies' species looked right so).
         int? centre = layout.Arrange is Arrangement.Shape ? metrics.Cell : null;
 
-        DimensionDef? tabDim = layout.GroupBy.Count > 0 && dims[layout.GroupBy[0]].NameKey != null ? dims[layout.GroupBy[0]] : null;
+        DimensionDef? tabDim = layout.GroupBy.Count > 0 && dims[layout.GroupBy[0]] is { NameKey: not null } or { Tabs: true } ? dims[layout.GroupBy[0]] : null;
         string? TabOf(MemberGroup g) => tabDim == null ? null : g.Values[0];
 
         // Tabs only when everything does not fit one page as it is.

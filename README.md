@@ -2,7 +2,7 @@
 
 A Vintage Story mod about collecting and keeping account of things, in the spirit of an old counting house.
 
-> **Early development.** This is 0.1.1, still a minimal version of the mod (an MVP). **Back up your world** before installing
+> **Early development.** This is 0.2.0: the mod is young and still changing. **Back up your world** before installing
 > it or a new version of it.
 
 ![The album window: 6 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.en.png)

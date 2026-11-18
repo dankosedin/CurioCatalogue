@@ -22,27 +22,59 @@ Contents: [Getting started](#getting-started), [Collections](#collections), [Ges
 4. **Look.** Right click into the air opens the album as pages: every picture with its pieces in place, the ones you have
    and the missing ones as dim silhouettes. Turn the pages with the buttons, or pick a group on its tab; a search lights the
    matches. Under the title: the album's name (click the pencil to change it), a bar with how much is collected, and the sheets
-   left for want lists. The **Make a want list** button is in the row of controls.
+   left for want lists. The **Make a want list** button is in the row of controls. An album of ore crystals or seashells first
+   asks for a [level](#levels).
 
 The in-game handbook has a Curio Catalogue guide and a page for every book.
 
 ## Collections
 
-An album collects one collection, chosen by the piece it is made from. Where a collection has levels, you choose one in the
-album window while the album is empty; the first piece taken fixes it, and "Start over" frees it.
+An album collects one collection, chosen by the piece it is made from.
 
-| Collection | Made from | Levels |
-|---|---|---|
-| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures |
-| Ore crystals | an ore crystal | the richest crystal of each ore (16); each ore in each rock (117); every crystal (349) |
-| Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
-| Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
+| Collection | Made from | Levels | Shown |
+|---|---|---|---|
+| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures | picture by picture |
+| Ore crystals | an ore crystal | *The richest of each ore* (16), *Each ore in each rock* (117), *Every crystal* (349) | by ore or by rock |
+| Seashells | a seashell | *Every type* (7), *Every type in every colour* (42) | one table |
+| Butterflies | a dead butterfly | one: all 169 | by family or by rarity |
 
-- A want list says what is missing, not one item: where several items will do (a seashell of any colour, a crystal in any rock)
-  it says "any colour" or "any rock" and takes whichever there is room for. Each line names what is missing by what it is
-  ("Ambush, left third", "Native copper, basalt"), and so does the album's tooltip over a cell.
-- Butterflies on shelves, in display cases and in display mods are not read yet: take them into a chest first. The same holds for
-  tapestries on a wall.
+### Levels
+
+A level is how much of the collection the album asks for. A new album of ore crystals or seashells has none yet: its window
+says "Choose a level to start collecting", and until you choose one in the level dropdown, the album takes nothing and makes
+no want list. The first piece taken fixes the level; to choose another, press **Start over**, which makes everything missing
+again.
+
+- *The richest of each ore:* one crystal of each ore, of its richest grade, from any rock.
+- *Each ore in each rock:* each ore in every rock it is found in, of its richest grade; one table of ores by rocks.
+- *Every crystal:* every grade of each ore in each rock.
+- *Every type:* one shell of each type, in any colour.
+- *Every type in every colour:* one table of types by colours. Seafoam and turquoise, the game's rare colours, have a small
+  golden corner and "Rare colour" in the tooltip.
+
+### Layouts
+
+Where a collection can be shown in more than one way, the layout dropdown switches the view at any time; what is collected
+stays the same.
+
+- Ore crystals at *Every crystal*: **by ore**, a table of grades by rocks for each ore, or **by rock**, a table of grades by ores
+  for each rock.
+- Butterflies: **by family**, seven tabs (the moths as one) with a frame for each of the 109 species, headed by its Latin name,
+  or **by rarity**, six tabs by how often the game spawns them, from legendary to common.
+
+The tables are headed by icons: an ore by its nugget, a grade by a round yellow mark that grows and brightens with it, a rock
+by its stone, a shell colour by a round swatch. Hover over one for its name. The richest grade is the top row; a blank place
+in a table is a crystal the game never generates.
+
+### Names and "any"
+
+The album's tooltip over a cell and every line of a want list name what is missing by what it is: "Ambush, left third" for a
+tapestry piece, "Native copper, bountiful, basalt" for a crystal; butterflies keep the game's own names. Where several items
+will do, the name says so ("Native copper, any rock", "Scallop, any colour"); the cell shows those items in turn, and the album
+or the want list takes whichever there is room for.
+
+Butterflies on shelves, in display cases and in display mods are not read yet: take them into a chest first. The same holds for
+tapestries on a wall.
 
 ## Gestures
 

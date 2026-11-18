@@ -79,6 +79,7 @@ members, the resolver, the packet and the recipe of a disabled collection are in
   code or an SVG by its path ending in `.svg`, drawn in the file's own colours, a table's heading drawn as it and its name on hover; `icons`: value → icon
   for the values the template does not fit, or alone a whole table (L2b of the album polish plan), `anyKey`: a phrase in lower case for what a member of several items leaves
 free, "any colour"; `shortNameKey`: a shorter name of a value for a table heading with little room, the full name stays the heading's tooltip;
+`tabs`: the values make tabs as the first of a layout's `groupBy` though they have no `nameKey` (R7, the tapestries' size);
 `from` and `map`: a derived dimension, a value per value of an earlier dimension by a table, value → its source values, below),
 `levels` (`id`, `keep`, `drop`: dimension → `"any"` /
   `"max"`, `nameKey`, `progressKey`: the whole line of an album's progress at the level, `{0}` collected, `{1}` of all, `{2}` groups

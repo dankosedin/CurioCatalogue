@@ -33,9 +33,11 @@ namespace CurioCatalogue.Core;
 /// replaced. Null for a dimension the source gives.</param>
 /// <param name="Map">A derived dimension's table: value → the source values that give it (<c>danaus-plexippus</c> → <c>[monarch]</c>).
 /// A source value in no entry is its own value here, after the listed ones, with a warning; in two entries, the definition is refused.</param>
+/// <param name="Tabs">The values make tabs when this is the first dimension of a layout's <c>groupBy</c>, though they have no <see cref="NameKey"/>
+/// (a tapestry's <c>size</c>, named by the adapters from the value itself); a dimension with a <see cref="NameKey"/> makes tabs anyway.</param>
 public sealed record DimensionDef(string Code, IReadOnlyList<string> Values, string? NameKey = null, string? Icon = null,
     string? AnyKey = null, string? ShortNameKey = null, IReadOnlyDictionary<string, string>? Icons = null,
-    string? From = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? Map = null)
+    string? From = null, IReadOnlyDictionary<string, IReadOnlyList<string>>? Map = null, bool Tabs = false)
 {
     public const string ValuePlaceholder = "{value}";
 

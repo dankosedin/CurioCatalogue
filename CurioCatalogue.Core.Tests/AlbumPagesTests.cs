@@ -69,6 +69,39 @@ public class AlbumPagesTests
         Assert.Equal((salvation.X, salvation.Y + 15), At(salvation, "salvation21"));
     }
 
+    // --- By size (R7): a dimension with no name key makes tabs when it says so ---
+
+    private static DefinedCollection BySize(bool tabs) => Built(
+        new CollectionDefinition("tapestries",
+            [new DimensionDef("picture", []), new DimensionDef("piece", []), new DimensionDef("size", ["1x1", "3x1", "2x2"], Tabs: tabs)],
+            [new LevelDef("pieces", ["piece"], new Dictionary<string, Drop> { ["picture"] = Drop.Any, ["size"] = Drop.Any },
+                [new LayoutDef("bysize", ["size", "picture"], new Arrangement.Shape())])],
+            [], []),
+        [
+            Sized("ambush1", "ambush", 1, "3x1"), Sized("ambush2", "ambush", 2, "3x1"), Sized("ambush3", "ambush", 3, "3x1"),
+            Sized("salvation", "salvation", 1, "2x2"), Sized("notice", "notice", 1, "1x1"),
+        ]);
+
+    private static SourcePoint Sized(string piece, string picture, int x, string size) =>
+        new(piece, V(("picture", picture), ("piece", piece), ("size", size)), new ItemKey(CollectibleKind.Block, "game:tapestry-north", piece), piece,
+            V(("x", x.ToString()), ("y", "1")));
+
+    [Fact]
+    public void A_dimension_with_tabs_makes_tabs_without_a_name_key_in_the_order_of_its_values()
+    {
+        var pages = Pages(BySize(tabs: true), "pieces", "bysize", Metrics(25, 15));
+
+        Assert.Equal("size", pages.TabDimension!.Code);
+        Assert.Equal(["1x1", "3x1", "2x2"], pages.Tabs.Select(t => t.Value).ToArray());
+        Assert.Equal(1, pages.HeadingFrom);
+    }
+
+    [Fact]
+    public void Without_tabs_a_dimension_with_no_name_key_makes_none()
+    {
+        Assert.Empty(Pages(BySize(tabs: false), "pieces", "bysize", Metrics(25, 15)).Tabs);
+    }
+
     // --- A level with no members (the config's Exclude: ["*"]; R1, T1/G2.3) ---
 
     [Fact]

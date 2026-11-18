@@ -5,16 +5,18 @@
   "dimensions": [
     { "code": "picture", "values": [] },
     { "code": "piece", "values": [], "nameKey": "game:tapestry-{value}" },
-    { "code": "section", "values": [], "nameKey": "curiocatalogue:tapestries-section-{value}" }
+    { "code": "section", "values": [], "nameKey": "curiocatalogue:tapestries-section-{value}" },
+    { "code": "size", "values": ["1x1", "2x1", "1x2", "3x1", "1x3", "2x2", "4x1"], "tabs": true }
   ],
   "levels": [
     {
       "id": "pieces",
       "progressKey": "curiocatalogue:tapestries-progress",
       "keep": ["piece"],
-      "drop": { "picture": "any", "section": "any" },
+      "drop": { "picture": "any", "section": "any", "size": "any" },
       "layouts": [
-        { "id": "pictures", "groupBy": ["picture"], "arrange": { "kind": "shape" } }
+        { "id": "pictures", "icon": "curiocatalogue:textures/icons/layout-pictures.svg", "nameKey": "curiocatalogue:tapestries-layout-pictures", "groupBy": ["picture"], "arrange": { "kind": "shape" } },
+        { "id": "bysize", "icon": "curiocatalogue:textures/icons/layout-bysize.svg", "nameKey": "curiocatalogue:tapestries-layout-bysize", "groupBy": ["size", "picture"], "arrange": { "kind": "shape" } }
       ]
     }
   ],

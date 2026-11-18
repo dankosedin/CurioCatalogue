@@ -7,8 +7,8 @@ namespace CurioCatalogue.Core;
 /// <summary>A tapestry piece (the stack's "type"), the picture it belongs to and its place in it (1-based; the digits of a
 /// two-dimensional name are the row, then the column). <paramref name="Section"/> names the place for words, the same for every
 /// picture of a size: the size, then the piece's number in it (<c>3x1-2</c>, the middle third; <c>2x2-21</c>, the bottom left
-/// quarter); <c>1x1</c> for a picture of one piece.</summary>
-public sealed record TapestryPiece(string Piece, string Picture, int X = 1, int Y = 1, string Section = TapestryPiece.Whole)
+/// quarter); <c>1x1</c> for a picture of one piece. <paramref name="Size"/> is the picture's <c>WxH</c> as the block gives it (<c>3x1</c>).</summary>
+public sealed record TapestryPiece(string Piece, string Picture, int X = 1, int Y = 1, string Section = TapestryPiece.Whole, string Size = TapestryPiece.Whole)
 {
     public const string Whole = "1x1";
 }
@@ -32,13 +32,13 @@ public static class TapestryPieces
             if (w == 1 && h == 1) pieces.Add(new TapestryPiece(name, name));
             else if (w == 1 || h == 1)
                 for (int n = 1; n <= Math.Max(w, h); n++)
-                    pieces.Add(new TapestryPiece(name + n, name, w == 1 ? 1 : n, w == 1 ? n : 1, $"{size}-{n}"));
+                    pieces.Add(new TapestryPiece(name + n, name, w == 1 ? 1 : n, w == 1 ? n : 1, $"{size}-{n}", size));
             else
                 // The digits are row then column ("yx"): 21 is the bottom left quarter (vssurvivalmod BlockTapestry.cs:148#neighbours2x2 and
                 // GetWordedSection, "Section: Bottom Left Quarter").
                 for (int y = 1; y <= h; y++)
                 for (int x = 1; x <= w; x++)
-                    pieces.Add(new TapestryPiece($"{name}{y}{x}", name, x, y, $"{size}-{y}{x}"));
+                    pieces.Add(new TapestryPiece($"{name}{y}{x}", name, x, y, $"{size}-{y}{x}", size));
         }
         return pieces;
     }

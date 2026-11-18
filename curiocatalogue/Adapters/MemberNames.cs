@@ -21,7 +21,12 @@ public static class MemberNames
     /// another mod's collection of tapestries is named alike. The one function for all of them (R1, G3.10).
     /// </summary>
     public static string ValueName(CollectionSource? source, DimensionDef dimension, string value) =>
-        Named(source, dimension, value) ?? value;
+        Named(source, dimension, value) ?? SizeName(source, dimension, value) ?? value;
+
+    /// <summary>A tapestry size as the game writes it with the multiplication sign (<c>3x1</c> is "3×1"), for a tab or a heading: no
+    /// lang key per size, so the size of another mod's picture is named too (R7). Not a part of a member's name.</summary>
+    private static string? SizeName(CollectionSource? source, DimensionDef dimension, string value) =>
+        source is CollectionSource.Tapestry && dimension.Code == "size" ? value.Replace('x', '×') : null;
 
     /// <summary>As <see cref="ValueName"/>, but null when nothing names the value (no key, or the language does not translate it).</summary>
     private static string? Named(CollectionSource? source, DimensionDef dimension, string value) =>

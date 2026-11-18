@@ -1,0 +1,22 @@
+{
+  "Index": 11,
+  "Code": "shot-point",
+  "Name": "Shot: the common camera point",
+  "Commands": [
+    ".resolution 1080p",
+    ".cf showMinimapHud false",
+    ".cf showCoordinateHud false",
+    ".cf showBlockInfoHud false",
+    ".cam load 1,51202401,400,51201990,3192,1433,0,51202643,400,51202240,3492,7864,0",
+    ".cam goto 0",
+    ".clearchat"
+  ],
+  "KeyCombination": {
+    "KeyCode": 110,
+    "SecondKeyCode": null,
+    "Ctrl": false,
+    "Alt": true,
+    "Shift": false,
+    "OnKeyUp": false
+  }
+}

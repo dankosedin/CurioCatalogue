@@ -119,8 +119,14 @@ The shot list of 0.2 (decided 13.11.2026, G5 of `docs/plans/2026-11-04-mod-descr
 | `first-ledger` | 10 | the guide, Getting started | survival mode (the creative inventory has no grid); E; the ingredients into the 3×3 grid; F12 after the chat is gone (15 s: the game mode messages come after `.clearchat`) | the inventory, the first ledger's recipe in the grid and the ledger as the result |
 
 `album-window` of 0.1 is gone: the hero is `title`, the album's window is shown by the carousel. The props, the macros and
-the script for this list are made before the shooting (R3 of `docs/plans/2026-11-04-release-0.2.md`); until then the macros
-in `tools/studio/macros/` are the seven shots of 0.1 (Alt+1 … Alt+7, a camera point each).
+the script for this list are made (R3a of `docs/plans/2026-11-04-release-0.2.md`); the props and the real camera points
+follow in R3a-2 (until then the points in the macros are drafts taken from 0.1).
+
+**Macros by camera, not by shot** (decided 18.11.2026): the shots share one camera point, so three macros do for 14 shots,
+and the book in the hand says which shot it is. **Alt+1** the common point (`11-shot-point.json`: `title`, `collection-*`,
+`album-chest-1/3`, `album-level`, `wantlist`, `butterflies-family`, `ledger-intake`, `materials`), **Alt+2** the chest's
+point (`12-shot-chest.json`: `album-chest-2`), **Alt+3** the first ledger's (`13-shot-first-ledger.json`: the common
+point, in survival). The list of points in every macro is the same: 0 the common point, 1 the chest's.
 
 Alt+0 is the rebuild, Alt+9 the point-finding macro. Ctrl+1 … Ctrl+4 are taken by the game (the bag slots of the
 inventory). On the author's machine the macros that give tapestry pieces are on Ctrl+Shift+1 … Ctrl+Shift+9.
@@ -209,16 +215,18 @@ centres the window. A container's window is placed by its block, not by this lis
 person are in `tools/studio/README.md`; here, why the script works as it does:
 
 - **One run per language, three commands:** `Prepare` before the game (macros, the studio, the window positions, the
-  client's language), the seven shots in game, `Collect` after it. Rejected (03.11.2026): a `Collect` after every frame
+  client's language; it removes the `*-shot-*.json` macros of an older list from the data folder, or their keys would
+  fight the new ones), the 14 shots in game, `Collect` after it. Rejected (03.11.2026): a `Collect` after every frame
   and closing the client before `title` to write its window position (the author went back and forth between the game
   and the terminal).
-- **`Collect` takes the seven newest frames** of `Pictures\Vintagestory` in the order of the list, so the run takes
-  exactly seven frames in that order; a frame retaken at once keeps the order. It checks all seven before writing any.
+- **`Collect` takes the 14 newest frames** of `Pictures\Vintagestory` in the order of the list, so the run takes
+  exactly 14 frames in that order; a frame retaken at once keeps the order. It checks all 14 before writing any.
 - **Both window positions are written before the game:** `title` comes first, then the album's window goes back to
   "auto" in its ☰ menu, and the inventory (`first-ledger`) is in no other shot.
 - **The language is written into `clientsettings.json`** (`stringSettings.language`), so the client starts in it;
   switching in game restarts the client. To check on the first `uk` run.
 - `-Action Check` lists missing shots and files over the limit.
 
-**Format and ribbon (03.11.2026):** `title` is a JPEG (0.5 MB; as PNG with the ribbon it is 2.1 MB, over the limit), the other
-shots are PNG (1.4–1.9 MB). The ribbon (text from `tools/studio/ribbons.json`, decided in P5): `-Corner BottomRight -Angle 25`, font Georgia; the slope follows the floor boards.
+**Format and ribbon (03.11.2026, widened 18.11.2026):** `title` is a JPEG (0.5 MB; as PNG with the ribbon it is 2.1 MB, over
+the limit), and so are the four `collection-*` shots of the carousel (a full album window is near the limit as PNG); the
+other shots are PNG (1.4–1.9 MB). `Check` reports a file over 2 MB: that shot goes into `jpegShots` in the script. The ribbon (text from `tools/studio/ribbons.json`, decided in P5): `-Corner BottomRight -Angle 25`, font Georgia; the slope follows the floor boards.

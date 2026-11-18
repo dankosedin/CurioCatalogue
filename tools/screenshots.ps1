@@ -3,13 +3,13 @@
 # Run from the repo root in PowerShell. Windows PowerShell 5.1 is enough (System.Drawing).
 #
 #   .\tools\screenshots.ps1 -Action Prepare -Lang uk         (the client must be closed)
-#       copies the macros (tools\studio\macros) and the studio (tools\studio\studio.json) into the data folder,
+#       removes the shot macros of an older list from the data folder, copies the macros (tools\studio\macros) and the studio (tools\studio\studio.json) into the data folder,
 #       writes the window positions of tools\studio\dialog-positions.json and the client's language into
 #       clientsettings.json (backup: clientsettings.json.bak)
 #   .\tools\screenshots.ps1 -Action Collect -Lang uk
-#       takes the newest seven frames of Pictures\Vintagestory, in the order of the shot list (title first), checks
-#       1920x1080, draws the ribbon (the text of the language from tools\studio\ribbons.json; -Ribbon overrides it) on title and writes docs\images\<shot>.<lang>.<png|jpg>; title is a JPEG, the others
-#       PNG (decided in P3: with the ribbon a PNG title is over 2 MB). Prints which frame went to which shot.
+#       takes the newest 14 frames of Pictures\Vintagestory, in the order of the shot list (title first), checks
+#       1920x1080, draws the ribbon (the text of the language from tools\studio\ribbons.json; -Ribbon overrides it) on title and writes docs\images\<shot>.<lang>.<png|jpg>; title and the collection-* shots are JPEG, the others
+#       PNG (a full scene as PNG is near or over 2 MB; title with the ribbon was over, P3). Prints which frame went to which shot.
 #   .\tools\screenshots.ps1 -Action Check
 #       checks every docs\images\<shot>.<lang>.<ext>: 1920x1080, at most 2 MB, both languages present
 #
@@ -33,8 +33,12 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-# The order of the shot list in docs/screenshots.md and of the keys Alt+1 ... Alt+7: Collect relies on it.
-$shots = 'title', 'album-window', 'album-chest', 'wantlist', 'ledger-intake', 'materials', 'first-ledger'
+# The order of the shot list in docs/screenshots.md (the shooting order of tools/studio/README.md): Collect relies on it.
+$shots = 'title', 'collection-tapestries', 'collection-crystals', 'collection-seashells', 'collection-butterflies',
+    'album-chest-1', 'album-chest-2', 'album-chest-3', 'album-level', 'wantlist', 'butterflies-family',
+    'ledger-intake', 'materials', 'first-ledger'
+# Shots saved as JPEG (a full scene as PNG is near the 2 MB limit); the rest are PNG.
+$jpegShots = 'title', 'collection-tapestries', 'collection-crystals', 'collection-seashells', 'collection-butterflies'
 $langs = 'en', 'uk'
 $maxBytes = 2MB
 $images = if ($Images) { $Images } else { Join-Path $repo 'docs\images' }
@@ -103,10 +107,20 @@ function Set-ClientSettings([string]$language) {
     [IO.File]::WriteAllText($settings, $new, (New-Object Text.UTF8Encoding($false)))
 }
 
+function Remove-StaleMacros([string]$to) {
+    # A macro of an older shot list (<n>-shot-*.json) that the source no longer has would keep its key and fight the new one.
+    if (-not (Test-Path $to)) { return }
+    $current = @(Get-ChildItem (Join-Path $repo 'tools\studio\macros') -Filter '*.json' | ForEach-Object { $_.Name })
+    foreach ($f in Get-ChildItem $to -Filter '*-shot-*.json') {
+        if ($current -notcontains $f.Name) { Remove-Item $f.FullName; Write-Host "Removed stale macro $($f.Name)" }
+    }
+}
+
 function Invoke-Prepare {
     if (-not $Lang) { throw '-Lang is required (en or uk)' }
     Assert-ClientClosed
     $dataDir = Get-DataDir
+    Remove-StaleMacros (Join-Path $dataDir 'Macros')
     Copy-Files (Join-Path $repo 'tools\studio\macros') '*.json' (Join-Path $dataDir 'Macros')
     Copy-Files (Join-Path $repo 'tools\studio') 'studio.json' (Join-Path $dataDir 'WorldEdit')
     Set-ClientSettings $Lang
@@ -198,8 +212,8 @@ function Invoke-Collect {
         $raw = [Drawing.Image]::FromFile($src.FullName)
         $bmp = New-Object Drawing.Bitmap 1920, 1080, ([Drawing.Imaging.PixelFormat]::Format24bppRgb)
         $g = [Drawing.Graphics]::FromImage($bmp); $g.DrawImage($raw, 0, 0, 1920, 1080); $g.Dispose(); $raw.Dispose()
-        $jpeg = $shot -eq 'title'
-        if ($jpeg) { Add-Ribbon $bmp $Ribbon $Corner $Font $Angle }
+        $jpeg = $jpegShots -contains $shot
+        if ($shot -eq 'title') { Add-Ribbon $bmp $Ribbon $Corner $Font $Angle }
         $ext = if ($jpeg) { 'jpg' } else { 'png' }
         $out = Join-Path $images "$shot.$Lang.$ext"
         Save-Frame $bmp $out $jpeg

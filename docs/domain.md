@@ -1,4 +1,4 @@
- `tapestries` | a tapestry piece | one; two layouts, `pictures` and `bysize` (a tab per size, 1×1 … 4×1) |# Domain: terms and mechanics
+# Domain: terms and mechanics
 
 What the mod's things are called and how they behave, as built in 0.1.0. Why the mod exists and for whom: `DESIGN.md`.
 How it is built: `docs/architecture.md`.
@@ -149,7 +149,7 @@ A sheet is vanilla parchment; there is no separate blank item.
 
 | Id | Member | Levels (ids are stored in albums: not to be renamed) | Album recipe |
 |---|---|---|---|
-| `tapestries` | a tapestry piece | one | `ledger-album-tapestries` |
+| `tapestries` | a tapestry piece | one; two layouts, `pictures` and `bysize` (a tab per size, 1×1 … 4×1) | `ledger-album-tapestries` |
 | `crystals` | an ore crystal (`crystalizedore-{grade}-{ore}-{rock}`; 398 registered, 58 combinations excluded as never generated) | `richest` 16 (the richest grade of each ore), `rocks` 117 (ore × rock at its richest grade), `all` 349 | `ledger-album-crystals` |
 | `seashells` | a seashell (`seashell-{type}-{color}`) | `types` 7 (any colour), `colors` 42 (one table); seafoam and turquoise carry `rarity: rare` as data, marked by a golden corner (`marks`) | `ledger-album-seashells` |
 | `butterflies` | a dead butterfly (`butterfly-dead-{type}`; `reedbutterfly` has no item) | `all` 169, one entry each, the game's own names | `ledger-album-butterflies` |

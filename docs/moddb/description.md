@@ -42,7 +42,7 @@ An album collects one collection, chosen by the piece it is made from.
 | Tapestries | a tapestry piece | one: 88 pieces in 31 pictures, shown by picture or by size |
 | Ore crystals | an ore crystal | *The richest of each ore* (16), *Each ore in each rock* (117), *Every crystal* (349) |
 | Seashells | a seashell | *Every type* (7), *Every type in every colour* (42) |
-| Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
+| Butterflies | a dead butterfly | one: all 169 (109 species), shown by family or by rarity |
 
 ::: sequence collections
 

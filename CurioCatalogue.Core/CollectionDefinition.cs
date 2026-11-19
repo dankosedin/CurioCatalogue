@@ -23,7 +23,7 @@ namespace CurioCatalogue.Core;
 /// <param name="Icon">A value's icon, <c>{value}</c> replaced: an item or block code (<c>game:rock-{value}</c>), or an SVG of
 /// ours by its path (<c>curiocatalogue:textures/icons/grade-{value}.svg</c>, <see cref="IsSvg"/>); null when none.</param>
 /// <param name="AnyKey">A lang key for what a member of several items leaves free in this dimension, a phrase in lower case
-/// ("any rock", "будь-яка порода"; whole, for the grammar of each language); null when none, and a generic "any of N" is said.</param>
+/// ("any rock", "будь-якої породи"; whole, for the grammar of each language); null when none, and a generic "any of N" is said.</param>
 /// <param name="ShortNameKey">A lang key for a value's short name in a table heading, <c>{value}</c> replaced; null: the <see cref="NameKey"/>.
 /// The full name stays the heading's tooltip.</param>
 /// <param name="Icons">The icons of the values <see cref="Icon"/> does not fit, value → icon in the same forms (a crystal's

@@ -2,22 +2,25 @@
 
 A Vintage Story mod about collecting and keeping account of things, in the spirit of an old counting house.
 
-> **Early development.** This is 0.1.1, still a minimal version of the mod (an MVP). Try it in a test world first.
-> The way books and lists store their data may change in the next two releases, and books and lists made with this
-> version may not carry over.
+> **Early development.** This is 0.2.0: the mod is young and still changing. Books and lists of 0.1 carry over; albums and
+> want lists saved by 0.2 do not open in 0.1.
 >
 > **Back up your world** before installing the mod or a new version of it.
 
-![The album window: 6 of 88 pieces collected, the missing ones in a grid](../images/album-window.en.png)
+![The album of tapestries: 18 of 88 pieces collected, the missing ones dimmed](../images/title.en.jpg)
 
 ## What's new
 
-New in 0.2 (a draft: the release plan rewrites it):
+New in 0.2:
 
-- **Four collections, not one:** tapestries, ore crystals, seashells and butterflies; each album collects the one it was made from.
-- **The album is a catalogue of pages:** every picture with its pieces in place, what you have and the missing ones as dim silhouettes.
-- **Albums remember what they collected,** piece by piece; albums of 0.1 are converted when first read, with nothing lost.
+- **Four collections, not one:** tapestries, ore crystals, seashells and butterflies; an album collects the one it was made from.
+- **The album shows the whole collection, as a stamp album does:** every picture with its pieces in place, the missing ones as dim silhouettes; tabs, a search and icons from the game.
+- **Levels:** for ore crystals and seashells you choose how much to collect, from the richest crystal of each ore to every crystal in every rock.
+- **Layouts:** tapestries by picture or by size, crystals by ore or by rock, butterflies by family or by rarity.
 - **Want lists name what is missing** ("Native copper, any rock") and take any item that will do.
+- **Albums of 0.1 are converted** when first read, with nothing lost.
+
+All changes: [the changelog](../../CHANGELOG.md).
 
 ## What's inside
 
@@ -36,9 +39,9 @@ An album collects one collection, chosen by the piece it is made from.
 
 | Collection | Made from | Levels |
 |---|---|---|
-| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures |
-| Ore crystals | an ore crystal | the richest crystal of each ore (16); each ore in each rock (117); every crystal (349) |
-| Seashells | a seashell | every type in any colour (7); every type in every colour (42) |
+| Tapestries | a tapestry piece | one: 88 pieces in 31 pictures, shown by picture or by size |
+| Ore crystals | an ore crystal | *The richest of each ore* (16), *Each ore in each rock* (117), *Every crystal* (349) |
+| Seashells | a seashell | *Every type* (7), *Every type in every colour* (42) |
 | Butterflies | a dead butterfly | one: all 169, shown by family and species (109) or by rarity |
 
 ::: sequence collections

@@ -1,12 +1,11 @@
-| `tabs` | no | `true`: the values make tabs when this is the first dimension of a layout's `groupBy`, though they have no `nameKey` (the tapestries' `size`, whose tabs are named by the value, "3×1"). A dimension with a `nameKey` makes tabs anyway. |
 # Curio Catalogue
 
 A Vintage Story mod about collecting and keeping account of things, in the spirit of an old counting house.
 
-> **Early development.** This is 0.1.1, still a minimal version of the mod (an MVP). **Back up your world** before installing
+> **Early development.** This is 0.2.0: the mod is young and still changing. **Back up your world** before installing
 > it or a new version of it.
 
-![The album window: 6 of 88 pieces collected, the missing ones in a grid](docs/images/album-window.en.png)
+![The album of tapestries: 18 of 88 pieces collected, the missing ones dimmed](docs/images/title.en.jpg)
 
 ## For players
 
@@ -92,6 +91,7 @@ A collection whose source finds nothing (no such items: your mod's collection wi
 | `icon` | no | A value's icon with `{value}`: an item or block code (`game:nugget-{value}`) or an SVG by its path (`yourmod:textures/icons/shell-{value}.svg`). |
 | `icons` | no | Value → icon, for the values `icon` does not fit; alone it makes a whole table's headings. |
 | `from`, `map` | no | A derived dimension: `from` names an earlier dimension, `map` gives each value its source values (value → list). For grouping only; never part of a member's name. A level that keeps the source dimension says nothing of the derived one (it follows); a level that keeps neither must still drop it. A source value in two entries is refused; one the `map` lacks is its own value, with a warning. |
+| `tabs` | no | `true`: the values make tabs when this is the first dimension of a layout's `groupBy`, though they have no `nameKey` (the tapestries' `size`, whose tabs are named by the value, "3×1"). A dimension with a `nameKey` makes tabs anyway. |
 
 An SVG is drawn in its own colours. An icon the game does not have (a removed mod's item, a missing file) is not an error: the
 window shows the name alone.

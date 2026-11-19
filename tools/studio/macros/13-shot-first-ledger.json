@@ -1,0 +1,24 @@
+{
+  "Index": 13,
+  "Code": "shot-first-ledger",
+  "Name": "Shot: first-ledger",
+  "Commands": [
+    ".resolution 1080p",
+    ".cf showMinimapHud false",
+    ".cf showCoordinateHud false",
+    ".cf showBlockInfoHud false",
+    ".cam load 1,51202507,400,51201880,3250,1255,0,51202605,400,51202228,3500,1557,0",
+    "/gamemode creative",
+    ".cam goto 0",
+    "/gamemode survival",
+    ".clearchat"
+  ],
+  "KeyCombination": {
+    "KeyCode": 112,
+    "SecondKeyCode": null,
+    "Ctrl": false,
+    "Alt": true,
+    "Shift": false,
+    "OnKeyUp": false
+  }
+}

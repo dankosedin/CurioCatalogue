@@ -74,7 +74,7 @@ The repository: github.com/dankosedin/CurioCatalogue. Its rulesets enforce the r
       are made from the version: `blob/<ref>/docs/guide/README.md`, `README.md`; the Ukrainian part has its own Guide button only.
     - **"What's inside":** a list of exactly six items, one thing each, in the order of the icons (album, want list, ledger,
       bill of materials, intake list, pick list), then a paragraph; no subsections.
-    - **No HTML** in the description; images and links by paths relative to `docs/moddb/` (`../images/album-chest.en.png`), as
+    - **No HTML** in the description; images and links by paths relative to `docs/moddb/` (`../images/title.en.jpg`), as
       GitHub reads them; screenshots with the language suffix (`*.en.png`, `*.uk.png`).
     - **Sequences** of screenshots (a mechanic in a few frames, a caption under each) are the one extension, a `::: sequence <name>`
       block anywhere in a section: inside it, for each frame, an image in a paragraph of its own, then a caption paragraph

@@ -1,0 +1,22 @@
+{
+  "Index": 12,
+  "Code": "shot-chest",
+  "Name": "Shot: the chest (album-chest-2)",
+  "Commands": [
+    ".resolution 1080p",
+    ".cf showMinimapHud false",
+    ".cf showCoordinateHud false",
+    ".cf showBlockInfoHud false",
+    ".cam load 1,51202507,400,51201880,3250,1255,0,51202605,400,51202228,3500,1557,0",
+    ".cam goto 1",
+    ".clearchat"
+  ],
+  "KeyCombination": {
+    "KeyCode": 111,
+    "SecondKeyCode": null,
+    "Ctrl": false,
+    "Alt": true,
+    "Shift": false,
+    "OnKeyUp": false
+  }
+}

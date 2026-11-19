@@ -15,90 +15,19 @@ playtests and players' feedback.
 
 ## Next
 
-### 0.2: collections
-
-Order decided 04.11.2026: the risky and heavy work first, the tails last. Each item below becomes a plan of its own, planned
-separately when its turn comes. Code review comes after a feature that changes code (as the last step of
-its plan) or once at the end of the release; each plan says which. Butterflies were promised for 0.2 on the ModDB page (29.10.2026).
-
-1. **Backward compatibility, before anything changes the stored data:** [the plan](docs/plans/2026-11-04-backward-compat.md).
-   Golden stacks made by the v0.1.1 code in the test server and read by the server tests in CI; the fixture world for the
-   manual pass (`docs/testing/upgrade-0.1-to-0.2.md`). Each later plan of 0.2 that changes stored data, recipes, item codes,
-   config or lang fills that file's table "Changes in 0.2.0 that need a case".
-   Left by its code review (B6, 04.11.2026), for the capture of 0.2.0:
-   - **One file for the golden format:** the capture's records and id walk (`Golden.cs`) and the reader's (`GoldenStacks.cs`)
-     use only the game's types, so they can be one shared file; decided when the capture is rewritten for 0.2.0 and the format changes.
-   - **The tooltip of every golden stack** built by a test (`GetHeldItemInfo`, as `TooltipTests`): today U3 and U4 check the data
-     the tooltip and the window show, not that they are built from an old item without an error.
-   - **The capture built by CI** (not run): one cached download of the release zip, so that a change to a shared fixture file
-     that breaks the capture shows in the pull request, not at the release.
-2. **Collections designed first:** [the plan](docs/plans/2026-11-04-collections-design.md) (04.11.2026). Ore crystals,
-   seashells and butterflies on paper, the config of mods researched, the cost of reading a book measured; the result is the
-   shape of a collection and the plan of the core (item 3), so that the core is built once.
-3. **The core of collections:** [the plan](docs/plans/2026-11-07-collections-core.md) (07.11.2026). Definitions as assets
-   built by sources, levels, members of several codes, the album storing what it collected, want lists by members, one
-   resolver, the server's `Collections` sent to clients. Fills the upgrade table.
-4. **The collections of 0.2:** [the plan](docs/plans/2026-11-09-vanilla-collections.md) (09.11.2026), in this order, by what
-   they give the core (item 2, Decisions); each a definition asset, its album recipe and its lang, and fills the upgrade table.
-   What each needs (collections design plan, Decisions):
-   - **Ore crystals** (29.10.2026, players on the author's server collect them): `crystalizedore-{grade}-{ore}-{rock}`, source
-     `variants`; three levels (16 / 117 / 349: ore with the richest grade, ore × rock with the richest grade, every combination);
-     the 58 combinations that never generate as the definition's `exclude`; rocks' stones as icons; grade names of our own; the
-     rock shown wherever a missing piece is listed (pieces of two rocks share a name).
-   - **Seashells** (asked on the ModDB page, 30.10.2026): block `seashell-{type}-{color}`, source `variants`; two levels
-     (7: type, any colour; 42: type × colour); the rare colours (seafoam, turquoise) as an attribute rule, shown or not as item 6
-     decides.
-   - **Butterflies** (collected by a player on the author's server; promised for 0.2 on the ModDB page, 29.10.2026):
-     `butterfly-dead-<type>`, 169 types, source `variants` (members from the loaded items: 169, not the entity's 170); one level,
-     no dimensions until grouping by species is decided in item 6; dead only, live ones of other mods would be another
-     collection. Collected butterflies lie on displays more than in chests (Exhibits, Later).
-   - **For the core, when these land** (code review K7, A8): `Member.Fills` and `Member.Shown` are one thing today; a collection where
-     what a member accepts differs from what the album shows (a berry bush: any cutting fills, one is drawn) needs them apart.
-5. **Stamp-album view:** [the plan](docs/plans/2026-11-04-album-view.md) (04.11.2026). Pages by group, collected pieces in place,
-   missing ones as dim silhouettes. Designed before the shape of collections (C7 of item 2), built after the core (item 3).
-6. **Every vanilla collection, polished in the album:** [the plan](docs/plans/2026-11-09-album-polish.md) (09.11.2026). Back to tapestries, ore crystals, seashells and butterflies (last), each one's look
-   in the stamp-album view (grouping, order, names), and its album recipe if it needs a change. Among them:
-   - **Tapestry pieces told apart in lists** (seen 28.10.2026): a want list's tooltip shows "1 × Nightfall (tapestry)" three
-     times, since the pieces of one picture share a name; the album window tells them apart only by the game's "Section" line.
-     Show the piece's place in the picture (e.g. "Nightfall, 2 of 3") wherever we list pieces.
-   - **Album window: width set by the control row, not the cells** (seen 09.11.2026, after V4): the window is as wide as the bottom
-     rows of controls need, which shows with butterflies (a narrow grid under wide controls, a plain look). Add another column of
-     butterflies and spread the controls a little, so the window reads as one clean block; check the other collections too. L6 of the plan.
-   - **Want list window: a line cycles through its items** (asked 09.11.2026, after V3): a line that any of several items fills
-     (a shell of any colour, a crystal of any rock) changes the item shown, as the album's cells do. L7 of the plan.
-   - **Want list window: a grid with no empty slots** (seen 10.11.2026, L6): its grid is the game's, always 10 columns with the
-     last row filled up by empty slots, while the album's cells now spread evenly over their lines with none empty. Whether the
-     want list follows the album (lines spread evenly, no empty slots) or keeps the look of the game's chests. L13 of the plan.
-   - **Tapestries: frames with no light patches** (the author, 11.11.2026): a picture's dark frame stretched over its line and the
-     page, the picture perhaps centred in it. L11 of the plan.
-   - **The in-game guide and the album's handbook text name only tapestries** (seen 09.11.2026, V5): `guide-text` and
-     `handbook-use-album-text` in `lang/*.json` still say "the first collection is tapestries" and describe the album by
-     "pictures"; say there are four collections (en and uk). L8 of the plan.
-   - **A collection's look by its asset alone, for other mods' authors** (the author, 10.11.2026, L2b: we can change code where
-     needed, they cannot). Found: the game's names of tapestry pictures are looked up only for the collection with the id
-     `tapestries` (`AlbumDialog.ValueName`), so another collection of the `tapestry` source shows raw picture codes: tie it to the
-     source kind, not the id. L12 of the plan.
-   - **A part for modders in README** (the author, 10.11.2026; English only, G1 of the description plan): the definition's JSON (now only in `docs/decisions.md`,
-     Collections), that the definition and its patches must reach the client (not `"side": "server"`), icons (`icon`, `icons`,
-     an SVG drawn in its own colours), the album recipe. L14 of the plan.
-   - **Screenshots taken again with the stamp-album view:** [the release plan](docs/plans/2026-11-04-release-0.2.md), R3, by
-     the shot list of [the description plan](docs/plans/2026-11-04-mod-description.md), G5.
-7. **Fixes:** [the plan](docs/plans/2026-11-04-fixes-0.2.md) (04.11.2026). Stale game-source references (and a symbol for
-   every reference), one helper for handing out items (a new list in creative with a full inventory is still lost: accepted), lists out of the creative
-   inventory but still in the handbook (F3, done).
-8. **The release,** two plans (04.11.2026):
-   - [the description plan](docs/plans/2026-11-04-mod-description.md), started early: the ModDB description as a document of
-     its own instead of the READMEs, sequences of screenshots with captions, the shot list of 0.2;
-   - [the release plan](docs/plans/2026-11-04-release-0.2.md), at the end: code review, texts for players, screenshots, the
-     release zip in game (functional and upgrade), a players' round, the release.
-
 ### After 0.2
 
 Proposed (31.10.2026), not decided: 0.3 for invoices and comfort (item 1, the hotkey for the book's window, the server's config
 sent to clients, messages built by the client), then recipes into a bill of materials with books as a sum type.
 
-0. **The golden stacks of 0.2.0, first** (the author, 11.11.2026): captured from the release zip of 0.2.0, with what B6 left for
-   that capture (0.2, item 1: one file for the golden format, the tooltip of every golden stack, the capture built by CI).
+0. **The golden stacks of 0.2.0, first** (the author, 11.11.2026): captured from the release zip of 0.2.0, with what the code review
+   of the backward-compatibility plan (B6, 04.11.2026) left for that capture:
+   - **One file for the golden format:** the capture's records and id walk (`Golden.cs`) and the reader's (`GoldenStacks.cs`)
+     use only the game's types, so they can be one shared file; decided when the capture is rewritten for 0.2.0.
+   - **The tooltip of every golden stack** built by a test (`GetHeldItemInfo`, as `TooltipTests`): today U3 and U4 check the data
+     the tooltip and the window show, not that they are built from an old item without an error.
+   - **The capture built by CI** (not run): one cached download of the release zip, so that a change to a shared fixture file
+     that breaks the capture shows in the pull request, not at the release.
 
 0a. **A refactor by principle 8 before item 3** (code review of 0.2, R1, G7): `AlbumDialog`, `AlbumPageElement`,
    `DefinedCollection`, `AlbumPages` and the helpers of `ItemInvoice` have grown past what is read whole; split them (one job
@@ -300,6 +229,16 @@ sent to clients, messages built by the client), then recipes into a bill of mate
   model up. Would also let the cover colour become an attribute (`docs/architecture.md`, Assets).
 
 ## Done
+
+### 0.2: collections
+
+Released 2026-11-19 (the date of its `CHANGELOG.md` section). Its plans:
+- [backward compatibility](docs/plans/2026-11-04-backward-compat.md) and [the fixes](docs/plans/2026-11-04-fixes-0.2.md);
+- [collections designed](docs/plans/2026-11-04-collections-design.md), [the core](docs/plans/2026-11-07-collections-core.md);
+- [the stamp-album view](docs/plans/2026-11-04-album-view.md), [the vanilla collections](docs/plans/2026-11-09-vanilla-collections.md)
+  (ore crystals, seashells, butterflies) and [their polish](docs/plans/2026-11-09-album-polish.md);
+- [the description](docs/plans/2026-11-04-mod-description.md) and [the release](docs/plans/2026-11-04-release-0.2.md)
+  (code review, texts, screenshots, the in-game pass, the players' round, tapestries by size).
 
 ### 0.1.1: fixes
 

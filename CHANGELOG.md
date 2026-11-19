@@ -2,7 +2,7 @@
 
 What changed in each version of Curio Catalogue. A version's section is its release notes on GitHub and on the ModDB page.
 
-## 0.2.0 (unreleased)
+## 0.2.0 (2026-11-19)
 
 Four collections instead of one, and an album that shows its whole collection, as a stamp album does. Albums of 0.1 are
 converted when first read, with nothing lost.

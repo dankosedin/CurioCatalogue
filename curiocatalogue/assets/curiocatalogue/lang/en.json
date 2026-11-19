@@ -69,7 +69,7 @@
   "curiocatalogue:heldhelp-open-outgoing": "View the list",
   "curiocatalogue:heldhelp-open-wantlist": "View the want list",
 
-  "curiocatalogue:invoice-made": "{0}. Lines: {1}. Sheets left: {2} of {3}. Take it in hand and Shift + right-click a container to fill it.",
+  "curiocatalogue:invoice-made": "{0}. Lines: {1}. Sheets left: {2} of {3}. Take it in hand and Shift + right-click a container to fill it, with the book in your off-hand to update it.",
   "curiocatalogue:invoice-posted": "Filled. Lines: {0}, items: {1}.",
   "curiocatalogue:invoice-posted-ledger": "Book entries: {0} → {1}.",
   "curiocatalogue:invoice-posted-sheet": "Its sheet is back in the book.",

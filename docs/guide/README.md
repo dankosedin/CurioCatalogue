@@ -12,13 +12,15 @@ Contents: [Getting started](#getting-started), [Collections](#collections), [Ges
 
 1. **Your first book.** A vanilla book in the middle of the crafting grid, nails and strips above and below it, ink and quill to
    its right: a ledger with 8 sheets and the cover of the book you used. Anything written in that book is lost. A large book found
-   in ruins can be restored with a jug of lime water and ink and quill: that ledger has 32 sheets.
+   in ruins can be restored with a jug of lime water and ink and quill: that ledger has 32 sheets. A ledger notes kinds of items, a bill of materials their counts; an empty one
+   alone in the crafting grid turns into the other. Their handbook pages tell how they work.
 
    ![The first ledger in the crafting grid, with its tooltip](../images/first-ledger.en.png)
 
-2. **The album.** An empty ledger and any piece of the collection (a tapestry piece, an ore crystal, a seashell, a dead butterfly)
+2. **The album.** An empty ledger or bill of materials and any piece of the collection (a tapestry piece, an ore crystal, a seashell, a dead butterfly)
    in the crafting grid; the piece stays. The piece you use decides the collection.
 3. **Collect.** Hold the album, or keep it in your off-hand with the main hand empty, and press **Shift + right click** on a chest.
+   The album records what it takes; where the pieces go after that is up to you.
 4. **Look.** Right click into the air opens the album as pages: every picture with its pieces in place, the ones you have
    and the missing ones as dim silhouettes. Turn the pages with the buttons, or pick a group on its tab; a search lights the
    matches. Under the title: the album's name (click the pencil to change it), a bar with how much is collected, and the sheets
@@ -36,7 +38,7 @@ An album collects one collection, chosen by the piece it is made from.
 | Tapestries | a tapestry piece | one: 88 pieces in 31 pictures | by picture or by size |
 | Ore crystals | an ore crystal | *The richest of each ore* (16), *Each ore in each rock* (117), *Every crystal* (349) | by level, see [Layouts](#layouts) |
 | Seashells | a seashell | *Every type* (7), *Every type in every colour* (42) | by level, see [Layouts](#layouts) |
-| Butterflies | a dead butterfly | one: all 169 | by family or by rarity |
+| Butterflies | a dead butterfly | one: all 169 (109 species) | by family or by rarity |
 
 ### Levels
 
@@ -45,9 +47,9 @@ says "Choose a level to start collecting", and until you choose one in the level
 no want list. The first piece taken fixes the level; to choose another, press **Start over**, which makes everything missing
 again.
 
-- *The richest of each ore:* one crystal of each ore, of its richest grade, from any rock.
-- *Each ore in each rock:* each ore in every rock it is found in, of its richest grade.
-- *Every crystal:* every grade of each ore in each rock.
+- *The richest of each ore:* one crystal of each ore, of its richest quality, from any rock.
+- *Each ore in each rock:* each ore in every rock it is found in, of its richest quality.
+- *Every crystal:* every quality of each ore in each rock.
 - *Every type:* one shell of each type, in any colour.
 - *Every type in every colour:* each type in each of its six colours.
 
@@ -61,7 +63,7 @@ dropdown switches the view at any time; what is collected stays the same.
 - Tapestries: **by picture**, a frame for each picture with its pieces in place, or **by size**, the same frames on a tab for
   each picture size, from the smallest: 1×1, 2×1, 1×2, 3×1, 1×3, 2×2, 4×1 (width × height, in pieces).
 - Ore crystals: *The richest of each ore* is one page of 16 crystals; *Each ore in each rock* one table of ores by rocks;
-  *Every crystal* is shown **by ore**, a table of grades by rocks for each ore, or **by rock**, a table of grades by ores for
+  *Every crystal* is shown **by ore**, a table of qualities by rocks for each ore, or **by rock**, a table of qualities by ores for
   each rock.
 - Seashells: *Every type* is one page of 7 shells; *Every type in every colour* one table of types by colours. Seafoam and
   turquoise, the game's rare colours, have a small golden corner and "Rare colour" in the tooltip.
@@ -72,8 +74,8 @@ dropdown switches the view at any time; what is collected stays the same.
 
 ![Butterflies by rarity](../images/collection-butterflies.en.jpg)
 
-The tables are headed by icons: an ore by its nugget, a grade by a round yellow mark that grows and brightens with it, a rock
-by its stone, a shell colour by a round swatch. Hover over one for its name. The richest grade is the top row; a blank place
+The tables are headed by icons: an ore by its nugget, a quality by a round yellow mark that grows and brightens with it, a rock
+by its stone, a shell colour by a round swatch. Hover over one for its name. The richest quality is the top row; a blank place
 in a table is a crystal the game never generates.
 
 ### Names and "any"
@@ -104,7 +106,7 @@ With a book in hand, or in your off-hand with the main hand empty:
 - **Right click into the air:** opens the book.
 
 With a list in hand, **Shift + right click** on any container fills it. With a book in your off-hand the book is updated and
-the sheet comes back (an album only takes the sheet); without one the list becomes parchment. A want list is filled the same
+the sheet comes back (an album only gets the sheet back); without one the list becomes parchment. A want list is filled the same
 way: it takes what it lists, and a finished one becomes parchment.
 
 Plain right click and Ctrl + right click open containers as usual.
@@ -113,7 +115,7 @@ Plain right click and Ctrl + right click open containers as usual.
 
 ## Fair play on servers
 
-- The server decides. A list moves everything it lists or nothing, and says what stopped it.
+- The server decides. An intake or pick list moves everything it lists or nothing, and says what stopped it.
 - No more access than by hand: land claims, padlocks and reinforcement apply to every action, as to opening the chest yourself.
 - No remote access: items move only from the container you click.
 
@@ -125,20 +127,22 @@ Plain right click and Ctrl + right click open containers as usual.
 - `SoftEntryLimit` (500): a book with this many entries makes no more intake lists.
 - `ConsumeSheets` (false): hardcore; a filled list never gives its sheet back.
 - `ExtraIgnoredAttributes` (`["durability"]`): attributes ignored when comparing items, on top of the game's own.
-- `Collections`: settings per collection, by its id (`tapestries`, `crystals`, `seashells`, `butterflies`): `Exclude` (names to leave out, `*` for any text: a tapestry piece's name, e.g. `["aid-*"]`, or an item's code without `game:`, e.g. `["crystalizedore-*-uranium-*"]`), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
+- `Collections`: settings per collection, by its id (`tapestries`, `crystals`, `seashells`, `butterflies`): `Exclude` (names to leave out, `*` for any text: a tapestry piece's `type` (not the name the album shows), e.g. `["aid-*"]`, or an item's code without `game:`, e.g. `["crystalizedore-*-uranium-*"]`), `Add` (extra tapestry pieces of other mods) and `Disabled` (switch the collection off: its albums keep what they collected and take nothing until it is on again). The old `TapestryExclude` and `TapestryAdd` of 0.1 move there by themselves on the first start.
 - `Diagnostics` (false): write details to the game log, for finding problems.
+
+The server reads the file when it starts.
 
 The server sends its `Collections` and `ExtraIgnoredAttributes` to every client when it joins, so the album and the tooltips follow the server's file, not the client's. The other settings the server alone acts on. A mod that brings a collection must be on the server and on every client: the definitions are read from each side's own assets.
 
 ## Compatibility and known limitations
 
 - Needs Vintage Story 1.22.7. Install it on the server and on every client.
-- Mods that add tapestries to the game's tapestry list are picked up by the album.
+- Mods that add tapestries to the game's tapestry list are picked up by the album; ores, seashells and butterflies of other mods are not.
 - Tested with Upgradeable Storage and Carry On.
 - **Better Crates** is not supported: its crates refuse our lists, and show lists and books wrongly (dark, turned around).
 - Our books and lists do not go into a vanilla crate: Shift + right click on a container is ours.
 - With `ConsumeSheets` on, the handbook's "the sheet comes back" does not apply.
-- Supported containers: chests, trunks, labeled chests, stationary baskets, storage vessels, crates, backpacks and baskets placed on
+- Supported containers: chests, trunks, labeled chests, stationary baskets, storage vessels, vanilla crates, backpacks and baskets placed on
   the ground, and other mods' chests built on the vanilla ones. On other blocks with an inventory (ovens, barrels,
   shelves…) the mod says "This container is not supported yet". Per-player loot chests in ruins are refused.
   If a container of another mod says so, tell us the mod and the block: see [CONTRIBUTING.md](../../CONTRIBUTING.md).
@@ -146,7 +150,7 @@ The server sends its `Collections` and `ExtraIgnoredAttributes` to every client 
 ## Removing the mod
 
 The game deletes items of a removed mod. Without Curio Catalogue, every book and list disappears from inventories and chests,
-with the sheets in them; installing the mod again does not bring them back.
+with the sheets in them; installing the mod again does not bring them back. To stop one collection only, switch it off with `Disabled`.
 
 ## Sheets and covers
 

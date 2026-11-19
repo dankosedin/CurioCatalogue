@@ -52,7 +52,8 @@ them how a thing works means weak docs. The author checks the behaviour in game.
 **Input** (the same for every role): the change's description and diff (for a whole-mod round: none), `DESIGN.md`, `docs/moddb/description.md`,
 `description.uk.md`, the guide in the repo (`docs/guide/README.md`, `README.uk.md`), `curiocatalogue/assets/curiocatalogue/lang/en.json` and `uk.json` (the handbook guide, chat messages, held
 help, window texts), `docs/images/` and the screenshots the author gives; and, so that no role re-proposes what is decided or
-makes up a mechanic, `docs/domain.md`, `ROADMAP.md` and the Decisions of the plan the change belongs to. Players do not read the source code;
+makes up a mechanic, `docs/domain.md`, `ROADMAP.md`, the Decisions of the plan the change belongs to and those of earlier
+players' rounds (what they rejected; R5 of 0.2 re-proposed a P9 rejection). Players do not read the source code;
 the makers may read the diff, but they report behaviour, not code.
 The two guides tell one story: the players' round reads the guide in the repo and the in-game guide (`guide-text`, the handbook pages) and compares them; a fact that differs, or is only in the shorter one and should be in both, is a finding.
 
@@ -71,6 +72,8 @@ wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opi
 > guess about the code. Skip what `ROADMAP.md` or the plan's Decisions already hold; if you disagree with one, say so as `taste`.
 > A fix of a wrong text is worth more than a new sentence: the author keeps texts short. Stay in your role; mark opinions as
 > `taste`. Do not start the game, do not write files, do not read other mods' code. Report in the format below and end with what you read and found fine.
+> The mod is young: judge what is there. A collection, a book or a feature that is not in the mod is not a finding
+> (`ROADMAP.md` lists what may come), unless its absence makes something that is there misleading.
 > Input: … (the list above, with the paths of this round). The change: … (its description, or "the whole mod").
 
 **Roles** (Sonnet, read-only: the `Plan` agent type):
@@ -83,7 +86,9 @@ wrong thing, or gives up), `minor` (friction, a confusing text), `taste` (an opi
    when your inventory is full, and whether you can trust the numbers. You read the Ukrainian texts (`description.uk.md`, `uk.json`).
 3. **Newcomer.** You never open the handbook and learn by clicking. You care whether the first book you craft explains itself
    from its name, tooltip and held help, whether a wrong click does harm, and whether the messages tell you what to do next.
-   Read the description only after you have tried to understand the mod from the in-game texts alone, and report both passes.
+   In a whole-mod round, first meet the mod on its ModDB page (the generated `moddb.preview.html`) and decide in a minute
+   whether to install it: the first screen (title card, hook, the row of buttons), then the whole page. Then the in-game texts
+   alone, then the guide, and the page's words against the in-game texts; report each pass.
 4. **Server admin.** You run a public server with claims, reinforcement and many players. You care about access (can a book read
    or empty someone else's chest), what players can abuse (free items, spam, lag from large containers), the config, the
    commands, and what happens to books when you update or remove the mod.
@@ -199,13 +204,3 @@ Teammate (Opus) $3.8, Architect (Opus) $2.4, C# expert (Sonnet) $1.7, Hostile (S
   agreement still counted (R1 by all five). Keep it while it costs under $2; drop it first if a round must be cheaper.
 - **Moderate in a fresh session.** The moderation cost $1.7 in K7 (a fresh session, the reports saved outside it) and $9.6 on
   03.11 (in a long session at 280 thousand tokens of context). Hence the hand-off rule at the top of this page.
-
-## To weigh at the next players' round
-
-Proposals from the round on the mod page (P9 of the mod page plan, 04.11.2026), not adopted yet: the next round, with more
-content to judge, decides on them.
-
-- **A round on the mod page:** the newcomer meets the mod on ModDB and decides in a minute whether to install it; two passes,
-  the first screen (title card, hook, the row of buttons) and the whole page, then the page's words against the in-game texts.
-- **Telling the roles what the mod has and has not yet** (most findings of that round were about content not there yet, and the
-  author rejected them as early-stage noise). Against it: whatever we tell the roles passes our blind spots on to them.

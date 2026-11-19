@@ -51,6 +51,8 @@ again.
 - *Every type:* one shell of each type, in any colour.
 - *Every type in every colour:* each type in each of its six colours.
 
+![The level dropdown of a new ore crystals album](../images/album-level.en.png)
+
 ### Layouts
 
 A layout is how the album lays its pieces out on the pages. Where a level can be shown in more than one way, the layout
@@ -66,6 +68,10 @@ dropdown switches the view at any time; what is collected stays the same.
 - Butterflies: **by family**, seven tabs (the moths as one) with a frame for each of the 109 species, headed by its Latin name,
   or **by rarity**, six tabs by how often the game spawns them, from legendary to common.
 
+![Butterflies by family: a frame for each species](../images/butterflies-family.en.png)
+
+![Butterflies by rarity](../images/collection-butterflies.en.jpg)
+
 The tables are headed by icons: an ore by its nugget, a grade by a round yellow mark that grows and brightens with it, a rock
 by its stone, a shell colour by a round swatch. Hover over one for its name. The richest grade is the top row; a blank place
 in a table is a crystal the game never generates.
@@ -77,12 +83,18 @@ tapestry piece, "Native copper, bountiful, basalt" for a crystal; butterflies ke
 will do, the name says so ("Native copper, any rock", "Scallop, any colour"); the cell shows those items in turn, and the album
 or the want list takes whichever there is room for.
 
+![A want list of ore crystals at "The richest of each ore": a slot for each line, showing its crystals in turn](../images/wantlist.en.png)
+
 Butterflies on shelves, in display cases and in display mods are not read yet: take them into a chest first. The same holds for
 tapestries on a wall.
 
 ## Gestures
 
-![An album over a chest: Shift + right click takes new items for the collection](../images/album-chest.en.png)
+![The album before the chest: the page has gaps for the pieces the chest holds](../images/album-chest-1.en.png)
+
+![Shift + right click on the chest takes the new pieces: the hint at the bottom, the message in the chat](../images/album-chest-2.en.png)
+
+![The same page after: the new pieces are in place](../images/album-chest-3.en.png)
 
 With a book in hand, or in your off-hand with the main hand empty:
 

@@ -7,7 +7,7 @@ A Vintage Story mod about collecting and keeping account of things, in the spiri
 >
 > **Back up your world** before installing the mod or a new version of it.
 
-![The album window: 6 of 88 pieces collected, the missing ones in a grid](../images/album-window.en.png)
+![The album of tapestries: 18 of 88 pieces collected, the missing ones dimmed](../images/title.en.jpg)
 
 ## What's new
 
